@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.9.9-management
+    ports:
+      - "5672:5672"    # AMQP port
+      - "15672:15672"  # Management plugin port
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - ../messaging/RabbitMQConfig:/etc/rabbitmq   # Mount custom configuration file
+      - ./local/rabbitmq/data:/var/lib/rabbitmq
+      - ./local/rabbitmq/logs:/var/log/rabbitmq
