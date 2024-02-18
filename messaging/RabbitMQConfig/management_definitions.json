@@ -1,0 +1,102 @@
+{
+  "users": [
+    {
+      "name": "admin",
+      "password_hash": "byle9sWmmybF1haI/UZjrk4zfzdfyelr9a0qAR8M726Yah4N",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": [
+        "administrator"
+      ],
+      "limits": {}
+    },
+    {
+      "name": "expense_dashboard",
+      "password_hash": "A29vdk9CjSLR+j5eb46qU4dxUah6wpnfcBthu98X3EgGTIb1",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": [],
+      "limits": {}
+    },
+    {
+      "name": "expense_users",
+      "password_hash": "Osgcp+s9MrftEfAXjYvO4u0cOO7EPyfIitdegLtREOO1rpsg",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": [],
+      "limits": {}
+    },
+    {
+      "name": "expense_expenses",
+      "password_hash": "gTVgj//N28wSDBv64tU1gb1sxiMjyfCCaFA+4eOab6/SljZ4",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": [],
+      "limits": {}
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    },
+    {
+      "name": "expense_management"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "expense_expenses",
+      "vhost": "expense_management",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "expense_users",
+      "vhost": "expense_management",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "expense_dashboard",
+      "vhost": "expense_management",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "admin",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "admin",
+      "vhost": "expense_management",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "topic_permissions": [
+    {
+      "user": "expense_dashboard",
+      "vhost": "expense_management",
+      "exchange": "",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "expense_users",
+      "vhost": "expense_management",
+      "exchange": "",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "expense_expenses",
+      "vhost": "expense_management",
+      "exchange": "",
+      "write": ".*",
+      "read": ".*"
+    }
+  ]
+}

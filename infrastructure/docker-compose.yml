@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   rabbitmq:
+    container_name: rabbitmq
     image: rabbitmq:3.9.9-management
     ports:
       - "5672:5672"    # AMQP port
@@ -13,3 +14,23 @@ services:
       - ../messaging/RabbitMQConfig:/etc/rabbitmq   # Mount custom configuration file
       - ./local/rabbitmq/data:/var/lib/rabbitmq
       - ./local/rabbitmq/logs:/var/log/rabbitmq
+    command: rabbitmq-server
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v2.30.3
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../messaging/PrometheusConfig:/etc/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:8.3.0
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./local/grafana/data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
