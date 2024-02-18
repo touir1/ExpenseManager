@@ -9,3 +9,5 @@ Rest Api documentation: https://rawcdn.githack.com/rabbitmq/rabbitmq-server/v3.1
 To access RabbitMQ Management: http://localhost:15672/
 
 To access Grafana dashboards: http://localhost:3000/
+
+Useful dashboard to integrate (json): https://grafana.com/orgs/rabbitmq
