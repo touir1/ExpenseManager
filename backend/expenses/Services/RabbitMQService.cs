@@ -1,19 +1,23 @@
-﻿using RabbitMQ.Client;
+﻿using Microsoft.Extensions.Options;
+using RabbitMQ.Client;
 
 namespace Expenses.Services
 {
     public class RabbitMQService : IRabbitMQService
     {
         private readonly ConnectionFactory _connectionFactory;
+        private readonly RabbitMQOption _option;
 
-        public RabbitMQService(string hostName, int port, string userName, string password)
+        public RabbitMQService(IOptions<RabbitMQOption> option)
         {
+            _option = option.Value;
+
             _connectionFactory = new ConnectionFactory
             {
-                HostName = hostName,
-                Port = port,
-                UserName = userName,
-                Password = password
+                HostName = _option.HostName,
+                Port = _option.Port,
+                UserName = _option.UserName,
+                Password = _option.Password
             };
         }
 
