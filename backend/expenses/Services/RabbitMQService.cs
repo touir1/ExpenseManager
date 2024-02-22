@@ -6,9 +6,9 @@ namespace Expenses.Services
     public class RabbitMQService : IRabbitMQService
     {
         private readonly ConnectionFactory _connectionFactory;
-        private readonly RabbitMQOption _option;
+        private readonly RabbitMQOptions _option;
 
-        public RabbitMQService(IOptions<RabbitMQOption> option)
+        public RabbitMQService(IOptions<RabbitMQOptions> option)
         {
             _option = option.Value;
 

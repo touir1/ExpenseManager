@@ -17,37 +17,43 @@ builder.Configuration.AddJsonFile($"appsettings.{environmentName}.json", optiona
 
 #region Options
 
-builder.Services.Configure<RabbitMQOption>(c =>
+builder.Services.Configure<RabbitMQOptions>(c =>
 {
     c.HostName = builder.Configuration.GetValue("RabbitMQ:HostName",
                     Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_EXPENSES_RABBITMQ_HOSTNAME") ?? "127.0.0.1");
     c.Port = int.Parse(builder.Configuration.GetValue("RabbitMQ:Port",
-                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_EXPENSES_RABBITMQ_PORT") ?? "5672"));
+                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_EXPENSES_RABBITMQ_PORT")) ?? "5672");
     c.UserName = builder.Configuration.GetValue("RabbitMQ:UserName",
                     Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_EXPENSES_RABBITMQ_USERNAME") ?? "expense_expenses");
     c.Password = builder.Configuration.GetValue("RabbitMQ:Password",
                     Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_EXPENSES_RABBITMQ_PASSWORD") ?? "expense_expenses");
 });
 
-builder.Services.Configure<PostgresOption>(c =>
+builder.Services.Configure<PostgresOptions>(c =>
 {
     c.Server = builder.Configuration.GetValue("Postgres:Server",
-                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_EXPENSES_DATABASE_SERVER") ?? "127.0.0.1");
+                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_EXPENSES_DATABASE_SERVER")) ?? "127.0.0.1";
     c.Port = int.Parse(builder.Configuration.GetValue("Postgres:Port",
-                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_EXPENSES_DATABASE_PORT") ?? "5432"));
+                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_EXPENSES_DATABASE_PORT")) ?? "5432");
     c.UserName = builder.Configuration.GetValue("Postgres:User",
-                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_EXPENSES_DATABASE_USERNAME") ?? "expenses");
+                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_EXPENSES_DATABASE_USERNAME")) ?? "expenses";
     c.Password = builder.Configuration.GetValue("Postgres:Password",
-                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_EXPENSES_DATABASE_PASSWORD") ?? "expenses");
+                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_EXPENSES_DATABASE_PASSWORD")) ?? "expenses";
     c.Database = builder.Configuration.GetValue("Postgres:Database",
-                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_EXPENSES_DATABASE_DATABASE") ?? "expenses");
+                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_EXPENSES_DATABASE_DATABASE")) ?? "expenses";
 });
 
 #endregion
 
 #region Services
 
-builder.Services.AddScoped<IRabbitMQService, RabbitMQService>();
+builder.Services.AddSingleton<IRabbitMQService, RabbitMQService>();
+
+#endregion
+
+#region Repositories
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 #endregion
 
