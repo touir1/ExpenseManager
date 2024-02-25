@@ -1,4 +1,4 @@
-﻿namespace Expenses.Models
+﻿namespace com.touir.expenses.Expenses.Models
 {
     public class Expense
     {

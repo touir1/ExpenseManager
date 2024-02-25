@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 
-namespace Expenses.Services
+namespace com.touir.expenses.Expenses.Services
 {
     public class RabbitMQService : IRabbitMQService
     {

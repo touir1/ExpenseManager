@@ -1,4 +1,4 @@
-﻿namespace Expenses.Services
+﻿namespace com.touir.expenses.Expenses.Services
 {
     public class RabbitMQOptions
     {

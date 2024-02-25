@@ -1,35 +1,26 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
-    <UserSecretsId>24c704d8-43ca-4515-94ef-87f104660201</UserSecretsId>
+    <UserSecretsId>3994e664-c00a-4234-ac9c-c8add25acb7f</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
     <RootNamespace>com.touir.expenses</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="sql_database_scripts\**" />
-    <Content Remove="sql_database_scripts\**" />
-    <EmbeddedResource Remove="sql_database_scripts\**" />
-    <None Remove="sql_database_scripts\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.1.28" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
-    <PackageReference Include="Npgsql" Version="8.0.2" />
-    <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Controllers\" />
     <Folder Include="Messaging\" />
-    <Folder Include="Infrastructure\" />
+    <Folder Include="Services\" />
+    <Folder Include="Repositories\" />
   </ItemGroup>
 
 </Project>

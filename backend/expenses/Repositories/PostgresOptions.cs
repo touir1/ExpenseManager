@@ -1,6 +1,4 @@
-﻿using Expenses.Models;
-
-namespace Expenses.Repositories
+﻿namespace com.touir.expenses.Expenses.Repositories
 {
     public class PostgresOptions
     {
