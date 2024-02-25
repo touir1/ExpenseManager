@@ -1,7 +1,5 @@
-using Expenses.Repositories;
-using Expenses.Services;
-using Microsoft.Extensions.Configuration;
-using System.Reflection;
+using com.touir.expenses.Expenses.Repositories;
+using com.touir.expenses.Expenses.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
