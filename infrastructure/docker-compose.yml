@@ -45,6 +45,7 @@ services:
       - "5432:5432"
     volumes:
       - ./local/postgres/backups:/backups
+      - ./local/postgres/data:/var/lib/postgresql/data
   pgadmin:
     image: dpage/pgadmin4
     container_name: expenses_pgadmin

@@ -18,11 +18,11 @@ namespace com.touir.expenses.Users.Repositories
             using (var connection = new NpgsqlConnection(_connectionString))
             {
                 string sql = @"
-                    SELECT ""USR_Id"" Id, ""USR_FirstName"" FirstName, ""USR_LastName"" LastName, ""USR_Email"" Email,
-                        ""USR_FamilyId"" FamilyId, ""USR_CreatedAt"" CreatedAt, ""USR_CreatedBy"" CreatedBy, 
-                        ""USR_LastUpdatedAt"" LastUpdatedAt, ""USR_LastUpdatedBy"" LastUpdatedBy, ""USR_IsDisabled"" IsDisabled
-                    FROM ""USR_Users""
-                    WHERE ""USR_Email"" = @Email";
+                    SELECT USR_Id Id, USR_FirstName FirstName, USR_LastName LastName, USR_Email Email,
+                        USR_FamilyId FamilyId, USR_CreatedAt CreatedAt, USR_CreatedBy CreatedBy, 
+                        USR_LastUpdatedAt LastUpdatedAt, USR_LastUpdatedBy LastUpdatedBy, USR_IsDisabled IsDisabled
+                    FROM USR_Users
+                    WHERE USR_Email = @Email";
 
                 return await connection.QueryFirstOrDefaultAsync<User>(sql, new { Email = email });
             }

@@ -20,7 +20,7 @@ namespace com.touir.expenses.Users.Repositories
             {
                 string sql = @"
                     SELECT ATH_UserId Id, ATH_HashPassword HashPassword, ATH_HashSalt HashSalt
-                    FROM ""ATH_Authentications""
+                    FROM ATH_Authentications
                     WHERE ATH_UserId = @Id";
 
                 return await connection.QueryFirstOrDefaultAsync<Authentication>(sql, new { Id = id });
