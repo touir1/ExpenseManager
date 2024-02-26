@@ -1,8 +1,8 @@
--- Database: expenses
+-- Database: users
 
--- DROP DATABASE IF EXISTS expenses;
+-- DROP DATABASE IF EXISTS users;
 
-CREATE DATABASE expenses
+CREATE DATABASE users
     WITH
     OWNER = postgres
     ENCODING = 'UTF8'

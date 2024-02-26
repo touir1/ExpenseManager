@@ -1,4 +1,6 @@
+using com.touir.expenses.Users.Infrastructure.Options;
 using com.touir.expenses.Users.Repositories;
+using com.touir.expenses.Users.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,31 @@ builder.Services.Configure<PostgresOptions>(c =>
     c.Database = builder.Configuration.GetValue("Postgres:Database",
                     Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_USERS_DATABASE_DATABASE")) ?? "users";
 });
+
+builder.Services.Configure<JwtAuthOptions>(c =>
+{
+    c.SecretKey = builder.Configuration.GetValue("JwtAuth:SecretKey",
+                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_USERS_JWT_SECRET_KEY")) ?? "SECRET_KEY_TO_CHANGE_LATER";
+    c.ExpiryInMinutes = int.Parse(builder.Configuration.GetValue("JwtAuth:ExpiryInMinutes",
+                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_USERS_JWT_EXPIRY_IN_MINUTES")) ?? "60");
+    c.Audience = builder.Configuration.GetValue("JwtAuth:Audience",
+                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_USERS_JWT_AUDIENCE")) ?? "https://localhost";
+    c.Issuer = builder.Configuration.GetValue("JwtAuth:Issuer",
+                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_USERS_JWT_ISSUER")) ?? "https://localhost";
+});
+
+#endregion
+
+#region Repositories
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuthenticationRepository, AuthenticationRepository>();
+
+#endregion
+
+#region Services
+
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
 #endregion
 

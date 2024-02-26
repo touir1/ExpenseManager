@@ -1,4 +1,4 @@
-﻿namespace com.touir.expenses.Users.Repositories
+﻿namespace com.touir.expenses.Users.Infrastructure.Options
 {
     public class PostgresOptions
     {
