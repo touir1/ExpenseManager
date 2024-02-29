@@ -11,6 +11,14 @@
     <RootNamespace>com.touir.expenses.Users</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702,CS8618,CS8603,CS8604,</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>1701;1702,CS8618,CS8603,CS8604,</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="sql_database_scripts\**" />
     <Content Remove="sql_database_scripts\**" />
