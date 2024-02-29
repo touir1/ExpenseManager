@@ -21,16 +21,16 @@ namespace com.touir.expenses.Users.Controllers
 
         [Route("login")]
         [HttpPost]
-        public async Task<IActionResult> LoginAsync(LoginRequest model)
+        public async Task<IActionResult> LoginAsync(LoginRequest request)
         {
-            if(model.ApplicationCode == null || model.Email == null || model.Password == null)
+            if(request.ApplicationCode == null || request.Email == null || request.Password == null)
                 return Unauthorized(new { message = "Invalid username or password" });
 
-            var user = await _authenticationService.AuthenticateAsync(model.Email, model.Password);
+            var user = await _authenticationService.AuthenticateAsync(request.Email, request.Password);
             if (user == null)
                 return Unauthorized(new { message = "Invalid username or password" });
 
-            var roles = await _roleService.GetUserRolesByApplicationCodeAsync(model.ApplicationCode, user.Id);
+            var roles = await _roleService.GetUserRolesByApplicationCodeAsync(request.ApplicationCode, user.Id);
             if(roles == null || roles.Count() == 0)
                 return Unauthorized(new { message = "No assigned role" });
 
