@@ -1,6 +1,7 @@
 ﻿using com.touir.expenses.Users.Infrastructure.Options;
 using com.touir.expenses.Users.Models;
-using com.touir.expenses.Users.Repositories;
+using com.touir.expenses.Users.Repositories.Contracts;
+using com.touir.expenses.Users.Services.Contracts;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;

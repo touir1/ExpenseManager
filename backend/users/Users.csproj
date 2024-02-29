@@ -12,6 +12,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="sql_database_scripts\**" />
+    <Content Remove="sql_database_scripts\**" />
+    <EmbeddedResource Remove="sql_database_scripts\**" />
+    <None Remove="sql_database_scripts\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.28" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
     <PackageReference Include="Npgsql" Version="8.0.2" />

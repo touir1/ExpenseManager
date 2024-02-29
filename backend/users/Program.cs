@@ -1,6 +1,8 @@
 using com.touir.expenses.Users.Infrastructure.Options;
 using com.touir.expenses.Users.Repositories;
+using com.touir.expenses.Users.Repositories.Contracts;
 using com.touir.expenses.Users.Services;
+using com.touir.expenses.Users.Services.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,12 +47,14 @@ builder.Services.Configure<JwtAuthOptions>(c =>
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthenticationRepository, AuthenticationRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 #endregion
 
 #region Services
 
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 
 #endregion
 

@@ -1,7 +1,7 @@
 ﻿using com.touir.expenses.Users.Models;
 using Microsoft.IdentityModel.Tokens;
 
-namespace com.touir.expenses.Users.Services
+namespace com.touir.expenses.Users.Services.Contracts
 {
     public interface IAuthenticationService
     {

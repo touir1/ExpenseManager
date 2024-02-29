@@ -1,5 +1,6 @@
 ﻿using com.touir.expenses.Users.Infrastructure.Options;
 using com.touir.expenses.Users.Models;
+using com.touir.expenses.Users.Repositories.Contracts;
 using Dapper;
 using Microsoft.Extensions.Options;
 using Npgsql;
