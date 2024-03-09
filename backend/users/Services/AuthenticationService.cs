@@ -75,7 +75,39 @@ namespace com.touir.expenses.Users.Services
 
         public TokenValidationResult ValidateToken(string token)
         {
-            throw new NotImplementedException();
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = _issuer,
+
+                ValidateAudience = true,
+                ValidAudience = _audience,
+
+                ValidateLifetime = true,
+
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey)),
+                ValidateIssuerSigningKey = true
+            };
+
+            var validationResult = new TokenValidationResult();
+            try
+            {
+                // Validate the token
+                tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
+
+                // Token validation succeeded
+                validationResult.IsValid = true;
+                validationResult.SecurityToken = validatedToken;
+            }
+            catch (SecurityTokenException ex)
+            {
+                // Token validation failed
+                validationResult.IsValid = false;
+                validationResult.Exception = ex;
+            }
+
+            return validationResult;
         }
         private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
         {

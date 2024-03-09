@@ -41,6 +41,18 @@ builder.Services.Configure<JwtAuthOptions>(c =>
                     Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_USERS_JWT_ISSUER")) ?? "https://localhost";
 });
 
+builder.Services.Configure<EmailOptions>(c =>
+{
+    c.Email = builder.Configuration.GetValue("EmailAuth:Email",
+                Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_EMAILAUTH_EMAIL")) ?? "email.to.change.later@email.com";
+    c.Password = builder.Configuration.GetValue("EmailAuth:Password",
+                Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_EMAILAUTH_PASSWORD")) ?? "PASSWORD_TO_CHANGE_LATER";
+    c.Host = builder.Configuration.GetValue("EmailAuth:Host",
+                Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_EMAILAUTH_HOST")) ?? "smtp.gmail.com";
+    c.Port = int.Parse(builder.Configuration.GetValue("EmailAuth:Port",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_EMAILAUTH_PORT")) ?? "587");
+});
+
 #endregion
 
 #region Repositories
