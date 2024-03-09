@@ -1,3 +1,5 @@
+using com.touir.expenses.Users.Infrastructure;
+using com.touir.expenses.Users.Infrastructure.Contracts;
 using com.touir.expenses.Users.Infrastructure.Options;
 using com.touir.expenses.Users.Repositories;
 using com.touir.expenses.Users.Repositories.Contracts;
@@ -67,6 +69,12 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
+
+#endregion
+
+#region Helpers
+
+builder.Services.AddScoped<IEmailHelper, EmailHelper>();
 
 #endregion
 
