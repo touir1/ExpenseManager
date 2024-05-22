@@ -1,4 +1,6 @@
-﻿using com.touir.expenses.Users.Infrastructure.Options;
+﻿using com.touir.expenses.Users.Infrastructure;
+using com.touir.expenses.Users.Infrastructure.Contracts;
+using com.touir.expenses.Users.Infrastructure.Options;
 using com.touir.expenses.Users.Models;
 using com.touir.expenses.Users.Repositories.Contracts;
 using com.touir.expenses.Users.Services.Contracts;
@@ -18,11 +20,13 @@ namespace com.touir.expenses.Users.Services
         private readonly string _audience;
         private readonly int _expiryInMinutes;
 
+        private readonly IEmailHelper _emailHelper;
         private readonly IUserRepository _userRepository;
         private readonly IAuthenticationRepository _authenticationRepository;
 
         public AuthenticationService(
             IOptions<JwtAuthOptions> jwtAuthOptions, 
+            IEmailHelper emailHelper,
             IUserRepository userRepository, 
             IAuthenticationRepository authenticationRepository) 
         {
@@ -31,6 +35,7 @@ namespace com.touir.expenses.Users.Services
             _audience = jwtAuthOptions.Value.Audience;
             _expiryInMinutes = jwtAuthOptions.Value.ExpiryInMinutes;
 
+            _emailHelper = emailHelper;
             _userRepository = userRepository;
             _authenticationRepository = authenticationRepository;
         }
@@ -109,6 +114,58 @@ namespace com.touir.expenses.Users.Services
 
             return validationResult;
         }
+
+        public async Task<IEnumerable<string>> RegisterNewUserAsync(string firstname, string lastname, string email)
+        {
+            IEnumerable<string> errors = new List<string>();
+            
+            if(firstname == null)
+                errors.Append("firstname is empty");
+            if(lastname == null)
+                errors.Append("lastname is empty");
+            
+            if (email == null)
+                errors.Append("email is empty");
+            if(email != null && !_emailHelper.ValidateEmail(email))
+                errors.Append("email format is invalid");
+
+            User? user = await _userRepository.GetUserByEmailAsync(email);
+            if(user != null)
+            {
+                if (user.IsEmailValidated)
+                    errors.Append("email is already used");
+                else
+                    errors.Append("there's already a registration process ongoing, please check you mailbox to validate the email");
+            }
+            else
+            {
+                user = await _userRepository.CreateUserAsync(new User
+                {
+                    FirstName = firstname,
+                    LastName = lastname,
+                    Email = email,
+                    CreatedAt = DateTime.UtcNow,
+                    IsEmailValidated = false,
+                    IsDisabled = false,
+                    LastUpdatedAt = DateTime.UtcNow,
+                    EmailValidationHash = Guid.NewGuid().ToString()
+                });
+
+                try
+                {
+                    string emailVerificationHtml = null;//_emailHelper.GetEmailTemplate(EmailHTMLTemplate.EMAIL_VERIFICATION, );
+                    _emailHelper.SendEmail(recipientTo: email, emailSubject: "[Expenses Manager] Email Verification", isHTML: true, emailBody: emailVerificationHtml);
+                }
+                catch (Exception)
+                {
+                    await _userRepository.DeleteUserAsync(user);
+                    errors.Append("Error while trying to create user, please contact administrator");
+                }
+            }
+            
+            return errors;
+        }
+
         private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
         {
             using var hmac = new HMACSHA512(passwordSalt);

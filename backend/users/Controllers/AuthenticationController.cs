@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace com.touir.expenses.Users.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
@@ -17,6 +17,22 @@ namespace com.touir.expenses.Users.Controllers
         {
             _authenticationService = authenticationService;
             _roleService = roleService;
+        }
+
+        [Route("register")]
+        [HttpPost]
+        public async Task<IActionResult> RegisterAsync(RegisterRequest request)
+        {
+
+            try
+            {
+                
+            }
+            catch(Exception ex)
+            {
+
+            }
+            return Ok();
         }
 
         [Route("login")]

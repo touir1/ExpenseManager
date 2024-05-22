@@ -3,3 +3,4 @@ bin/
 obj/
 .vs/
 *.csproj.user
+DBeaver_projects/

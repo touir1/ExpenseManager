@@ -3,12 +3,15 @@
     public interface IEmailHelper
     {
         bool SendEmail(
-            string? recipientTo,
-            string? recipientCC,
-            string? recipientBCC,
-            string emailSubject,
-            string? emailBody,
+            string? recipientTo = null,
+            string? recipientCC = null,
+            string? recipientBCC = null,
+            string emailSubject = null,
+            string? emailBody = null,
             bool isHTML = false,
             ICollection<string>? attachments = null);
+        bool ValidateEmail(string email);
+
+        string GetEmailTemplate(string templateKey, Dictionary<string, string> parameters);
     }
 }

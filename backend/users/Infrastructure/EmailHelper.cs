@@ -21,11 +21,11 @@ namespace com.touir.expenses.Users.Infrastructure
         }
 
         public bool SendEmail(
-            string? recipientTo, 
-            string? recipientCC, 
-            string? recipientBCC, 
-            string emailSubject, 
-            string? emailBody, 
+            string? recipientTo = null, 
+            string? recipientCC = null, 
+            string? recipientBCC = null, 
+            string emailSubject = null, 
+            string? emailBody = null, 
             bool isHTML = false,
             ICollection<string>? attachments = null) 
         {
@@ -72,6 +72,25 @@ namespace com.touir.expenses.Users.Infrastructure
                 Console.Error.WriteLine(ex.StackTrace);
             }
             return false;
+        }
+
+        public bool ValidateEmail(string email)
+        {
+            try
+            {
+                _ = new MailAddress(email);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public string GetEmailTemplate(string templateKey, Dictionary<string, string> parameters)
+        {
+
+            return null;
         }
     }
 }

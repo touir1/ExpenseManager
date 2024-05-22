@@ -11,6 +11,8 @@
         public User CreatedBy { get; set; }
         public DateTime LastUpdatedAt { get; set; }
         public User LastUpdatedBy { get; set; }
+        public bool IsEmailValidated { get; set; }
+        public string EmailValidationHash { get; set; }
         public bool IsDisabled { get; set; }
     }
 }

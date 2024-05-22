@@ -10,6 +10,8 @@ CREATE TABLE public.USR_Users
     USR_CreatedBy integer,
     USR_LastUpdatedAt timestamp without time zone,
     USR_LastUpdatedBy integer,
+	USR_IsEmailValidated boolean,
+	USR_EmailValidationHash character varying(36),
     USR_IsDisabled boolean,
     PRIMARY KEY (USR_Id)
 );
@@ -22,6 +24,7 @@ CREATE TABLE public.ATH_Authentications
     ATH_UserId integer,
     ATH_HashPassword character varying(4000),
 	ATH_HashSalt character varying(4000),
+	ATH_IsTemporaryPassword boolean,
     PRIMARY KEY (ATH_UserId),
     CONSTRAINT FK_UserId_USR_Users FOREIGN KEY (ATH_UserId)
         REFERENCES public.USR_Users (USR_Id) MATCH SIMPLE
