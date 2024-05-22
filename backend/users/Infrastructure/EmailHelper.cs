@@ -3,6 +3,8 @@ using com.touir.expenses.Users.Infrastructure.Options;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Mail;
+using System.Reflection;
+using System.Text;
 
 namespace com.touir.expenses.Users.Infrastructure
 {
@@ -41,6 +43,7 @@ namespace com.touir.expenses.Users.Infrastructure
 
                     using (var message = new MailMessage())
                     {
+                        message.From = new MailAddress(sender);
                         if(recipientTo != null)
                             message.To.Add(recipientTo);
                         if(recipientCC != null)
@@ -89,8 +92,17 @@ namespace com.touir.expenses.Users.Infrastructure
 
         public string GetEmailTemplate(string templateKey, Dictionary<string, string> parameters)
         {
+            string filePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), $"Assets\\EmailTemplates\\{templateKey}.html");
+            StringBuilder templateContent = new StringBuilder(File.ReadAllText(filePath));
 
-            return null;
+            if(parameters != null) { 
+                foreach(KeyValuePair<string, string> param in  parameters)
+                {
+                    templateContent.Replace($"@@{param.Key}@@", param.Value);
+                }
+            }
+
+            return templateContent.ToString();
         }
     }
 }

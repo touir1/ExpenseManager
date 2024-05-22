@@ -23,16 +23,20 @@ namespace com.touir.expenses.Users.Controllers
         [HttpPost]
         public async Task<IActionResult> RegisterAsync(RegisterRequest request)
         {
-
             try
             {
-                
+                var errors = await _authenticationService.RegisterNewUserAsync(request.FirstName, request.LastName, request.Email);
+                return Ok(new RegisterResponse
+                {
+                    Errors = errors,
+                    HasError = errors != null && errors.Count() > 0
+                });
             }
-            catch(Exception ex)
+            catch(Exception)
             {
-
+                return BadRequest("Error while trying to register a new user. If the problem persist, please contact administrators");
             }
-            return Ok();
+            
         }
 
         [Route("login")]

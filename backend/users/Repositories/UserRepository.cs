@@ -37,10 +37,21 @@ namespace com.touir.expenses.Users.Repositories
                 string sql = @"
                     INSERT INTO USR_Users(USR_FirstName, USR_LastName, USR_Email, USR_CreatedAt, USR_CreatedBy, USR_LastUpdatedAt,
                         USR_LastUpdatedBy, USR_IsDisabled, USR_IsEmailValidated, USR_EmailValidationHash)
-                    VALUES(@FirstName, @LastName, @Email, @CreatedAt, @CreatedBy, @LastUpdatedAt, @LastUpdatedBy, @IsDisabled,
+                    VALUES(@FirstName, @LastName, @Email, @CreatedAt, @CreatedById, @LastUpdatedAt, @LastUpdatedById, @IsDisabled,
                         @IsEmailValidated, @EmailValidationHash) RETURNING USR_Id";
 
-                user.Id = await connection.ExecuteScalarAsync<int>(sql, user);
+                user.Id = await connection.ExecuteScalarAsync<int>(sql, new {
+                    user.FirstName,
+                    user.LastName,
+                    user.Email,
+                    user.CreatedAt,
+                    CreatedById = user.CreatedBy?.Id,
+                    user.LastUpdatedAt,
+                    LastUpdatedById = user.LastUpdatedBy?.Id,
+                    user.IsDisabled,
+                    user.IsEmailValidated,
+                    user.EmailValidationHash,
+                });
 
                 return user;
             }

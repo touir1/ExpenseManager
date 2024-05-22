@@ -55,6 +55,12 @@ builder.Services.Configure<EmailOptions>(c =>
                     Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_EMAILAUTH_PORT")) ?? "587");
 });
 
+builder.Services.Configure<AuthenticationServiceOptions>(c =>
+{
+    c.VerifyEmailBaseUrl = builder.Configuration.GetValue("AuthenticationService:VerifyEmailBaseUrl",
+                Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_VERIFY_EMAIL_URL")) ?? "https://localhost:7114/api/auth/verifyEmail";
+});
+
 #endregion
 
 #region Repositories

@@ -2,7 +2,17 @@
 {
     public sealed class EmailHTMLTemplate
     {
-        public static readonly string EMAIL_VERIFICATION = "EMAIL_VERIFICATION_TEMPLATE";
+        public sealed class EmailVerification
+        {
+            public static readonly string Key = "EMAIL_VERIFICATION_TEMPLATE";
+            public sealed class Variables
+            {
+                public static readonly string VerificationLink = "VERIFICATION_LINK";
+                private Variables() { }
+            }
+
+            private EmailVerification() { }
+        }
 
         private EmailHTMLTemplate() { }
     }

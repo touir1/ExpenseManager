@@ -24,8 +24,11 @@ namespace com.touir.expenses.Users.Services
         private readonly IUserRepository _userRepository;
         private readonly IAuthenticationRepository _authenticationRepository;
 
+        private readonly string _verifyEmailUrl;
+
         public AuthenticationService(
-            IOptions<JwtAuthOptions> jwtAuthOptions, 
+            IOptions<JwtAuthOptions> jwtAuthOptions,
+            IOptions<AuthenticationServiceOptions> authServiceOptions,
             IEmailHelper emailHelper,
             IUserRepository userRepository, 
             IAuthenticationRepository authenticationRepository) 
@@ -38,6 +41,8 @@ namespace com.touir.expenses.Users.Services
             _emailHelper = emailHelper;
             _userRepository = userRepository;
             _authenticationRepository = authenticationRepository;
+
+            _verifyEmailUrl = authServiceOptions.Value.VerifyEmailBaseUrl;
         }
         public async Task<User?> AuthenticateAsync(string email, string password)
         {
@@ -117,25 +122,28 @@ namespace com.touir.expenses.Users.Services
 
         public async Task<IEnumerable<string>> RegisterNewUserAsync(string firstname, string lastname, string email)
         {
-            IEnumerable<string> errors = new List<string>();
+            IList<string> errors = new List<string>();
             
-            if(firstname == null)
-                errors.Append("firstname is empty");
-            if(lastname == null)
-                errors.Append("lastname is empty");
+            if(firstname == null || String.Empty.Equals(firstname.Trim()))
+                errors.Add("firstname is empty");
+            if(lastname == null || String.Empty.Equals(lastname.Trim()))
+                errors.Add("lastname is empty");
             
-            if (email == null)
-                errors.Append("email is empty");
+            if (email == null || String.Empty.Equals(email.Trim()))
+                errors.Add("email is empty");
             if(email != null && !_emailHelper.ValidateEmail(email))
-                errors.Append("email format is invalid");
+                errors.Add("email format is invalid");
+
+            if (errors.Count() > 0)
+                return errors;
 
             User? user = await _userRepository.GetUserByEmailAsync(email);
             if(user != null)
             {
                 if (user.IsEmailValidated)
-                    errors.Append("email is already used");
+                    errors.Add("email is already used");
                 else
-                    errors.Append("there's already a registration process ongoing, please check you mailbox to validate the email");
+                    errors.Add("there's already a registration process ongoing, please check you mailbox to validate the email");
             }
             else
             {
@@ -153,13 +161,17 @@ namespace com.touir.expenses.Users.Services
 
                 try
                 {
-                    string emailVerificationHtml = null;//_emailHelper.GetEmailTemplate(EmailHTMLTemplate.EMAIL_VERIFICATION, );
+                    string verificationLink = $"{_verifyEmailUrl.TrimEnd('/')}/{user.EmailValidationHash}";
+                    string emailVerificationHtml = _emailHelper.GetEmailTemplate(EmailHTMLTemplate.EmailVerification.Key, new Dictionary<string, string> {
+                        { EmailHTMLTemplate.EmailVerification.Variables.VerificationLink, verificationLink },
+                    });
                     _emailHelper.SendEmail(recipientTo: email, emailSubject: "[Expenses Manager] Email Verification", isHTML: true, emailBody: emailVerificationHtml);
                 }
-                catch (Exception)
+                catch (Exception exception)
                 {
                     await _userRepository.DeleteUserAsync(user);
-                    errors.Append("Error while trying to create user, please contact administrator");
+                    Console.WriteLine(exception.ToString()); // to change later: logging implementation
+                    throw;
                 }
             }
             
