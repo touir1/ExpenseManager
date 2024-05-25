@@ -7,5 +7,7 @@ namespace com.touir.expenses.Users.Repositories.Contracts
         Task<User?> GetUserByEmailAsync(string email);
         Task<User?> CreateUserAsync(User user);
         Task<bool?> DeleteUserAsync(User user);
+        Task<IList<string>> GetUsedEmailValidationHashesAsync();
+        Task<bool> VerifyEmail(string emailValidationHash, string email);
     }
 }

@@ -10,6 +10,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Web;
 
 namespace com.touir.expenses.Users.Services
 {
@@ -147,6 +148,14 @@ namespace com.touir.expenses.Users.Services
             }
             else
             {
+                string emailValidationHash;
+                IList<string> existingEmailValidationHashes = await _userRepository.GetUsedEmailValidationHashesAsync();
+                do
+                {
+                    emailValidationHash = Guid.NewGuid().ToString();
+                }
+                while (existingEmailValidationHashes.Contains(emailValidationHash));
+
                 user = await _userRepository.CreateUserAsync(new User
                 {
                     FirstName = firstname,
@@ -156,12 +165,12 @@ namespace com.touir.expenses.Users.Services
                     IsEmailValidated = false,
                     IsDisabled = false,
                     LastUpdatedAt = DateTime.UtcNow,
-                    EmailValidationHash = Guid.NewGuid().ToString()
+                    EmailValidationHash = emailValidationHash
                 });
 
                 try
                 {
-                    string verificationLink = $"{_verifyEmailUrl.TrimEnd('/')}/{user.EmailValidationHash}";
+                    string verificationLink = $"{_verifyEmailUrl.TrimEnd('/')}?h={HttpUtility.UrlEncode(emailValidationHash)}&s={HttpUtility.UrlEncode(email)}";
                     string emailVerificationHtml = _emailHelper.GetEmailTemplate(EmailHTMLTemplate.EmailVerification.Key, new Dictionary<string, string> {
                         { EmailHTMLTemplate.EmailVerification.Variables.VerificationLink, verificationLink },
                     });
@@ -176,6 +185,16 @@ namespace com.touir.expenses.Users.Services
             }
             
             return errors;
+        }
+
+        public async Task<bool> VerifyEmail(string emailVerificationHash, string source)
+        {
+            if(!_emailHelper.ValidateEmail(source))
+                return false;
+            if(!Guid.TryParse(emailVerificationHash, out _)) 
+                return false;
+            
+            return await _userRepository.VerifyEmail(emailVerificationHash, source);
         }
 
         private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)

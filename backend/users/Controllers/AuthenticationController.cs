@@ -34,7 +34,7 @@ namespace com.touir.expenses.Users.Controllers
             }
             catch(Exception)
             {
-                return BadRequest("Error while trying to register a new user. If the problem persist, please contact administrators");
+                return BadRequest(new ErrorResponse { Message = "SERVER_ERROR_REGISTER_USER" });
             }
             
         }
@@ -44,15 +44,15 @@ namespace com.touir.expenses.Users.Controllers
         public async Task<IActionResult> LoginAsync(LoginRequest request)
         {
             if(request.ApplicationCode == null || request.Email == null || request.Password == null)
-                return Unauthorized(new { message = "Invalid username or password" });
+                return Unauthorized(new ErrorResponse{ Message = "INVALID_USERNAME_OR_PASSWORD" });
 
             var user = await _authenticationService.AuthenticateAsync(request.Email, request.Password);
             if (user == null)
-                return Unauthorized(new { message = "Invalid username or password" });
+                return Unauthorized(new ErrorResponse { Message = "INVALID_USERNAME_OR_PASSWORD" });
 
             var roles = await _roleService.GetUserRolesByApplicationCodeAsync(request.ApplicationCode, user.Id);
             if(roles == null || roles.Count() == 0)
-                return Unauthorized(new { message = "No assigned role" });
+                return Unauthorized(new ErrorResponse { Message = "NO_ASSIGNED_ROLE" });
 
             var token = _authenticationService.GenerateJwtToken(user.Id, user.Email);
 
@@ -72,6 +72,22 @@ namespace com.touir.expenses.Users.Controllers
                 }),
                 Token = token
             });
+        }
+
+        /// <summary>
+        /// Verify email after registration
+        /// </summary>
+        /// <param name="h">verification hash</param>
+        /// <param name="s">email source</param>
+        /// <returns></returns>
+        [Route("verifyEmail")]
+        [HttpGet]
+        public async Task<IActionResult> VerifyEmail([FromQuery] string h, [FromQuery] string s)
+        {
+            bool result = await _authenticationService.VerifyEmail(h, s);
+            if (!result)
+                return Unauthorized(new ErrorResponse { Message = "EMAIL_VERIFICATION_FAILED"});
+            return Ok();
         }
     }
 }

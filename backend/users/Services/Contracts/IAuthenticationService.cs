@@ -9,6 +9,7 @@ namespace com.touir.expenses.Users.Services.Contracts
         string GenerateJwtToken(int userId, string userEmail);
         TokenValidationResult ValidateToken(string token);
         Task<IEnumerable<string>> RegisterNewUserAsync(string firstname, string lastname, string email);
+        Task<bool> VerifyEmail(string emailVerificationHash, string source);
 
     }
 }

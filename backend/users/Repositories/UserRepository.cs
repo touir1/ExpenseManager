@@ -67,5 +67,32 @@ namespace com.touir.expenses.Users.Repositories
                 return await connection.ExecuteScalarAsync<int>(sql, user) > 0;
             }
         }
+
+        public async Task<IList<string>> GetUsedEmailValidationHashesAsync()
+        {
+            using (var connection = new NpgsqlConnection(_connectionString))
+            {
+                var result = await connection.QueryAsync<string>("SELECT USR_EmailValidationHash FROM USR_Users WHERE USR_EmailValidationHash IS NOT NULL AND COALESCE(USR_IsEmailValidated,0) = 0");
+                return result.ToList();
+            }
+        }
+
+        public async Task<bool> VerifyEmail(string emailValidationHash, string email)
+        {
+            using (var connection = new NpgsqlConnection(_connectionString))
+            {
+                string sql = @"
+                    WITH updated as (UPDATE USR_Users SET USR_IsEmailValidated = TRUE WHERE USR_EmailValidationHash = @EmailValidationHash AND USR_Email = @Email RETURNING *)
+                    SELECT count(*) FROM updated";
+
+                int count = await connection.ExecuteScalarAsync<int>(sql, new
+                {
+                    EmailValidationHash = emailValidationHash,
+                    Email = email
+                });
+
+                return count > 0;
+            }
+        }
     }
 }
