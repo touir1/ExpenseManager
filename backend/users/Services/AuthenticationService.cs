@@ -125,13 +125,6 @@ namespace com.touir.expenses.Users.Services
         {
             IList<string> errors = new List<string>();
             
-            if(firstname == null || String.Empty.Equals(firstname.Trim()))
-                errors.Add("firstname is empty");
-            if(lastname == null || String.Empty.Equals(lastname.Trim()))
-                errors.Add("lastname is empty");
-            
-            if (email == null || String.Empty.Equals(email.Trim()))
-                errors.Add("email is empty");
             if(email != null && !_emailHelper.ValidateEmail(email))
                 errors.Add("email format is invalid");
 
@@ -187,7 +180,7 @@ namespace com.touir.expenses.Users.Services
             return errors;
         }
 
-        public async Task<bool> VerifyEmail(string emailVerificationHash, string source)
+        public async Task<bool> VerifyEmailAsync(string emailVerificationHash, string source)
         {
             if(!_emailHelper.ValidateEmail(source))
                 return false;
@@ -207,6 +200,16 @@ namespace com.touir.expenses.Users.Services
                     return false;
             }
             return true;
+        }
+
+        public async Task<bool> ChangePasswordAsync(string email, string oldPassword, string newPassword)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<bool> ResetPasswordAsync(string email, string verificationHash, string newPassword)
+        {
+            throw new NotImplementedException();
         }
     }
 }
