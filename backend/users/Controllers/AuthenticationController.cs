@@ -94,18 +94,18 @@ namespace com.touir.expenses.Users.Controllers
         /// Verify email after registration
         /// </summary>
         /// <param name="emailVerificationHash">verification hash</param>
-        /// <param name="source">email source</param>
+        /// <param name="email">email source</param>
         /// <returns></returns>
         [Route("verify-email")]
         [HttpGet]
-        public async Task<IActionResult> VerifyEmail([FromQuery(Name ="h")] string emailVerificationHash, [FromQuery(Name = "s")] string source)
+        public async Task<IActionResult> VerifyEmail([FromQuery(Name ="h")] string emailVerificationHash, [FromQuery(Name = "s")] string email)
         {
-            if(string.IsNullOrWhiteSpace(emailVerificationHash) || string.IsNullOrWhiteSpace(source))
+            if(string.IsNullOrWhiteSpace(emailVerificationHash) || string.IsNullOrWhiteSpace(email))
                 return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
 
             try
             {
-                bool result = await _authenticationService.VerifyEmailAsync(emailVerificationHash, source);
+                bool result = await _authenticationService.VerifyEmailAsync(emailVerificationHash, email);
                 if (!result)
                     return Unauthorized(new ErrorResponse { Message = "EMAIL_VERIFICATION_FAILED" });
                 return Ok();

@@ -9,7 +9,14 @@ namespace com.touir.expenses.Users.Models
         public string HashSalt { get; set; }
         public bool IsTemporaryPassword { get; set; }
 
-        public byte[] HashPasswordBytes => Encoding.UTF8.GetBytes(HashPassword);
-        public byte[] HashSaltBytes => Encoding.UTF8.GetBytes(HashSalt);
+        public byte[] HashPasswordBytes {
+            get => Encoding.UTF8.GetBytes(HashPassword);
+            set => HashPassword = Encoding.UTF8.GetString(value);
+        }
+        public byte[] HashSaltBytes
+        {
+            get => Encoding.UTF8.GetBytes(HashSalt);
+            set => HashSalt = Encoding.UTF8.GetString(value);
+        }
     }
 }

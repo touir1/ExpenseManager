@@ -85,6 +85,12 @@ builder.Services.Configure<AuthenticationServiceOptions>(c =>
                 Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_VERIFY_EMAIL_URL")) ?? "https://localhost:7114/api/auth/verifyEmail";
 });
 
+builder.Services.Configure<CryptographyOptions>(c =>
+{
+    c.MaximumSaltSize = int.Parse(builder.Configuration.GetValue("Cryptography:MaximumSaltSize",
+                Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_CRYPTOGRAPHY_MAXIMUM_SALT_SIZE")) ?? "32");
+});
+
 #endregion
 
 #region Repositories
@@ -105,6 +111,7 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 #region Helpers
 
 builder.Services.AddScoped<IEmailHelper, EmailHelper>();
+builder.Services.AddScoped<ICryptographyHelper, CryptographyHelper>();
 
 #endregion
 
