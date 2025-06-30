@@ -128,7 +128,7 @@ namespace com.touir.expenses.Users.Services
         {
             IList<string> errors = new List<string>();
             
-            if(email != null && !_emailHelper.ValidateEmail(email))
+            if(email != null && !_emailHelper.VerifyEmail(email))
                 errors.Add("email format is invalid");
 
             if (errors.Count() > 0)
@@ -183,28 +183,42 @@ namespace com.touir.expenses.Users.Services
             return errors;
         }
 
-        public async Task<bool> VerifyEmailAsync(string emailVerificationHash, string email)
+        public async Task<bool> ValidateEmailAsync(string emailVerificationHash, string email)
         {
-            if(!_emailHelper.ValidateEmail(email))
+            if(!_emailHelper.VerifyEmail(email))
                 return false;
             if(!Guid.TryParse(emailVerificationHash, out _)) 
                 return false;
             
-            return await _userRepository.VerifyEmail(emailVerificationHash, email);
+            return await _userRepository.ValidateEmail(emailVerificationHash, email);
         }
 
         
 
         public async Task<bool> ChangePasswordAsync(string email, string oldPassword, string newPassword)
         {
-            throw new NotImplementedException();
+            User? user = await _userRepository.GetUserByEmailAsync(email);
+            if (user == null)
+                return false;
+            
+            Authentication? auth = await _authenticationRepository.GetAuthenticationByIdAsync(user.Id);
+            if(auth == null) 
+                return false;
+
+            // verify old password
+            if (!_cryptographyHelper.VerifyPasswordHash(oldPassword, auth.HashPasswordBytes, auth.HashSaltBytes))
+                return false;
+
+            // update password
+            auth.HashSaltBytes = _cryptographyHelper.GenerateRandomSalt();
+            auth.HashPasswordBytes = _cryptographyHelper.GeneratePasswordHash(newPassword, auth.HashSaltBytes);
+            return await _authenticationRepository.UpdateAuthenticationAsync(auth);
         }
 
         public async Task<bool> ResetPasswordAsync(string email, string verificationHash, string newPassword)
         {
             // verify hash before changing password
-            bool verificationResult = await VerifyEmailAsync(verificationHash, email);
-            if (!verificationResult)
+            if (!(await ValidateEmailAsync(verificationHash, email)))
                 return false;
 
             User? user = await _userRepository.GetUserByEmailAsync(email);
@@ -234,9 +248,7 @@ namespace com.touir.expenses.Users.Services
             auth.HashSaltBytes = salt;
             auth.HashPasswordBytes = _cryptographyHelper.GeneratePasswordHash(newPassword, salt);
 
-            _authenticationRepository.UpdateAuthenticationAsync(auth, resetHash: true);
-
-            return true;
+            return await _authenticationRepository.UpdateAuthenticationAsync(auth, resetHash: true);
         }
 
         

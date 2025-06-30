@@ -77,7 +77,7 @@ namespace com.touir.expenses.Users.Infrastructure
             return false;
         }
 
-        public bool ValidateEmail(string email)
+        public bool VerifyEmail(string email)
         {
             try
             {

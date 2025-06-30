@@ -77,7 +77,7 @@ namespace com.touir.expenses.Users.Repositories
             }
         }
 
-        public async Task<bool> VerifyEmail(string emailValidationHash, string email)
+        public async Task<bool> ValidateEmail(string emailValidationHash, string email)
         {
             using (var connection = new NpgsqlConnection(_connectionString))
             {

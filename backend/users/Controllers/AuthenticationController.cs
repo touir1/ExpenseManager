@@ -96,16 +96,16 @@ namespace com.touir.expenses.Users.Controllers
         /// <param name="emailVerificationHash">verification hash</param>
         /// <param name="email">email source</param>
         /// <returns></returns>
-        [Route("verify-email")]
+        [Route("validate-email")]
         [HttpGet]
-        public async Task<IActionResult> VerifyEmail([FromQuery(Name ="h")] string emailVerificationHash, [FromQuery(Name = "s")] string email)
+        public async Task<IActionResult> ValidateEmail([FromQuery(Name ="h")] string emailVerificationHash, [FromQuery(Name = "s")] string email)
         {
             if(string.IsNullOrWhiteSpace(emailVerificationHash) || string.IsNullOrWhiteSpace(email))
                 return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
 
             try
             {
-                bool result = await _authenticationService.VerifyEmailAsync(emailVerificationHash, email);
+                bool result = await _authenticationService.ValidateEmailAsync(emailVerificationHash, email);
                 if (!result)
                     return Unauthorized(new ErrorResponse { Message = "EMAIL_VERIFICATION_FAILED" });
                 return Ok();
@@ -140,12 +140,20 @@ namespace com.touir.expenses.Users.Controllers
 
             try
             {
-                // if hash is not set, it's a change password request
-                if(!string.IsNullOrWhiteSpace(request.VerificationHash) && (await _authenticationService.ChangePasswordAsync(request.Email, request.OldPassword, request.NewPassword)))
-                    return Unauthorized(new ErrorResponse { Message = "SET_NEW_PASSWORD_FAILED" });
-                // if hash is set, it's a reset password request
-                if(string.IsNullOrWhiteSpace(request.VerificationHash) && (await _authenticationService.ResetPasswordAsync(request.Email, request.VerificationHash, request.NewPassword)))
-                    return Unauthorized(new ErrorResponse { Message = "RESET_PASSWORD_FAILED" });
+                bool result = true;
+                if (!string.IsNullOrWhiteSpace(request.VerificationHash))
+                {
+                    // if hash is set, it's a reset password request
+                    if (!(await _authenticationService.ResetPasswordAsync(request.Email, request.VerificationHash, request.NewPassword)))
+                        return Unauthorized(new ErrorResponse { Message = "RESET_PASSWORD_FAILED" });
+                }
+                else
+                {
+                    // if hash is not set, it's a change password request
+                    if(!(await _authenticationService.ChangePasswordAsync(request.Email, request.OldPassword, request.NewPassword)))
+                        return Unauthorized(new ErrorResponse { Message = "SET_NEW_PASSWORD_FAILED" });
+                }
+                    
                 return Ok();
             }
             catch(Exception) 

@@ -8,6 +8,6 @@ namespace com.touir.expenses.Users.Repositories.Contracts
         Task<User?> CreateUserAsync(User user);
         Task<bool?> DeleteUserAsync(User user);
         Task<IList<string>> GetUsedEmailValidationHashesAsync();
-        Task<bool> VerifyEmail(string emailValidationHash, string email);
+        Task<bool> ValidateEmail(string emailValidationHash, string email);
     }
 }

@@ -9,7 +9,7 @@ namespace com.touir.expenses.Users.Services.Contracts
         string GenerateJwtToken(int userId, string userEmail);
         TokenValidationResult ValidateToken(string token);
         Task<IEnumerable<string>> RegisterNewUserAsync(string firstname, string lastname, string email);
-        Task<bool> VerifyEmailAsync(string emailVerificationHash, string email);
+        Task<bool> ValidateEmailAsync(string emailVerificationHash, string email);
         Task<bool> ChangePasswordAsync(string email, string oldPassword, string newPassword);
         Task<bool> ResetPasswordAsync(string email, string verificationHash, string newPassword);
 

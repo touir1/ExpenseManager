@@ -1,0 +1,7 @@
+<ng-container *ngIf="!isSimplePage; else simpleOutlet">
+    <router-outlet></router-outlet>
+</ng-container>
+
+<ng-template #simpleOutlet>
+  <router-outlet></router-outlet>
+</ng-template>

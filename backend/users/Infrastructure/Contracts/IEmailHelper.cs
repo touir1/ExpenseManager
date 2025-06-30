@@ -10,7 +10,7 @@
             string? emailBody = null,
             bool isHTML = false,
             ICollection<string>? attachments = null);
-        bool ValidateEmail(string email);
+        bool VerifyEmail(string email);
 
         string GetEmailTemplate(string templateKey, Dictionary<string, string> parameters);
     }
