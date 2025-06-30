@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
-import { NgIf } from '@angular/common';
+
 import { Title } from '@angular/platform-browser';
 import { filter } from 'rxjs/operators';
 import { LayoutComponent } from "./layout/layout.component";
 
 @Component({
     selector: 'app-root',
-    imports: [RouterOutlet, NgIf, LayoutComponent],
+    imports: [RouterOutlet, LayoutComponent],
     templateUrl: './app.component.html',
     styleUrl: './app.component.css'
 })

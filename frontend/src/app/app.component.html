@@ -1,7 +1,6 @@
-<ng-container *ngIf="!isSimplePage; else simpleOutlet">
-    <router-outlet></router-outlet>
-</ng-container>
-
-<ng-template #simpleOutlet>
+@if (!isSimplePage) {
   <router-outlet></router-outlet>
-</ng-template>
+} @else {
+  <router-outlet></router-outlet>
+}
+
