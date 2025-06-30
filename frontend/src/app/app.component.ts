@@ -3,11 +3,10 @@ import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 
 import { Title } from '@angular/platform-browser';
 import { filter } from 'rxjs/operators';
-import { LayoutComponent } from "./layout/layout.component";
 
 @Component({
     selector: 'app-root',
-    imports: [RouterOutlet, LayoutComponent],
+    imports: [RouterOutlet],
     templateUrl: './app.component.html',
     styleUrl: './app.component.css'
 })
