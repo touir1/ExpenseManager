@@ -5,6 +5,8 @@ using com.touir.expenses.Users.Repositories;
 using com.touir.expenses.Users.Repositories.Contracts;
 using com.touir.expenses.Users.Services;
 using com.touir.expenses.Users.Services.Contracts;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 
@@ -15,6 +17,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
+#region Swagger
 
 //Swagger Documentation Section
 var info = new OpenApiInfo()
@@ -41,6 +45,8 @@ builder.Services.AddSwaggerGen(c =>
         c.IncludeXmlComments(xmlPath);
     }
 });
+
+#endregion
 
 #region Options
 
@@ -96,6 +102,17 @@ builder.Services.Configure<CryptographyOptions>(c =>
 
 #endregion
 
+#region DbContext
+
+builder.Services.AddDbContext<UsersAppDbContext>((serviceProvider, options) =>
+{
+    var pgOptions = serviceProvider.GetRequiredService<IOptions<PostgresOptions>>().Value;
+    var connStr = $"Host={pgOptions.Server};Port={pgOptions.Port};Database={pgOptions.Database};Username={pgOptions.UserName};Password={pgOptions.Password}";
+    options.UseNpgsql(connStr);
+});
+
+#endregion
+
 #region Repositories
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -119,6 +136,13 @@ builder.Services.AddScoped<ICryptographyHelper, CryptographyHelper>();
 #endregion
 
 var app = builder.Build();
+
+// Apply pending migrations at startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<UsersAppDbContext>();
+    db.Database.Migrate();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -8,10 +8,10 @@ namespace com.touir.expenses.Users.Infrastructure
 {
     public class CryptographyHelper : ICryptographyHelper
     {
-        private readonly int? maximumSaltSize;
+        private readonly int? _maximumSaltSize;
         public CryptographyHelper(IOptions<CryptographyOptions> cryptographyOptions) 
         {
-            this.maximumSaltSize = cryptographyOptions.Value.MaximumSaltSize;
+            this._maximumSaltSize = cryptographyOptions.Value.MaximumSaltSize;
         }
 
         public bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
@@ -33,7 +33,7 @@ namespace com.touir.expenses.Users.Infrastructure
 
         public byte[] GenerateRandomSalt()
         {
-            return RandomNumberGenerator.GetBytes(this.maximumSaltSize.Value);
+            return RandomNumberGenerator.GetBytes(this._maximumSaltSize.Value);
         }
     }
 }

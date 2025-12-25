@@ -25,6 +25,8 @@ CREATE TABLE public.ATH_Authentications
     ATH_HashPassword character varying(4000),
 	ATH_HashSalt character varying(4000),
 	ATH_IsTemporaryPassword boolean,
+	ATH_PasswordResetHash character varying(4000),
+	ATH_PasswordResetRequestedAt timestamp without time zone,
     PRIMARY KEY (ATH_UserId),
     CONSTRAINT FK_UserId_USR_Users FOREIGN KEY (ATH_UserId)
         REFERENCES public.USR_Users (USR_Id) MATCH SIMPLE

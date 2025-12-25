@@ -35,7 +35,7 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
   postgres:
-    image: postgres:latest
+    image: postgres:16
     container_name: expenses_postgres
     environment:
       POSTGRES_USER: postgres

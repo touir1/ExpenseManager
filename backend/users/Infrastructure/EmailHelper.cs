@@ -10,23 +10,23 @@ namespace com.touir.expenses.Users.Infrastructure
 {
     public class EmailHelper : IEmailHelper
     {
-        private readonly string? sender;
-        private readonly string? senderPassword;
-        private readonly string? host;
-        private readonly int? port;
+        private readonly string? _sender;
+        private readonly string? _senderPassword;
+        private readonly string? _host;
+        private readonly int? _port;
         public EmailHelper(IOptions<EmailOptions> emailOptions) 
         {
-            this.sender = emailOptions.Value.Email;
-            this.senderPassword = emailOptions.Value.Password;
-            this.host = emailOptions.Value.Host;
-            this.port = emailOptions.Value.Port;
+            this._sender = emailOptions.Value.Email;
+            this._senderPassword = emailOptions.Value.Password;
+            this._host = emailOptions.Value.Host;
+            this._port = emailOptions.Value.Port;
         }
 
         public bool SendEmail(
             string? recipientTo = null, 
             string? recipientCC = null, 
             string? recipientBCC = null, 
-            string emailSubject = null, 
+            string? emailSubject = null, 
             string? emailBody = null, 
             bool isHTML = false,
             ICollection<string>? attachments = null) 
@@ -34,16 +34,16 @@ namespace com.touir.expenses.Users.Infrastructure
             try { 
                 using (var client = new SmtpClient()) 
                 {
-                    client.Host = host;
-                    client.Port = port.Value;
+                    client.Host = _host;
+                    client.Port = _port.Value;
                     client.DeliveryMethod = SmtpDeliveryMethod.Network;
                     client.UseDefaultCredentials = false;
                     client.EnableSsl = true;
-                    client.Credentials = new NetworkCredential(sender, senderPassword);
+                    client.Credentials = new NetworkCredential(_sender, _senderPassword);
 
                     using (var message = new MailMessage())
                     {
-                        message.From = new MailAddress(sender);
+                        message.From = new MailAddress(_sender);
                         if(recipientTo != null)
                             message.To.Add(recipientTo);
                         if(recipientCC != null)

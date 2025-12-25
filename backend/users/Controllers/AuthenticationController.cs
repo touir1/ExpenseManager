@@ -127,8 +127,7 @@ namespace com.touir.expenses.Users.Controllers
             if (string.IsNullOrWhiteSpace(request.Email))
                 return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
 
-            // if hash not sent, it's a change password request so we need the old password to validate
-            if (string.IsNullOrWhiteSpace(request.VerificationHash) && string.IsNullOrWhiteSpace(request.OldPassword))
+            if (string.IsNullOrWhiteSpace(request.OldPassword))
                 return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
 
             // New password and confirm password are always needed
@@ -140,23 +139,67 @@ namespace com.touir.expenses.Users.Controllers
 
             try
             {
-                bool result = true;
-                if (!string.IsNullOrWhiteSpace(request.VerificationHash))
-                {
-                    // if hash is set, it's a reset password request
-                    if (!(await _authenticationService.ResetPasswordAsync(request.Email, request.VerificationHash, request.NewPassword)))
-                        return Unauthorized(new ErrorResponse { Message = "RESET_PASSWORD_FAILED" });
-                }
-                else
-                {
-                    // if hash is not set, it's a change password request
-                    if(!(await _authenticationService.ChangePasswordAsync(request.Email, request.OldPassword, request.NewPassword)))
-                        return Unauthorized(new ErrorResponse { Message = "SET_NEW_PASSWORD_FAILED" });
-                }
+                if(!(await _authenticationService.ChangePasswordAsync(request.Email, request.OldPassword, request.NewPassword)))
+                    return Unauthorized(new ErrorResponse { Message = "SET_NEW_PASSWORD_FAILED" });
                     
                 return Ok();
             }
             catch(Exception) 
+            {
+                return BadRequest(new ErrorResponse { Message = "SERVER_ERROR" });
+            }
+        }
+
+        [Route("request-password-reset")]
+        [HttpPost]
+        public async Task<IActionResult> RequestPasswordReset(RequestPasswordResetRequest request)
+        {
+            if (request == null)
+                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+            // email is always mandatory for validation
+            if (string.IsNullOrWhiteSpace(request.Email))
+                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+            try
+            {
+                if (!(await _authenticationService.RequestPasswordResetAsync(request.Email)))
+                    return Unauthorized(new ErrorResponse { Message = "REQUEST_PASSWORD_RESET_FAILED" });
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return BadRequest(new ErrorResponse { Message = "SERVER_ERROR" });
+            }
+        }
+
+        [Route("change-password-reset")]
+        [HttpPost]
+        public async Task<IActionResult> ChangePasswordReset(ChangePasswordResetRequest request)
+        {
+            if (request == null)
+                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+
+            // email is always mandatory for validation
+            if (string.IsNullOrWhiteSpace(request.Email))
+                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+
+            if (string.IsNullOrWhiteSpace(request.VerificationHash))
+                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+
+            // New password and confirm password are always needed
+            if (string.IsNullOrWhiteSpace(request.NewPassword) || string.IsNullOrWhiteSpace(request.ConfirmPassword))
+                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+
+            if (!request.NewPassword.Equals(request.ConfirmPassword))
+                return Unauthorized(new ErrorResponse { Message = "NOT_MATCHING_CONFIRM_PASSWORD" });
+
+            try
+            {
+                if (!(await _authenticationService.ResetPasswordAsync(request.Email, request.VerificationHash, request.NewPassword)))
+                    return Unauthorized(new ErrorResponse { Message = "RESET_PASSWORD_FAILED" });
+                
+                return Ok();
+            }
+            catch (Exception)
             {
                 return BadRequest(new ErrorResponse { Message = "SERVER_ERROR" });
             }

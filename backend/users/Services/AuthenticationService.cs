@@ -145,7 +145,7 @@ namespace com.touir.expenses.Users.Services
             else
             {
                 string emailValidationHash;
-                IList<string> existingEmailValidationHashes = await _userRepository.GetUsedEmailValidationHashesAsync();
+                ISet<string> existingEmailValidationHashes = new HashSet<string>(await _userRepository.GetUsedEmailValidationHashesAsync());
                 do
                 {
                     emailValidationHash = Guid.NewGuid().ToString();
@@ -251,6 +251,33 @@ namespace com.touir.expenses.Users.Services
             return await _authenticationRepository.UpdateAuthenticationAsync(auth, resetHash: true);
         }
 
-        
+        public async Task<bool> RequestPasswordResetAsync(string email)
+        {
+            User? user = await _userRepository.GetUserByEmailAsync(email);
+            if (user == null || !user.IsEmailValidated)
+                return false;
+            Authentication? auth = await _authenticationRepository.GetAuthenticationByIdAsync(user.Id);
+            if (auth == null)
+                return false;
+            string resetHash = Guid.NewGuid().ToString();
+            auth.PasswordResetHash = resetHash;
+            auth.PasswordResetRequestedAt = DateTime.UtcNow;
+            if (!await _authenticationRepository.UpdateAuthenticationAsync(auth))
+                return false;
+            try
+            {
+                string resetLink = $"{_verifyEmailUrl.TrimEnd('/')}?h={HttpUtility.UrlEncode(resetHash)}&s={HttpUtility.UrlEncode(email)}";
+                //string emailResetHtml = _emailHelper.GetEmailTemplate(EmailHTMLTemplate.PasswordReset.Key, new Dictionary<string, string> {
+                //    { EmailHTMLTemplate.PasswordReset.Variables.ResetLink, resetLink },
+                //});
+                //_emailHelper.SendEmail(recipientTo: email, emailSubject: "[Expenses Manager] Password Reset", isHTML: true, emailBody: emailResetHtml);
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception.ToString()); // to change later: logging implementation
+                return false;
+            }
+            return true;
+        }
     }
 }
