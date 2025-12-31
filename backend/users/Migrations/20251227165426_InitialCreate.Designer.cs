@@ -12,7 +12,7 @@ using com.touir.expenses.Users.Infrastructure;
 namespace com.touir.expenses.Users.Migrations
 {
     [DbContext(typeof(UsersAppDbContext))]
-    [Migration("20251225160934_InitialCreate")]
+    [Migration("20251227165426_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -81,7 +81,6 @@ namespace com.touir.expenses.Users.Migrations
                         .HasColumnName("ATH_IsTemporaryPassword");
 
                     b.Property<string>("PasswordResetHash")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("ATH_PasswordResetHash");
 
@@ -108,7 +107,6 @@ namespace com.touir.expenses.Users.Migrations
                         .HasColumnName("RQA_ApplicationId");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("RQA_Description");
 
@@ -157,7 +155,6 @@ namespace com.touir.expenses.Users.Migrations
                         .HasColumnName("RLE_Code");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("RLE_Description");
 
@@ -213,7 +210,6 @@ namespace com.touir.expenses.Users.Migrations
                         .HasColumnName("USR_Email");
 
                     b.Property<string>("EmailValidationHash")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("USR_EmailValidationHash");
 
@@ -270,7 +266,7 @@ namespace com.touir.expenses.Users.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("URR_CreatedAt");
 
-                    b.Property<int>("CreatedById")
+                    b.Property<int?>("CreatedById")
                         .HasColumnType("integer")
                         .HasColumnName("URR_CreatedById");
 
@@ -357,8 +353,7 @@ namespace com.touir.expenses.Users.Migrations
                     b.HasOne("com.touir.expenses.Users.Models.User", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("com.touir.expenses.Users.Models.Role", "Role")
                         .WithMany("UserRoles")

@@ -1,8 +1,10 @@
 ﻿using com.touir.expenses.Users.Controllers.EO;
 using com.touir.expenses.Users.Controllers.Requests;
 using com.touir.expenses.Users.Controllers.Responses;
+using com.touir.expenses.Users.Infrastructure.Options;
 using com.touir.expenses.Users.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace com.touir.expenses.Users.Controllers
 {
@@ -13,10 +15,13 @@ namespace com.touir.expenses.Users.Controllers
         private readonly IAuthenticationService _authenticationService;
         private readonly IRoleService _roleService;
 
-        public AuthenticationController(IAuthenticationService authenticationService, IRoleService roleService)
+        private readonly string _resetPasswordFrontendUrlRedirect;
+
+        public AuthenticationController(IAuthenticationService authenticationService, IRoleService roleService, IOptions<AuthenticationServiceOptions> authServiceOptions)
         {
             _authenticationService = authenticationService;
             _roleService = roleService;
+            _resetPasswordFrontendUrlRedirect = authServiceOptions.Value.ResetPasswordFrontendUrlRedirect;
         }
 
         [Route("register")]
@@ -31,7 +36,8 @@ namespace com.touir.expenses.Users.Controllers
 
             try
             {
-                var errors = await _authenticationService.RegisterNewUserAsync(request.FirstName, request.LastName, request.Email);
+                var email = request.Email.ToLowerInvariant();
+                var errors = await _authenticationService.RegisterNewUserAsync(request.FirstName, request.LastName, email);
                 return Ok(new RegisterResponse
                 {
                     Errors = errors,
@@ -57,7 +63,8 @@ namespace com.touir.expenses.Users.Controllers
 
             try
             {
-                var user = await _authenticationService.AuthenticateAsync(request.Email, request.Password);
+                var email = request.Email.ToLowerInvariant();
+                var user = await _authenticationService.AuthenticateAsync(email, request.Password);
                 if (user == null)
                     return Unauthorized(new ErrorResponse { Message = "INVALID_USERNAME_OR_PASSWORD" });
 
@@ -105,10 +112,11 @@ namespace com.touir.expenses.Users.Controllers
 
             try
             {
-                bool result = await _authenticationService.ValidateEmailAsync(emailVerificationHash, email);
+                var emailLower = email.ToLowerInvariant();
+                bool result = await _authenticationService.ValidateEmailAsync(emailVerificationHash, emailLower);
                 if (!result)
                     return Unauthorized(new ErrorResponse { Message = "EMAIL_VERIFICATION_FAILED" });
-                return Ok();
+                return Redirect($"{_resetPasswordFrontendUrlRedirect}?email={emailLower}&h={emailVerificationHash}");
             }
             catch(Exception)
             {
@@ -139,7 +147,8 @@ namespace com.touir.expenses.Users.Controllers
 
             try
             {
-                if(!(await _authenticationService.ChangePasswordAsync(request.Email, request.OldPassword, request.NewPassword)))
+                var email = request.Email.ToLowerInvariant();
+                if(!(await _authenticationService.ChangePasswordAsync(email, request.OldPassword, request.NewPassword)))
                     return Unauthorized(new ErrorResponse { Message = "SET_NEW_PASSWORD_FAILED" });
                     
                 return Ok();
@@ -161,7 +170,8 @@ namespace com.touir.expenses.Users.Controllers
                 return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
             try
             {
-                if (!(await _authenticationService.RequestPasswordResetAsync(request.Email)))
+                var email = request.Email.ToLowerInvariant();
+                if (!(await _authenticationService.RequestPasswordResetAsync(email)))
                     return Unauthorized(new ErrorResponse { Message = "REQUEST_PASSWORD_RESET_FAILED" });
                 return Ok();
             }
@@ -194,7 +204,8 @@ namespace com.touir.expenses.Users.Controllers
 
             try
             {
-                if (!(await _authenticationService.ResetPasswordAsync(request.Email, request.VerificationHash, request.NewPassword)))
+                var email = request.Email.ToLowerInvariant();
+                if (!(await _authenticationService.ResetPasswordAsync(email, request.VerificationHash, request.NewPassword)))
                     return Unauthorized(new ErrorResponse { Message = "RESET_PASSWORD_FAILED" });
                 
                 return Ok();

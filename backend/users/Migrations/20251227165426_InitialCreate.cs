@@ -43,7 +43,7 @@ namespace com.touir.expenses.Users.Migrations
                     USR_LastUpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     USR_LastUpdatedBy = table.Column<int>(type: "integer", nullable: true),
                     USR_IsEmailValidated = table.Column<bool>(type: "boolean", nullable: false),
-                    USR_EmailValidationHash = table.Column<string>(type: "text", nullable: false),
+                    USR_EmailValidationHash = table.Column<string>(type: "text", nullable: true),
                     USR_IsDisabled = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -71,7 +71,7 @@ namespace com.touir.expenses.Users.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
                     RLE_Code = table.Column<string>(type: "text", nullable: false),
                     RLE_Name = table.Column<string>(type: "text", nullable: false),
-                    RLE_Description = table.Column<string>(type: "text", nullable: false),
+                    RLE_Description = table.Column<string>(type: "text", nullable: true),
                     RLE_ApplicationId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
@@ -92,7 +92,7 @@ namespace com.touir.expenses.Users.Migrations
                     RQA_Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
                     RQA_Name = table.Column<string>(type: "text", nullable: false),
-                    RQA_Description = table.Column<string>(type: "text", nullable: false),
+                    RQA_Description = table.Column<string>(type: "text", nullable: true),
                     RQA_Path = table.Column<string>(type: "text", nullable: false),
                     RQA_Type = table.Column<string>(type: "text", nullable: false),
                     RQA_IsAuthenticationNeeded = table.Column<bool>(type: "boolean", nullable: false),
@@ -117,7 +117,7 @@ namespace com.touir.expenses.Users.Migrations
                     ATH_HashPassword = table.Column<string>(type: "text", nullable: false),
                     ATH_HashSalt = table.Column<string>(type: "text", nullable: false),
                     ATH_IsTemporaryPassword = table.Column<bool>(type: "boolean", nullable: false),
-                    ATH_PasswordResetHash = table.Column<string>(type: "text", nullable: false),
+                    ATH_PasswordResetHash = table.Column<string>(type: "text", nullable: true),
                     ATH_PasswordResetRequestedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
@@ -138,7 +138,7 @@ namespace com.touir.expenses.Users.Migrations
                     URR_UserId = table.Column<int>(type: "integer", nullable: false),
                     URR_RoleId = table.Column<int>(type: "integer", nullable: false),
                     URR_CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    URR_CreatedById = table.Column<int>(type: "integer", nullable: false)
+                    URR_CreatedById = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {

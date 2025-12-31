@@ -14,11 +14,13 @@ namespace com.touir.expenses.Users.Repositories
         }
         public async Task<User?> GetUserByEmailAsync(string email)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            var lowerEmail = email.ToLowerInvariant();
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == lowerEmail);
         }
 
         public async Task<User?> CreateUserAsync(User user)
         {
+            user.Email = user.Email?.ToLowerInvariant();
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
             return user;
@@ -41,14 +43,15 @@ namespace com.touir.expenses.Users.Repositories
 
         public async Task<bool> ValidateEmail(string emailValidationHash, string email)
         {
+            var lowerEmail = email.ToLowerInvariant();
             var updatedRows = await _context.Users
                 .Where(u =>
-                    u.Email == email &&
+                    u.Email == lowerEmail &&
                     u.EmailValidationHash == emailValidationHash &&
                     !u.IsEmailValidated)
                 .ExecuteUpdateAsync(u => u
                     .SetProperty(x => x.IsEmailValidated, true)
-                    .SetProperty(x => x.EmailValidationHash, (string)null)
+                    //.SetProperty(x => x.EmailValidationHash, (string)null)
                 );
 
             return updatedRows > 0;

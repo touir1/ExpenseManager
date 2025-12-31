@@ -92,6 +92,8 @@ builder.Services.Configure<AuthenticationServiceOptions>(c =>
 {
     c.VerifyEmailBaseUrl = builder.Configuration.GetValue("AuthenticationService:VerifyEmailBaseUrl",
                 Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_VERIFY_EMAIL_URL")) ?? "https://localhost:7114/api/auth/verifyEmail";
+    c.ResetPasswordFrontendUrlRedirect = builder.Configuration.GetValue("AuthenticationService:ResetPasswordFrontendUrlRedirect",
+                Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_RESET_PASSWORD_FRONTEND_URL_REDIRECT")) ?? "https://localhost:4200/reset-password";
 });
 
 builder.Services.Configure<CryptographyOptions>(c =>
@@ -135,6 +137,28 @@ builder.Services.AddScoped<ICryptographyHelper, CryptographyHelper>();
 
 #endregion
 
+#region Cors Policy
+
+// Add CORS policy to allow requests from localhost on any port
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost", policy =>
+    {
+        policy.WithOrigins(
+            "http://localhost",
+            "https://localhost"
+        )
+        .SetIsOriginAllowed(origin =>
+            origin.StartsWith("http://localhost:") ||
+            origin.StartsWith("https://localhost:")
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod();
+    });
+});
+
+#endregion
+
 var app = builder.Build();
 
 // Apply pending migrations at startup
@@ -147,6 +171,7 @@ using (var scope = app.Services.CreateScope())
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseCors("AllowLocalhost");
     app.UseSwagger();
     app.UseSwaggerUI();
 }
