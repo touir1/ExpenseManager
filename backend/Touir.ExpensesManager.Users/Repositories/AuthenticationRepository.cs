@@ -13,7 +13,7 @@ namespace Touir.ExpensesManager.Users.Repositories
             _context = context;
         }
 
-        public async Task<Authentication?> GetAuthenticationByIdAsync(int id)
+        public async Task<Authentication?> GetAuthenticationByUserIdAsync(int id)
         {
             return await _context.Authentications
                 .FirstOrDefaultAsync(a => a.UserId == id);

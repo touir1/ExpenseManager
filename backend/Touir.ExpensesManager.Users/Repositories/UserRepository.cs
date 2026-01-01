@@ -47,11 +47,9 @@ namespace Touir.ExpensesManager.Users.Repositories
             var updatedRows = await _context.Users
                 .Where(u =>
                     u.Email == lowerEmail &&
-                    u.EmailValidationHash == emailValidationHash &&
-                    !u.IsEmailValidated)
+                    u.EmailValidationHash == emailValidationHash)
                 .ExecuteUpdateAsync(u => u
                     .SetProperty(x => x.IsEmailValidated, true)
-                    //.SetProperty(x => x.EmailValidationHash, (string)null)
                 );
 
             return updatedRows > 0;

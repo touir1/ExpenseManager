@@ -25,6 +25,8 @@ namespace Touir.ExpensesManager.Users.Services
         private readonly ICryptographyHelper _cryptographyHelper;
         private readonly IUserRepository _userRepository;
         private readonly IAuthenticationRepository _authenticationRepository;
+        private readonly IApplicationRepository _applicationRepository;
+        private readonly IRoleRepository _roleRepository;
 
         private readonly string _verifyEmailUrl;
 
@@ -33,8 +35,10 @@ namespace Touir.ExpensesManager.Users.Services
             IOptions<AuthenticationServiceOptions> authServiceOptions,
             IEmailHelper emailHelper,
             ICryptographyHelper cryptographyHelper,
-            IUserRepository userRepository, 
-            IAuthenticationRepository authenticationRepository) 
+            IUserRepository userRepository,
+            IAuthenticationRepository authenticationRepository,
+            IApplicationRepository applicationRepository,
+            IRoleRepository roleRepository) 
         {
             _secretKey = jwtAuthOptions.Value.SecretKey;
             _issuer = jwtAuthOptions.Value.Issuer;
@@ -45,6 +49,8 @@ namespace Touir.ExpensesManager.Users.Services
             _cryptographyHelper = cryptographyHelper;
             _userRepository = userRepository;
             _authenticationRepository = authenticationRepository;
+            _applicationRepository = applicationRepository;
+            _roleRepository = roleRepository;
 
             _verifyEmailUrl = authServiceOptions.Value.VerifyEmailBaseUrl;
         }
@@ -53,7 +59,7 @@ namespace Touir.ExpensesManager.Users.Services
             var user = await _userRepository.GetUserByEmailAsync(email);
             if (user == null)
                 return null;
-            var authentication = await _authenticationRepository.GetAuthenticationByIdAsync(user.Id);
+            var authentication = await _authenticationRepository.GetAuthenticationByUserIdAsync(user.Id);
             if (authentication == null || 
                 !_cryptographyHelper.VerifyPasswordHash(password, authentication.HashPasswordBytes, authentication.HashSaltBytes))
                 return null;
@@ -124,7 +130,7 @@ namespace Touir.ExpensesManager.Users.Services
             return validationResult;
         }
 
-        public async Task<IEnumerable<string>> RegisterNewUserAsync(string firstname, string lastname, string email)
+        public async Task<IEnumerable<string>> RegisterNewUserAsync(string firstname, string lastname, string email, string? applicationCode)
         {
             IList<string> errors = new List<string>();
             
@@ -164,9 +170,23 @@ namespace Touir.ExpensesManager.Users.Services
                     EmailValidationHash = emailValidationHash
                 });
 
+                if(applicationCode != null)
+                {
+                    Application app = await _applicationRepository.GetApplicationByCodeAsync(applicationCode);
+                    if(app != null)
+                    {
+                        var role = await _roleRepository.GetDefaultRoleByApplicationIdAsync(app.Id);
+                        if(role != null)
+                        {
+                            await _roleRepository.AssignRoleToUserAsync(role.Id, user.Id);
+                        }
+                    }
+                }
+
                 try
                 {
-                    string verificationLink = $"{_verifyEmailUrl.TrimEnd('/')}?h={HttpUtility.UrlEncode(emailValidationHash)}&s={HttpUtility.UrlEncode(email)}";
+                    string verificationLink = $"{_verifyEmailUrl.TrimEnd('/')}?h={HttpUtility.UrlEncode(emailValidationHash)}&s={HttpUtility.UrlEncode(email)}&app_code={HttpUtility.UrlEncode(applicationCode)}";
+                    Console.WriteLine($"user: {user.FirstName} {user.LastName}, verifLink: {verificationLink}");
                     string emailVerificationHtml = _emailHelper.GetEmailTemplate(EmailHTMLTemplate.EmailVerification.Key, new Dictionary<string, string> {
                         { EmailHTMLTemplate.EmailVerification.Variables.VerificationLink, verificationLink },
                     });
@@ -201,7 +221,7 @@ namespace Touir.ExpensesManager.Users.Services
             if (user == null)
                 return false;
             
-            Authentication? auth = await _authenticationRepository.GetAuthenticationByIdAsync(user.Id);
+            Authentication? auth = await _authenticationRepository.GetAuthenticationByUserIdAsync(user.Id);
             if(auth == null) 
                 return false;
 
@@ -225,7 +245,7 @@ namespace Touir.ExpensesManager.Users.Services
             if (user == null)
                 return false;
 
-            Authentication? auth = await _authenticationRepository.GetAuthenticationByIdAsync(user.Id);
+            Authentication? auth = await _authenticationRepository.GetAuthenticationByUserIdAsync(user.Id);
 
             // salt for password hash
             byte[] salt = _cryptographyHelper.GenerateRandomSalt();
@@ -256,7 +276,7 @@ namespace Touir.ExpensesManager.Users.Services
             User? user = await _userRepository.GetUserByEmailAsync(email);
             if (user == null || !user.IsEmailValidated)
                 return false;
-            Authentication? auth = await _authenticationRepository.GetAuthenticationByIdAsync(user.Id);
+            Authentication? auth = await _authenticationRepository.GetAuthenticationByUserIdAsync(user.Id);
             if (auth == null)
                 return false;
             string resetHash = Guid.NewGuid().ToString();

@@ -5,6 +5,7 @@ using Touir.ExpensesManager.Users.Infrastructure.Options;
 using Touir.ExpensesManager.Users.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Touir.ExpensesManager.Users.Models;
 
 namespace Touir.ExpensesManager.Users.Controllers
 {
@@ -14,13 +15,19 @@ namespace Touir.ExpensesManager.Users.Controllers
     {
         private readonly IAuthenticationService _authenticationService;
         private readonly IRoleService _roleService;
+        private readonly IApplicationService _applicationService;
 
         private readonly string _resetPasswordFrontendUrlRedirect;
 
-        public AuthenticationController(IAuthenticationService authenticationService, IRoleService roleService, IOptions<AuthenticationServiceOptions> authServiceOptions)
+        public AuthenticationController(
+            IAuthenticationService authenticationService, 
+            IRoleService roleService, 
+            IApplicationService applicationService,
+            IOptions<AuthenticationServiceOptions> authServiceOptions)
         {
             _authenticationService = authenticationService;
             _roleService = roleService;
+            _applicationService = applicationService;
             _resetPasswordFrontendUrlRedirect = authServiceOptions.Value.ResetPasswordFrontendUrlRedirect;
         }
 
@@ -37,7 +44,7 @@ namespace Touir.ExpensesManager.Users.Controllers
             try
             {
                 var email = request.Email.ToLowerInvariant();
-                var errors = await _authenticationService.RegisterNewUserAsync(request.FirstName, request.LastName, email);
+                var errors = await _authenticationService.RegisterNewUserAsync(request.FirstName, request.LastName, email, request.ApplicationCode);
                 return Ok(new RegisterResponse
                 {
                     Errors = errors,
@@ -105,18 +112,25 @@ namespace Touir.ExpensesManager.Users.Controllers
         /// <returns></returns>
         [Route("validate-email")]
         [HttpGet]
-        public async Task<IActionResult> ValidateEmail([FromQuery(Name ="h")] string emailVerificationHash, [FromQuery(Name = "s")] string email)
+        public async Task<IActionResult> ValidateEmail(
+            [FromQuery(Name ="h")] string emailVerificationHash, 
+            [FromQuery(Name = "s")] string email, 
+            [FromQuery(Name = "app_code")] string appCode)
         {
-            if(string.IsNullOrWhiteSpace(emailVerificationHash) || string.IsNullOrWhiteSpace(email))
+            if(string.IsNullOrWhiteSpace(emailVerificationHash) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(appCode))
                 return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
 
             try
             {
+                Application app = await _applicationService.GetApplicationByCodeAsync(appCode);
+                if (app == null)
+                    return Unauthorized(new ErrorResponse { Message = "EMAIL_VERIFICATION_FAILED" });
+
                 var emailLower = email.ToLowerInvariant();
                 bool result = await _authenticationService.ValidateEmailAsync(emailVerificationHash, emailLower);
                 if (!result)
                     return Unauthorized(new ErrorResponse { Message = "EMAIL_VERIFICATION_FAILED" });
-                return Redirect($"{_resetPasswordFrontendUrlRedirect}?email={emailLower}&h={emailVerificationHash}");
+                return Redirect($"{app.ResetPasswordUrlPath}?email={emailLower}&h={emailVerificationHash}");
             }
             catch(Exception)
             {

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Touir.ExpensesManager.Users.Infrastructure;
@@ -11,9 +12,11 @@ using Touir.ExpensesManager.Users.Infrastructure;
 namespace Touir.ExpensesManager.Users.Migrations
 {
     [DbContext(typeof(UsersAppDbContext))]
-    partial class UsersAppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260101174904_SetResetPasswordUrlApplication")]
+    partial class SetResetPasswordUrlApplication
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

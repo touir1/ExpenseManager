@@ -6,6 +6,7 @@
         public string Code { get; set; }
         public string Name { get; set; }
         public string? Description { get; set; }
+        public bool IsDefault { get; set; } = false;
 
         public int ApplicationId { get; set; }
         public Application Application { get; set; }

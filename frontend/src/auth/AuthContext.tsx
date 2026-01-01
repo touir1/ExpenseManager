@@ -42,8 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null
   })
 
-  // Read API base from Vite env (.env). Must include protocol.
-  const API_BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
+  // Application code to identify this app instance when registering
+  const APPLICATION_CODE = import.meta.env.VITE_APPLICATION_CODE ?? 'EXPENSES_MANAGER'
 
   const isAuthenticated = !!token
 
@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login: AuthContextValue['login'] = async (email, password) => {
     const { ok, data } = await post<{ token: string; user?: { email: string } }>(
       '/api/auth/login',
-      { email, password }
+      { email, password, applicationCode: APPLICATION_CODE }
     )
     if (ok && data?.token) {
       setToken(data.token)
@@ -93,7 +93,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const register: AuthContextValue['register'] = async (firstName, lastName, email) => {
-    const { ok } = await post<unknown>('/api/auth/register', { firstName, lastName, email })
+    const { ok } = await post<unknown>('/api/auth/register', {
+      firstName,
+      lastName,
+      email,
+      applicationCode: APPLICATION_CODE,
+    })
     return ok
   }
 

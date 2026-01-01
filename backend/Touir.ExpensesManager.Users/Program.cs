@@ -120,6 +120,7 @@ builder.Services.AddDbContext<UsersAppDbContext>((serviceProvider, options) =>
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthenticationRepository, AuthenticationRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
 
 #endregion
 
@@ -127,6 +128,7 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IApplicationService, ApplicationService>();
 
 #endregion
 

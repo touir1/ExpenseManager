@@ -56,6 +56,7 @@ namespace Touir.ExpensesManager.Users.Infrastructure
                 entity.Property(r => r.Id).HasColumnName("RLE_Id").UseIdentityAlwaysColumn();
                 entity.Property(r => r.Name).HasColumnName("RLE_Name").IsRequired();
                 entity.Property(r => r.Description).HasColumnName("RLE_Description");
+                entity.Property(r => r.IsDefault).HasColumnName("RLE_IsDefault").IsRequired();
                 entity.Property(r => r.Code).HasColumnName("RLE_Code").IsRequired();
                 entity.Property(r => r.ApplicationId).HasColumnName("RLE_ApplicationId");
 
@@ -97,6 +98,7 @@ namespace Touir.ExpensesManager.Users.Infrastructure
                 entity.Property(x => x.Name).HasColumnName("APP_Name").IsRequired();
                 entity.Property(x => x.Description).HasColumnName("APP_Description");
                 entity.Property(x => x.UrlPath).HasColumnName("APP_UrlPath");
+                entity.Property(x => x.ResetPasswordUrlPath).HasColumnName("APP_ResetPasswordUrlPath");
 
                 entity.HasIndex(x => x.Code).IsUnique();
             });

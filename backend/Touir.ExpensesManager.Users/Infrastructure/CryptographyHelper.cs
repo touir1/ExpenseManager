@@ -28,12 +28,17 @@ namespace Touir.ExpensesManager.Users.Infrastructure
         public byte[] GeneratePasswordHash(string password, byte[] passwordSalt)
         {
             using var hmac = new HMACSHA512(passwordSalt);
-            return hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+            var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+            var hashBase64 = Convert.ToBase64String(hash);
+            return Encoding.UTF8.GetBytes(hashBase64);
         }
 
         public byte[] GenerateRandomSalt()
         {
-            return RandomNumberGenerator.GetBytes(this._maximumSaltSize.Value);
+            // Generate a random salt as bytes, then encode as Base64 and return as UTF8 bytes
+            var saltBytes = RandomNumberGenerator.GetBytes(this._maximumSaltSize.Value);
+            var saltBase64 = Convert.ToBase64String(saltBytes);
+            return Encoding.UTF8.GetBytes(saltBase64);
         }
     }
 }

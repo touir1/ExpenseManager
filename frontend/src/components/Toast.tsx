@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useMemo, useState } from 'react'
 
 export type Toast = { id: number; message: string; type?: 'info' | 'success' | 'error' }
 
