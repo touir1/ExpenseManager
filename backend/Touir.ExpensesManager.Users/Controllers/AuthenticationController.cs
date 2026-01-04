@@ -17,8 +17,6 @@ namespace Touir.ExpensesManager.Users.Controllers
         private readonly IRoleService _roleService;
         private readonly IApplicationService _applicationService;
 
-        private readonly string _resetPasswordFrontendUrlRedirect;
-
         public AuthenticationController(
             IAuthenticationService authenticationService, 
             IRoleService roleService, 
@@ -28,7 +26,6 @@ namespace Touir.ExpensesManager.Users.Controllers
             _authenticationService = authenticationService;
             _roleService = roleService;
             _applicationService = applicationService;
-            _resetPasswordFrontendUrlRedirect = authServiceOptions.Value.ResetPasswordFrontendUrlRedirect;
         }
 
         [Route("register")]
