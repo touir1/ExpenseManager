@@ -5,7 +5,7 @@ import { ToastProvider, useToast } from '@/components/Toast'
 import { onError } from '@/api'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import HomePublic from '@/pages/HomePublic'
-import HomePrivate from '@/pages/HomePrivate'
+import HomeDashboard from '@/pages/HomeDashboard'
 import Login from '@/pages/Login'
 import Register from '@/pages/Register'
 import ChangePassword from '@/pages/ChangePassword'
@@ -39,7 +39,7 @@ export default function App() {
               {/* Private */}
               <Route path="/home-auth" element={
                 <ProtectedRoute>
-                  <HomePrivate />
+                  <HomeDashboard />
                 </ProtectedRoute>
               } />
               <Route path="/change-password" element={

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthContext'
 
-export default function HomePrivate() {
+export default function HomeDashboard() {
   const { user, logout } = useAuth()
   return (
     <div className="container">
