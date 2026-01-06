@@ -44,15 +44,17 @@ namespace Touir.ExpensesManager.Users.Repositories
         public async Task<bool> ValidateEmail(string emailValidationHash, string email)
         {
             var lowerEmail = email.ToLowerInvariant();
-            var updatedRows = await _context.Users
-                .Where(u =>
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u =>
                     u.Email == lowerEmail &&
-                    u.EmailValidationHash == emailValidationHash)
-                .ExecuteUpdateAsync(u => u
-                    .SetProperty(x => x.IsEmailValidated, true)
-                );
+                    u.EmailValidationHash == emailValidationHash);
+            if (user != null)
+            {
+                user.IsEmailValidated = true;
+                await _context.SaveChangesAsync();
+            }
 
-            return updatedRows > 0;
+            return user != null;
         }
     }
 }
