@@ -1,7 +1,6 @@
 using Touir.ExpensesManager.Users.Controllers;
 using Touir.ExpensesManager.Users.Controllers.Requests;
 using Touir.ExpensesManager.Users.Controllers.Responses;
-using Touir.ExpensesManager.Users.Models;
 using Touir.ExpensesManager.Users.Services.Contracts;
 using Touir.ExpensesManager.Users.Controllers.EO;
 using Microsoft.AspNetCore.Mvc;
@@ -30,12 +29,12 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task LoginAsync_ReturnsOk_WhenValid()
         {
-            var user = new User { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@doe.com" };
+            var user = new UserEo { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@doe.com" };
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync(user);
-            mockAuthService.Setup(s => s.GenerateJwtToken(user.Id, user.Email)).Returns("token");
+            mockAuthService.Setup(s => s.GenerateJwtToken(user.Id.Value, user.Email)).Returns("token");
             var mockRoleService = new Mock<IRoleService>();
-            mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id)).ReturnsAsync(new List<Role> { new Role { Code = "ADMIN", Name = "Admin" } });
+            mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id.Value)).ReturnsAsync(new List<RoleEo> { new RoleEo { Code = "ADMIN", Name = "Admin" } });
             var controller = new AuthenticationController(mockAuthService.Object, mockRoleService.Object, Mock.Of<IApplicationService>(), null);
             var request = new LoginRequest { Email = "john@doe.com", Password = "password", ApplicationCode = "APP1" };
             var result = await controller.LoginAsync(request);
@@ -50,7 +49,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ValidateEmail_ReturnsRedirect_WhenValid()
         {
-            var app = new Application { Id = 1, Code = "APP1", Name = "App1", ResetPasswordUrlPath = "http://reset" };
+            var app = new ApplicationEo { Id = 1, Code = "APP1", Name = "App1", ResetPasswordUrlPath = "http://reset" };
             var mockAppService = new Mock<IApplicationService>();
             mockAppService.Setup(s => s.GetApplicationByCodeAsync("APP1")).ReturnsAsync(app);
             var mockAuthService = new Mock<IAuthenticationService>();

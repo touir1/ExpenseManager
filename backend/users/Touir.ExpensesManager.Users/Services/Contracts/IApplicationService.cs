@@ -1,9 +1,9 @@
-﻿using Touir.ExpensesManager.Users.Models;
+﻿using Touir.ExpensesManager.Users.Controllers.EO;
 
 namespace Touir.ExpensesManager.Users.Services.Contracts
 {
     public interface IApplicationService
     {
-        Task<Application> GetApplicationByCodeAsync(string applicationCode);
+        Task<ApplicationEo> GetApplicationByCodeAsync(string applicationCode);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Touir.ExpensesManager.Users.Infrastructure;
+﻿using Touir.ExpensesManager.Users.Controllers.EO;
+using Touir.ExpensesManager.Users.Infrastructure;
 using Touir.ExpensesManager.Users.Infrastructure.Contracts;
 using Touir.ExpensesManager.Users.Infrastructure.Options;
 using Touir.ExpensesManager.Users.Models;
@@ -8,7 +9,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 
@@ -54,17 +54,27 @@ namespace Touir.ExpensesManager.Users.Services
 
             _verifyEmailUrl = authServiceOptions.Value.VerifyEmailBaseUrl;
         }
-        public async Task<User?> AuthenticateAsync(string email, string password)
+        public async Task<UserEo?> AuthenticateAsync(string email, string password)
         {
             var user = await _userRepository.GetUserByEmailAsync(email);
             if (user == null)
                 return null;
             var authentication = await _authenticationRepository.GetAuthenticationByUserIdAsync(user.Id);
-            if (authentication == null || 
+            if (authentication == null ||
                 !_cryptographyHelper.VerifyPasswordHash(password, authentication.HashPasswordBytes, authentication.HashSaltBytes))
                 return null;
 
-            return user;
+            return new UserEo
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                FamilyId = user.FamilyId,
+                CreatedAt = user.CreatedAt,
+                LastUpdatedAt = user.LastUpdatedAt,
+                IsDisabled = user.IsDisabled
+            };
         }
 
         public string GenerateJwtToken(int userId, string userEmail)

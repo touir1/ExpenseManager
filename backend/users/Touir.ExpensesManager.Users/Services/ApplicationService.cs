@@ -1,4 +1,4 @@
-﻿using Touir.ExpensesManager.Users.Models;
+﻿using Touir.ExpensesManager.Users.Controllers.EO;
 using Touir.ExpensesManager.Users.Services.Contracts;
 using Touir.ExpensesManager.Users.Repositories.Contracts;
 
@@ -11,9 +11,18 @@ namespace Touir.ExpensesManager.Users.Services
         {
             _applicationRepository = applicationRepository;
         }
-        public async Task<Application> GetApplicationByCodeAsync(string applicationCode)
+        public async Task<ApplicationEo> GetApplicationByCodeAsync(string applicationCode)
         {
-            return await _applicationRepository.GetApplicationByCodeAsync(applicationCode);
+            var app = await _applicationRepository.GetApplicationByCodeAsync(applicationCode);
+            if (app == null) return null;
+            return new ApplicationEo
+            {
+                Id = app.Id,
+                Code = app.Code,
+                Name = app.Name,
+                Description = app.Description,
+                UrlPath = app.UrlPath
+            };
         }
     }
 }
