@@ -10,10 +10,10 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
         public async Task GetUserRolesByApplicationCodeAsync_ReturnsRoles()
         {
             using var db = new TestDbContextWrapper();
-            var app = new Application { Id = 1, Code = "APP1", Name = "App1" };
-            var user = new User { Id = 1, FirstName = "A", LastName = "B", Email = "a@b.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
-            var role = new Role { Id = 1, Code = "ADMIN", Name = "Admin", ApplicationId = 1, Application = app };
-            var userRole = new UserRole { UserId = 1, RoleId = 1, User = user, Role = role, CreatedAt = DateTime.UtcNow };
+            var app = new Application { Id = 100, Code = "APP1", Name = "App1" };
+            var user = new User { Id = 100, FirstName = "A", LastName = "B", Email = "a@b.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            var role = new Role { Id = 100, Code = "ADMIN", Name = "Admin", ApplicationId = 100, Application = app };
+            var userRole = new UserRole { UserId = 1, RoleId = 100, User = user, Role = role, CreatedAt = DateTime.UtcNow };
             db.Context.Applications.Add(app);
             db.Context.Users.Add(user);
             db.Context.Roles.Add(role);
@@ -21,7 +21,7 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
             db.Context.SaveChanges();
             
             var repo = new RoleRepository(db.Context);
-            var roles = await repo.GetUserRolesByApplicationCodeAsync("APP1", 1);
+            var roles = await repo.GetUserRolesByApplicationCodeAsync("APP1", 100);
             
             Assert.Single(roles);
             Assert.Equal("ADMIN", roles.First().Code);
@@ -31,18 +31,18 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
         public async Task GetDefaultRoleByApplicationIdAsync_ReturnsDefaultRole()
         {
             using var db = new TestDbContextWrapper();
-            var app = new Application { Id = 2, Code = "APP2", Name = "App2" };
-            var role = new Role { Id = 2, Code = "USER", Name = "User", ApplicationId = 2, Application = app, IsDefault = true };
+            var app = new Application { Id = 200, Code = "APP2", Name = "App2" };
+            var role = new Role { Id = 200, Code = "USER_200", Name = "User", ApplicationId = 200, Application = app, IsDefault = true };
             db.Context.Applications.Add(app);
             db.Context.Roles.Add(role);
             db.Context.SaveChanges();
             
             var repo = new RoleRepository(db.Context);
-            var result = await repo.GetDefaultRoleByApplicationIdAsync(2);
+            var result = await repo.GetDefaultRoleByApplicationIdAsync(200);
             
             Assert.NotNull(result);
             Assert.True(result.IsDefault);
-            Assert.Equal("USER", result.Code);
+            Assert.Equal("USER_200", result.Code);
         }
 
         [Fact]

@@ -17,7 +17,7 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories.Helpers
                 .UseSqlite(_connection)
                 .Options;
             Context = new UsersAppDbContext(options);
-            Context.Database.EnsureCreated();
+            Context.Database.Migrate(); // Apply all migrations
         }
 
         public void Dispose()
