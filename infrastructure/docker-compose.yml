@@ -60,9 +60,10 @@ services:
   minio:
     container_name: minio
     image: minio/minio
-    command: server /data
+    command: server /data --console-address ":9050"
     ports:
-      - "9001:9000"
+      - "9001:9000" # MinIO S3 API
+      - "9050:9050" # MinIO Console
     environment:
       MINIO_ROOT_USER: minio
       MINIO_ROOT_PASSWORD: minio123
@@ -101,8 +102,17 @@ services:
       - ./volumes/gitlab/logs:/var/log/gitlab
       - ./volumes/gitlab/data:/var/opt/gitlab
     shm_size: "256m"
+    mem_limit: 4g
+    cpus: 2
     environment:
+      GITLAB_ROOT_PASSWORD: "SlzdQmrjSotkX45/*!!dq" # to change
       GITLAB_OMNIBUS_CONFIG: |
+        ### when using external reverse proxy
+        letsencrypt['enable'] = false
+        nginx['listen_port'] = 80
+        nginx['listen_https'] = false
+        nginx['redirect_http_to_https'] = false
+        nginx['gzip_enabled'] = false
         external_url 'http://localhost:8080'
         postgresql['enable'] = false
         gitlab_rails['db_adapter'] = 'postgresql'
@@ -117,13 +127,15 @@ services:
         gitlab_rails['redis_port'] = 6379
         gitlab_rails['redis_database'] = 0
         prometheus['enable'] = false
+        prometheus_monitoring['enable'] = false
+        alertmanager['enable'] = false
         gitlab_rails['object_store']['enabled'] = true
         gitlab_rails['object_store']['connection'] = {
           'provider' => 'AWS',
           'aws_access_key_id' => 'minio',
           'aws_secret_access_key' => 'minio123',
           'region' => 'eu-west-1',
-          'endpoint' => 'http://minio:9001',
+          'endpoint' => 'http://minio:9000',
           'path_style' => true
         }
         gitlab_rails['object_store']['objects']['artifacts'] = {
@@ -166,3 +178,41 @@ services:
           'bucket' => 'gitlab-external-diffs',
           'enabled' => true
         }
+        ### disable almost all optional services
+        #gitlab_kas['enable'] = false
+        #gitlab_rails['smtp_enable'] = false
+        #gitlab_rails['microsoft_graph_mailer_enabled'] = false
+        #mattermost['enable'] = false
+        #mattermost_nginx['enable'] = false
+        #postgres_exporter['enable'] = false
+        #pgbouncer_exporter['enable'] = false
+        #node_exporter['enable'] = false
+        #redis_exporter['enable'] = false
+        #monitoring_role['enable'] = false
+        #gitlab_exporter['enable'] = false
+        ### configure for low-memory usage
+        puma['worker_processes'] = 2
+        sidekiq['max_concurrency'] = 5
+        ### disable service ping (telemetry)
+        #gitlab_rails['usage_ping_enabled'] = false
+        ### disable gitlab pages
+        #gitlab_pages['enable'] = false
+        ### disable mailroom
+        #mailroom['enable'] = false
+        
+  mirror-cron:
+    image: alpine:3.19
+    container_name: mirror-cron
+    depends_on:
+      - gitlab
+    volumes:
+      - ./scripts:/scripts:ro
+      - ./volumes/mirror/work:/work
+      - ./volumes/mirror/logs:/var/log
+      - ./configs/cron/mirror-crontab:/etc/crontabs/root:ro
+      - ./configs/cron/repos.txt:/etc/mirror/repos.txt:ro
+      - ./configs/ssh/id_ed25519:/secrets/id_ed25519:ro
+      - ./configs/ssh/known_hosts:/secrets/known_hosts:ro
+    command: /bin/sh -c "apk add --no-cache git git-lfs openssh tzdata coreutils && \
+      mkdir -p /root/.ssh && cp /secrets/id_ed25519 /root/.ssh/id_ed25519 && chmod 600 /root/.ssh/id_ed25519 && \
+      cp /secrets/known_hosts /root/.ssh/known_hosts && crond -f -l 8"

@@ -1,5 +1,6 @@
 infrastructure/volumes/
 infrastructure/configs/gitlab/
+infrastructure/configs/ssh/
 bin/
 obj/
 .vs/
