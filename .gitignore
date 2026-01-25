@@ -1,4 +1,5 @@
-infrastructure/local/
+infrastructure/volumes/
+infrastructure/configs/gitlab/
 bin/
 obj/
 .vs/

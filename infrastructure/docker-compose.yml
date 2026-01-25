@@ -11,17 +11,18 @@ services:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin
     volumes:
-      - ../messaging/RabbitMQConfig:/etc/rabbitmq   # Mount custom configuration file
-      - ./local/rabbitmq/data:/var/lib/rabbitmq
-      - ./local/rabbitmq/logs:/var/log/rabbitmq
+      - ./configs/rabbitmq:/etc/rabbitmq   # Mount custom configuration file
+      - ./volumes/rabbitmq/data:/var/lib/rabbitmq
+      - ./volumes/rabbitmq/logs:/var/log/rabbitmq
     command: rabbitmq-server
+    
   prometheus:
     container_name: prometheus
     image: prom/prometheus:v2.30.3
     ports:
       - "9090:9090"
     volumes:
-      - ../messaging/PrometheusConfig:/etc/prometheus
+      - ./configs/prometheus:/etc/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
 
@@ -31,9 +32,10 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./local/grafana/data:/var/lib/grafana
+      - ./volumes/grafana/data:/var/lib/grafana
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+  
   postgres:
     image: postgres:16
     container_name: expenses_postgres
@@ -44,16 +46,123 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./local/postgres/backups:/backups
-      - ./local/postgres/data:/var/lib/postgresql/data
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: expenses_pgadmin
-    #restart: always
+      - ./volumes/postgres/backups:/backups
+      - ./volumes/postgres/data:/var/lib/postgresql/data
+      
+  redis:
+    image: redis:7
+    container_name: redis
     ports:
-      - "8888:80"
-    environment:
-      PGADMIN_DEFAULT_EMAIL: pgadmin@pgadmin.com
-      PGADMIN_DEFAULT_PASSWORD: pgadmin
+      - "6379:6379"
     volumes:
-      - ./local/pgadmin/exports:/exports
+      - ./volumes/redis/data:/data
+      
+  minio:
+    container_name: minio
+    image: minio/minio
+    command: server /data
+    ports:
+      - "9001:9000"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    volumes:
+      - ./volumes/minio/data:/data
+      
+  sonarqube:
+    image: sonarqube:community
+    container_name: sonarqube
+    depends_on:
+      - postgres
+    ports:
+      - "9000:9000"
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://postgres:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    volumes:
+      - ./volumes/sonarqube/data:/opt/sonarqube/data
+      - ./volumes/sonarqube/extensions:/opt/sonarqube/extensions
+      - ./volumes/sonarqube/logs:/opt/sonarqube/logs
+  
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    container_name: gitlab
+    hostname: gitlab.local
+    depends_on:
+      - redis
+      - postgres
+    ports:
+      - "8080:80"
+      - "8443:443"
+      - "2222:22"
+    volumes:
+      - ./configs/gitlab:/etc/gitlab
+      - ./volumes/gitlab/logs:/var/log/gitlab
+      - ./volumes/gitlab/data:/var/opt/gitlab
+    shm_size: "256m"
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost:8080'
+        postgresql['enable'] = false
+        gitlab_rails['db_adapter'] = 'postgresql'
+        gitlab_rails['db_encoding'] = 'utf8'
+        gitlab_rails['db_database'] = 'gitlab'
+        gitlab_rails['db_username'] = 'gitlab'
+        gitlab_rails['db_password'] = 'gitlab'
+        gitlab_rails['db_host'] = 'postgres'
+        gitlab_rails['db_port'] = 5432
+        redis['enable'] = false
+        gitlab_rails['redis_host'] = 'redis'
+        gitlab_rails['redis_port'] = 6379
+        gitlab_rails['redis_database'] = 0
+        prometheus['enable'] = false
+        gitlab_rails['object_store']['enabled'] = true
+        gitlab_rails['object_store']['connection'] = {
+          'provider' => 'AWS',
+          'aws_access_key_id' => 'minio',
+          'aws_secret_access_key' => 'minio123',
+          'region' => 'eu-west-1',
+          'endpoint' => 'http://minio:9001',
+          'path_style' => true
+        }
+        gitlab_rails['object_store']['objects']['artifacts'] = {
+          'bucket' => 'gitlab-artifacts',
+          'enabled' => true
+        }
+        gitlab_rails['object_store']['objects']['lfs'] = {
+          'bucket' => 'gitlab-lfs',
+          'enabled' => true
+        }
+        gitlab_rails['object_store']['objects']['packages'] = {
+          'bucket' => 'gitlab-packages',
+          'enabled' => true
+        }
+        gitlab_rails['object_store']['objects']['uploads'] = {
+          'bucket' => 'gitlab-uploads',
+          'enabled' => true
+        }
+        gitlab_rails['object_store']['objects']['registry'] = {
+          'bucket' => 'gitlab-registry',
+          'enabled' => true
+        }
+        gitlab_rails['object_store']['objects']['terraform_state'] = {
+          'bucket' => 'gitlab-terraform-state',
+          'enabled' => true
+        }
+        gitlab_rails['object_store']['objects']['dependency_proxy'] = {
+          'bucket' => 'gitlab-dependency-proxy',
+          'enabled' => true
+        }
+        gitlab_rails['object_store']['objects']['pages'] = {
+          'bucket' => 'gitlab-pages',
+          'enabled' => true
+        }
+        gitlab_rails['object_store']['objects']['ci_secure_files'] = {
+          'bucket' => 'gitlab-ci-secure-files',
+          'enabled' => true
+        }
+        gitlab_rails['object_store']['objects']['external_diffs'] = {
+          'bucket' => 'gitlab-external-diffs',
+          'enabled' => true
+        }
