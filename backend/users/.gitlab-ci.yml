@@ -59,7 +59,7 @@ sonarqube:
 # ----------------------
 # SCA – DEPENDENCY CHECK
 # ----------------------
-dependency-check:
+sca:
   stage: security
   image: owasp/dependency-check:latest
   script:
@@ -76,7 +76,7 @@ dependency-check:
 # ----------------------
 # SAST – SEMGREP
 # ----------------------
-semgrep:
+sast:
   stage: security
   image: returntocorp/semgrep
   script:
@@ -89,7 +89,7 @@ semgrep:
 # ----------------------
 # SECRETS SCAN – GITLEAKS
 # ----------------------
-gitleaks:
+secrets-scan:
   stage: security
   image: zricethezav/gitleaks:latest
   script:
@@ -115,7 +115,7 @@ docker-build:
 # ----------------------
 # TRIVY IMAGE SCAN
 # ----------------------
-trivy:
+docker-security:
   stage: docker
   image: aquasec/trivy:latest
   services:
