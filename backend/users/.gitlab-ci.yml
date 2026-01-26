@@ -1,0 +1,126 @@
+stages:
+  - build
+  - test
+  - quality
+  - security
+  - docker
+
+variables:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+  BUILD_CONFIGURATION: Release
+  IMAGE_NAME: expense-manager-backend-users
+
+# ----------------------
+# BUILD
+# ----------------------
+build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet restore
+    - dotnet build --configuration $BUILD_CONFIGURATION
+
+# ----------------------
+# TEST + COVERAGE
+# ----------------------
+test:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet test
+        /p:CollectCoverage=true
+        /p:CoverletOutputFormat=opencover
+        /p:CoverletOutput=./coverage/
+  artifacts:
+    when: always
+    paths:
+      - coverage/
+
+# ----------------------
+# SONARQUBE ANALYSIS
+# ----------------------
+sonarqube:
+  stage: quality
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  dependencies:
+    - test
+  script:
+    - dotnet tool install --global dotnet-sonarscanner
+    - export PATH="$PATH:/root/.dotnet/tools"
+    - dotnet sonarscanner begin
+        /k:"my-dotnet-project"
+        /d:sonar.host.url="$SONAR_HOST_URL"
+        /d:sonar.login="$SONAR_TOKEN"
+        /d:sonar.cs.opencover.reportsPaths="coverage/**/*.opencover.xml"
+    - dotnet build
+    - dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
+
+# ----------------------
+# SCA – DEPENDENCY CHECK
+# ----------------------
+dependency-check:
+  stage: security
+  image: owasp/dependency-check:latest
+  script:
+    - dependency-check.sh
+        --project myapp
+        --scan .
+        --format JSON
+        --out dependency-check-report
+  artifacts:
+    when: always
+    paths:
+      - dependency-check-report/
+
+# ----------------------
+# SAST – SEMGREP
+# ----------------------
+semgrep:
+  stage: security
+  image: returntocorp/semgrep
+  script:
+    - semgrep scan --config=auto --json > semgrep.json
+  artifacts:
+    when: always
+    paths:
+      - semgrep.json
+
+# ----------------------
+# SECRETS SCAN – GITLEAKS
+# ----------------------
+gitleaks:
+  stage: security
+  image: zricethezav/gitleaks:latest
+  script:
+    - gitleaks detect --source . --report-format json --report-path gitleaks.json
+  artifacts:
+    when: always
+    paths:
+      - gitleaks.json
+
+# ----------------------
+# DOCKER BUILD
+# ----------------------
+docker-build:
+  stage: docker
+  image: docker:24
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  script:
+    - docker build -t $IMAGE_NAME:latest .
+
+# ----------------------
+# TRIVY IMAGE SCAN
+# ----------------------
+trivy:
+  stage: docker
+  image: aquasec/trivy:latest
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  script:
+    - trivy image --severity HIGH,CRITICAL --exit-code 1 $IMAGE_NAME:latest
