@@ -4,13 +4,14 @@ namespace Touir.ExpensesManager.Users.Models
 {
     public class Authentication
     {
-        public int UserId { get; set; }
-        public User User { get; set; }
         public string HashPassword { get; set; }
         public string HashSalt { get; set; }
         public bool IsTemporaryPassword { get; set; }
         public string? PasswordResetHash { get; set; }
         public DateTime? PasswordResetRequestedAt { get; set; }
+
+        public int UserId { get; set; }
+        public User User { get; set; }
 
         public byte[] HashPasswordBytes {
             get => Encoding.UTF8.GetBytes(HashPassword);
