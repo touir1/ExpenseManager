@@ -5,6 +5,10 @@ stages:
   - security
   - docker
 
+default:
+  before_script:
+    - cd backend/users
+
 variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
   DOTNET_NOLOGO: "1"

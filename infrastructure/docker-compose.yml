@@ -1,9 +1,18 @@
 version: '3.8'
 
+networks:
+  expenses_manager_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.150.0.0/24
+
 services:
   rabbitmq:
     container_name: rabbitmq
     image: rabbitmq:3.9.9-management
+    networks:
+      - expenses_manager_net
     ports:
       - "5672:5672"    # AMQP port
       - "15672:15672"  # Management plugin port
@@ -19,6 +28,8 @@ services:
   prometheus:
     container_name: prometheus
     image: prom/prometheus:v2.30.3
+    networks:
+      - expenses_manager_net
     ports:
       - "9090:9090"
     volumes:
@@ -29,6 +40,8 @@ services:
   grafana:
     container_name: grafana
     image: grafana/grafana:8.3.0
+    networks:
+      - expenses_manager_net
     ports:
       - "3000:3000"
     volumes:
@@ -39,6 +52,8 @@ services:
   postgres:
     image: postgres:16
     container_name: expenses_postgres
+    networks:
+      - expenses_manager_net
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -52,6 +67,8 @@ services:
   redis:
     image: redis:7
     container_name: redis
+    networks:
+      - expenses_manager_net
     ports:
       - "6379:6379"
     volumes:
@@ -61,6 +78,8 @@ services:
     container_name: minio
     image: minio/minio
     command: server /data --console-address ":9050"
+    networks:
+      - expenses_manager_net
     ports:
       - "9001:9000" # MinIO S3 API
       - "9050:9050" # MinIO Console
@@ -73,6 +92,8 @@ services:
   sonarqube:
     image: sonarqube:community
     container_name: sonarqube
+    networks:
+      - expenses_manager_net
     depends_on:
       - postgres
     ports:
@@ -90,9 +111,13 @@ services:
     image: gitlab/gitlab-ce:latest
     container_name: gitlab
     hostname: gitlab.local
+    networks:
+      expenses_manager_net:
+        ipv4_address: 172.150.0.10
     depends_on:
       - redis
       - postgres
+      - minio
     ports:
       - "8080:80"
       - "8443:443"
@@ -191,8 +216,8 @@ services:
         #monitoring_role['enable'] = false
         #gitlab_exporter['enable'] = false
         ### configure for low-memory usage
-        puma['worker_processes'] = 2
-        sidekiq['max_concurrency'] = 5
+        puma['worker_processes'] = 1
+        sidekiq['max_concurrency'] = 3
         ### disable service ping (telemetry)
         #gitlab_rails['usage_ping_enabled'] = false
         ### disable gitlab pages
@@ -203,6 +228,8 @@ services:
   mirror-cron:
     image: alpine:3.19
     container_name: mirror-cron
+    networks:
+      - expenses_manager_net
     depends_on:
       - gitlab
     volumes:
@@ -216,3 +243,35 @@ services:
     command: /bin/sh -c "apk add --no-cache git git-lfs openssh tzdata coreutils && \
       mkdir -p /root/.ssh && cp /secrets/id_ed25519 /root/.ssh/id_ed25519 && chmod 600 /root/.ssh/id_ed25519 && \
       cp /secrets/known_hosts /root/.ssh/known_hosts && crond -f -l 8"
+
+  docker-dind:
+    image: docker:27-dind
+    container_name: docker-dind
+    privileged: true
+    networks:
+      - expenses_manager_net
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+    command:
+      - "--host=tcp://0.0.0.0:2375"
+      - "--storage-driver=vfs"
+    volumes:
+      - dind-data:/var/lib/docker
+    
+  gitlab-runner:
+    image: gitlab/gitlab-runner:alpine
+    container_name: gitlab-runner
+    networks:
+      - expenses_manager_net
+    depends_on:
+      - gitlab
+      - docker-dind
+    volumes:
+      - ./configs/gitlab-runner:/etc/gitlab-runner
+    environment:
+      CI_SERVER_URL: http://gitlab:80
+      DOCKER_HOST: tcp://docker-dind:2375
+      DOCKER_TLS_CERTDIR: ""
+
+volumes:
+  dind-data:

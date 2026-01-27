@@ -1,0 +1,17 @@
+concurrent = 2
+
+[[runners]]
+  clone_url = "http://gitlab:80"
+  name = "dind-runner"
+  url = "http://gitlab:80"
+  token = "glrt-zg4ByCo8nKwCTMCvklQpZG86MQp0OjEKdToxCw.01.120k4tc8k"
+  executor = "docker"
+
+  [runners.docker]
+    image = "docker:27"
+    privileged = true
+    disable_entrypoint_overwrite = false
+    oom_kill_disable = false
+    shm_size = 256000000
+    volumes = ["/cache"]
+    extra_hosts = ["gitlab:172.150.0.10"]

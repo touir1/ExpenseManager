@@ -1,8 +1,25 @@
 infrastructure/volumes/
 infrastructure/configs/gitlab/
 infrastructure/configs/ssh/
+infrastructure/configs/gitlab-runner/.runner_system_id
 bin/
 obj/
 .vs/
 *.csproj.user
 DBeaver_projects/
+
+# .NET build artifacts
+**/bin/
+**/obj/
+**/.vs/
+**/TestResults/
+*.user
+*.suo
+
+# CI/quality outputs
+**/coverage/
+**/.sonarqube/
+**/dependency-check-report/
+**/semgrep.json
+**/gitleaks.json
+image.tar
