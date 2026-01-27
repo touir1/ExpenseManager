@@ -1,10 +1,9 @@
-﻿using Touir.ExpensesManager.Users.Infrastructure.Contracts;
-using Touir.ExpensesManager.Users.Infrastructure.Options;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Mail;
-using System.Reflection;
 using System.Text;
+using Touir.ExpensesManager.Users.Infrastructure.Contracts;
+using Touir.ExpensesManager.Users.Infrastructure.Options;
 
 namespace Touir.ExpensesManager.Users.Infrastructure
 {
@@ -92,7 +91,7 @@ namespace Touir.ExpensesManager.Users.Infrastructure
 
         public string GetEmailTemplate(string templateKey, Dictionary<string, string> parameters)
         {
-            string filePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), $"Assets\\EmailTemplates\\{templateKey}.html");
+            string filePath = Path.Combine(AppContext.BaseDirectory, "Assets", "EmailTemplates", $"{templateKey}.html");
             StringBuilder templateContent = new StringBuilder(File.ReadAllText(filePath));
 
             if(parameters != null) { 
