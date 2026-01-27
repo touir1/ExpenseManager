@@ -1,3 +1,11 @@
+workflow:
+  rules:
+    - changes:
+        - backend/users/**/*
+        - backend/expenses/**/*
+        - frontend/dashboard/**/*
+      when: always
+
 stages:
   - trigger
 
@@ -8,7 +16,8 @@ backend-users-pipeline:
     strategy: depend
   rules:
     - changes:
-        - backend/users/**
+        - backend/users/**/*
+      when: always
 
 backend-expenses-pipeline:
   stage: trigger
@@ -17,7 +26,8 @@ backend-expenses-pipeline:
     strategy: depend
   rules:
     - changes:
-        - backend/expenses/**
+        - backend/expenses/**/*
+      when: always
 
 frontend-dashboard-pipeline:
   stage: trigger
@@ -26,4 +36,5 @@ frontend-dashboard-pipeline:
     strategy: depend
   rules:
     - changes:
-        - frontend/dashboard/**
+        - frontend/dashboard/**/*
+      when: always
