@@ -12,7 +12,8 @@ stages:
 backend-users-pipeline:
   stage: trigger
   trigger:
-    include: backend/users/.gitlab-ci.yml
+    include: 
+      - local: backend/users/.gitlab-ci.yml
     strategy: depend
   rules:
     - changes:
@@ -22,7 +23,8 @@ backend-users-pipeline:
 backend-expenses-pipeline:
   stage: trigger
   trigger:
-    include: backend/expenses/.gitlab-ci.yml
+    include: 
+      - local: backend/expenses/.gitlab-ci.yml
     strategy: depend
   rules:
     - changes:
@@ -32,7 +34,8 @@ backend-expenses-pipeline:
 frontend-dashboard-pipeline:
   stage: trigger
   trigger:
-    include: frontend/dashboard/.gitlab-ci.yml
+    include: 
+      - local: frontend/dashboard/.gitlab-ci.yml
     strategy: depend
   rules:
     - changes:
