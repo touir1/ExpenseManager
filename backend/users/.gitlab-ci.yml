@@ -56,7 +56,7 @@ sonarqube:
   script:
     - export PATH="$PATH:/root/.dotnet/tools"
     - dotnet tool install --global dotnet-sonarscanner
-    - dotnet sonarscanner begin /k:"$SONAR_PROJECT_KEY" /n:"$SONAR_PROJECT_NAME" /v:"$CI_COMMIT_SHA" /d:sonar.host.url="$SONAR_HOST_URL" /d:sonar.login="$SONAR_TOKEN" /d:sonar.cs.opencover.reportsPaths="$SONAR_COVERAGE_PATH" /d:sonar.branch.name="$CI_COMMIT_REF_NAME"
+    - dotnet sonarscanner begin /k:"$SONAR_PROJECT_KEY" /n:"$SONAR_PROJECT_NAME" /v:"$CI_COMMIT_SHA" /d:sonar.host.url="$SONAR_HOST_URL" /d:sonar.login="$SONAR_TOKEN" /d:sonar.cs.opencover.reportsPaths="$SONAR_COVERAGE_PATH"
     - dotnet build
     - dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
 
