@@ -41,10 +41,7 @@ test:
   stage: test
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
-    - dotnet test \
-        /p:CollectCoverage=true \
-        /p:CoverletOutputFormat=opencover \
-        /p:CoverletOutput=$CI_PROJECT_DIR/coverage/backend/users/coverage
+    - dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=$CI_PROJECT_DIR/coverage/backend/users/
   artifacts:
     when: always
     paths:
