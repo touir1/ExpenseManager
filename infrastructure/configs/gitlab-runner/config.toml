@@ -14,4 +14,4 @@ concurrent = 2
     oom_kill_disable = false
     shm_size = 256000000
     volumes = ["/cache"]
-    extra_hosts = ["gitlab:172.150.0.10", "sonarqube:172.150.0.20"]
+    extra_hosts = ["gitlab:172.150.0.10", "sonarqube:172.150.0.20", "minio:172.150.0.30"]

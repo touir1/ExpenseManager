@@ -79,7 +79,8 @@ services:
     image: minio/minio
     command: server /data --console-address ":9050"
     networks:
-      - expenses_manager_net
+      expenses_manager_net:
+        ipv4_address: 172.150.0.30
     ports:
       - "9001:9000" # MinIO S3 API
       - "9050:9050" # MinIO Console
