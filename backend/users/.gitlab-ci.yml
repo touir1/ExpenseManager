@@ -44,7 +44,7 @@ test:
     - dotnet test \
         /p:CollectCoverage=true \
         /p:CoverletOutputFormat=opencover \
-        /p:CoverletOutput=$CI_PROJECT_DIR/coverage/backend/users/
+        /p:CoverletOutput=$CI_PROJECT_DIR/coverage/backend/users/coverage
   artifacts:
     when: always
     paths:
