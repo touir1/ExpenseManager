@@ -93,7 +93,8 @@ services:
     image: sonarqube:community
     container_name: sonarqube
     networks:
-      - expenses_manager_net
+      expenses_manager_net:
+        ipv4_address: 172.150.0.20
     depends_on:
       - postgres
     ports:

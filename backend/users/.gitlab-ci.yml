@@ -15,6 +15,14 @@ variables:
   BUILD_CONFIGURATION: Release
   IMAGE_NAME: expense-manager-backend-users
   SONAR_HOST_URL: "http://sonarqube:9000"
+  COVERAGE_ARTIFACTS_PATH: coverage/backend/users/
+
+# Cache shared across jobs (root-relative)
+cache:
+  key: "$CI_PROJECT_NAME"
+  paths:
+    - .nuget/packages/
+  
 
 # ----------------------
 # BUILD
@@ -33,14 +41,14 @@ test:
   stage: test
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
-    - dotnet test
-        /p:CollectCoverage=true
-        /p:CoverletOutputFormat=opencover
-        /p:CoverletOutput=./coverage/
+    - dotnet test \
+        /p:CollectCoverage=true \
+        /p:CoverletOutputFormat=opencover \
+        /p:CoverletOutput=$CI_PROJECT_DIR/coverage/backend/users/
   artifacts:
     when: always
     paths:
-      - backend/users/**/coverage/
+      - $COVERAGE_ARTIFACTS_PATH
 
 # ----------------------
 # SONARQUBE ANALYSIS
@@ -49,6 +57,7 @@ sonarqube:
   stage: quality
   image: mcr.microsoft.com/dotnet/sdk:8.0
   dependencies:
+    - build
     - test
   script:
     - dotnet tool install --global dotnet-sonarscanner
