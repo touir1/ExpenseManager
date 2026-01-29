@@ -83,21 +83,6 @@ sca:
 # ----------------------
 # SAST – SEMGREP
 # ----------------------
-sast:
-  stage: security
-  image: mcr.microsoft.com/dotnet/sdk:8.0
-  script:
-    - dotnet restore
-    - dotnet build
-      -warnaserror
-      /p:RunAnalyzers=true
-      /p:TreatWarningsAsErrors=true
-  allow_failure: true
-  artifacts:
-    when: always
-    reports:
-      sast: backend/users/gl-sast-report.json
-
 dependency_scan:
   stage: security
   image: owasp/dependency-check

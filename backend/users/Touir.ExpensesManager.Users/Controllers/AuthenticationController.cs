@@ -1,10 +1,8 @@
 ﻿using Touir.ExpensesManager.Users.Controllers.EO;
 using Touir.ExpensesManager.Users.Controllers.Requests;
 using Touir.ExpensesManager.Users.Controllers.Responses;
-using Touir.ExpensesManager.Users.Infrastructure.Options;
 using Touir.ExpensesManager.Users.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace Touir.ExpensesManager.Users.Controllers
 {
@@ -19,8 +17,7 @@ namespace Touir.ExpensesManager.Users.Controllers
         public AuthenticationController(
             IAuthenticationService authenticationService, 
             IRoleService roleService, 
-            IApplicationService applicationService,
-            IOptions<AuthenticationServiceOptions> authServiceOptions)
+            IApplicationService applicationService)
         {
             _authenticationService = authenticationService;
             _roleService = roleService;
@@ -44,7 +41,7 @@ namespace Touir.ExpensesManager.Users.Controllers
                 return Ok(new RegisterResponse
                 {
                     Errors = errors,
-                    HasError = errors != null && errors.Count() > 0
+                    HasError = errors != null && errors.Any()
                 });
             }
             catch(Exception)

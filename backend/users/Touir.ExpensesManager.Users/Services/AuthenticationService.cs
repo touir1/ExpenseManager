@@ -38,7 +38,7 @@ namespace Touir.ExpensesManager.Users.Services
             IUserRepository userRepository,
             IAuthenticationRepository authenticationRepository,
             IApplicationRepository applicationRepository,
-            IRoleRepository roleRepository) 
+            IRoleRepository roleRepository)
         {
             _secretKey = jwtAuthOptions.Value.SecretKey;
             _issuer = jwtAuthOptions.Value.Issuer;
@@ -186,7 +186,7 @@ namespace Touir.ExpensesManager.Users.Services
                     if(app != null)
                     {
                         var role = await _roleRepository.GetDefaultRoleByApplicationIdAsync(app.Id);
-                        if(role != null)
+                        if(role != null && user != null)
                         {
                             await _roleRepository.AssignRoleToUserAsync(role.Id, user.Id);
                         }
@@ -196,7 +196,7 @@ namespace Touir.ExpensesManager.Users.Services
                 try
                 {
                     string verificationLink = $"{_verifyEmailUrl.TrimEnd('/')}?h={HttpUtility.UrlEncode(emailValidationHash)}&s={HttpUtility.UrlEncode(email)}&app_code={HttpUtility.UrlEncode(applicationCode)}";
-                    Console.WriteLine($"user: {user.FirstName} {user.LastName}, verifLink: {verificationLink}");
+                    Console.WriteLine($"user: {user?.FirstName} {user?.LastName}, verifLink: {verificationLink}");
                     string emailVerificationHtml = _emailHelper.GetEmailTemplate(EmailHTMLTemplate.EmailVerification.Key, new Dictionary<string, string> {
                         { EmailHTMLTemplate.EmailVerification.Variables.VerificationLink, verificationLink },
                     });

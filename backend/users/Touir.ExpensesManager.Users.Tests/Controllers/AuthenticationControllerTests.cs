@@ -16,7 +16,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.RegisterNewUserAsync("John", "Doe", "john@doe.com", "APP1"))
                 .ReturnsAsync(new List<string>());
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), null);
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
             var request = new RegisterRequest { FirstName = "John", LastName = "Doe", Email = "john@doe.com", ApplicationCode = "APP1" };
             var result = await controller.RegisterAsync(request);
             
@@ -35,14 +35,14 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             mockAuthService.Setup(s => s.GenerateJwtToken(user.Id.Value, user.Email)).Returns("token");
             var mockRoleService = new Mock<IRoleService>();
             mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id.Value)).ReturnsAsync(new List<RoleEo> { new RoleEo { Code = "ADMIN", Name = "Admin" } });
-            var controller = new AuthenticationController(mockAuthService.Object, mockRoleService.Object, Mock.Of<IApplicationService>(), null);
+            var controller = new AuthenticationController(mockAuthService.Object, mockRoleService.Object, Mock.Of<IApplicationService>());
             var request = new LoginRequest { Email = "john@doe.com", Password = "password", ApplicationCode = "APP1" };
             var result = await controller.LoginAsync(request);
             
             var okResult = Assert.IsType<OkObjectResult>(result);
             var response = Assert.IsType<LoginResponse>(okResult.Value);
             
-            Assert.Equal("john@doe.com", response.User.Email);
+            Assert.Equal("john@doe.com", response.User?.Email);
             Assert.Equal("token", response.Token);
         }
 
@@ -54,7 +54,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             mockAppService.Setup(s => s.GetApplicationByCodeAsync("APP1")).ReturnsAsync(app);
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.ValidateEmailAsync("hash", "john@doe.com")).ReturnsAsync(true);
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), mockAppService.Object, null);
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), mockAppService.Object);
             
             var result = await controller.ValidateEmail("hash", "john@doe.com", "APP1");
             var redirectResult = Assert.IsType<RedirectResult>(result);
@@ -67,7 +67,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         {
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.ChangePasswordAsync("john@doe.com", "old", "new")).ReturnsAsync(true);
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), null);
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
             var request = new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "old", NewPassword = "new", ConfirmPassword = "new" };
             
             var result = await controller.ChangePassword(request);
@@ -80,7 +80,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         {
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.RequestPasswordResetAsync("john@doe.com")).ReturnsAsync(true);
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), null);
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
             var request = new RequestPasswordResetRequest { Email = "john@doe.com" };
             
             var result = await controller.RequestPasswordReset(request);
@@ -93,7 +93,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         {
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.ResetPasswordAsync("john@doe.com", "hash", "new")).ReturnsAsync(true);
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), null);
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
             var request = new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "new", ConfirmPassword = "new" };
             
             var result = await controller.ChangePasswordReset(request);
