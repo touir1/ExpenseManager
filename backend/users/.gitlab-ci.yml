@@ -87,10 +87,8 @@ sast:
   stage: security
   image: returntocorp/semgrep
   script:
-    - pwd
-    - ls -la
     - ln -sf "$PWD" /src
-    - semgrep scan --config=p/csharp --json --metrics=off --output semgrep.json .
+    - semgrep scan --config=p/csharp --json --metrics=off --output semgrep.json --verbose .
   allow_failure: true
   artifacts:
     when: always
