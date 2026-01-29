@@ -70,7 +70,7 @@ sca:
   image: owasp/dependency-check:latest
   script:
     - ln -sf "$PWD" /src
-    - dependency-check.sh --project "ExpenseManager-Backend-Users" --scan /src --format JSON --out dependency-check-report
+    - dependency-check.sh --project "ExpenseManager-Backend-Users" --scan /src --format JSON --out /src/dependency-check-report
   allow_failure: true
   artifacts:
     when: always
