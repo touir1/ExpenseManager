@@ -67,7 +67,9 @@ sonarqube:
 # ----------------------
 sca:
   stage: security
-  image: owasp/dependency-check:latest
+  image: 
+    name: owasp/dependency-check:latest
+    entrypoint: [""]
   script:
     - ln -sf "$PWD" /src
     - echo $PATH
