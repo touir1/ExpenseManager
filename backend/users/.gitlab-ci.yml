@@ -90,7 +90,7 @@ sast:
     - pwd
     - ls -la
     - ln -sf "$PWD" /src
-    - semgrep scan --config=auto --json --output semgrep.json
+    - semgrep scan --config=auto --scan-unknown-files --json --output semgrep.json
   allow_failure: true
   artifacts:
     when: always
