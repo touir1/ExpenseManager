@@ -85,17 +85,18 @@ sca:
 # ----------------------
 sast:
   stage: security
-  image: returntocorp/semgrep
+  image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
-    - pwd
-    - ls -la
-    - ln -sf "$PWD" /src
-    - semgrep scan --config=auto --json --metrics=off --output semgrep.json .
+    - dotnet restore
+    - dotnet build
+      -warnaserror
+      /p:RunAnalyzers=true
+      /p:TreatWarningsAsErrors=true
   allow_failure: true
   artifacts:
     when: always
-    paths:
-      - backend/users/semgrep.json
+    reports:
+      sast: backend/users/gl-sast-report.json
 
 # ----------------------
 # SECRETS SCAN – GITLEAKS

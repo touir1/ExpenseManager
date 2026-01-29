@@ -1,0 +1,3 @@
+[*.cs]
+dotnet_analyzer_diagnostic.category-Security.severity = error
+dotnet_analyzer_diagnostic.category-Reliability.severity = warning
