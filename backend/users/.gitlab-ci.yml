@@ -70,7 +70,8 @@ sca:
   image: owasp/dependency-check:latest
   script:
     - ln -sf "$PWD" /src
-    - dependency-check.sh --project "ExpenseManager-Backend-Users" --scan /src --format JSON --out /src/dependency-check-report
+    - echo $PATH
+    - dependency-check.sh --project "ExpenseManager-Backend-Users" --scan /src --format JSON --out /src/dependency-check-report --nvdApiKey "$NVD_API_KEY"
   allow_failure: true
   artifacts:
     when: always
