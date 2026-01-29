@@ -87,6 +87,8 @@ sast:
   stage: security
   image: returntocorp/semgrep
   script:
+    - pwd
+    - ls -la
     - ln -sf "$PWD" /src
     - semgrep scan --config=auto --json --output semgrep.json
   allow_failure: true
