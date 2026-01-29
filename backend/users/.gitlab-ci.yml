@@ -72,7 +72,8 @@ sca:
     entrypoint: [""]
   script:
     - ln -sf "$PWD" /src
-    - echo $PATH
+    - export PATH="$PATH:/usr/share/dependency-check/bin"
+    - echo "${pwd}"
     - dependency-check.sh --project "ExpenseManager-Backend-Users" --scan /src --format JSON --out /src/dependency-check-report --nvdApiKey "$NVD_API_KEY"
   allow_failure: true
   artifacts:
