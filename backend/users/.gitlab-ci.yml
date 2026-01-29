@@ -87,12 +87,13 @@ sast:
   stage: security
   image: returntocorp/semgrep
   script:
-    - semgrep scan --config=auto --json > semgrep.json
+    - ln -sf "$PWD" /src
+    - semgrep scan --config=auto --json --output semgrep.json
   allow_failure: true
   artifacts:
     when: always
     paths:
-      - semgrep.json
+      - backend/users/semgrep.json
 
 # ----------------------
 # SECRETS SCAN – GITLEAKS
@@ -106,7 +107,7 @@ secrets-scan:
   artifacts:
     when: always
     paths:
-      - gitleaks.json
+      - backend/users/gitleaks.json
 
 # ----------------------
 # DOCKER BUILD
@@ -128,6 +129,8 @@ docker-build:
 docker-security:
   stage: docker
   image: aquasec/trivy:latest
+  dependencies:
+    - docker-build
   services:
     - docker:24-dind
   variables:
