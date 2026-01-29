@@ -98,6 +98,16 @@ sast:
     reports:
       sast: backend/users/gl-sast-report.json
 
+dependency_scan:
+  stage: security
+  image: owasp/dependency-check
+  script:
+    - dependency-check --scan . --format JSON --out dependency-report
+  artifacts:
+    when: always
+    paths:
+      - backend/users/dependency-report
+
 # ----------------------
 # SECRETS SCAN – GITLEAKS
 # ----------------------

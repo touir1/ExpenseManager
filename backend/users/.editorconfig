@@ -1,0 +1,21 @@
+root = true
+
+[*.cs]
+
+# Enable all built-in analyzers
+dotnet_analyzer_diagnostic.severity = warning
+
+# Treat security issues as errors
+dotnet_analyzer_diagnostic.category-Security.severity = error
+
+# Reliability issues (often lead to vulns)
+dotnet_analyzer_diagnostic.category-Reliability.severity = warning
+
+# Common bug patterns
+dotnet_analyzer_diagnostic.category-Correctness.severity = warning
+
+# Nullable-related issues (NREs → security issues)
+dotnet_diagnostic.CS8600.severity = warning
+dotnet_diagnostic.CS8602.severity = error
+dotnet_diagnostic.CS8604.severity = error
+
