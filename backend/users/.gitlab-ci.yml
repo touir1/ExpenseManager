@@ -104,7 +104,9 @@ sast:
 # ----------------------
 secrets-scan:
   stage: security
-  image: zricethezav/gitleaks:latest
+  image: 
+    name: zricethezav/gitleaks:latest
+    entrypoint: [""]
   script:
     - gitleaks detect --source . --report-format json --report-path gitleaks.json
   allow_failure: true
