@@ -70,13 +70,14 @@ sca:
   image: 
     name: owasp/dependency-check:latest
     entrypoint: [""]
+  cache:
+    key: dependency-check-data
+    paths:
+      - backend/users/dependency-check-data/
   script:
-    - ln -sf "$PWD" /src
+    - mkdir -p dependency-check-data
     - export PATH="$PATH:/usr/share/dependency-check/bin"
-    - dependency-check.sh --project "ExpenseManager-Backend-Users" --scan /src --format JSON --out /src/dependency-check-report --nvdApiKey "$NVD_API_KEY"
-    - ls -la
-    - ls -la /src
-    - echo $PWD
+    - dependency-check.sh --project "ExpenseManager-Backend-Users" --scan . --format JSON --data dependency-check-data --out /src/dependency-check-report --nvdApiKey "$NVD_API_KEY"
   allow_failure: true
   artifacts:
     when: always
