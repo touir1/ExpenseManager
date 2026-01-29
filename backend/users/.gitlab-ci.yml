@@ -83,15 +83,19 @@ sca:
 # ----------------------
 # SAST – SEMGREP
 # ----------------------
-dependency_scan:
+sast:
   stage: security
-  image: owasp/dependency-check
+  image: returntocorp/semgrep
   script:
-    - dependency-check --scan . --format JSON --out dependency-report
+    - pwd
+    - ls -la
+    - ln -sf "$PWD" /src
+    - semgrep scan --config=p/csharp --json --metrics=off --output semgrep.json .
+  allow_failure: true
   artifacts:
     when: always
     paths:
-      - backend/users/dependency-report
+      - backend/users/semgrep.json
 
 # ----------------------
 # SECRETS SCAN – GITLEAKS
