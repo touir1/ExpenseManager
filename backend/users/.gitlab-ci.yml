@@ -114,8 +114,6 @@ secrets-scan:
 docker-build:
   stage: docker
   image: docker:24
-  services:
-    - docker:24-dind
   variables:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375
@@ -128,8 +126,6 @@ docker-build:
 docker-security:
   stage: docker
   image: aquasec/trivy:latest
-  services:
-    - docker:24-dind
   variables:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375
