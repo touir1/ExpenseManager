@@ -108,7 +108,7 @@ secrets-scan:
     name: zricethezav/gitleaks:latest
     entrypoint: [""]
   script:
-    - gitleaks detect --source . --report-format json --report-path gitleaks.json
+    - gitleaks detect --source . --report-format json --report-path gitleaks.json --verbose
   allow_failure: true
   artifacts:
     when: always
@@ -134,7 +134,9 @@ docker-build:
 # ----------------------
 docker-security:
   stage: docker
-  image: aquasec/trivy:latest
+  image: 
+    name: aquasec/trivy:latest
+    entrypoint: [""]
   dependencies:
     - docker-build
   services:
