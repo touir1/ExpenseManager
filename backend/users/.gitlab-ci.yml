@@ -69,16 +69,12 @@ sca:
   stage: security
   image: owasp/dependency-check:latest
   script:
-    - dependency-check.sh
-        --project myapp
-        --scan .
-        --format JSON
-        --out dependency-check-report
+    - dependency-check.sh --project "Expense Manager - Backend - Users" --scan . --format JSON --out dependency-check-report
   allow_failure: true
   artifacts:
     when: always
     paths:
-      - dependency-check-report/
+      - backend/users/dependency-check-report/
 
 # ----------------------
 # SAST – SEMGREP
