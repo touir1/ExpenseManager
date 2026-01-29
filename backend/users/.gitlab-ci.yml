@@ -69,7 +69,8 @@ sca:
   stage: security
   image: owasp/dependency-check:latest
   script:
-    - dependency-check.sh --project "Expense Manager - Backend - Users" --scan . --format JSON --out dependency-check-report
+    - ln -sf "$PWD" /src
+    - dependency-check.sh --project "ExpenseManager-Backend-Users" --scan /src --format JSON --out dependency-check-report
   allow_failure: true
   artifacts:
     when: always
