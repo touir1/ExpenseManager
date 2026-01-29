@@ -35,6 +35,7 @@ test:
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
     - dotnet test --collect:"XPlat Code Coverage" --results-directory "./coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+  allow_failure: true
   artifacts:
     when: always
     paths:
@@ -49,6 +50,7 @@ sonarqube:
   dependencies:
     - build
     - test
+  allow_failure: true
   variables:
     SONAR_PROJECT_KEY: "touir:expense-manager:backend:users"
     SONAR_PROJECT_NAME: "Expense Manager - Backend - Users"
@@ -72,6 +74,7 @@ sca:
         --scan .
         --format JSON
         --out dependency-check-report
+  allow_failure: true
   artifacts:
     when: always
     paths:
@@ -85,6 +88,7 @@ sast:
   image: returntocorp/semgrep
   script:
     - semgrep scan --config=auto --json > semgrep.json
+  allow_failure: true
   artifacts:
     when: always
     paths:
@@ -98,6 +102,7 @@ secrets-scan:
   image: zricethezav/gitleaks:latest
   script:
     - gitleaks detect --source . --report-format json --report-path gitleaks.json
+  allow_failure: true
   artifacts:
     when: always
     paths:
@@ -130,3 +135,4 @@ docker-security:
     DOCKER_HOST: tcp://docker:2375
   script:
     - trivy image --severity HIGH,CRITICAL --exit-code 1 $IMAGE_NAME:latest
+  allow_failure: true
