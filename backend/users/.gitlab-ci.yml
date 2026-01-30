@@ -8,6 +8,9 @@ stages:
 default:
   before_script:
     - cd backend/users
+    # install CA certificates (needed for dotnet restore HTTPS)
+    - apt-get update && apt-get install -y ca-certificates
+    - update-ca-certificates
 
 variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
@@ -24,9 +27,6 @@ build:
   stage: build
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
-    - cat /etc/resolv.conf
-    - ping -c 3 api.nuget.org || true
-    - curl -v https://api.nuget.org/v3/index.json || true
     - dotnet restore
     - dotnet build --configuration $BUILD_CONFIGURATION
 
