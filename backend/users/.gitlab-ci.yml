@@ -23,6 +23,12 @@ variables:
 build:
   stage: build
   image: mcr.microsoft.com/dotnet/sdk:8.0
+  before_script:
+    - apt-get update -y || true
+    - apt-get install -y --no-install-recommends curl dnsutils iputils-ping || true
+    - echo "DNS inside job:" && cat /etc/resolv.conf || true
+    - echo "Check host lookup:" && getent hosts api.nuget.org || true
+    - echo "Check HTTPS to NuGet:" && curl -I https://api.nuget.org/v3/index.json || true
   script:
     - dotnet nuget locals all --clear
     - rm -rf ~/.nuget
