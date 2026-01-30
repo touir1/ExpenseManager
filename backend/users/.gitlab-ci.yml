@@ -8,9 +8,6 @@ stages:
 default:
   before_script:
     - cd backend/users
-    # install CA certificates (needed for dotnet restore HTTPS)
-    - apt-get update && apt-get install -y ca-certificates
-    - update-ca-certificates
 
 variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
@@ -27,7 +24,7 @@ build:
   stage: build
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
-    - dotnet restore
+    - dotnet restore --no-cache
     - dotnet build --configuration $BUILD_CONFIGURATION
 
 # ----------------------

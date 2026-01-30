@@ -15,3 +15,5 @@ concurrent = 2
     shm_size = 256000000
     volumes = ["/cache"]
     extra_hosts = ["gitlab:172.20.0.10", "sonarqube:172.20.0.20", "minio:172.20.0.30"]
+    dns = ["8.8.8.8", "8.8.4.4"]
+    network_mode = "bridge"
