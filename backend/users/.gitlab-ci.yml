@@ -24,7 +24,7 @@ build:
   stage: build
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
-    - dotnet restore --no-cache
+    - dotnet restore --no-cache --verbosity diagnostic
     - dotnet build --configuration $BUILD_CONFIGURATION
 
 # ----------------------
