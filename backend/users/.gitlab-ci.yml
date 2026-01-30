@@ -129,6 +129,7 @@ docker-build:
     DOCKER_HOST: tcp://docker:2375
   script:
     - echo "CI_REGISTRY=$CI_REGISTRY CI_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE image = $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest"
+    - echo "$CI_JOB_TOKEN"
     - REG="$CI_REGISTRY"
     - REG=${REG#http://}
     - REG=${REG#https://}
