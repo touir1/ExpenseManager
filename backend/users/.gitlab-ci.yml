@@ -24,7 +24,10 @@ build:
   stage: build
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
-    - dotnet restore --no-cache --verbosity diagnostic
+    - dotnet nuget locals all --clear
+    - rm -rf ~/.nuget
+    - rm -rf ./packages
+    - dotnet restore --no-cache --verbosity detailed
     - dotnet build --configuration $BUILD_CONFIGURATION
 
 # ----------------------
