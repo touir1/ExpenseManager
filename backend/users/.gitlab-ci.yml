@@ -24,6 +24,9 @@ build:
   stage: build
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
+    - cat /etc/resolv.conf
+    - ping -c 3 api.nuget.org || true
+    - curl -v https://api.nuget.org/v3/index.json || true
     - dotnet restore
     - dotnet build --configuration $BUILD_CONFIGURATION
 
