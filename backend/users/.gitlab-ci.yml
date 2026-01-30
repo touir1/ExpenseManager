@@ -128,7 +128,14 @@ docker-build:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375
   script:
-    - REG="$CI_REGISTRY"; REG=${REG#http://}; REG=${REG#https://}; echo "Logging into registry = $REG";
+    - echo "CI_REGISTRY=$CI_REGISTRY CI_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE"
+    - REG="$CI_REGISTRY"
+    - REG=${REG#http://}
+    - REG=${REG#https://}
+    - if [ -z "$REG" ]; then REG="gitlab:5050"; fi
+    - echo "Probing registry realm..." && curl -I http://gitlab:5050/v2/ || true
+    - echo "Probing token endpoint..." && curl -sI "http://gitlab/jwt/auth" || true
+    - echo "Logging into registry = $REG"
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$REG"
     - docker build -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest .
     - docker push $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
