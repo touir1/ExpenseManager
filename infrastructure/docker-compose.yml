@@ -124,6 +124,7 @@ services:
       - "8080:80"
       - "8443:443"
       - "2222:22"
+      - "5050:5050"
     volumes:
       - ./configs/gitlab:/etc/gitlab
       - ./volumes/gitlab/logs:/var/log/gitlab
@@ -141,6 +142,12 @@ services:
         nginx['redirect_http_to_https'] = false
         nginx['gzip_enabled'] = false
         external_url 'http://localhost:8080'
+        # Enable GitLab Container Registry
+        gitlab_rails['registry_enabled'] = true
+        registry['enable'] = true
+        registry_external_url 'http://gitlab:5050'
+        registry_nginx['listen_port'] = 5050
+        registry_nginx['listen_https'] = false
         postgresql['enable'] = false
         gitlab_rails['db_adapter'] = 'postgresql'
         gitlab_rails['db_encoding'] = 'utf8'

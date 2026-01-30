@@ -122,12 +122,14 @@ docker-build:
   stage: docker
   image: docker:24
   services:
-    - docker:24-dind
+    - name: docker:24-dind
+      command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=gitlab:5050", "--insecure-registry=172.20.0.10:5050"]
   variables:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375
   script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - REG="$CI_REGISTRY"; REG=${REG#http://}; REG=${REG#https://}; echo "Logging into registry: $REG";
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$REG"
     - docker build -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest .
     - docker push $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
 
@@ -142,7 +144,8 @@ docker-security:
   dependencies:
     - docker-build
   services:
-    - docker:24-dind
+    - name: docker:24-dind
+      command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=gitlab:5050", "--insecure-registry=172.20.0.10:5050"]
   variables:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375
