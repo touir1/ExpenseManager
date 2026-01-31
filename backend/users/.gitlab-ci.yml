@@ -153,5 +153,7 @@ docker-security:
     TRIVY_USERNAME: "gitlab-ci-token"
     TRIVY_PASSWORD: "$CI_JOB_TOKEN"
   script:
-    - trivy image --severity HIGH,CRITICAL --exit-code 1 $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
+    - echo "$CI_JOB_TOKEN" | docker login "$CI_REGISTRY" -u gitlab-ci-token --password-stdin
+    - docker pull $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
+    - trivy image --insecure --severity HIGH,CRITICAL --exit-code 1 $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
   allow_failure: true
