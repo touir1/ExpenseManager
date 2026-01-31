@@ -158,6 +158,8 @@ docker-security:
     TRIVY_NO_PROGRESS: "true"
     TRIVY_CACHE_DIR: ".trivycache/"
     FULL_IMAGE_NAME: $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
+    TRIVY_INSECURE: "true"
+    TRIVY_NON_SSL: "true"
   before_script:
     - mkdir -p backend/users
     - cd backend/users
