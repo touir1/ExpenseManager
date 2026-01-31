@@ -134,7 +134,8 @@ docker-build:
     - REG=${REG#https://}
     - if [ -z "$REG" ]; then REG="gitlab:5050"; fi
     - echo "Logging into registry = $REG"
-    - echo "$CI_REGISTRY_PASSWORD" | docker login $REG -u $CI_REGISTRY_USER --password-stdin
+    - export DOCKER_CLI_DEBUG=1
+    - echo "$CI_REGISTRY_PASSWORD" | docker --debug login $REG -u $CI_REGISTRY_USER --password-stdin
     - docker build -t $CI_REGISTRY/$IMAGE_NAME:latest .
     - docker push $CI_REGISTRY/$IMAGE_NAME:latest
 
