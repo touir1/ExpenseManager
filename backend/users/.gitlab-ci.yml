@@ -4,6 +4,7 @@ stages:
   - quality
   - security
   - docker
+  - docker-security
 
 default:
   before_script:
@@ -63,6 +64,25 @@ sonarqube:
     - dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
 
 # ----------------------
+# DOCKER BUILD
+# ----------------------
+docker-build:
+  stage: docker
+  image: docker:24
+  services:
+    - name: docker:24-dind
+      command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=gitlab:5050", "--insecure-registry=172.20.0.10:5050"]
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2375
+  script:
+    - echo "image = $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest"
+    - echo "Logging into registry = $CI_REGISTRY"
+    - echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u gitlab-ci-token --password-stdin
+    - docker build -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest .
+    - docker push $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
+
+# ----------------------
 # SCA – DEPENDENCY CHECK
 # ----------------------
 sca:
@@ -116,29 +136,10 @@ secrets-scan:
       - backend/users/gitleaks.json
 
 # ----------------------
-# DOCKER BUILD
-# ----------------------
-docker-build:
-  stage: docker
-  image: docker:24
-  services:
-    - name: docker:24-dind
-      command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=gitlab:5050", "--insecure-registry=172.20.0.10:5050"]
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_HOST: tcp://docker:2375
-  script:
-    - echo "image = $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest"
-    - echo "Logging into registry = $CI_REGISTRY"
-    - echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u gitlab-ci-token --password-stdin
-    - docker build -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest .
-    - docker push $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
-
-# ----------------------
 # TRIVY IMAGE SCAN
 # ----------------------
 docker-security:
-  stage: docker
+  stage: docker-security
   image: 
     name: aquasec/trivy:latest
     entrypoint: [""]
@@ -157,12 +158,15 @@ docker-security:
     TRIVY_NO_PROGRESS: "true"
     TRIVY_CACHE_DIR: ".trivycache/"
     FULL_IMAGE_NAME: $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
+  before_script:
+    - mkdir -p backend/users
+    - cd backend/users
   script:
     - trivy --version
     # update vulnerabilities db
     - time trivy image --download-db-only
     # Builds report and puts it in the default workdir $CI_PROJECT_DIR, so `artifacts:` can take it from there
-    - time trivy image --exit-code 0 --format template --template "@/contrib/gitlab.tpl" --output "$CI_PROJECT_DIR/gl-container-scanning-report.json" "$FULL_IMAGE_NAME"
+    - time trivy image --exit-code 0 --format template --template "@/contrib/gitlab.tpl" --output "gl-container-scanning-report.json" "$FULL_IMAGE_NAME"
     # Prints full report
     - time trivy image --exit-code 0 "$FULL_IMAGE_NAME"
     # Fail on critical vulnerabilities
