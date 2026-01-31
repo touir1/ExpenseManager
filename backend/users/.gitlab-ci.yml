@@ -128,15 +128,15 @@ docker-build:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375
   script:
-    - echo "image = $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest"
+    - echo "image = $CI_REGISTRY/$IMAGE_NAME:latest"
     - REG="$CI_REGISTRY"
     - REG=${REG#http://}
     - REG=${REG#https://}
     - if [ -z "$REG" ]; then REG="gitlab:5050"; fi
     - echo "Logging into registry = $REG"
     - echo "$CI_REGISTRY_PASSWORD" | docker login $REG -u $CI_REGISTRY_USER --password-stdin
-    - docker build -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest .
-    - docker push $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
+    - docker build -t $CI_REGISTRY/$IMAGE_NAME:latest .
+    - docker push $CI_REGISTRY/$IMAGE_NAME:latest
 
 # ----------------------
 # TRIVY IMAGE SCAN
@@ -157,5 +157,5 @@ docker-security:
     TRIVY_USERNAME: "gitlab-ci-token"
     TRIVY_PASSWORD: "$CI_JOB_TOKEN"
   script:
-    - trivy image --severity HIGH,CRITICAL --exit-code 1 $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
+    - trivy image --severity HIGH,CRITICAL --exit-code 1 $CI_REGISTRY/$IMAGE_NAME:latest
   allow_failure: true
