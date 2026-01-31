@@ -134,8 +134,11 @@ docker-build:
     - REG=${REG#https://}
     - if [ -z "$REG" ]; then REG="gitlab:5050"; fi
     - echo "Logging into registry = $REG"
-    - export DOCKER_CLI_DEBUG=1
-    - echo "$CI_REGISTRY_PASSWORD" | docker --debug login $REG -u $CI_REGISTRY_USER --password-stdin
+    - apk add --no-cache curl ca-certificates
+    - update-ca-certificates
+    - curl -v --user "$CI_REGISTRY_USER:$CI_REGISTRY_PASSWORD" "$REG/v2/"
+    - curl -v --user "$CI_REGISTRY_USER:$CI_REGISTRY_PASSWORD" "http://gitlab/jwt/auth?service=container_registry&scope=repository:expenses-manager/expensemanager:pull,push"
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $REG -u $CI_REGISTRY_USER --password-stdin
     - docker build -t $CI_REGISTRY/$IMAGE_NAME:latest .
     - docker push $CI_REGISTRY/$IMAGE_NAME:latest
 
