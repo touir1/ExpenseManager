@@ -1,0 +1,115 @@
+stages:
+  - build
+  - test
+  - quality
+  - security
+
+variables:
+  SONAR_HOST_URL: "http://sonarqube:9000"
+  BASE_DIR_PATH: frontend/dashboard
+
+default:
+  before_script:
+    - cd $BASE_DIR_PATH
+    - npm config set cache .npm --location=project
+
+# ----------------------
+# BUILD
+# ----------------------
+build:
+  stage: build
+  image: node:20
+  cache:
+    paths:
+      - $BASE_DIR_PATH/.npm
+  script:
+    - npm ci
+    - npm run build
+  artifacts:
+    when: always
+    paths:
+      - $BASE_DIR_PATH/dist
+
+# ----------------------
+# TEST + COVERAGE
+# ----------------------
+test:
+  stage: test
+  image: node:20
+  cache:
+    paths:
+      - $BASE_DIR_PATH/.npm
+  script:
+    - npm ci
+    - npm test
+  artifacts:
+    when: always
+    paths:
+      - $BASE_DIR_PATH/coverage
+
+# ----------------------
+# SONARQUBE ANALYSIS
+# ----------------------
+sonarqube:
+  stage: quality
+  image:
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  dependencies:
+    - build
+    - test
+  variables:
+    SONAR_PROJECT_KEY: "touir:expense-manager:frontend:dashboard"
+    SONAR_PROJECT_NAME: "Expense Manager - Frontend - Dashboard"
+  script:
+    - sonar-scanner -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.projectName="$SONAR_PROJECT_NAME" -Dsonar.projectVersion="$CI_COMMIT_SHA" -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.login="$SONAR_TOKEN" -Dsonar.sources=. -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+
+# ----------------------
+# SCA – DEPENDENCY CHECK
+# ----------------------
+sca:
+  stage: security
+  image: 
+    name: owasp/dependency-check:latest
+    entrypoint: [""]
+  cache:
+    key: dependency-check-data
+    paths:
+      - $BASE_DIR_PATH/dependency-check-data/
+  script:
+    - mkdir -p dependency-check-data
+    - export PATH="$PATH:/usr/share/dependency-check/bin"
+    - dependency-check.sh --project "ExpenseManager-Frontend-Dashboard" --scan . --format JSON --data dependency-check-data --out dependency-check-report --nvdApiKey "$NVD_API_KEY"
+  artifacts:
+    when: always
+    paths:
+      - $BASE_DIR_PATH/dependency-check-report/
+
+# ----------------------
+# SAST – SEMGREP
+# ----------------------
+sast:
+  stage: security
+  image: returntocorp/semgrep
+  script:
+    - ln -sf "$PWD" /src
+    - semgrep scan --config=p/javascript --json --metrics=off --output semgrep.json --verbose .
+  artifacts:
+    when: always
+    paths:
+      - $BASE_DIR_PATH/semgrep.json
+
+# ----------------------
+# SECRETS SCAN – GITLEAKS
+# ----------------------
+secrets-scan:
+  stage: security
+  image: 
+    name: zricethezav/gitleaks:latest
+    entrypoint: [""]
+  script:
+    - gitleaks detect --source . --no-git -c ../../.gitleaks.toml --report-format json --report-path gitleaks.json --verbose --platform gitlab
+  artifacts:
+    when: always
+    paths:
+      - $BASE_DIR_PATH/gitleaks.json
