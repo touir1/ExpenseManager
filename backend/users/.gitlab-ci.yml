@@ -36,7 +36,6 @@ test:
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
     - dotnet test --collect:"XPlat Code Coverage" --results-directory "./coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
-  allow_failure: true
   artifacts:
     when: always
     paths:
@@ -51,7 +50,6 @@ sonarqube:
   dependencies:
     - build
     - test
-  allow_failure: true
   variables:
     SONAR_PROJECT_KEY: "touir:expense-manager:backend:users"
     SONAR_PROJECT_NAME: "Expense Manager - Backend - Users"
@@ -98,7 +96,6 @@ sca:
     - mkdir -p dependency-check-data
     - export PATH="$PATH:/usr/share/dependency-check/bin"
     - dependency-check.sh --project "ExpenseManager-Backend-Users" --scan . --format JSON --data dependency-check-data --out dependency-check-report --nvdApiKey "$NVD_API_KEY"
-  allow_failure: true
   artifacts:
     when: always
     paths:
@@ -113,7 +110,6 @@ sast:
   script:
     - ln -sf "$PWD" /src
     - semgrep scan --config=p/csharp --json --metrics=off --output semgrep.json --verbose .
-  allow_failure: true
   artifacts:
     when: always
     paths:
@@ -129,7 +125,6 @@ secrets-scan:
     entrypoint: [""]
   script:
     - gitleaks detect --source . --no-git -c ../../.gitleaks.toml --report-format json --report-path gitleaks.json --verbose --platform gitlab
-  allow_failure: true
   artifacts:
     when: always
     paths:
@@ -176,4 +171,3 @@ docker-security:
     when: always
     paths:
       - backend/users/gl-container-scanning-report.json
-  allow_failure: true
