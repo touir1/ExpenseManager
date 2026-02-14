@@ -6,17 +6,17 @@ stages:
   - docker
   - docker-security
 
-default:
-  before_script:
-    - cd backend/users
-
 variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
   DOTNET_NOLOGO: "1"
   BUILD_CONFIGURATION: Release
   IMAGE_NAME: expense-manager-backend-users
   SONAR_HOST_URL: "http://sonarqube:9000"
-  COVERAGE_ARTIFACTS_PATH: backend/users/coverage
+  BASE_DIR_PATH: backend/users
+
+default:
+  before_script:
+    - cd $BASE_DIR_PATH
 
 # ----------------------
 # BUILD
@@ -39,7 +39,7 @@ test:
   artifacts:
     when: always
     paths:
-      - $COVERAGE_ARTIFACTS_PATH
+      - $BASE_DIR_PATH/coverage
 
 # ----------------------
 # SONARQUBE ANALYSIS
@@ -91,7 +91,7 @@ sca:
   cache:
     key: dependency-check-data
     paths:
-      - backend/users/dependency-check-data/
+      - $BASE_DIR_PATH/dependency-check-data/
   script:
     - mkdir -p dependency-check-data
     - export PATH="$PATH:/usr/share/dependency-check/bin"
@@ -99,7 +99,7 @@ sca:
   artifacts:
     when: always
     paths:
-      - backend/users/dependency-check-report/
+      - $BASE_DIR_PATH/dependency-check-report/
 
 # ----------------------
 # SAST – SEMGREP
@@ -113,7 +113,7 @@ sast:
   artifacts:
     when: always
     paths:
-      - backend/users/semgrep.json
+      - $BASE_DIR_PATH/semgrep.json
 
 # ----------------------
 # SECRETS SCAN – GITLEAKS
@@ -128,7 +128,7 @@ secrets-scan:
   artifacts:
     when: always
     paths:
-      - backend/users/gitleaks.json
+      - $BASE_DIR_PATH/gitleaks.json
 
 # ----------------------
 # TRIVY IMAGE SCAN
@@ -170,4 +170,4 @@ docker-security:
   artifacts:
     when: always
     paths:
-      - backend/users/gl-container-scanning-report.json
+      - $BASE_DIR_PATH/gl-container-scanning-report.json
