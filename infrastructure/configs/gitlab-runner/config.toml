@@ -1,4 +1,4 @@
-concurrent = 2
+concurrent = 1
 
 [[runners]]
   clone_url = "http://gitlab:80"
