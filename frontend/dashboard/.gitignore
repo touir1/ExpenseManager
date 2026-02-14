@@ -13,3 +13,6 @@ vite.svg
 # Editor
 .vscode/
 .DS_Store
+
+# .env files
+.env

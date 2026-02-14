@@ -1,0 +1,179 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { MemoryRouter, Routes, Route } from 'react-router-dom'
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
+import Register from '@/pages/Register'
+
+const mockRegister = vi.fn()
+const mockUseAuth = vi.fn()
+const mockNavigate = vi.fn()
+
+vi.mock('@/auth/AuthContext', () => ({
+  useAuth: () => mockUseAuth()
+}))
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom')
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate
+  }
+})
+
+describe('Register page', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('renders register form with all fields', () => {
+    mockUseAuth.mockReturnValue({ register: mockRegister })
+
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>
+    )
+
+    expect(screen.getByRole('heading', { name: /register/i })).toBeInTheDocument()
+    expect(screen.getByLabelText(/first name/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/last name/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /register/i })).toBeInTheDocument()
+  })
+
+  it('renders login link', () => {
+    mockUseAuth.mockReturnValue({ register: mockRegister })
+
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>
+    )
+
+    const loginLink = screen.getByRole('link', { name: /go to login/i })
+    expect(loginLink).toBeInTheDocument()
+    expect(loginLink).toHaveAttribute('href', '/login')
+  })
+
+  it('requires all fields', () => {
+    mockUseAuth.mockReturnValue({ register: mockRegister })
+
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>
+    )
+
+    expect(screen.getByLabelText(/first name/i)).toBeRequired()
+    expect(screen.getByLabelText(/last name/i)).toBeRequired()
+    expect(screen.getByLabelText(/email/i)).toBeRequired()
+  })
+
+  it('email input has email type', () => {
+    mockUseAuth.mockReturnValue({ register: mockRegister })
+
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>
+    )
+
+    expect(screen.getByLabelText(/email/i)).toHaveAttribute('type', 'email')
+  })
+
+  it('updates form fields correctly', () => {
+    mockUseAuth.mockReturnValue({ register: mockRegister })
+
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>
+    )
+
+    const firstNameInput = screen.getByLabelText(/first name/i) as HTMLInputElement
+    const lastNameInput = screen.getByLabelText(/last name/i) as HTMLInputElement
+    const emailInput = screen.getByLabelText(/email/i) as HTMLInputElement
+
+    fireEvent.change(firstNameInput, { target: { value: 'Jane' } })
+    fireEvent.change(lastNameInput, { target: { value: 'Smith' } })
+    fireEvent.change(emailInput, { target: { value: 'jane@example.com' } })
+
+    expect(firstNameInput.value).toBe('Jane')
+    expect(lastNameInput.value).toBe('Smith')
+    expect(emailInput.value).toBe('jane@example.com')
+  })
+
+  it('does not show message initially', () => {
+    mockUseAuth.mockReturnValue({ register: mockRegister })
+
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>
+    )
+
+    expect(screen.queryByText(/registered successfully/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/please fill all fields correctly/i)).not.toBeInTheDocument()
+  })
+
+  it('shows success message after successful registration', async () => {
+    mockRegister.mockResolvedValueOnce(true)
+    mockUseAuth.mockReturnValue({ register: mockRegister })
+
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>
+    )
+
+    const firstNameInput = screen.getByLabelText(/first name/i)
+    const lastNameInput = screen.getByLabelText(/last name/i)
+    const emailInput = screen.getByLabelText(/email/i)
+    const form = screen.getByRole('button', { name: /register/i }).closest('form')!
+
+    fireEvent.change(firstNameInput, { target: { value: 'Jane' } })
+    fireEvent.change(lastNameInput, { target: { value: 'Smith' } })
+    fireEvent.change(emailInput, { target: { value: 'jane@example.com' } })
+    fireEvent.submit(form)
+
+    await waitFor(() => {
+      expect(mockRegister).toHaveBeenCalledWith('Jane', 'Smith', 'jane@example.com')
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('Registered successfully. You can now log in.')).toBeInTheDocument()
+    })
+  })
+
+  it('shows error message when registration fails', async () => {
+    mockRegister.mockResolvedValueOnce(false)
+    mockUseAuth.mockReturnValue({ register: mockRegister })
+
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>
+    )
+
+    const firstNameInput = screen.getByLabelText(/first name/i)
+    const lastNameInput = screen.getByLabelText(/last name/i)
+    const emailInput = screen.getByLabelText(/email/i)
+    const form = screen.getByRole('button', { name: /register/i }).closest('form')!
+
+    fireEvent.change(firstNameInput, { target: { value: 'Jane' } })
+    fireEvent.change(lastNameInput, { target: { value: 'Smith' } })
+    fireEvent.change(emailInput, { target: { value: 'invalid' } })
+    fireEvent.submit(form)
+
+    await waitFor(() => {
+      expect(mockRegister).toHaveBeenCalledWith('Jane', 'Smith', 'invalid')
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('Please fill all fields correctly.')).toBeInTheDocument()
+    })
+  })
+})
