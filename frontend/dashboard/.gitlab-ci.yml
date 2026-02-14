@@ -59,11 +59,8 @@ sonarqube:
   dependencies:
     - build
     - test
-  variables:
-    SONAR_PROJECT_KEY: "touir:expense-manager:frontend:dashboard"
-    SONAR_PROJECT_NAME: "Expense Manager - Frontend - Dashboard"
   script:
-    - sonar-scanner -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.projectName="$SONAR_PROJECT_NAME" -Dsonar.projectVersion="$CI_COMMIT_SHA" -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.login="$SONAR_TOKEN" -Dsonar.sources=. -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+    - sonar-scanner -Dsonar.projectVersion="$CI_COMMIT_SHA" -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.login="$SONAR_TOKEN"
 
 # ----------------------
 # SCA – DEPENDENCY CHECK
