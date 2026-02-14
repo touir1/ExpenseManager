@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { MemoryRouter, Routes, Route, useNavigate } from 'react-router-dom'
+import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { render, screen } from '@testing-library/react'
 import ProtectedRoute from '@/components/ProtectedRoute'
 
@@ -118,7 +118,7 @@ describe('ProtectedRoute', () => {
   it('redirects from different protected routes when unauthenticated', () => {
     mockUseAuth.mockReturnValue({ isAuthenticated: false })
 
-    const { rerender } = render(
+    render(
       <MemoryRouter initialEntries={["/profile"]}>
         <Routes>
           <Route path="/login" element={<div>Login Page</div>} />

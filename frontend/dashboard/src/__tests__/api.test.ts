@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { request, get, post, put, del, setAuthToken, onUnauthorized, onError } from '@/api'
 
 // Mock fetch globally

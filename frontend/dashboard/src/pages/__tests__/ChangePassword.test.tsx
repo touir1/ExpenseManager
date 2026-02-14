@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import ChangePassword from '../ChangePassword'
-import * as AuthContext from '@/auth/AuthContext'
 
 // Mock useAuth
 const mockChangePassword = vi.fn()
@@ -168,7 +167,7 @@ describe('ChangePassword page', () => {
     const form = screen.getByRole('button', { name: /change password/i }).closest('form')!
     const preventDefaultSpy = vi.fn()
     
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', () => {
       preventDefaultSpy()
       // The component already calls e.preventDefault(), so we just track it
     })

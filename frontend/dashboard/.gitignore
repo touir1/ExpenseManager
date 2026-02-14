@@ -10,9 +10,15 @@ pnpm-debug.log*
 /.vite
 vite.svg
 
+# Testing
+coverage/
+
 # Editor
 .vscode/
 .DS_Store
+
+# TypeScript
+*.tsbuildinfo
 
 # .env files
 .env
