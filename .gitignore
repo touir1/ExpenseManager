@@ -23,3 +23,7 @@ DBeaver_projects/
 **/semgrep.json
 **/gitleaks.json
 image.tar
+
+# Env files (secrets) — provide .env.example instead
+.env
+infrastructure/.env

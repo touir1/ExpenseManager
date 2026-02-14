@@ -1,7 +1,5 @@
-version: '3.8'
-
 networks:
-  expenses_manager_network:
+  expenses_manager_net:
     driver: bridge
     ipam:
       config:
@@ -12,7 +10,7 @@ services:
     container_name: rabbitmq
     image: rabbitmq:3.9.9-management
     networks:
-      - expenses_manager_network
+      - expenses_manager_net
     ports:
       - "5672:5672"    # AMQP port
       - "15672:15672"  # Management plugin port
@@ -29,7 +27,7 @@ services:
     container_name: prometheus
     image: prom/prometheus:v2.30.3
     networks:
-      - expenses_manager_network
+      - expenses_manager_net
     ports:
       - "9090:9090"
     volumes:
@@ -41,7 +39,7 @@ services:
     container_name: grafana
     image: grafana/grafana:8.3.0
     networks:
-      - expenses_manager_network
+      - expenses_manager_net
     ports:
       - "3000:3000"
     volumes:
@@ -53,7 +51,7 @@ services:
     image: postgres:16
     container_name: expenses_postgres
     networks:
-      - expenses_manager_network
+      - expenses_manager_net
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -68,7 +66,7 @@ services:
     image: redis:7
     container_name: redis
     networks:
-      - expenses_manager_network
+      - expenses_manager_net
     ports:
       - "6379:6379"
     volumes:
@@ -79,7 +77,7 @@ services:
     image: minio/minio
     command: server /data --console-address ":9050"
     networks:
-      expenses_manager_network:
+      expenses_manager_net:
         ipv4_address: 172.20.0.30
     ports:
       - "9001:9000" # MinIO S3 API
@@ -94,7 +92,7 @@ services:
     image: sonarqube:community
     container_name: sonarqube
     networks:
-      expenses_manager_network:
+      expenses_manager_net:
         ipv4_address: 172.20.0.20
     depends_on:
       - postgres
@@ -114,7 +112,7 @@ services:
     container_name: gitlab
     hostname: gitlab.local
     networks:
-      expenses_manager_network:
+      expenses_manager_net:
         ipv4_address: 172.20.0.10
     depends_on:
       - redis
@@ -242,7 +240,7 @@ services:
     image: alpine:3.19
     container_name: mirror-cron
     networks:
-      - expenses_manager_network
+      - expenses_manager_net
     depends_on:
       - gitlab
     volumes:
@@ -262,7 +260,7 @@ services:
     container_name: docker-dind
     privileged: true
     networks:
-      - expenses_manager_network
+      - expenses_manager_net
     environment:
       DOCKER_TLS_CERTDIR: ""
     command:
@@ -275,16 +273,19 @@ services:
     image: gitlab/gitlab-runner:alpine
     container_name: gitlab-runner
     networks:
-      - expenses_manager_network
+      - expenses_manager_net
     depends_on:
       - gitlab
       - docker-dind
     volumes:
-      - ./configs/gitlab-runner:/etc/gitlab-runner
+      - ./configs/gitlab-runner:/gitlab-runner-config:ro
+      - ./scripts:/runner-scripts:ro
     environment:
       CI_SERVER_URL: http://gitlab:80
       DOCKER_HOST: tcp://docker-dind:2375
       DOCKER_TLS_CERTDIR: ""
+      GITLAB_REGISTRATION_TOKEN: ${GITLAB_REGISTRATION_TOKEN}    # set this via .env or environment
+    entrypoint: ["/bin/sh", "/runner-scripts/gitlab-register-runner.sh"]
 
 volumes:
   dind-data:
