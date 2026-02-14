@@ -128,7 +128,7 @@ secrets-scan:
     name: zricethezav/gitleaks:latest
     entrypoint: [""]
   script:
-    - gitleaks detect --source . --no-git-history --config-path ../../.gitleaks.toml --report-format json --report-path gitleaks.json --verbose
+    - gitleaks detect --source . --no-git -c ../../.gitleaks.toml --report-format json --report-path gitleaks.json --verbose --platform gitlab
   allow_failure: true
   artifacts:
     when: always
