@@ -150,7 +150,6 @@ docker-security:
       command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=gitlab:5050", "--insecure-registry=172.20.0.10:5050"]
   variables:
     DOCKER_TLS_CERTDIR: ""
-    # GIT_STRATEGY: none
     DOCKER_HOST: tcp://docker:2375
     TRIVY_USERNAME: "gitlab-ci-token"
     TRIVY_PASSWORD: "$CI_JOB_TOKEN"
@@ -160,12 +159,7 @@ docker-security:
     FULL_IMAGE_NAME: $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
     TRIVY_INSECURE: "true"
     TRIVY_NON_SSL: "true"
-  before_script:
-    - mkdir -p backend/users
-    - cd backend/users
   script:
-    - pwd
-    - ls -al
     - trivy --version
     # update vulnerabilities db
     - time trivy image --download-db-only
