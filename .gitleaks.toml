@@ -4,5 +4,5 @@ title = "ExpenseManager gitleaks configuration"
 description = "Ignore known false positives in config imports"
 # Ignore password hashes in RabbitMQ management definitions (hashed, not secrets)
 paths = ["infrastructure/configs/rabbitmq/management_definitions.json"]
-regexes = ["\"password_hash\"\s*:\s*\".*\""]
+regexes = ['"password_hash"\s*:\s*".*"']
 
