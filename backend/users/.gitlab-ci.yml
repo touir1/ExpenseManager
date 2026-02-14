@@ -150,7 +150,7 @@ docker-security:
       command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=gitlab:5050", "--insecure-registry=172.20.0.10:5050"]
   variables:
     DOCKER_TLS_CERTDIR: ""
-    GIT_STRATEGY: none
+    # GIT_STRATEGY: none
     DOCKER_HOST: tcp://docker:2375
     TRIVY_USERNAME: "gitlab-ci-token"
     TRIVY_PASSWORD: "$CI_JOB_TOKEN"
