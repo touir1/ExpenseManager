@@ -89,27 +89,37 @@ sca:
       if [ -f dependency-check-report/dependency-check-report.json ]; then
         apk add --no-cache jq 2>/dev/null || true
         
-        CRITICAL=$(jq '[.dependencies[]?.vulnerabilities[]? | select((.cvssv3.baseSeverity? == "CRITICAL") or (.cvssv2.severity? == "CRITICAL"))] | length' dependency-check-report/dependency-check-report.json 2>/dev/null || echo "0")
-        HIGH=$(jq '[.dependencies[]?.vulnerabilities[]? | select((.cvssv3.baseSeverity? == "HIGH") or (.cvssv2.severity? == "HIGH"))] | length' dependency-check-report/dependency-check-report.json 2>/dev/null || echo "0")
-        MEDIUM=$(jq '[.dependencies[]?.vulnerabilities[]? | select((.cvssv3.baseSeverity? == "MEDIUM") or (.cvssv2.severity? == "MEDIUM"))] | length' dependency-check-report/dependency-check-report.json 2>/dev/null || echo "0")
-        LOW=$(jq '[.dependencies[]?.vulnerabilities[]? | select((.cvssv3.baseSeverity? == "LOW") or (.cvssv2.severity? == "LOW"))] | length' dependency-check-report/dependency-check-report.json 2>/dev/null || echo "0")
-        TOTAL=$(jq '[.dependencies[]?.vulnerabilities[]?] | length' dependency-check-report/dependency-check-report.json 2>/dev/null || echo "0")
-        
-        echo "🔴 CRITICAL: $CRITICAL"
-        echo "🟠 HIGH:     $HIGH"
-        echo "🟡 MEDIUM:   $MEDIUM"
-        echo "🟢 LOW:      $LOW"
-        echo "📊 TOTAL:    $TOTAL"
-        echo "========================================="
+        # Count total vulnerabilities first
+        TOTAL=$(jq '[.dependencies[] | select(.vulnerabilities) | .vulnerabilities[]] | length' dependency-check-report/dependency-check-report.json 2>/dev/null || echo "0")
         
         if [ "$TOTAL" != "0" ]; then
+          # Count by severity
+          CRITICAL=$(jq '[.dependencies[] | select(.vulnerabilities) | .vulnerabilities[] | select(.severity == "CRITICAL" or .cvssv3.baseSeverity == "CRITICAL" or .cvssv2.severity == "CRITICAL")] | length' dependency-check-report/dependency-check-report.json 2>/dev/null || echo "0")
+          HIGH=$(jq '[.dependencies[] | select(.vulnerabilities) | .vulnerabilities[] | select(.severity == "HIGH" or .cvssv3.baseSeverity == "HIGH" or .cvssv2.severity == "HIGH")] | length' dependency-check-report/dependency-check-report.json 2>/dev/null || echo "0")
+          MEDIUM=$(jq '[.dependencies[] | select(.vulnerabilities) | .vulnerabilities[] | select(.severity == "MEDIUM" or .cvssv3.baseSeverity == "MEDIUM" or .cvssv2.severity == "MEDIUM")] | length' dependency-check-report/dependency-check-report.json 2>/dev/null || echo "0")
+          LOW=$(jq '[.dependencies[] | select(.vulnerabilities) | .vulnerabilities[] | select(.severity == "LOW" or .cvssv3.baseSeverity == "LOW" or .cvssv2.severity == "LOW")] | length' dependency-check-report/dependency-check-report.json 2>/dev/null || echo "0")
+          
+          echo "🔴 CRITICAL: $CRITICAL"
+          echo "🟠 HIGH:     $HIGH"
+          echo "🟡 MEDIUM:   $MEDIUM"
+          echo "🟢 LOW:      $LOW"
+          echo "📊 TOTAL:    $TOTAL"
+          echo "========================================="
           echo ""
           echo "📋 VULNERABILITY DETAILS:"
           echo ""
-          jq -r '.dependencies[]? | select(.vulnerabilities != null) | .fileName as $file | .vulnerabilities[]? | 
-            "\n[\(.cvssv3.baseSeverity? // .cvssv2.severity? // "UNKNOWN")] \(.name) (Score: \(.cvssv3.baseScore? // .cvssv2.score? // "N/A"))\n  Package: \($file)\n  Description: \(.description? // "No description")[0:200]\n"' \
+          
+          # Print vulnerability details
+          jq -r '.dependencies[] | select(.vulnerabilities) | .fileName as $file | .vulnerabilities[] | 
+            "[\(.severity // .cvssv3.baseSeverity // .cvssv2.severity // "UNKNOWN")] \(.name) (Score: \(.cvssv3.baseScore // .cvssv2.score // "N/A"))\n  Package: \($file)\n  Description: \(.description[0:200])...\n"' \
             dependency-check-report/dependency-check-report.json 2>/dev/null || echo "Unable to parse vulnerability details"
         else
+          echo "🔴 CRITICAL: 0"
+          echo "🟠 HIGH:     0"
+          echo "🟡 MEDIUM:   0"
+          echo "🟢 LOW:      0"
+          echo "📊 TOTAL:    0"
+          echo "========================================="
           echo ""
           echo "✅ No vulnerabilities found!"
         fi
