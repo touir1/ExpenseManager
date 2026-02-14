@@ -80,7 +80,39 @@ sca:
   script:
     - mkdir -p dependency-check-data
     - export PATH="$PATH:/usr/share/dependency-check/bin"
-    - dependency-check.sh --project "ExpenseManager-Frontend-Dashboard" --scan . --format JSON --data dependency-check-data --out dependency-check-report --nvdApiKey "$NVD_API_KEY" --ossIndexUsername "$OSSINDEX_USER" --ossIndexPassword "$OSSINDEX_TOKEN"
+    - dependency-check.sh --project "ExpenseManager-Frontend-Dashboard" --scan . --format JSON --data dependency-check-data --out dependency-check-report --nvdApiKey "$NVD_API_KEY" --ossIndexUsername "$OSSINDEX_USER" --ossIndexPassword "$OSSINDEX_TOKEN" --failOnCVSS 7 || SCAN_FAILED=$?
+    - |
+      echo ""
+      echo "========================================="
+      echo "   VULNERABILITY SCAN SUMMARY"
+      echo "========================================="
+      if [ -f dependency-check-report/dependency-check-report.json ]; then
+        apk add --no-cache jq 2>/dev/null || true
+        
+        CRITICAL=$(jq -r '[.dependencies[]?.vulnerabilities[]? | select(.cvssv3.baseSeverity == "CRITICAL")] | length' dependency-check-report/dependency-check-report.json 2>/dev/null || echo "0")
+        HIGH=$(jq -r '[.dependencies[]?.vulnerabilities[]? | select(.cvssv3.baseSeverity == "HIGH")] | length' dependency-check-report/dependency-check-report.json 2>/dev/null || echo "0")
+        MEDIUM=$(jq -r '[.dependencies[]?.vulnerabilities[]? | select(.cvssv3.baseSeverity == "MEDIUM")] | length' dependency-check-report/dependency-check-report.json 2>/dev/null || echo "0")
+        LOW=$(jq -r '[.dependencies[]?.vulnerabilities[]? | select(.cvssv3.baseSeverity == "LOW")] | length' dependency-check-report/dependency-check-report.json 2>/dev/null || echo "0")
+        
+        echo "🔴 CRITICAL: $CRITICAL"
+        echo "🟠 HIGH:     $HIGH"
+        echo "🟡 MEDIUM:   $MEDIUM"
+        echo "🟢 LOW:      $LOW"
+        echo "========================================="
+        
+        if [ "$CRITICAL" != "0" ] || [ "$HIGH" != "0" ]; then
+          echo ""
+          echo "📋 VULNERABILITY DETAILS:"
+          echo ""
+          jq -r '.dependencies[]? | select(.vulnerabilities != null) | .fileName as $file | .vulnerabilities[]? | "[\(.cvssv3.baseSeverity // .severity)] \(.name) - \($file)\n  > \(.description[0:150])...\n"' dependency-check-report/dependency-check-report.json 2>/dev/null || echo "Unable to parse vulnerability details"
+        fi
+      else
+        echo "⚠️  No report generated"
+      fi
+      echo "========================================="
+      if [ -n "$SCAN_FAILED" ]; then
+        exit $SCAN_FAILED
+      fi
   artifacts:
     when: always
     paths:

@@ -95,7 +95,7 @@ sca:
   script:
     - mkdir -p dependency-check-data
     - export PATH="$PATH:/usr/share/dependency-check/bin"
-    - dependency-check.sh --project "ExpenseManager-Backend-Users" --scan . --format JSON --data dependency-check-data --out dependency-check-report --nvdApiKey "$NVD_API_KEY"
+    - dependency-check.sh --project "ExpenseManager-Backend-Users" --scan . --format JSON --data dependency-check-data --out dependency-check-report --nvdApiKey "$NVD_API_KEY" --ossIndexUsername "$OSSINDEX_USER" --ossIndexPassword "$OSSINDEX_TOKEN" --failOnCVSS 7
   artifacts:
     when: always
     paths:
