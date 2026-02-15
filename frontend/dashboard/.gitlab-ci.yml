@@ -114,9 +114,14 @@ sca:
           echo "📋 VULNERABILITY DETAILS:"
           echo ""
           
-          # Print vulnerability details
+          # Print vulnerability details with fix versions
           jq -r '.dependencies[] | select(.vulnerabilities) | .fileName as $file | .vulnerabilities[] | 
-            "[\(.severity // .cvssv3.baseSeverity // .cvssv2.severity // "UNKNOWN")] \(.name) (Score: \(.cvssv3.baseScore // .cvssv2.score // "N/A"))\n  Package: \($file)\n  Description: \(.description[0:200])...\n"' \
+            "[\(.severity // .cvssv3.baseSeverity // .cvssv2.severity // "UNKNOWN")] \(.name) (Score: \(.cvssv3.baseScore // .cvssv2.score // "N/A"))\n  Package: \($file)\n  Description: \(.description[0:200])...\n" + 
+            if .vulnerableSoftware then 
+              "  Fix Versions: " + ([.vulnerableSoftware[].software.versionEndExcluding | select(. != null)] | unique | join(", ")) + "\n"
+            else 
+              "  Fix Versions: Not specified\n" 
+            end' \
             dependency-check-report/dependency-check-report.json 2>/dev/null || echo "Unable to parse vulnerability details"
         else
           echo "🔴 CRITICAL: 0"
