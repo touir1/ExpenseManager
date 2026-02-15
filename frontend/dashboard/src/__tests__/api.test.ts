@@ -3,7 +3,7 @@ import { request, get, post, put, del, setAuthToken, onUnauthorized, onError } f
 
 // Mock fetch globally
 const mockFetch = vi.fn()
-global.fetch = mockFetch as any
+globalThis.fetch = mockFetch as any
 
 describe('API utilities', () => {
   beforeEach(() => {
