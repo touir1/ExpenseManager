@@ -95,7 +95,61 @@ sca:
   script:
     - mkdir -p dependency-check-data
     - export PATH="$PATH:/usr/share/dependency-check/bin"
-    - dependency-check.sh --project "ExpenseManager-Backend-Users" --scan . --format JSON --data dependency-check-data --out dependency-check-report --nvdApiKey "$NVD_API_KEY" --ossIndexUsername "$OSSINDEX_USER" --ossIndexPassword "$OSSINDEX_TOKEN" --failOnCVSS 7
+    - dependency-check.sh --project "ExpenseManager-Backend-Users" --scan . --format JSON --data dependency-check-data --out dependency-check-report --nvdApiKey "$NVD_API_KEY" --ossIndexUsername "$OSSINDEX_USER" --ossIndexPassword "$OSSINDEX_TOKEN" --failOnCVSS 7 || SCAN_FAILED=$?
+    - |
+      echo ""
+      echo "========================================="
+      echo "   VULNERABILITY SCAN SUMMARY"
+      echo "========================================="
+      if [ -f dependency-check-report/dependency-check-report.json ]; then
+        # Install jq for JSON parsing (lightweight static binary)
+        if ! command -v jq >/dev/null 2>&1; then
+          wget -q https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64 -O ./jq
+          chmod +x ./jq
+          export PATH="$PWD:$PATH"
+        fi
+        
+        # Count total vulnerabilities first
+        TOTAL=$(jq '[.dependencies[]?.vulnerabilities[]?] | length' dependency-check-report/dependency-check-report.json)
+        
+        if [ "$TOTAL" != "0" ]; then
+          # Count by severity (normalize to uppercase for comparison)
+          CRITICAL=$(jq '[.dependencies[]?.vulnerabilities[]? | select((.severity // .cvssv3.baseSeverity // .cvssv2.severity) | ascii_upcase == "CRITICAL")] | length' dependency-check-report/dependency-check-report.json)
+          HIGH=$(jq '[.dependencies[]?.vulnerabilities[]? | select((.severity // .cvssv3.baseSeverity // .cvssv2.severity) | ascii_upcase == "HIGH")] | length' dependency-check-report/dependency-check-report.json)
+          MEDIUM=$(jq '[.dependencies[]?.vulnerabilities[]? | select((.severity // .cvssv3.baseSeverity // .cvssv2.severity) | ascii_upcase | . == "MEDIUM" or . == "MODERATE")] | length' dependency-check-report/dependency-check-report.json)
+          LOW=$(jq '[.dependencies[]?.vulnerabilities[]? | select((.severity // .cvssv3.baseSeverity // .cvssv2.severity) | ascii_upcase == "LOW")] | length' dependency-check-report/dependency-check-report.json)
+          
+          echo "🔴 CRITICAL: $CRITICAL"
+          echo "🟠 HIGH:     $HIGH"
+          echo "🟡 MEDIUM:   $MEDIUM"
+          echo "🟢 LOW:      $LOW"
+          echo "📊 TOTAL:    $TOTAL"
+          echo "========================================="
+          echo ""
+          echo "📋 VULNERABILITY DETAILS:"
+          echo ""
+          
+          # Print vulnerability details
+          jq -r '.dependencies[] | select(.vulnerabilities) | .fileName as $file | .vulnerabilities[] | 
+            "[\(.severity // .cvssv3.baseSeverity // .cvssv2.severity // "UNKNOWN")] \(.name) (Score: \(.cvssv3.baseScore // .cvssv2.score // "N/A"))\n  Package: \($file)\n  Description: \(.description[0:200])...\n"' \
+            dependency-check-report/dependency-check-report.json 2>/dev/null || echo "Unable to parse vulnerability details"
+        else
+          echo "🔴 CRITICAL: 0"
+          echo "🟠 HIGH:     0"
+          echo "🟡 MEDIUM:   0"
+          echo "🟢 LOW:      0"
+          echo "📊 TOTAL:    0"
+          echo "========================================="
+          echo ""
+          echo "✅ No vulnerabilities found!"
+        fi
+      else
+        echo "⚠️  No report generated"
+      fi
+      echo "========================================="
+      if [ -n "$SCAN_FAILED" ]; then
+        exit $SCAN_FAILED
+      fi
   artifacts:
     when: always
     paths:
