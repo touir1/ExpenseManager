@@ -87,8 +87,11 @@ sca:
       echo "   VULNERABILITY SCAN SUMMARY"
       echo "========================================="
       if [ -f dependency-check-report/dependency-check-report.json ]; then
-        # Install jq for JSON parsing (OWASP image is Debian-based)
-        apt-get update -qq && apt-get install -y -qq jq > /dev/null 2>&1 || echo "Warning: Could not install jq"
+        # Install jq for JSON parsing (lightweight static binary)
+        if ! command -v jq >/dev/null 2>&1; then
+          wget -q https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64 -O /usr/local/bin/jq
+          chmod +x /usr/local/bin/jq
+        fi
         
         # Count total vulnerabilities first
         TOTAL=$(jq '[.dependencies[]?.vulnerabilities[]?] | length' dependency-check-report/dependency-check-report.json)
