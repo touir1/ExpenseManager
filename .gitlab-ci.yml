@@ -14,13 +14,13 @@ backend-users-pipeline:
       - local: backend/users/.gitlab-ci.yml
     strategy: depend
   rules:
-    - changes:
-        - backend/users/**/*
-      when: always
     - if: $TARGET == "backend-users"
       when: always
     - if: $TARGET
       when: never
+    - changes:
+        - backend/users/**/*
+      when: always
     - when: never
 
 backend-expenses-pipeline:
@@ -30,13 +30,13 @@ backend-expenses-pipeline:
       - local: backend/expenses/.gitlab-ci.yml
     strategy: depend
   rules:
-    - changes:
-        - backend/expenses/**/*
-      when: always
     - if: $TARGET == "backend-expenses"
       when: always
     - if: $TARGET
       when: never
+    - changes:
+        - backend/expenses/**/*
+      when: always
     - when: never
 
 frontend-dashboard-pipeline:
@@ -46,11 +46,11 @@ frontend-dashboard-pipeline:
       - local: frontend/dashboard/.gitlab-ci.yml
     strategy: depend
   rules:
-    - changes:
-        - frontend/dashboard/**/*
-      when: always
     - if: $TARGET == "frontend-dashboard"
       when: always
     - if: $TARGET
       when: never
+    - changes:
+        - frontend/dashboard/**/*
+      when: always
     - when: never
