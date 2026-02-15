@@ -45,7 +45,7 @@ services:
     volumes:
       - ./volumes/grafana/data:/var/lib/grafana
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
   
   postgres:
     image: postgres:16
@@ -53,8 +53,8 @@ services:
     networks:
       - expenses_manager_net
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
       POSTGRES_DB: postgres
     ports:
       - "5432:5432"
@@ -83,8 +83,8 @@ services:
       - "9001:9000" # MinIO S3 API
       - "9050:9050" # MinIO Console
     environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: minio123
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
     volumes:
       - ./volumes/minio/data:/data
       
@@ -100,8 +100,8 @@ services:
       - "9000:9000"
     environment:
       SONAR_JDBC_URL: jdbc:postgresql://postgres:5432/sonar
-      SONAR_JDBC_USERNAME: sonar
-      SONAR_JDBC_PASSWORD: sonar
+      SONAR_JDBC_USERNAME: ${SONAR_DB_USER}
+      SONAR_JDBC_PASSWORD: ${SONAR_DB_PASSWORD}
     volumes:
       - ./volumes/sonarqube/data:/opt/sonarqube/data
       - ./volumes/sonarqube/extensions:/opt/sonarqube/extensions
@@ -131,7 +131,7 @@ services:
     mem_limit: 4g
     cpus: 2
     environment:
-      GITLAB_ROOT_PASSWORD: "SlzdQmrjSotkX45/*!!dq" # to change
+      GITLAB_ROOT_PASSWORD: "${GITLAB_ROOT_PASSWORD}"
       GITLAB_OMNIBUS_CONFIG: |
         ### when using external reverse proxy
         letsencrypt['enable'] = false
@@ -154,8 +154,8 @@ services:
         gitlab_rails['db_adapter'] = 'postgresql'
         gitlab_rails['db_encoding'] = 'utf8'
         gitlab_rails['db_database'] = 'gitlab'
-        gitlab_rails['db_username'] = 'gitlab'
-        gitlab_rails['db_password'] = 'gitlab'
+        gitlab_rails['db_username'] = '${GITLAB_DB_USER}'
+        gitlab_rails['db_password'] = '${GITLAB_DB_PASSWORD}'
         gitlab_rails['db_host'] = 'postgres'
         gitlab_rails['db_port'] = 5432
         redis['enable'] = false
@@ -168,8 +168,8 @@ services:
         gitlab_rails['object_store']['enabled'] = true
         gitlab_rails['object_store']['connection'] = {
           'provider' => 'AWS',
-          'aws_access_key_id' => 'minio',
-          'aws_secret_access_key' => 'minio123',
+          'aws_access_key_id' => '${MINIO_ACCESS_KEY}',
+          'aws_secret_access_key' => '${MINIO_SECRET_KEY}',
           'region' => 'eu-west-1',
           'endpoint' => 'http://minio:9000',
           'path_style' => true
@@ -284,7 +284,9 @@ services:
       CI_SERVER_URL: http://gitlab:80
       DOCKER_HOST: tcp://docker-dind:2375
       DOCKER_TLS_CERTDIR: ""
-      GITLAB_REGISTRATION_TOKEN: ${GITLAB_REGISTRATION_TOKEN}    # set this via .env or environment
+      GITLAB_REGISTRATION_TOKEN: ${GITLAB_REGISTRATION_TOKEN}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
     entrypoint: ["/bin/sh", "/runner-scripts/gitlab-register-runner.sh"]
 
 volumes:

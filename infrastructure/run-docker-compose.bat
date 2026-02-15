@@ -1,3 +1,3 @@
 @echo off
 
-docker-compose -p expense-management up
+docker-compose -p expense-management up -d

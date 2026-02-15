@@ -10,8 +10,13 @@ SRC_DIR=/gitlab-runner-config
 DEST_DIR=/etc/gitlab-runner
 mkdir -p "$DEST_DIR"
 if [ -d "$SRC_DIR" ]; then
-  # include dotfiles by copying the directory contents (the trailing /. trick)
-  cp -a "$SRC_DIR"/. "$DEST_DIR"/ || true
+  # Copy files individually to avoid symlinks and ensure true copy
+  find "$SRC_DIR" -type f | while read -r file; do
+    rel_path="${file#$SRC_DIR/}"
+    dest_file="$DEST_DIR/$rel_path"
+    mkdir -p "$(dirname "$dest_file")"
+    cp -f "$file" "$dest_file"
+  done
   echo "[prescript] Synced runner config from $SRC_DIR to $DEST_DIR"
 fi
 

@@ -17,6 +17,8 @@ backend-users-pipeline:
     - changes:
         - backend/users/**/*
       when: always
+    - if: $TARGET == "backend-users"
+      when: always
     - when: never
 
 backend-expenses-pipeline:
@@ -29,6 +31,8 @@ backend-expenses-pipeline:
     - changes:
         - backend/expenses/**/*
       when: always
+    - if: $TARGET == "backend-expenses"
+      when: always
     - when: never
 
 frontend-dashboard-pipeline:
@@ -40,5 +44,7 @@ frontend-dashboard-pipeline:
   rules:
     - changes:
         - frontend/dashboard/**/*
+      when: always
+    - if: $TARGET == "frontend-dashboard"
       when: always
     - when: never
