@@ -5,19 +5,22 @@ set -euo pipefail
 # Requires env: CI_SERVER_URL, REGISTRATION_TOKEN. Optional: RUNNER_NAME, RUNNER_TAGS.
 # This script is intended to run inside the gitlab-runner container.
 
-# Prescript: always sync mounted config into /etc/gitlab-runner
+# Prescript: Copy mounted config to a working directory, then to /etc/gitlab-runner
 SRC_DIR=/gitlab-runner-config
+WORK_DIR=/tmp/runner-work
 DEST_DIR=/etc/gitlab-runner
-mkdir -p "$DEST_DIR"
+
+# Create working directory and copy files there first
+mkdir -p "$WORK_DIR"
 if [ -d "$SRC_DIR" ]; then
-  # Copy files individually to avoid symlinks and ensure true copy
+  # Copy to working directory (completely separate from source)
   find "$SRC_DIR" -type f | while read -r file; do
     rel_path="${file#$SRC_DIR/}"
-    dest_file="$DEST_DIR/$rel_path"
-    mkdir -p "$(dirname "$dest_file")"
-    cp -f "$file" "$dest_file"
+    work_file="$WORK_DIR/$rel_path"
+    mkdir -p "$(dirname "$work_file")"
+    cat "$file" > "$work_file"
   done
-  echo "[prescript] Synced runner config from $SRC_DIR to $DEST_DIR"
+  echo "[prescript] Copied runner config from $SRC_DIR to working directory $WORK_DIR"
 fi
 
 CI_URL=${CI_SERVER_URL:-"http://gitlab:80"}
@@ -31,7 +34,7 @@ if [ -z "$RUNNER_TOKEN" ] && [ -n "${REGISTRATION_TOKEN:-}" ]; then
   RUNNER_TOKEN=$REGISTRATION_TOKEN
 fi
 
-CONFIG=/etc/gitlab-runner/config.toml
+CONFIG=$WORK_DIR/config.toml
 if [ ! -f "$CONFIG" ]; then
   echo "ERROR: $CONFIG not found after sync; ensure /gitlab-runner-config contains config.toml"
   exit 1
@@ -79,5 +82,15 @@ else
     echo "[prescript] WARNING: RUNNER_TOKEN not provided and token appears invalid. Runner may fail to fetch jobs."
   fi
 fi
+
+# Copy the processed config to /etc/gitlab-runner
+mkdir -p "$DEST_DIR"
+find "$WORK_DIR" -type f | while read -r file; do
+  rel_path="${file#$WORK_DIR/}"
+  dest_file="$DEST_DIR/$rel_path"
+  mkdir -p "$(dirname "$dest_file")"
+  cat "$file" > "$dest_file"
+done
+echo "[prescript] Copied processed config from $WORK_DIR to $DEST_DIR"
 
 exec gitlab-runner run

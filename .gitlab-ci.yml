@@ -19,6 +19,8 @@ backend-users-pipeline:
       when: always
     - if: $TARGET == "backend-users"
       when: always
+    - if: $TARGET
+      when: never
     - when: never
 
 backend-expenses-pipeline:
@@ -33,6 +35,8 @@ backend-expenses-pipeline:
       when: always
     - if: $TARGET == "backend-expenses"
       when: always
+    - if: $TARGET
+      when: never
     - when: never
 
 frontend-dashboard-pipeline:
@@ -47,4 +51,6 @@ frontend-dashboard-pipeline:
       when: always
     - if: $TARGET == "frontend-dashboard"
       when: always
+    - if: $TARGET
+      when: never
     - when: never

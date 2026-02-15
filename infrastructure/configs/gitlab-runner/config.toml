@@ -4,7 +4,7 @@ concurrent = 1
   clone_url = "http://gitlab:80"
   name = "dind-runner"
   url = "http://gitlab:80"
-  token = "glrt-zg4ByCo8nKwCTMCvklQpZG86MQp0OjEKdToxCw.01.120k4tc8k"
+  token = "${GITLAB_REGISTRATION_TOKEN}"
   executor = "docker"
 
   [runners.docker]
@@ -23,8 +23,8 @@ concurrent = 1
 
     [runners.cache.s3]
       ServerAddress = "minio:9000"
-      AccessKey = "minio"
-      SecretKey = "minio123"
+      AccessKey = "${MINIO_ACCESS_KEY}"
+      SecretKey = "${MINIO_SECRET_KEY}"
       BucketName = "gitlab-cache"
       BucketLocation = "eu-west-1"
       Insecure = true

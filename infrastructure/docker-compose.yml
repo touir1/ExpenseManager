@@ -280,6 +280,7 @@ services:
     volumes:
       - ./configs/gitlab-runner:/gitlab-runner-config:ro
       - ./scripts:/runner-scripts:ro
+      - runner-config-volume:/etc/gitlab-runner
     environment:
       CI_SERVER_URL: http://gitlab:80
       DOCKER_HOST: tcp://docker-dind:2375
@@ -291,3 +292,4 @@ services:
 
 volumes:
   dind-data:
+  runner-config-volume:
