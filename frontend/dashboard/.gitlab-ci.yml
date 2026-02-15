@@ -89,8 +89,9 @@ sca:
       if [ -f dependency-check-report/dependency-check-report.json ]; then
         # Install jq for JSON parsing (lightweight static binary)
         if ! command -v jq >/dev/null 2>&1; then
-          wget -q https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64 -O /usr/local/bin/jq
-          chmod +x /usr/local/bin/jq
+          wget -q https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64 -O ./jq
+          chmod +x ./jq
+          export PATH="$PWD:$PATH"
         fi
         
         # Count total vulnerabilities first
