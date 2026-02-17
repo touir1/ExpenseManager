@@ -1,0 +1,232 @@
+stages:
+  - build
+  - test
+  - quality
+  - security
+  - docker
+  - docker-security
+
+variables:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+  BUILD_CONFIGURATION: Release
+  IMAGE_NAME: expense-manager-backend-expenses
+  SONAR_HOST_URL: "http://sonarqube:9000"
+  BASE_DIR_PATH: backend/expenses
+
+default:
+  before_script:
+    - cd $BASE_DIR_PATH
+
+# ----------------------
+# BUILD
+# ----------------------
+build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet restore
+    - dotnet build --configuration $BUILD_CONFIGURATION
+
+# ----------------------
+# TEST + COVERAGE
+# ----------------------
+test:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet test --collect:"XPlat Code Coverage" --results-directory "./coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+  artifacts:
+    when: always
+    paths:
+      - $BASE_DIR_PATH/coverage
+
+# ----------------------
+# SONARQUBE ANALYSIS
+# ----------------------
+sonarqube:
+  stage: quality
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  dependencies:
+    - build
+    - test
+  variables:
+    SONAR_PROJECT_KEY: "touir:expense-manager:backend:expenses"
+    SONAR_PROJECT_NAME: "Expense Manager - Backend - Expenses"
+    SONAR_COVERAGE_PATH: "coverage/**/*.opencover.xml"
+  script:
+    - export PATH="$PATH:/root/.dotnet/tools"
+    - dotnet tool install --global dotnet-sonarscanner
+    - dotnet sonarscanner begin /k:"$SONAR_PROJECT_KEY" /n:"$SONAR_PROJECT_NAME" /v:"$CI_COMMIT_SHA" /d:sonar.host.url="$SONAR_HOST_URL" /d:sonar.login="$SONAR_TOKEN" /d:sonar.cs.opencover.reportsPaths="$SONAR_COVERAGE_PATH"
+    - dotnet build
+    - dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
+
+# ----------------------
+# DOCKER BUILD
+# ----------------------
+docker-build:
+  stage: docker
+  image: docker:24
+  services:
+    - name: docker:24-dind
+      command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=gitlab:5050", "--insecure-registry=172.20.0.10:5050"]
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2375
+  script:
+    - echo "image = $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest"
+    - echo "Logging into registry = $CI_REGISTRY"
+    - echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u gitlab-ci-token --password-stdin
+    - docker build -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest .
+    - docker push $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
+
+# ----------------------
+# SCA – DEPENDENCY CHECK
+# ----------------------
+sca:
+  stage: security
+  image: 
+    name: owasp/dependency-check:latest
+    entrypoint: [""]
+  cache:
+    key: dependency-check-data
+    paths:
+      - $BASE_DIR_PATH/dependency-check-data/
+  script:
+    - mkdir -p dependency-check-data
+    - export PATH="$PATH:/usr/share/dependency-check/bin"
+    - dependency-check.sh --project "ExpenseManager-Backend-Expenses" --scan . --format JSON --data dependency-check-data --out dependency-check-report --nvdApiKey "$NVD_API_KEY" --ossIndexUsername "$OSSINDEX_USER" --ossIndexPassword "$OSSINDEX_TOKEN" --failOnCVSS 7 || SCAN_FAILED=$?
+    - |
+      echo ""
+      echo "========================================="
+      echo "   VULNERABILITY SCAN SUMMARY"
+      echo "========================================="
+      if [ -f dependency-check-report/dependency-check-report.json ]; then
+        # Install jq for JSON parsing (lightweight static binary)
+        if ! command -v jq >/dev/null 2>&1; then
+          wget -q https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64 -O ./jq
+          chmod +x ./jq
+          export PATH="$PWD:$PATH"
+        fi
+        
+        # Count total vulnerabilities first
+        TOTAL=$(jq '[.dependencies[]?.vulnerabilities[]?] | length' dependency-check-report/dependency-check-report.json)
+        
+        if [ "$TOTAL" != "0" ]; then
+          # Count by severity (normalize to uppercase for comparison)
+          CRITICAL=$(jq '[.dependencies[]?.vulnerabilities[]? | select((.severity // .cvssv3.baseSeverity // .cvssv2.severity) | ascii_upcase == "CRITICAL")] | length' dependency-check-report/dependency-check-report.json)
+          HIGH=$(jq '[.dependencies[]?.vulnerabilities[]? | select((.severity // .cvssv3.baseSeverity // .cvssv2.severity) | ascii_upcase == "HIGH")] | length' dependency-check-report/dependency-check-report.json)
+          MEDIUM=$(jq '[.dependencies[]?.vulnerabilities[]? | select((.severity // .cvssv3.baseSeverity // .cvssv2.severity) | ascii_upcase | . == "MEDIUM" or . == "MODERATE")] | length' dependency-check-report/dependency-check-report.json)
+          LOW=$(jq '[.dependencies[]?.vulnerabilities[]? | select((.severity // .cvssv3.baseSeverity // .cvssv2.severity) | ascii_upcase == "LOW")] | length' dependency-check-report/dependency-check-report.json)
+          
+          echo "🔴 CRITICAL: $CRITICAL"
+          echo "🟠 HIGH:     $HIGH"
+          echo "🟡 MEDIUM:   $MEDIUM"
+          echo "🟢 LOW:      $LOW"
+          echo "📊 TOTAL:    $TOTAL"
+          echo "========================================="
+          echo ""
+          echo "📋 VULNERABILITY DETAILS:"
+          echo ""
+          
+          # Print vulnerability details with fix versions
+          jq -r '.dependencies[] | select(.vulnerabilities) | .fileName as $file | .vulnerabilities[] | 
+            "[\(.severity // .cvssv3.baseSeverity // .cvssv2.severity // "UNKNOWN")] \(.name) (Score: \(.cvssv3.baseScore // .cvssv2.score // "N/A"))\n  Package: \($file)\n" + 
+            if .vulnerableSoftware then 
+              "  Fix Versions: " + ([.vulnerableSoftware[].software.versionEndExcluding | select(. != null)] | unique | join(", ")) + "\n"
+            else 
+              "  Fix Versions: Not specified\n" 
+            end' \
+            dependency-check-report/dependency-check-report.json 2>/dev/null || echo "Unable to parse vulnerability details"
+        else
+          echo "🔴 CRITICAL: 0"
+          echo "🟠 HIGH:     0"
+          echo "🟡 MEDIUM:   0"
+          echo "🟢 LOW:      0"
+          echo "📊 TOTAL:    0"
+          echo "========================================="
+          echo ""
+          echo "✅ No vulnerabilities found!"
+        fi
+      else
+        echo "⚠️  No report generated"
+      fi
+      echo "========================================="
+      if [ -n "$SCAN_FAILED" ]; then
+        exit $SCAN_FAILED
+      fi
+  artifacts:
+    when: always
+    paths:
+      - $BASE_DIR_PATH/dependency-check-report/
+
+# ----------------------
+# SAST – SEMGREP
+# ----------------------
+sast:
+  stage: security
+  image: returntocorp/semgrep
+  script:
+    - ln -sf "$PWD" /src
+    - semgrep scan --config=p/csharp --json --metrics=off --output semgrep.json --verbose .
+  artifacts:
+    when: always
+    paths:
+      - $BASE_DIR_PATH/semgrep.json
+
+# ----------------------
+# SECRETS SCAN – GITLEAKS
+# ----------------------
+secrets-scan:
+  stage: security
+  image: 
+    name: zricethezav/gitleaks:latest
+    entrypoint: [""]
+  script:
+    - gitleaks detect --source . --no-git -c ../../.gitleaks.toml --report-format json --report-path gitleaks.json --verbose --platform gitlab
+  artifacts:
+    when: always
+    paths:
+      - $BASE_DIR_PATH/gitleaks.json
+
+# ----------------------
+# TRIVY IMAGE SCAN
+# ----------------------
+docker-security:
+  stage: docker-security
+  image: 
+    name: aquasec/trivy:latest
+    entrypoint: [""]
+  dependencies:
+    - docker-build
+  services:
+    - name: docker:24-dind
+      command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=gitlab:5050", "--insecure-registry=172.20.0.10:5050"]
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2375
+    TRIVY_USERNAME: "gitlab-ci-token"
+    TRIVY_PASSWORD: "$CI_JOB_TOKEN"
+    TRIVY_AUTH_URL: "$CI_REGISTRY"
+    TRIVY_NO_PROGRESS: "true"
+    TRIVY_CACHE_DIR: ".trivycache/"
+    FULL_IMAGE_NAME: $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
+    TRIVY_INSECURE: "true"
+    TRIVY_NON_SSL: "true"
+  script:
+    - trivy --version
+    # update vulnerabilities db
+    - time trivy image --download-db-only
+    # Builds report and puts it in the default workdir $CI_PROJECT_DIR, so `artifacts:` can take it from there
+    - time trivy image --exit-code 0 --format template --template "@/contrib/gitlab.tpl" --output "gl-container-scanning-report.json" --ignorefile .trivyignore "$FULL_IMAGE_NAME"
+    # Prints full report
+    - time trivy image --exit-code 0 --ignorefile .trivyignore "$FULL_IMAGE_NAME"
+    # Fail on critical vulnerabilities
+    - time trivy image --exit-code 1 --severity CRITICAL --ignorefile .trivyignore "$FULL_IMAGE_NAME"
+  cache:
+    paths:
+      - .trivycache/
+  artifacts:
+    when: always
+    paths:
+      - $BASE_DIR_PATH/gl-container-scanning-report.json
