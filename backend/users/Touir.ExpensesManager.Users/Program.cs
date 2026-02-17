@@ -110,8 +110,7 @@ builder.Services.Configure<CryptographyOptions>(c =>
 builder.Services.AddDbContext<UsersAppDbContext>((serviceProvider, options) =>
 {
     var pgOptions = serviceProvider.GetRequiredService<IOptions<PostgresOptions>>().Value;
-    var connStr = $"Host={pgOptions.Server};Port={pgOptions.Port};Database={pgOptions.Database};Username={pgOptions.UserName};Password={pgOptions.Password}";
-    options.UseNpgsql(connStr);
+    options.UseNpgsql(pgOptions.ConnectionString);
 });
 
 #endregion
