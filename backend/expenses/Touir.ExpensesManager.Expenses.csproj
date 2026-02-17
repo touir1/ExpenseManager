@@ -8,7 +8,7 @@
     <UserSecretsId>24c704d8-43ca-4515-94ef-87f104660201</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
-    <RootNamespace>com.touir.expenses</RootNamespace>
+    <RootNamespace>Touir.ExpensesManager.Expenses</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

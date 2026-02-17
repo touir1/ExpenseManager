@@ -1,6 +1,6 @@
 ﻿using RabbitMQ.Client;
 
-namespace com.touir.expenses.Expenses.Services
+namespace Touir.ExpensesManager.Expenses.Services
 {
     public interface IRabbitMQService
     {

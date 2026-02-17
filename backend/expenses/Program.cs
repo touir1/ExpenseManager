@@ -1,5 +1,5 @@
-using com.touir.expenses.Expenses.Repositories;
-using com.touir.expenses.Expenses.Services;
+using Touir.ExpensesManager.Expenses.Repositories;
+using Touir.ExpensesManager.Expenses.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,10 +1,10 @@
 ﻿using Dapper;
-using com.touir.expenses.Expenses.Models;
+using Touir.ExpensesManager.Expenses.Models;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using System.Data;
 
-namespace com.touir.expenses.Expenses.Repositories
+namespace Touir.ExpensesManager.Expenses.Repositories
 {
     public class UserRepository : IUserRepository
     {
