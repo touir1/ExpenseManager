@@ -1,4 +1,4 @@
-﻿namespace Touir.ExpensesManager.Expenses.Services
+﻿namespace Touir.ExpensesManager.Expenses.Infrastructure.Options
 {
     public class RabbitMQOptions
     {

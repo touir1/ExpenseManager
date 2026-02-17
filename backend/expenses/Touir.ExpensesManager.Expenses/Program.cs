@@ -1,5 +1,11 @@
-using Touir.ExpensesManager.Expenses.Repositories;
+using Touir.ExpensesManager.Expenses.Repositories.External;
+using Touir.ExpensesManager.Expenses.Repositories.External.Contracts;
 using Touir.ExpensesManager.Expenses.Services;
+using Touir.ExpensesManager.Expenses.Services.Contracts;
+using Touir.ExpensesManager.Expenses.Infrastructure;
+using Touir.ExpensesManager.Expenses.Infrastructure.Options;
+using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +58,16 @@ builder.Services.AddSingleton<IRabbitMQService, RabbitMQService>();
 #region Repositories
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+#endregion
+
+#region Database
+
+builder.Services.AddDbContext<ExpensesDbContext>((sp, options) =>
+{
+    var pgOptions = sp.GetRequiredService<IOptions<PostgresOptions>>().Value;
+    options.UseNpgsql(pgOptions.ConnectionString);
+});
 
 #endregion
 

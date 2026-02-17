@@ -1,6 +1,6 @@
-﻿using Touir.ExpensesManager.Expenses.Models;
+﻿using Touir.ExpensesManager.Expenses.Models.External;
 
-namespace Touir.ExpensesManager.Expenses.Repositories
+namespace Touir.ExpensesManager.Expenses.Repositories.External.Contracts
 {
     public interface IUserRepository
     {

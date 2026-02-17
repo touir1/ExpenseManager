@@ -1,4 +1,4 @@
-﻿namespace Touir.ExpensesManager.Expenses.Models
+namespace Touir.ExpensesManager.Expenses.Models.External
 {
     public class User
     {
