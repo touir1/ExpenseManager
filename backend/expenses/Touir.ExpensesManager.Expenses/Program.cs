@@ -71,11 +71,41 @@ builder.Services.AddDbContext<ExpensesDbContext>((sp, options) =>
 
 #endregion
 
+#region Cors Policy
+
+// Add CORS policy to allow requests from localhost on any port
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost", policy =>
+    {
+        policy.WithOrigins(
+            "http://localhost",
+            "https://localhost"
+        )
+        .SetIsOriginAllowed(origin =>
+            origin.StartsWith("http://localhost:") ||
+            origin.StartsWith("https://localhost:")
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod();
+    });
+});
+
+#endregion
+
 var app = builder.Build();
+
+// Apply pending migrations at startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ExpensesDbContext>();
+    db.Database.Migrate();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseCors("AllowLocalhost");
     app.UseSwagger();
     app.UseSwaggerUI();
 }

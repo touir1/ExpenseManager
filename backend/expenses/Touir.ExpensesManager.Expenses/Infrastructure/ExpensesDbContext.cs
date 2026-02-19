@@ -5,9 +5,7 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
 {
     public class ExpensesDbContext : DbContext
     {
-        public ExpensesDbContext(DbContextOptions<ExpensesDbContext> options) : base(options)
-        {
-        }
+        public ExpensesDbContext(DbContextOptions<ExpensesDbContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
 
