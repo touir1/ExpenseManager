@@ -1,0 +1,2 @@
+# Ignore CVE flagged as will_not_fix in Debian base image
+CVE-2023-45853
