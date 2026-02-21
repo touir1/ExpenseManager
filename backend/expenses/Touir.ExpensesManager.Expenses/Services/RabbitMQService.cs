@@ -8,11 +8,10 @@ namespace Touir.ExpensesManager.Expenses.Services
     public class RabbitMQService : IRabbitMQService
     {
         private readonly ConnectionFactory _connectionFactory;
-        private readonly RabbitMQOptions _option;
 
         public RabbitMQService(IOptions<RabbitMQOptions> option)
         {
-            _option = option.Value;
+            var _option = option.Value;
 
             _connectionFactory = new ConnectionFactory
             {
