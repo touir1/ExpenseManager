@@ -304,7 +304,6 @@ services:
     volumes:
       - ./configs/nginx:/etc/nginx
       - ./volumes/nginx/logs:/var/log/nginx
-      - ./volumes/nginx/www:/usr/share/nginx/html
       - shared-www:/usr/share/nginx/html
 volumes:
   dind-data:
