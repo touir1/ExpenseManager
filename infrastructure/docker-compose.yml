@@ -305,6 +305,24 @@ services:
       - ./configs/nginx:/etc/nginx
       - ./volumes/nginx/logs:/var/log/nginx
       - shared-www:/usr/share/nginx/html
+
+  minio-sync:
+    image: minio/mc
+    container_name: minio-sync
+    entrypoint: ["/bin/sh", "-c"]
+    networks:
+      - expenses_manager_net
+    volumes:
+      - shared-www:/shared
+    command: |
+      "
+      mc alias set minio http://minio:9000 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY &&
+      mc mirror --overwrite minio/expenses-manager-web /shared &&
+      mc watch minio/expenses-manager-web | while read event; do
+        mc mirror --overwrite minio/expenses-manager-web /shared
+      done
+      "
+
 volumes:
   dind-data:
   runner-config-volume:

@@ -202,10 +202,8 @@ deploy-dev:
     # Upload zip to MinIO if credentials are set
     - mc alias set minio http://minio:9000 "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
     - mc mb --ignore-existing minio/expenses-manager-web-artifacts
+    - mc mb --ignore-existing minio/expenses-manager-web
     - mc cp "/tmp/$ZIP_NAME" minio/expenses-manager-web-artifacts/
-    # Copy dist files to shared volume in expenses-manager folder
-    - echo "Copying dist files to /shared-www/expenses-manager..."
-    - mkdir -p /shared-www/expenses-manager
-    - rm -rf /shared-www/expenses-manager/*
-    - cp -r ./* /shared-www/expenses-manager/
+    - mc cp ./* minio/expenses-manager-web/ --recursive
+
 
