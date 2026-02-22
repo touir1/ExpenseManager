@@ -268,7 +268,6 @@ services:
       - "--storage-driver=vfs"
     volumes:
       - dind-data:/var/lib/docker
-      - shared-www:/shared-www
     
   gitlab-runner:
     image: gitlab/gitlab-runner:alpine
@@ -282,7 +281,6 @@ services:
       - ./configs/gitlab-runner:/gitlab-runner-config:ro
       - ./scripts:/runner-scripts:ro
       - runner-config-volume:/etc/gitlab-runner
-      - shared-www:/shared-www
     environment:
       CI_SERVER_URL: http://gitlab:80
       DOCKER_HOST: tcp://docker-dind:2375
@@ -299,7 +297,7 @@ services:
     networks:
       - expenses_manager_net
     volumes:
-      - shared-www:/shared
+      - ./volumes/nginx/www:/shared
     command: |
       "
       mc alias set minio http://minio:9000 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY &&
@@ -321,7 +319,7 @@ services:
     volumes:
       - ./configs/nginx:/etc/nginx
       - ./volumes/nginx/logs:/var/log/nginx
-      - shared-www:/usr/share/nginx/html
+      - ./volumes/nginx/www:/usr/share/nginx/html
 
 volumes:
   dind-data:
