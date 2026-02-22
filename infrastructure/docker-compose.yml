@@ -268,6 +268,7 @@ services:
       - "--storage-driver=vfs"
     volumes:
       - dind-data:/var/lib/docker
+      - shared-www:/shared-www
     
   gitlab-runner:
     image: gitlab/gitlab-runner:alpine
@@ -281,6 +282,7 @@ services:
       - ./configs/gitlab-runner:/gitlab-runner-config:ro
       - ./scripts:/runner-scripts:ro
       - runner-config-volume:/etc/gitlab-runner
+      - shared-www:/shared-www
     environment:
       CI_SERVER_URL: http://gitlab:80
       DOCKER_HOST: tcp://docker-dind:2375
@@ -290,6 +292,21 @@ services:
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
     entrypoint: ["/bin/sh", "/runner-scripts/gitlab-register-runner.sh"]
 
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    entrypoint: [ 'nginx', '-g', 'daemon off;' ]
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - expenses_manager_net
+    volumes:
+      - ./configs/nginx:/etc/nginx
+      - ./volumes/nginx/logs:/var/log/nginx
+      - ./volumes/nginx/www:/usr/share/nginx/html
+      - shared-www:/usr/share/nginx/html
 volumes:
   dind-data:
   runner-config-volume:
+  shared-www:

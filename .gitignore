@@ -27,3 +27,10 @@ image.tar
 # Env files (secrets) — provide .env.example instead
 .env
 infrastructure/.env
+
+# keys
+infrastructure/configs/nginx/ssl/*.key
+infrastructure/configs/nginx/ssl/*.crt
+
+# enabled nginx sites
+infrastructure/configs/nginx/sites-enabled/
