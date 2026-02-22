@@ -209,5 +209,3 @@ deploy-dev:
     when: always
     paths:
       - expenses-manager-dashboard-*.zip
-  only:
-    - dev
