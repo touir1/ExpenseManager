@@ -208,4 +208,5 @@ deploy-dev:
   artifacts:
     when: always
     paths:
+      - $BASE_DIR_PATH/dist
       - expenses-manager-dashboard-*.zip
