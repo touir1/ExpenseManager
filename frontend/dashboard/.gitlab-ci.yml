@@ -195,18 +195,17 @@ deploy-dev:
     - apk add --no-cache zip
     # Zip dist files with version
     - echo "Zipping dist files..."
-    - VERSION=${CI_COMMIT_SHA:-dev}
-    - ZIP_NAME="expenses-manager-dashboard-$VERSION.zip"
-    - zip -r "$ZIP_NAME" dist/*
+    - VERSION=$(date +%Y%m%d%H%M%S)
+    - ZIP_NAME="expenses-manager-dashboard_$VERSION.zip"
+    - cd dist
+    - zip -r "/tmp/$ZIP_NAME" .
     # Upload zip to MinIO if credentials are set
     - mc alias set minio http://minio:9000 "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
     - mc mb --ignore-existing minio/expenses-manager-web-artifacts
-    - mc cp "$ZIP_NAME" minio/expenses-manager-web-artifacts/
+    - mc cp "/tmp/$ZIP_NAME" minio/expenses-manager-web-artifacts/
     # Copy dist files to shared volume in expenses-manager folder
     - echo "Copying dist files to /shared-www/expenses-manager..."
     - mkdir -p /shared-www/expenses-manager
-    - cp -r dist/* /shared-www/expenses-manager/
-  artifacts:
-    when: always
-    paths:
-      - expenses-manager-dashboard-*.zip
+    - rm -rf /shared-www/expenses-manager/*
+    - cp -r ./* /shared-www/expenses-manager/
+
