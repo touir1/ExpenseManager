@@ -190,6 +190,9 @@ deploy-dev:
     - build
   script:
     # Zip dist files with version
+    - pwd
+    - ls -al
+    - ls -al $BASE_DIR_PATH/dist
     - echo "Zipping dist files..."
     - apk add --no-cache zip curl
     - VERSION=${CI_COMMIT_SHA:-dev}
@@ -208,5 +211,4 @@ deploy-dev:
   artifacts:
     when: always
     paths:
-      - $BASE_DIR_PATH/dist
       - expenses-manager-dashboard-*.zip
