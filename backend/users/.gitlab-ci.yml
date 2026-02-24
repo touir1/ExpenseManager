@@ -69,7 +69,7 @@ docker-build:
   image: docker:24
   services:
     - name: docker:24-dind
-      command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=gitlab:5050", "--insecure-registry=172.20.0.10:5050"]
+      command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=gitlab:5050", "--insecure-registry=172.50.0.10:5050"]
   variables:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375
@@ -201,7 +201,7 @@ docker-security:
     - docker-build
   services:
     - name: docker:24-dind
-      command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=gitlab:5050", "--insecure-registry=172.20.0.10:5050"]
+      command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=gitlab:5050", "--insecure-registry=172.50.0.10:5050"]
   variables:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375

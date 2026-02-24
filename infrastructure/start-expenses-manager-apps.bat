@@ -1,6 +1,6 @@
 @echo off
 REM List of container names to start
-SET CONTAINERS=nginx expenses_postgres rabbitmq redis
+SET CONTAINERS=nginx postgres rabbitmq redis
 
 REM Loop over each container
 FOR %%C IN (%CONTAINERS%) DO (

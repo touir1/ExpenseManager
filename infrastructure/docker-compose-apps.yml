@@ -1,0 +1,21 @@
+networks:
+  expenses_manager_apps_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.100.0.0/24
+
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    entrypoint: [ 'nginx', '-g', 'daemon off;' ]
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - expenses_manager_apps_net
+    volumes:
+      - ./configs/nginx:/etc/nginx
+      - ./volumes/nginx/logs:/var/log/nginx
+      - ./volumes/nginx/www:/usr/share/nginx/html
