@@ -161,12 +161,6 @@ builder.Services.AddCors(options =>
 
 #endregion
 
-#region web host configuration
-
-builder.WebHost.UseUrls("http://0.0.0.0:9100");
-
-#endregion
-
 var app = builder.Build();
 
 // Apply pending migrations at startup
