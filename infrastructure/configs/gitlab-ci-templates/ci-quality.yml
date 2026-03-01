@@ -24,7 +24,8 @@ variables:
         SONAR_PROPERTIES_PATH="${PWD}/sonar-project.properties"
         echo "SONAR_PROPERTIES_PATH is not set. Using default path: $SONAR_PROPERTIES_PATH"
       fi
-    - if [ -f "$SONAR_PROPERTIES_PATH" ]; then
+    - |
+      if [ -f "$SONAR_PROPERTIES_PATH" ]; then
         echo "Using SonarQube properties from $SONAR_PROPERTIES_PATH"
         sonar-scanner \
           -Dsonar.projectVersion="$CI_COMMIT_SHA" \
