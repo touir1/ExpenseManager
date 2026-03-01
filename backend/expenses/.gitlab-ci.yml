@@ -57,7 +57,7 @@ sonarqube:
   script:
     - export PATH="$PATH:/root/.dotnet/tools"
     - dotnet tool install --global dotnet-sonarscanner
-    - dotnet sonarscanner begin /k:"$SONAR_PROJECT_KEY" /n:"$SONAR_PROJECT_NAME" /v:"$CI_COMMIT_SHA" /d:sonar.host.url="$SONAR_HOST_URL" /d:sonar.login="$SONAR_TOKEN" /d:sonar.cs.opencover.reportsPaths="$SONAR_COVERAGE_PATH"
+    - dotnet sonarscanner begin /k:"$SONAR_PROJECT_KEY" /n:"$SONAR_PROJECT_NAME" /v:"$CI_COMMIT_SHA" /d:sonar.host.url="$SONAR_HOST_URL" /d:sonar.login="$SONAR_TOKEN" /d:sonar.cs.opencover.reportsPaths="$SONAR_COVERAGE_PATH" /d:sonar.qualitygate.wait=true
     - dotnet build
     - dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
     # Install jq using the available package manager
