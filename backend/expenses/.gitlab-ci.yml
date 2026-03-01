@@ -1,15 +1,11 @@
-stages:
-  - build
-  - test
-  - quality
-  - security
-  - docker
-  - docker-security
+# GitLab CI configuration for the Expenses backend module
+
+include:
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-common-stages.yml'
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-build.yml'
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-test.yml'
 
 variables:
-  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
-  DOTNET_NOLOGO: "1"
-  BUILD_CONFIGURATION: Release
   IMAGE_NAME: expense-manager-backend-expenses
   SONAR_HOST_URL: "http://sonarqube:9000"
   BASE_DIR_PATH: backend/expenses
@@ -21,21 +17,16 @@ default:
 # ----------------------
 # BUILD
 # ----------------------
+
 build:
-  stage: build
-  image: mcr.microsoft.com/dotnet/sdk:8.0
-  script:
-    - dotnet restore
-    - dotnet build --configuration $BUILD_CONFIGURATION
+  extends: .dotnet-build
 
 # ----------------------
 # TEST + COVERAGE
 # ----------------------
+
 test:
-  stage: test
-  image: mcr.microsoft.com/dotnet/sdk:8.0
-  script:
-    - dotnet test --collect:"XPlat Code Coverage" --results-directory "./coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+  extends: .dotnet-test
   artifacts:
     when: always
     paths:

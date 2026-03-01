@@ -1,0 +1,15 @@
+# GitLab CI configuration for the Test stage
+
+.node-test:
+  stage: test
+  image: node:20
+  script:
+    - npm config set cache .npm --location=project
+    - npm ci
+    - npm test
+
+.dotnet-test:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet test --collect:"XPlat Code Coverage" --results-directory "./coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover

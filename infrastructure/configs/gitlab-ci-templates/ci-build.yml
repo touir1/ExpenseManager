@@ -1,0 +1,22 @@
+# GitLab CI configuration for the Build stage
+
+variables:
+  # dotnet variables
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+  BUILD_CONFIGURATION: Release
+
+.dotnet-build:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet restore
+    - dotnet build --configuration $BUILD_CONFIGURATION
+
+.node-build:
+  stage: build
+  image: node:20
+  script:
+    - npm config set cache .npm --location=project
+    - npm ci
+    - npm run build

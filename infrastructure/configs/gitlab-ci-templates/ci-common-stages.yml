@@ -1,0 +1,10 @@
+# common-stages.yml
+
+stages:
+  - build
+  - test
+  - quality
+  - security
+  - docker
+  - docker-security
+  - deploy
