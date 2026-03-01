@@ -46,7 +46,7 @@ sonarqube:
     - export PATH="$PATH:/root/.dotnet/tools"
     - dotnet tool install --global dotnet-sonarscanner
     - |
-      dotnet sonarscanner begin
+      dotnet sonarscanner begin \
         /v:"$CI_COMMIT_SHA" \
         /d:sonar.login="$SONAR_TOKEN" \
         /d:sonar.qualitygate.wait=true
