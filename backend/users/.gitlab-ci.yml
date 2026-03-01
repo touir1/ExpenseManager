@@ -4,6 +4,7 @@ include:
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-stages.yml'
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-build.yml'
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-test.yml'
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-quality.yml'
 
 variables:
   IMAGE_NAME: expense-manager-backend-users
@@ -34,40 +35,11 @@ test:
 # ----------------------
 # SONARQUBE ANALYSIS
 # ----------------------
+
 sonarqube:
-  stage: quality
-  image: mcr.microsoft.com/dotnet/sdk:8.0
-  dependencies:
-    - build
-    - test
+  extends: .dotnet-sonarqube
   variables:
     SONAR_PROJECT_KEY: "touir:expense-manager:backend:users"
-    SONAR_HOST_URL: "http://sonarqube:9000"
-  script:
-    - export PATH="$PATH:/root/.dotnet/tools"
-    - dotnet tool install --global dotnet-sonarscanner
-    - SONAR_PROPERTIES_PATH="${PWD}/SonarQube.Analysis.xml"
-    # use the xml property file if exists, otherwise fallback to CLI parameters
-    - |
-      if [ -f "$SONAR_PROPERTIES_PATH" ]; then
-        echo "Using SonarQube properties from $SONAR_PROPERTIES_PATH"
-        dotnet sonarscanner begin \
-          /s:"$SONAR_PROPERTIES_PATH" \
-          /k:"$SONAR_PROJECT_KEY" \
-          /v:"$CI_COMMIT_SHA" \
-          /d:sonar.login="$SONAR_TOKEN" \
-          /d:sonar.host.url="$SONAR_HOST_URL" \
-          /d:sonar.qualitygate.wait=true
-      else
-        dotnet sonarscanner begin \
-          /k:"$SONAR_PROJECT_KEY" \
-          /v:"$CI_COMMIT_SHA" \
-          /d:sonar.login="$SONAR_TOKEN" \
-          /d:sonar.host.url="$SONAR_HOST_URL" \
-          /d:sonar.qualitygate.wait=true
-      fi
-    - dotnet build
-    - dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
 
 # ----------------------
 # DOCKER BUILD

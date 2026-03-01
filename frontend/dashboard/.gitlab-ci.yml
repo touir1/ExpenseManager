@@ -4,6 +4,7 @@ include:
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-stages.yml'
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-build.yml'
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-test.yml'
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-quality.yml'
 
 variables:
   BASE_DIR_PATH: frontend/dashboard
@@ -15,6 +16,7 @@ default:
 # ----------------------
 # BUILD
 # ----------------------
+
 build:
   extends: .node-build
   cache:
@@ -30,6 +32,7 @@ build:
 # ----------------------
 # TEST + COVERAGE
 # ----------------------
+
 test:
   extends: .node-test
   cache:
@@ -46,23 +49,11 @@ test:
 # ----------------------
 # SONARQUBE ANALYSIS
 # ----------------------
+
 sonarqube:
-  stage: quality
-  image:
-    name: sonarsource/sonar-scanner-cli:latest
-    entrypoint: [""]
+  extends: .node-sonarqube
   variables:
-    SONAR_HOST_URL: "http://sonarqube:9000"
-  dependencies:
-    - build
-    - test
-  script:
-    - |
-      sonar-scanner \
-        -Dsonar.projectVersion="$CI_COMMIT_SHA" \
-        -Dsonar.host.url="$SONAR_HOST_URL" \
-        -Dsonar.login="$SONAR_TOKEN" \
-        -Dsonar.qualitygate.wait=true
+    SONAR_PROJECT_KEY: "touir:expense-manager:frontend:dashboard"
 
 # ----------------------
 # SCA – DEPENDENCY CHECK

@@ -4,10 +4,10 @@ include:
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-stages.yml'
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-build.yml'
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-test.yml'
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-quality.yml'
 
 variables:
   IMAGE_NAME: expense-manager-backend-expenses
-  SONAR_HOST_URL: "http://sonarqube:9000"
   BASE_DIR_PATH: backend/expenses
 
 default:
@@ -35,26 +35,16 @@ test:
 # ----------------------
 # SONARQUBE ANALYSIS
 # ----------------------
+
 sonarqube:
-  stage: quality
-  image: mcr.microsoft.com/dotnet/sdk:8.0
-  dependencies:
-    - build
-    - test
+  extends: .dotnet-sonarqube
   variables:
     SONAR_PROJECT_KEY: "touir:expense-manager:backend:expenses"
-    SONAR_PROJECT_NAME: "Expense Manager - Backend - Expenses"
-    SONAR_COVERAGE_PATH: "coverage/**/*.opencover.xml"
-  script:
-    - export PATH="$PATH:/root/.dotnet/tools"
-    - dotnet tool install --global dotnet-sonarscanner
-    - dotnet sonarscanner begin /k:"$SONAR_PROJECT_KEY" /n:"$SONAR_PROJECT_NAME" /v:"$CI_COMMIT_SHA" /d:sonar.host.url="$SONAR_HOST_URL" /d:sonar.login="$SONAR_TOKEN" /d:sonar.cs.opencover.reportsPaths="$SONAR_COVERAGE_PATH" /d:sonar.qualitygate.wait=true
-    - dotnet build
-    - dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
 
 # ----------------------
 # DOCKER BUILD
 # ----------------------
+
 docker-build:
   stage: docker
   image: docker:24

@@ -1,0 +1,85 @@
+# Gitlab CI configuration for code quality checks
+
+variables:
+  SONAR_HOST_URL: "http://sonarqube:9000"
+  SONAR_PROJECT_KEY: ""
+  SONAR_PROPERTIES_PATH: ""
+
+.node-sonarqube:
+  stage: quality
+  image:
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  dependencies:
+    - build
+    - test
+  script:
+    - |
+      if [ -z "$SONAR_PROJECT_KEY" ]; then
+        echo "Error: SONAR_PROJECT_KEY variable is not set."
+        exit 1
+      fi
+    - |
+      if [ -z "$SONAR_PROPERTIES_PATH" ]; then
+        SONAR_PROPERTIES_PATH="${PWD}/sonar-project.properties"
+        echo "SONAR_PROPERTIES_PATH is not set. Using default path: $SONAR_PROPERTIES_PATH"
+      fi
+    - if [ -f "$SONAR_PROPERTIES_PATH" ]; then
+        echo "Using SonarQube properties from $SONAR_PROPERTIES_PATH"
+        sonar-scanner \
+          -Dsonar.projectVersion="$CI_COMMIT_SHA" \
+          -Dsonar.login="$SONAR_TOKEN" \
+          -Dsonar.host.url="$SONAR_HOST_URL" \
+          -Dsonar.qualitygate.wait=true \
+          -Dproject.settings="$SONAR_PROPERTIES_PATH"
+      else
+        sonar-scanner \
+          -Dsonar.projectKey="$SONAR_PROJECT_KEY" \
+          -Dsonar.projectVersion="$CI_COMMIT_SHA" \
+          -Dsonar.login="$SONAR_TOKEN" \
+          -Dsonar.host.url="$SONAR_HOST_URL" \
+          -Dsonar.qualitygate.wait=true
+      fi
+
+.dotnet-sonarqube:
+  stage: quality
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  dependencies:
+    - build
+    - test
+  script:
+    - |
+      if [ -z "$SONAR_PROJECT_KEY" ]; then
+        echo "Error: SONAR_PROJECT_KEY variable is not set."
+        exit 1
+      fi
+    - export PATH="$PATH:/root/.dotnet/tools"
+    - dotnet tool install --global dotnet-sonarscanner
+    # if SONAR_PROPERTIES_PATH variable is not set/empty, set default value
+    - |
+      if [ -z "$SONAR_PROPERTIES_PATH" ]; then
+        SONAR_PROPERTIES_PATH="${PWD}/SonarQube.Analysis.xml"
+        echo "SONAR_PROPERTIES_PATH is not set. Using default path: $SONAR_PROPERTIES_PATH"
+      fi
+    # use the xml property file if exists, otherwise fallback to CLI parameters
+    - |
+      if [ -f "$SONAR_PROPERTIES_PATH" ]; then
+        echo "Using SonarQube properties from $SONAR_PROPERTIES_PATH"
+        dotnet sonarscanner begin \
+          /s:"$SONAR_PROPERTIES_PATH" \
+          /k:"$SONAR_PROJECT_KEY" \
+          /v:"$CI_COMMIT_SHA" \
+          /d:sonar.login="$SONAR_TOKEN" \
+          /d:sonar.host.url="$SONAR_HOST_URL" \
+          /d:sonar.qualitygate.wait=true
+      else
+        dotnet sonarscanner begin \
+          /k:"$SONAR_PROJECT_KEY" \
+          /v:"$CI_COMMIT_SHA" \
+          /d:sonar.login="$SONAR_TOKEN" \
+          /d:sonar.host.url="$SONAR_HOST_URL" \
+          /d:sonar.qualitygate.wait=true
+      fi
+    - dotnet build
+    - dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
+
