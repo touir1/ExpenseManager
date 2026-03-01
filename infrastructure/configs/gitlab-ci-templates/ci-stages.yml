@@ -1,4 +1,4 @@
-# common-stages.yml
+# stages.yml
 
 stages:
   - build

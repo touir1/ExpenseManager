@@ -1,8 +1,9 @@
 # GitLab CI configuration for the Dashboard frontend module
 
 include:
-  - local: 'infrastructure/configs/gitlab-ci-templates/ci-common-stages.yml'
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-stages.yml'
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-build.yml'
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-test.yml'
 
 variables:
   BASE_DIR_PATH: frontend/dashboard
