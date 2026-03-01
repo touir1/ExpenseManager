@@ -69,34 +69,7 @@ sonarqube:
     - build
     - test
   script:
-    - sonar-scanner -Dsonar.projectVersion="$CI_COMMIT_SHA" -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.login="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.projectName="$SONAR_PROJECT_NAME"
-    # Install jq using the available package manager
-    - |
-      # Check if jq exists, if not download static binary
-      if ! command -v jq >/dev/null 2>&1; then
-        echo "jq not found. Downloading static binary..."
-        wget -O /tmp/jq https://github.com/stedolan/jq/releases/download/jq-1.7.1//jq-linux-amd64 -O ./jq
-        chmod +x ./jq
-        export PATH="$PWD:$PATH"
-      fi
-    # Wait for SonarQube Quality Gate result
-    - |
-      SONAR_STATUS="PENDING"
-      TIMEOUT=60
-      while [[ "$SONAR_STATUS" == "PENDING" && $TIMEOUT -gt 0 ]]; do
-        SONAR_STATUS=$(curl -s -u "$SONAR_TOKEN:" "$SONAR_HOST_URL/api/qualitygates/project_status?projectKey=$SONAR_PROJECT_KEY" | jq -r .projectStatus.status)
-        if [[ "$SONAR_STATUS" == "OK" ]]; then
-          echo "SonarQube Quality Gate passed."
-          exit 0
-        elif [[ "$SONAR_STATUS" == "ERROR" ]]; then
-          echo "SonarQube Quality Gate failed."
-          exit 1
-        fi
-        sleep 5
-        TIMEOUT=$((TIMEOUT-5))
-      done
-      echo "SonarQube Quality Gate check timed out."
-      exit 1
+    - sonar-scanner -Dsonar.projectVersion="$CI_COMMIT_SHA" -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.login="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.projectName="$SONAR_PROJECT_NAME" -Dsonar.qualitygate.wait=true
 
 # ----------------------
 # SCA – DEPENDENCY CHECK
