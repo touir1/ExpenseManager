@@ -3,7 +3,6 @@
     xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
     xmlns="http://www.sonarsource.com/msbuild/integration/2015/1">
   <!-- Project identification -->
-  <Property Name="sonar.projectKey">touir:expense-manager:backend:users</Property>
   <Property Name="sonar.projectName">Expense Manager - Backend - Users</Property>
 
   <!-- Source and test directories -->

@@ -41,18 +41,18 @@ sonarqube:
     - build
     - test
   variables:
+    SONAR_PROJECT_KEY: "touir:expense-manager:backend:users"
     SONAR_HOST_URL: "http://sonarqube:9000"
   script:
     - export PATH="$PATH:/root/.dotnet/tools"
     - dotnet tool install --global dotnet-sonarscanner
     - SONAR_PROPERTIES_PATH="${PWD}/SonarQube.Analysis.xml"
-    - ls -la
-    - ls -la $SONAR_PROPERTIES_PATH
     - echo "sonar properties path = $SONAR_PROPERTIES_PATH"
     - dotnet sonarscanner /?
     - |
       dotnet sonarscanner begin \
         /s:"$SONAR_PROPERTIES_PATH" \
+        /k:"$SONAR_PROJECT_KEY" \
         /v:"$CI_COMMIT_SHA" \
         /d:sonar.login="$SONAR_TOKEN" \
         /d:sonar.qualitygate.wait=true
