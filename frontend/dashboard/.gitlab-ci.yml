@@ -80,16 +80,13 @@ sca:
     name: owasp/dependency-check:latest
     entrypoint: [""]
   cache:
-    - key: frontend-dashboard-deps
-      policy: pull
-      paths:
-        - $BASE_DIR_PATH/node_modules
     - key: dependency-check-data
       paths:
         - $BASE_DIR_PATH/dependency-check-data/
   dependencies:
     - build
   script:
+    - npm ci --production
     - mkdir -p dependency-check-data
     - export PATH="$PATH:/usr/share/dependency-check/bin"
     - dependency-check.sh --project "ExpenseManager-Frontend-Dashboard" --scan . --format JSON --data dependency-check-data --out dependency-check-report --nodePackageSkipDevDependencies --nvdApiKey "$NVD_API_KEY" --ossIndexUsername "$OSSINDEX_USER" --ossIndexPassword "$OSSINDEX_TOKEN" --failOnCVSS 7 || SCAN_FAILED=$?
