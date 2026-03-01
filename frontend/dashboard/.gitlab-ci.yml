@@ -52,14 +52,17 @@ sonarqube:
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""]
   variables:
-    SONAR_PROJECT_KEY: "touir:expense-manager:frontend:dashboard"
-    SONAR_PROJECT_NAME: "Expense Manager - Frontend - Dashboard"
     SONAR_HOST_URL: "http://sonarqube:9000"
   dependencies:
     - build
     - test
   script:
-    - sonar-scanner -Dsonar.projectVersion="$CI_COMMIT_SHA" -Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.login="$SONAR_TOKEN" -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.projectName="$SONAR_PROJECT_NAME" -Dsonar.qualitygate.wait=true
+    - |
+      sonar-scanner \
+        -Dsonar.projectVersion="$CI_COMMIT_SHA" \
+        -Dsonar.host.url="$SONAR_HOST_URL" \
+        -Dsonar.login="$SONAR_TOKEN" \
+        -Dsonar.qualitygate.wait=true
 
 # ----------------------
 # SCA – DEPENDENCY CHECK
