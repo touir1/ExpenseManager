@@ -45,10 +45,11 @@ sonarqube:
   script:
     - export PATH="$PATH:/root/.dotnet/tools"
     - dotnet tool install --global dotnet-sonarscanner
-    - dotnet sonarscanner begin |
-      /v:"$CI_COMMIT_SHA" \
-      /d:sonar.login="$SONAR_TOKEN" \
-      /d:sonar.qualitygate.wait=true
+    - |
+      dotnet sonarscanner begin
+        /v:"$CI_COMMIT_SHA" \
+        /d:sonar.login="$SONAR_TOKEN" \
+        /d:sonar.qualitygate.wait=true
     - dotnet build
     - dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
 
