@@ -5,10 +5,6 @@
   <!-- Project identification -->
   <Property Name="sonar.projectName">Expense Manager - Backend - Users</Property>
 
-  <!-- Source and test directories -->
-  <Property Name="sonar.sources">Touir.ExpenseManager.Users</Property>
-  <Property Name="sonar.tests">Touir.ExpenseManager.Users.Tests</Property>
-
   <!-- Exclusions for analysis -->
   <Property Name="sonar.exclusions">**/obj/**,**/bin/**,**/*.Designer.cs,**/*.g.cs</Property>
 

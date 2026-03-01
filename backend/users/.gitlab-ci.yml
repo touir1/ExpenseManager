@@ -46,15 +46,12 @@ sonarqube:
   script:
     - export PATH="$PATH:/root/.dotnet/tools"
     - dotnet tool install --global dotnet-sonarscanner
-    - SONAR_PROPERTIES_PATH="${PWD}/SonarQube.Analysis.xml"
-    - echo "sonar properties path = $SONAR_PROPERTIES_PATH"
-    - dotnet sonarscanner /?
     - |
       dotnet sonarscanner begin \
-        /s:"$SONAR_PROPERTIES_PATH" \
         /k:"$SONAR_PROJECT_KEY" \
         /v:"$CI_COMMIT_SHA" \
         /d:sonar.login="$SONAR_TOKEN" \
+        /d:sonar.host.url="$SONAR_HOST_URL" \
         /d:sonar.qualitygate.wait=true
     - dotnet build
     - dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
