@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<SonarQubeAnalysisProperties xmlns="http://www.sonarsource.com">
+<?xml version="1.0" encoding="utf-8"?>
+<SonarQubeAnalysisProperties xmlns:xsi="http://www.w3.org" 
+                              xmlns:xsd="http://www.w3.org" 
+                              xmlns="http://www.sonarsource.com">
   <!-- Project identification -->
   <Property Name="sonar.projectKey">touir:expense-manager:backend:users</Property>
   <Property Name="sonar.projectName">Expense Manager - Backend - Users</Property>
