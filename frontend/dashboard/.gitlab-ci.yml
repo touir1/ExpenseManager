@@ -7,6 +7,7 @@ include:
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-test.yml'
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-quality.yml'
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-security.yml'
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-deploy.yml'
 
 variables:
   BASE_DIR_PATH: frontend/dashboard
@@ -76,39 +77,17 @@ sast:
 # ----------------------
 # SECRETS SCAN – GITLEAKS
 # ----------------------
+
 secrets-scan:
-  stage: security
-  image: 
-    name: zricethezav/gitleaks:latest
-    entrypoint: [""]
-  script:
-    - gitleaks detect --source . --no-git -c ../../.gitleaks.toml --report-format json --report-path gitleaks.json --verbose --platform gitlab
-  artifacts:
-    when: always
-    paths:
-      - $BASE_DIR_PATH/gitleaks.json
+  extends: .secrets-scan
+
+# ----------------------
+# DEPLOYMENT
+# ----------------------
 
 deploy-dev:
-  stage: deploy
-  image: alpine:latest
-  dependencies:
-    - build
-  script:
-    # Install tools
-    - wget -q https://dl.min.io/client/mc/release/linux-amd64/mc -O /usr/bin/mc
-    - chmod +x /usr/bin/mc
-    - apk add --no-cache zip
-    # Zip dist files with version
-    - echo "Zipping dist files..."
-    - VERSION=$(date +%Y%m%d%H%M%S)
-    - ZIP_NAME="expenses-manager-dashboard_$VERSION.zip"
-    - cd dist
-    - zip -r "/tmp/$ZIP_NAME" .
-    # Upload zip to MinIO if credentials are set
-    - mc alias set minio http://minio:9000 "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
-    - mc mb --ignore-existing minio/expenses-manager-web-artifacts
-    - mc mb --ignore-existing minio/expenses-manager-web
-    - mc cp "/tmp/$ZIP_NAME" minio/expenses-manager-web-artifacts/
-    - mc cp ./* minio/expenses-manager-web/ --recursive
+  extends: .deploy-web-dev
+  variables:
+    ZIP_NAME_PREFIX: "expenses-manager-web-dashboard"
 
 

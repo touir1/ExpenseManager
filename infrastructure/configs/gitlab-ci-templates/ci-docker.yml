@@ -1,0 +1,23 @@
+# This is a GitLab CI template for building and pushing Docker images.
+
+.docker-build:
+  stage: docker
+  image: docker:24
+  services:
+    - name: docker:24-dind
+      command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=gitlab:5050", "--insecure-registry=172.50.0.10:5050"]
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2375
+  script:
+    - |
+      if [ -z "$IMAGE_NAME" ]; then
+        echo "IMAGE_NAME variable is not set. Please set it in the CI configuration."
+        exit 1
+      fi
+    - FULL_IMAGE_NAME="$CI_REGISTRY_IMAGE/$IMAGE_NAME:latest"
+    - echo "image = $FULL_IMAGE_NAME"
+    - echo "Logging into registry = $CI_REGISTRY"
+    - echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u gitlab-ci-token --password-stdin
+    - docker build -t $FULL_IMAGE_NAME .
+    - docker push $FULL_IMAGE_NAME

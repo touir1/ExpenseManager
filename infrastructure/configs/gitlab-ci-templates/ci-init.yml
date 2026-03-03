@@ -4,6 +4,7 @@ variables:
   # Define any global variables for stages here if needed
   BASE_DIR_PATH: "."
   PROJECT_KEY: "expense-manager"
+  IMAGE_NAME: ""
 
 default:
   before_script:

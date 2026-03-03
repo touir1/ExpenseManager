@@ -87,3 +87,15 @@ variables:
     when: always
     paths:
       - $BASE_DIR_PATH/semgrep.json
+
+.secrets-scan:
+  stage: security
+  image: 
+    name: zricethezav/gitleaks:latest
+    entrypoint: [""]
+  script:
+    - gitleaks detect --source . --no-git -c ../../.gitleaks.toml --report-format json --report-path gitleaks.json --verbose --platform gitlab
+  artifacts:
+    when: always
+    paths:
+      - $BASE_DIR_PATH/gitleaks.json

@@ -1,0 +1,26 @@
+# This is a GitLab CI/CD configuration file for deploying the Expense Manager application.
+
+.deploy-web-dev:
+  stage: deploy
+  image: alpine:latest
+  dependencies:
+    - build
+  variables:
+    ZIP_NAME_PREFIX: "expenses-manager-web"
+  script:
+    # Install tools
+    - wget -q https://dl.min.io/client/mc/release/linux-amd64/mc -O /usr/bin/mc
+    - chmod +x /usr/bin/mc
+    - apk add --no-cache zip
+    # Zip dist files with version
+    - echo "Zipping dist files..."
+    - VERSION=$(date +%Y%m%d%H%M%S)
+    - ZIP_NAME="${ZIP_NAME_PREFIX}_$VERSION.zip"
+    - cd dist
+    - zip -r "/tmp/$ZIP_NAME" .
+    # Upload zip to MinIO if credentials are set
+    - mc alias set minio http://minio:9000 "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY"
+    - mc mb --ignore-existing minio/expenses-manager-web-artifacts
+    - mc mb --ignore-existing minio/expenses-manager-web
+    - mc cp "/tmp/$ZIP_NAME" minio/expenses-manager-web-artifacts/
+    - mc cp ./* minio/expenses-manager-web/ --recursive
