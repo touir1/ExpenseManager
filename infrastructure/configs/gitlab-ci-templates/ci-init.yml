@@ -1,0 +1,10 @@
+# GitLab CI configuration for initializing CI/CD pipelines for the Expense Manager project
+
+variables:
+  # Define any global variables for stages here if needed
+  BASE_DIR_PATH: "."
+  PROJECT_KEY: "expense-manager"
+
+default:
+  before_script:
+    - cd $BASE_DIR_PATH

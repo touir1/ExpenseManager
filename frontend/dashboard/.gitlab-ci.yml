@@ -1,17 +1,16 @@
 # GitLab CI configuration for the Dashboard frontend module
 
 include:
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-init.yml'
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-stages.yml'
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-build.yml'
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-test.yml'
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-quality.yml'
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-security.yml'
 
 variables:
   BASE_DIR_PATH: frontend/dashboard
-
-default:
-  before_script:
-    - cd $BASE_DIR_PATH
+  PROJECT_KEY: expenses-manager-frontend-dashboard
 
 # ----------------------
 # BUILD
@@ -20,14 +19,7 @@ default:
 build:
   extends: .node-build
   cache:
-    key: frontend-dashboard-deps
-    paths:
-      - $BASE_DIR_PATH/.npm
-      - $BASE_DIR_PATH/node_modules
-  artifacts:
-    when: always
-    paths:
-      - $BASE_DIR_PATH/dist
+    <<: *build-node-modules-cache
 
 # ----------------------
 # TEST + COVERAGE
@@ -36,15 +28,7 @@ build:
 test:
   extends: .node-test
   cache:
-    key: frontend-dashboard-deps
-    policy: pull
-    paths:
-      - $BASE_DIR_PATH/.npm
-      - $BASE_DIR_PATH/node_modules
-  artifacts:
-    when: always
-    paths:
-      - $BASE_DIR_PATH/coverage
+    <<: *build-node-modules-cache
 
 # ----------------------
 # SONARQUBE ANALYSIS
@@ -58,102 +42,21 @@ sonarqube:
 # ----------------------
 # SCA – DEPENDENCY CHECK
 # ----------------------
+
 sca:
-  stage: security
-  image: 
-    name: owasp/dependency-check:latest
-    entrypoint: [""]
+  extends: .sca
+  variables:
+    OWASP_PROJECT_NAME: "ExpenseManager-Frontend-Dashboard"
   cache:
-    - key: frontend-dashboard-deps
-      policy: pull
-      paths:
-        - $BASE_DIR_PATH/node_modules
-    - key: dependency-check-data
-      paths:
-        - $BASE_DIR_PATH/dependency-check-data/
-  dependencies:
-    - build
-  script:
-    - mkdir -p dependency-check-data
-    - export PATH="$PATH:/usr/share/dependency-check/bin"
-    - dependency-check.sh --project "ExpenseManager-Frontend-Dashboard" --scan . --format JSON --data dependency-check-data --out dependency-check-report --nvdApiKey "$NVD_API_KEY" --ossIndexUsername "$OSSINDEX_USER" --ossIndexPassword "$OSSINDEX_TOKEN" --failOnCVSS 7 || SCAN_FAILED=$?
-    - |
-      echo ""
-      echo "========================================="
-      echo "   VULNERABILITY SCAN SUMMARY"
-      echo "========================================="
-      if [ -f dependency-check-report/dependency-check-report.json ]; then
-        # Install jq for JSON parsing (lightweight static binary)
-        if ! command -v jq >/dev/null 2>&1; then
-          wget -q https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64 -O ./jq
-          chmod +x ./jq
-          export PATH="$PWD:$PATH"
-        fi
-        
-        # Count total vulnerabilities first
-        TOTAL=$(jq '[.dependencies[]?.vulnerabilities[]?] | length' dependency-check-report/dependency-check-report.json)
-        
-        if [ "$TOTAL" != "0" ]; then
-          # Count by severity (normalize to uppercase for comparison)
-          CRITICAL=$(jq '[.dependencies[]?.vulnerabilities[]? | select((.severity // .cvssv3.baseSeverity // .cvssv2.severity) | ascii_upcase == "CRITICAL")] | length' dependency-check-report/dependency-check-report.json)
-          HIGH=$(jq '[.dependencies[]?.vulnerabilities[]? | select((.severity // .cvssv3.baseSeverity // .cvssv2.severity) | ascii_upcase == "HIGH")] | length' dependency-check-report/dependency-check-report.json)
-          MEDIUM=$(jq '[.dependencies[]?.vulnerabilities[]? | select((.severity // .cvssv3.baseSeverity // .cvssv2.severity) | ascii_upcase | . == "MEDIUM" or . == "MODERATE")] | length' dependency-check-report/dependency-check-report.json)
-          LOW=$(jq '[.dependencies[]?.vulnerabilities[]? | select((.severity // .cvssv3.baseSeverity // .cvssv2.severity) | ascii_upcase == "LOW")] | length' dependency-check-report/dependency-check-report.json)
-          
-          echo "🔴 CRITICAL: $CRITICAL"
-          echo "🟠 HIGH:     $HIGH"
-          echo "🟡 MEDIUM:   $MEDIUM"
-          echo "🟢 LOW:      $LOW"
-          echo "📊 TOTAL:    $TOTAL"
-          echo "========================================="
-          echo ""
-          echo "📋 VULNERABILITY DETAILS:"
-          echo ""
-          
-          # Print vulnerability details with fix versions
-          jq -r '.dependencies[] | select(.vulnerabilities) | .fileName as $file | .vulnerabilities[] | 
-            "[\(.severity // .cvssv3.baseSeverity // .cvssv2.severity // "UNKNOWN")] \(.name) (Score: \(.cvssv3.baseScore // .cvssv2.score // "N/A"))\n  Package: \($file)\n" + 
-            if .vulnerableSoftware then 
-              "  Fix Versions: " + ([.vulnerableSoftware[].software.versionEndExcluding | select(. != null)] | unique | join(", ")) + "\n"
-            else 
-              "  Fix Versions: Not specified\n" 
-            end' \
-            dependency-check-report/dependency-check-report.json 2>/dev/null || echo "Unable to parse vulnerability details"
-        else
-          echo "🔴 CRITICAL: 0"
-          echo "🟠 HIGH:     0"
-          echo "🟡 MEDIUM:   0"
-          echo "🟢 LOW:      0"
-          echo "📊 TOTAL:    0"
-          echo "========================================="
-          echo ""
-          echo "✅ No vulnerabilities found!"
-        fi
-      else
-        echo "⚠️  No report generated"
-      fi
-      echo "========================================="
-      if [ -n "$SCAN_FAILED" ]; then
-        exit $SCAN_FAILED
-      fi
-  artifacts:
-    when: always
-    paths:
-      - $BASE_DIR_PATH/dependency-check-report/
+    - *dependency-check-cache
+    - *build-node-modules-cache
 
 # ----------------------
 # SAST – SEMGREP
 # ----------------------
+
 sast:
-  stage: security
-  image: returntocorp/semgrep
-  script:
-    - ln -sf "$PWD" /src
-    - semgrep scan --config=p/javascript --json --metrics=off --output semgrep.json --verbose .
-  artifacts:
-    when: always
-    paths:
-      - $BASE_DIR_PATH/semgrep.json
+  extends: .sast
 
 # ----------------------
 # SECRETS SCAN – GITLEAKS

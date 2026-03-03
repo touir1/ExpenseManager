@@ -7,9 +7,17 @@
     - npm config set cache .npm --location=project
     - npm ci
     - npm test
+  artifacts:
+    when: always
+    paths:
+      - $BASE_DIR_PATH/coverage
 
 .dotnet-test:
   stage: test
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
     - dotnet test --collect:"XPlat Code Coverage" --results-directory "./coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+  artifacts:
+    when: always
+    paths:
+      - $BASE_DIR_PATH/coverage
