@@ -13,12 +13,6 @@ variables:
     - dotnet restore
     - dotnet build --configuration $BUILD_CONFIGURATION
 
-.build-node-modules-cache: &build-node-modules-cache
-  key: "$PROJECT_KEY-deps"
-  paths:
-    - $BASE_DIR_PATH/.npm
-    - $BASE_DIR_PATH/node_modules
-
 .node-build:
   stage: build
   image: node:20

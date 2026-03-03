@@ -13,6 +13,15 @@ variables:
   BASE_DIR_PATH: backend/expenses
 
 # ----------------------
+# cache configuration
+# ----------------------
+
+.dependency-check-cache: &dependency-check-cache
+  key: dependency-check-data
+  paths:
+    - $BASE_DIR_PATH/dependency-check-data/
+
+# ----------------------
 # BUILD
 # ----------------------
 

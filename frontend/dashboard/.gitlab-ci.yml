@@ -13,6 +13,21 @@ variables:
   PROJECT_KEY: expenses-manager-frontend-dashboard
 
 # ----------------------
+# cache configuration
+# ----------------------
+
+.build-node-modules-cache: &build-node-modules-cache
+  key: "$PROJECT_KEY-deps"
+  paths:
+    - $BASE_DIR_PATH/.npm
+    - $BASE_DIR_PATH/node_modules
+
+.dependency-check-cache: &dependency-check-cache
+  key: dependency-check-data
+  paths:
+    - $BASE_DIR_PATH/dependency-check-data/
+
+# ----------------------
 # BUILD
 # ----------------------
 
