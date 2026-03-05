@@ -37,7 +37,7 @@ namespace Touir.ExpensesManager.Users.Repositories
             return await _context.Users
                 .AsNoTracking()
                 .Where(u => u.EmailValidationHash != null && u.IsEmailValidated == false)
-                .Select(s => s.EmailValidationHash)
+                .Select(s => s.EmailValidationHash!)
                 .ToListAsync();
         }
 

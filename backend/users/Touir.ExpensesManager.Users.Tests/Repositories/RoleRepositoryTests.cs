@@ -27,6 +27,7 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
             var repo = new RoleRepository(db.Context);
             var roles = await repo.GetUserRolesByApplicationCodeAsync("APP1", user.Id);
             
+            Assert.NotNull(roles);
             Assert.Single(roles);
             Assert.Equal("ADMIN", roles.First().Code);
             Assert.Equal("Admin", roles.First().Name);
@@ -53,6 +54,7 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
             var repo = new RoleRepository(db.Context);
             var roles = await repo.GetUserRolesByApplicationCodeAsync("APP2", user.Id);
             
+            Assert.NotNull(roles);
             Assert.Equal(2, roles.Count());
             Assert.Contains(roles, r => r.Code == "ADMIN");
             Assert.Contains(roles, r => r.Code == "USER");
@@ -71,6 +73,7 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
             var repo = new RoleRepository(db.Context);
             var roles = await repo.GetUserRolesByApplicationCodeAsync("APP3", user.Id);
             
+            Assert.NotNull(roles);
             Assert.Empty(roles);
         }
 
@@ -93,6 +96,7 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
             var repo = new RoleRepository(db.Context);
             var roles = await repo.GetUserRolesByApplicationCodeAsync("NONEXISTENT", user.Id);
             
+            Assert.NotNull(roles);
             Assert.Empty(roles);
         }
 
@@ -109,6 +113,7 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
             var repo = new RoleRepository(db.Context);
             var roles = await repo.GetUserRolesByApplicationCodeAsync("APP5", 999);
             
+            Assert.NotNull(roles);
             Assert.Empty(roles);
         }
 
@@ -134,6 +139,7 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
             var repo = new RoleRepository(db.Context);
             var roles = await repo.GetUserRolesByApplicationCodeAsync("APP6", user.Id);
             
+            Assert.NotNull(roles);
             Assert.Single(roles);
             Assert.Equal("ADMIN1", roles.First().Code);
         }

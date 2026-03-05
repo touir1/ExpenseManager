@@ -6,7 +6,7 @@
             string? recipientTo = null,
             string? recipientCC = null,
             string? recipientBCC = null,
-            string emailSubject = null,
+            string? emailSubject = null,
             string? emailBody = null,
             bool isHTML = false,
             ICollection<string>? attachments = null);

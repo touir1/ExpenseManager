@@ -13,7 +13,7 @@ namespace Touir.ExpensesManager.Users.Repositories
             _context = context;
         }
 
-        public async Task<Application> GetApplicationByCodeAsync(string applicationCode)
+        public async Task<Application?> GetApplicationByCodeAsync(string applicationCode)
         {
             return await _context.Applications
                 .Where(a => a.Code == applicationCode)

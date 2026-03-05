@@ -116,7 +116,7 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
             using var db = new TestDbContextWrapper();
             var repo = new AuthenticationRepository(db.Context);
             
-            var result = await repo.CreateAuthenticationAsync(null);
+            var result = await repo.CreateAuthenticationAsync(null!);
             
             Assert.False(result);
         }
@@ -126,7 +126,7 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
         {
             using var db = new TestDbContextWrapper();
             var repo = new AuthenticationRepository(db.Context);
-            var auth = new Authentication { UserId = 5, User = null, HashPassword = "hash5", HashSalt = "salt5" };
+            var auth = new Authentication { UserId = 5, User = null!, HashPassword = "hash5", HashSalt = "salt5" };
             
             var result = await repo.CreateAuthenticationAsync(auth);
             
@@ -226,7 +226,7 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
             using var db = new TestDbContextWrapper();
             var repo = new AuthenticationRepository(db.Context);
             
-            var result = await repo.UpdateAuthenticationAsync(null);
+            var result = await repo.UpdateAuthenticationAsync(null!);
             
             Assert.False(result);
         }
@@ -243,7 +243,7 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
             
             var repo = new AuthenticationRepository(db.Context);
             var dbAuth = db.Context.Authentications.First(a => a.UserId == 9);
-            dbAuth.User = null; // Set user to null
+            dbAuth.User = null!;
             
             var result = await repo.UpdateAuthenticationAsync(dbAuth);
             

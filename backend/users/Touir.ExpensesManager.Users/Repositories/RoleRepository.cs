@@ -13,7 +13,7 @@ namespace Touir.ExpensesManager.Users.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Role>> GetUserRolesByApplicationCodeAsync(string applicationCode, int userId)
+        public async Task<IEnumerable<Role>?> GetUserRolesByApplicationCodeAsync(string applicationCode, int userId)
         {
             return await _context.Roles
                 .AsNoTracking()

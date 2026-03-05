@@ -11,7 +11,7 @@ namespace Touir.ExpensesManager.Users.Services
         {
             _applicationRepository = applicationRepository;
         }
-        public async Task<ApplicationEo> GetApplicationByCodeAsync(string applicationCode)
+        public async Task<ApplicationEo?> GetApplicationByCodeAsync(string applicationCode)
         {
             var app = await _applicationRepository.GetApplicationByCodeAsync(applicationCode);
             if (app == null) return null;

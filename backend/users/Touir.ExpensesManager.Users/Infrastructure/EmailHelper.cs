@@ -33,8 +33,8 @@ namespace Touir.ExpensesManager.Users.Infrastructure
             try { 
                 using (var client = new SmtpClient()) 
                 {
-                    client.Host = _host;
-                    client.Port = _port.Value;
+                    client.Host = _host!;
+                    client.Port = _port!.Value;
                     client.DeliveryMethod = SmtpDeliveryMethod.Network;
                     client.UseDefaultCredentials = false;
                     client.EnableSsl = true;
@@ -42,7 +42,7 @@ namespace Touir.ExpensesManager.Users.Infrastructure
 
                     using (var message = new MailMessage())
                     {
-                        message.From = new MailAddress(_sender);
+                        message.From = new MailAddress(_sender!);
                         if(recipientTo != null)
                             message.To.Add(recipientTo);
                         if(recipientCC != null)

@@ -128,6 +128,7 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
             var repo = new UserRepository(db.Context);
             var result = await repo.CreateUserAsync(user);
             
+            Assert.NotNull(result);
             Assert.Equal("alice@wonder.com", result.Email);
             Assert.Equal("hash123", result.EmailValidationHash);
             Assert.False(result.IsEmailValidated);

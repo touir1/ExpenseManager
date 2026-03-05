@@ -68,11 +68,11 @@ namespace Touir.ExpensesManager.Users.Controllers
                 if (user == null)
                     return Unauthorized(new ErrorResponse { Message = "INVALID_USERNAME_OR_PASSWORD" });
 
-                var roles = await _roleService.GetUserRolesByApplicationCodeAsync(request.ApplicationCode, user.Id.Value);
+                var roles = await _roleService.GetUserRolesByApplicationCodeAsync(request.ApplicationCode, user.Id!.Value);
                 if (roles == null || roles.Count() == 0)
                     return Unauthorized(new ErrorResponse { Message = "NO_ASSIGNED_ROLE" });
 
-                var token = _authenticationService.GenerateJwtToken(user.Id.Value, user.Email);
+                var token = _authenticationService.GenerateJwtToken(user.Id!.Value, user.Email);
 
                 return Ok(new LoginResponse
                 {

@@ -4,6 +4,6 @@ namespace Touir.ExpensesManager.Users.Services.Contracts
 {
     public interface IApplicationService
     {
-        Task<ApplicationEo> GetApplicationByCodeAsync(string applicationCode);
+        Task<ApplicationEo?> GetApplicationByCodeAsync(string applicationCode);
     }
 }

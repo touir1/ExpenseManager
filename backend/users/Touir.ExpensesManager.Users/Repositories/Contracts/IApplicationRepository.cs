@@ -4,6 +4,6 @@ namespace Touir.ExpensesManager.Users.Repositories.Contracts
 {
     public interface IApplicationRepository
     {
-        Task<Application> GetApplicationByCodeAsync(string applicationCode);
+        Task<Application?> GetApplicationByCodeAsync(string applicationCode);
     }
 }

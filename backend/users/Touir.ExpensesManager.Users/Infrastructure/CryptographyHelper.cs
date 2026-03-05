@@ -36,7 +36,7 @@ namespace Touir.ExpensesManager.Users.Infrastructure
         public byte[] GenerateRandomSalt()
         {
             // Generate a random salt as bytes, then encode as Base64 and return as UTF8 bytes
-            var saltBytes = RandomNumberGenerator.GetBytes(this._maximumSaltSize.Value);
+            var saltBytes = RandomNumberGenerator.GetBytes(this._maximumSaltSize!.Value);
             var saltBase64 = Convert.ToBase64String(saltBytes);
             return Encoding.UTF8.GetBytes(saltBase64);
         }

@@ -16,7 +16,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             var mockRepo = new Mock<IRoleRepository>();
             var service = new RoleService(mockRepo.Object);
             
-            var result = await service.GetUserRolesByApplicationCodeAsync(null, 1);
+            var result = await service.GetUserRolesByApplicationCodeAsync(null!, 1);
             
             Assert.Null(result);
             mockRepo.Verify(r => r.GetUserRolesByApplicationCodeAsync(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
@@ -113,7 +113,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         {
             var mockRepo = new Mock<IRoleRepository>();
             mockRepo.Setup(r => r.GetUserRolesByApplicationCodeAsync("APP1", 1))
-                .ReturnsAsync((IEnumerable<Role>)null);
+                .ReturnsAsync((IEnumerable<Role>?)null);
             
             var service = new RoleService(mockRepo.Object);
             var result = await service.GetUserRolesByApplicationCodeAsync("APP1", 1);
@@ -130,7 +130,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
                 Code = "ADMIN", 
                 Name = "Admin", 
                 Description = "Administrator",
-                Application = null,
+                Application = null!,
                 ApplicationId = 1
             };
 

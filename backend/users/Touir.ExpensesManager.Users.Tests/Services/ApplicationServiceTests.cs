@@ -26,7 +26,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         {
             var mockRepo = new Mock<IApplicationRepository>();
             mockRepo.Setup(r => r.GetApplicationByCodeAsync("NON_EXISTENT"))
-                .ReturnsAsync((Application)null);
+                .ReturnsAsync((Application?)null);
             
             var service = new ApplicationService(mockRepo.Object);
             var result = await service.GetApplicationByCodeAsync("NON_EXISTENT");

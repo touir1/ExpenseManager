@@ -16,7 +16,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         public async Task RegisterAsync_ReturnsUnauthorized_WhenRequestIsNull()
         {
             var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
-            var result = await controller.RegisterAsync(null);
+            var result = await controller.RegisterAsync(null!);
             
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
             var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
@@ -89,6 +89,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var response = Assert.IsType<RegisterResponse>(okResult.Value);
             
             Assert.True(response.HasError);
+            Assert.NotNull(response.Errors);
             Assert.Single(response.Errors);
         }
 
@@ -115,7 +116,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         public async Task LoginAsync_ReturnsUnauthorized_WhenRequestIsNull()
         {
             var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
-            var result = await controller.LoginAsync(null);
+            var result = await controller.LoginAsync(null!);
             
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
             var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
@@ -162,7 +163,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         public async Task LoginAsync_ReturnsUnauthorized_WhenUserNotFound()
         {
             var mockAuthService = new Mock<IAuthenticationService>();
-            mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync((UserEo)null);
+            mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync((UserEo?)null);
             var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
             var request = new LoginRequest { Email = "john@doe.com", Password = "password", ApplicationCode = "APP1" };
             var result = await controller.LoginAsync(request);
@@ -265,7 +266,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         public async Task ValidateEmail_ReturnsUnauthorized_WhenApplicationNotFound()
         {
             var mockAppService = new Mock<IApplicationService>();
-            mockAppService.Setup(s => s.GetApplicationByCodeAsync("APP1")).ReturnsAsync((ApplicationEo)null);
+            mockAppService.Setup(s => s.GetApplicationByCodeAsync("APP1")).ReturnsAsync((ApplicationEo?)null);
             var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), mockAppService.Object);
             var result = await controller.ValidateEmail("hash", "john@doe.com", "APP1");
             
@@ -328,7 +329,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         public async Task ChangePassword_ReturnsUnauthorized_WhenRequestIsNull()
         {
             var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
-            var result = await controller.ChangePassword(null);
+            var result = await controller.ChangePassword(null!);
             
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
             var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
@@ -445,7 +446,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         public async Task RequestPasswordReset_ReturnsUnauthorized_WhenRequestIsNull()
         {
             var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
-            var result = await controller.RequestPasswordReset(null);
+            var result = await controller.RequestPasswordReset(null!);
             
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
             var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
@@ -514,7 +515,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         public async Task ChangePasswordReset_ReturnsUnauthorized_WhenRequestIsNull()
         {
             var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
-            var result = await controller.ChangePasswordReset(null);
+            var result = await controller.ChangePasswordReset(null!);
             
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
             var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
