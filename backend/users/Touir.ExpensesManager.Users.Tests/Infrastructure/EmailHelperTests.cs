@@ -9,7 +9,7 @@ namespace Touir.ExpensesManager.Users.Tests.Infrastructure
 {
     public class EmailHelperTests
     {
-        private EmailHelper CreateEmailHelper()
+        private static EmailHelper CreateEmailHelper()
         {
             var options = Options.Create(new EmailOptions 
             { 
