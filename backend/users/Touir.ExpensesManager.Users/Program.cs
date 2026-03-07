@@ -56,27 +56,27 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.Configure<PostgresOptions>(c =>
 {
     c.Server = builder.Configuration.GetValue("Postgres:Server",
-                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_USERS_DATABASE_SERVER")) ?? "127.0.0.1";
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_DATABASE_SERVER")) ?? "127.0.0.1";
     c.Port = int.Parse(builder.Configuration.GetValue("Postgres:Port",
-                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_USERS_DATABASE_PORT")) ?? "5432");
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_DATABASE_PORT")) ?? "5432");
     c.UserName = builder.Configuration.GetValue("Postgres:User",
-                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_USERS_DATABASE_USERNAME")) ?? "users";
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_DATABASE_USERNAME")) ?? "users";
     c.Password = builder.Configuration.GetValue("Postgres:Password",
-                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_USERS_DATABASE_PASSWORD")) ?? "users";
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_DATABASE_PASSWORD")) ?? "users";
     c.Database = builder.Configuration.GetValue("Postgres:Database",
-                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_USERS_DATABASE_DATABASE")) ?? "users";
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_DATABASE_DATABASE")) ?? "users";
 });
 
 builder.Services.Configure<JwtAuthOptions>(c =>
 {
     c.SecretKey = builder.Configuration.GetValue("JwtAuth:SecretKey",
-                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_USERS_JWT_SECRET_KEY")) ?? "SECRET_KEY_TO_CHANGE_LATER";
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_JWT_SECRET_KEY")) ?? "SECRET_KEY_TO_CHANGE_LATER";
     c.ExpiryInMinutes = int.Parse(builder.Configuration.GetValue("JwtAuth:ExpiryInMinutes",
-                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_USERS_JWT_EXPIRY_IN_MINUTES")) ?? "60");
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_JWT_EXPIRY_IN_MINUTES")) ?? "60");
     c.Audience = builder.Configuration.GetValue("JwtAuth:Audience",
-                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_USERS_JWT_AUDIENCE")) ?? "https://localhost";
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_JWT_AUDIENCE")) ?? "https://localhost";
     c.Issuer = builder.Configuration.GetValue("JwtAuth:Issuer",
-                    Environment.GetEnvironmentVariable("EXPENSE_MANAGEMENT_USERS_JWT_ISSUER")) ?? "https://localhost";
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_JWT_ISSUER")) ?? "https://localhost";
 });
 
 builder.Services.Configure<EmailOptions>(c =>
