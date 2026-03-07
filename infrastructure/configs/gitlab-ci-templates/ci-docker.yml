@@ -9,13 +9,14 @@
   variables:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375
+    IMAGE_VERSION: "latest"
   script:
     - |
       if [ -z "$IMAGE_NAME" ]; then
         echo "IMAGE_NAME variable is not set. Please set it in the CI configuration."
         exit 1
       fi
-    - FULL_IMAGE_NAME="$CI_REGISTRY_IMAGE/$IMAGE_NAME:latest"
+    - FULL_IMAGE_NAME="$CI_REGISTRY_IMAGE/$IMAGE_NAME:$IMAGE_VERSION"
     - echo "image = $FULL_IMAGE_NAME"
     - echo "Logging into registry = $CI_REGISTRY"
     - echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u gitlab-ci-token --password-stdin

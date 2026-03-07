@@ -24,3 +24,43 @@
     - mc mb --ignore-existing minio/expenses-manager-web
     - mc cp "/tmp/$ZIP_NAME" minio/expenses-manager-web-artifacts/
     - mc cp ./* minio/expenses-manager-web/ --recursive
+
+.docker-deploy-dev:
+  stage: deploy
+  image: docker:24
+  services:
+    - name: docker:24-dind
+      command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=gitlab:5050", "--insecure-registry=172.50.0.10:5050"]
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2375*
+    CONTAINER_LABEL: ""
+  script:
+    - |
+      if [ -z "$IMAGE_NAME" ]; then
+        echo "IMAGE_NAME variable is not set. Please set it in the CI configuration."
+        exit 1
+      fi
+    - |
+      if [ -z "$DOCKER_SSH_DEPLOY_HOST" ] || [ -z "$DOCKER_SSH_DEPLOY_USER" ] || [ -z "$DOCKER_SSH_PRIVATE_KEY" ]; then
+        echo "One or more Docker SSH deployment variables are not set. Please set DOCKER_SSH_DEPLOY_HOST, DOCKER_SSH_DEPLOY_USER and DOCKER_SSH_PRIVATE_KEY in the CI configuration."
+        exit 1
+      fi
+    - |
+      if [ -z "$CONTAINER_LABEL" ]; then
+        echo "CONTAINER_LABEL variable is not set. Please set it in the CI configuration."
+        exit 1
+      fi
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$DOCKER_SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $DOCKER_SSH_DEPLOY_HOST >> ~/.ssh/known_hosts
+    - |
+      ssh $DOCKER_SSH_DEPLOY_USER@$DOCKER_SSH_DEPLOY_HOST "
+        docker run --rm \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          containrrr/watchtower \
+          --run-once \
+          --label-enable $CONTAINER_LABEL
+      "

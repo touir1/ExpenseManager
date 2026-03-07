@@ -84,3 +84,10 @@ secrets-scan:
 
 docker-security:
   extends: .docker-security
+
+# ----------------------
+# DEPLOYMENT
+# ----------------------
+
+deploy-dev:
+  extends: .docker-deploy-dev

@@ -5,6 +5,7 @@ variables:
   BASE_DIR_PATH: "."
   PROJECT_KEY: "expense-manager"
   IMAGE_NAME: ""
+  CI_REGISTRY: "gitlab:5050"
 
 default:
   before_script:

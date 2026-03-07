@@ -143,11 +143,11 @@ services:
         # Enable GitLab Container Registry
         gitlab_rails['registry_enabled'] = true
         registry['enable'] = true
-        registry_external_url 'http://gitlab:5050'
+        registry_external_url 'http://localhost:5050'
         registry_nginx['listen_port'] = 5050
         registry_nginx['listen_https'] = false
         # Advertise a token auth realm reachable from containers
-        registry['token_realm'] = 'http://gitlab'
+        registry['token_realm'] = 'http://localhost:8080'
         registry['token_service'] = 'container_registry'
         registry['token_issuer'] = 'gitlab-issuer'
         postgresql['enable'] = false
@@ -270,7 +270,6 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
     entrypoint: ["/bin/sh", "/runner-scripts/gitlab-register-runner.sh"]
-
 
   jobs-runner:
     build:

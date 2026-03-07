@@ -19,3 +19,11 @@ services:
       - ./configs/nginx:/etc/nginx
       - ./volumes/nginx/logs:/var/log/nginx
       - ./volumes/nginx/www:/usr/share/nginx/html
+  
+  users-service:
+    image: localhost:5050/expenses-manager/expensemanager/expense-manager-backend-users:latest
+    container_name: users-service
+    ports:
+      - "9100:9100"
+    networks:
+      - expenses_manager_apps_net
