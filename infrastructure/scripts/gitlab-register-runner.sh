@@ -23,7 +23,7 @@ if [ -d "$SRC_DIR" ]; then
   echo "[prescript] Copied runner config from $SRC_DIR to working directory $WORK_DIR"
 fi
 
-CI_URL=${CI_SERVER_URL:-"http://gitlab:80"}
+CI_URL=${CI_SERVER_URL:-"http://gitlab:8500"}
 RUNNER_TOKEN=${RUNNER_TOKEN:-""}
 RUNNER_NAME=${RUNNER_NAME:-"dind-runner"}
 RUNNER_TAGS=${RUNNER_TAGS:-"docker"}

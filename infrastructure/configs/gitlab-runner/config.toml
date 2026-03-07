@@ -1,9 +1,9 @@
 concurrent = 1
 
 [[runners]]
-  clone_url = "http://gitlab:80"
+  clone_url = "http://gitlab:8500"
   name = "dind-runner"
-  url = "http://gitlab:80"
+  url = "http://gitlab:8500"
   token = "${GITLAB_REGISTRATION_TOKEN}"
   executor = "docker"
 

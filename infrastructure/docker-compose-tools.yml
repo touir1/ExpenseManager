@@ -119,7 +119,7 @@ services:
       - postgres
       - minio
     ports:
-      - "8080:80"
+      - "8500:8500"
       - "8443:443"
       - "2222:22"
       - "5050:5050"
@@ -135,19 +135,19 @@ services:
       GITLAB_OMNIBUS_CONFIG: |
         ### when using external reverse proxy
         letsencrypt['enable'] = false
-        nginx['listen_port'] = 80
+        nginx['listen_port'] = 8500
         nginx['listen_https'] = false
         nginx['redirect_http_to_https'] = false
         nginx['gzip_enabled'] = false
-        external_url 'http://localhost:8080'
+        external_url 'http://localhost:8500'
         # Enable GitLab Container Registry
         gitlab_rails['registry_enabled'] = true
         registry['enable'] = true
-        registry_external_url 'http://localhost:5050'
+        registry_external_url 'http://gitlab:5050'
         registry_nginx['listen_port'] = 5050
         registry_nginx['listen_https'] = false
         # Advertise a token auth realm reachable from containers
-        registry['token_realm'] = 'http://localhost:8080'
+        registry['token_realm'] = 'http://gitlab:8500'
         registry['token_service'] = 'container_registry'
         registry['token_issuer'] = 'gitlab-issuer'
         postgresql['enable'] = false
@@ -263,7 +263,7 @@ services:
       - ./scripts:/runner-scripts:ro
       - runner-config-volume:/etc/gitlab-runner
     environment:
-      CI_SERVER_URL: http://gitlab:80
+      CI_SERVER_URL: http://gitlab:8500
       DOCKER_HOST: tcp://docker-dind:2375
       DOCKER_TLS_CERTDIR: ""
       GITLAB_REGISTRATION_TOKEN: ${GITLAB_REGISTRATION_TOKEN}
