@@ -271,41 +271,30 @@ services:
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
     entrypoint: ["/bin/sh", "/runner-scripts/gitlab-register-runner.sh"]
 
-  minio-sync:
-    image: minio/mc
-    container_name: minio-sync
-    entrypoint: ["/bin/sh", "-c"]
-    networks:
-      - expenses_manager_tools_net
-    volumes:
-      - ./volumes/nginx/www:/shared
-    command: |
-      "
-      mc alias set minio http://minio:9000 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY &&
-      mc mirror --overwrite minio/expenses-manager-web /shared &&
-      mc watch minio/expenses-manager-web | while read event; do
-        mc mirror --overwrite minio/expenses-manager-web /shared
-      done
-      "
 
-  mirror-cron:
-    image: alpine:3.19
-    container_name: mirror-cron
+  jobs-runner:
+    build:
+      context: ./jobs
+    container_name: jobs-runner
     networks:
       - expenses_manager_tools_net
-    depends_on:
-      - gitlab
+    ports:
+      - "9002:9002"
     volumes:
-      - ./scripts:/scripts:ro
-      - ./volumes/mirror/work:/work
-      - ./volumes/mirror/logs:/var/log
-      - ./configs/cron/mirror-crontab:/etc/crontabs/root:ro
-      - ./configs/cron/repos.txt:/etc/mirror/repos.txt:ro
-      - ./configs/ssh/id_ed25519:/secrets/id_ed25519:ro
-      - ./configs/ssh/known_hosts:/secrets/known_hosts:ro
-    command: /bin/sh -c "apk add --no-cache git git-lfs openssh tzdata coreutils && \
-      mkdir -p /root/.ssh && cp /secrets/id_ed25519 /root/.ssh/id_ed25519 && chmod 600 /root/.ssh/id_ed25519 && \
-      cp /secrets/known_hosts /root/.ssh/known_hosts && crond -f -l 8"
+      - ./jobs/scripts:/opt/jobs/scripts:ro
+      - ./jobs/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf:ro
+      - ./jobs/cron-configs:/opt/jobs/cron-configs:ro
+      - ./jobs/crontab:/etc/cron.d/jobs-runner-crontab:ro
+      - ./volumes/jobs-runner/work:/work
+      - ./volumes/jobs-runner/logs:/var/log
+      - ./configs/ssh/id_ed25519:/root/.ssh/id_ed25519:ro
+      - ./configs/ssh/known_hosts:/root/.ssh/known_hosts:ro
+      - ./volumes/nginx/www:/shared
+    environment:
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      SUPERVISOR_USER: ${SUPERVISOR_USER}
+      SUPERVISOR_PASS: ${SUPERVISOR_PASS}
 
 volumes:
   dind-data:

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 # Timestamped logging helper and error trap
@@ -6,7 +6,13 @@ log() { printf "%s %s\n" "$(date -Iseconds)" "$*"; }
 trap 'log "ERROR at line $LINENO"; exit 1' ERR
 log "Mirror job started"
 
-LIST="/etc/mirror/repos.txt"
+# Ensure SSH key has correct permissions (Git may refuse to use it otherwise)
+mkdir -p /root/.ssh
+cp /root/.ssh/id_ed25519 /tmp/id_ed25519
+chmod 600 /tmp/id_ed25519
+export GIT_SSH_COMMAND="ssh -i /tmp/id_ed25519 -o StrictHostKeyChecking=yes"
+
+LIST="/opt/jobs/cron-configs/github-gitlab-sync/repos.txt"
 WORKDIR="/work"
 mkdir -p "$WORKDIR"
 
