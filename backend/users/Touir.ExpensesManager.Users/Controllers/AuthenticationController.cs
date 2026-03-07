@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Touir.ExpensesManager.Users.Controllers
 {
-    [Route("api/auth")]
+    [Route("auth")]
     [ApiController]
     public class AuthenticationController : ControllerBase
     {

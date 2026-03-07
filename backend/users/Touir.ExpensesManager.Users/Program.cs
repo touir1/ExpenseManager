@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -161,6 +162,15 @@ builder.Services.AddCors(options =>
 
 #endregion
 
+#region Health Checks
+
+builder.Services.AddHealthChecks()
+    .AddCheck("self", () => HealthCheckResult.Healthy())
+    .AddDbContextCheck<UsersAppDbContext>("database", tags: new[] { "ready", "db" });
+
+
+#endregion
+
 var app = builder.Build();
 
 // Apply pending migrations at startup
@@ -174,6 +184,13 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.UseCors("AllowLocalhost");
+
+    // Add /api/users prefix for all routes in development
+    app.UsePathBase("/api/users");
+}
+
+if(app.Environment.IsDevelopment() || string.Equals(Environment.GetEnvironmentVariable("ENABLE_SWAGGER"), "true", StringComparison.OrdinalIgnoreCase))
+{
     app.UseSwagger();
     app.UseSwaggerUI();
 }
@@ -181,5 +198,7 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHealthChecks("/health");
 
 await app.RunAsync();
