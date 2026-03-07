@@ -23,6 +23,7 @@ services:
   users-service:
     image: localhost:5050/expenses-manager/expensemanager/expense-manager-backend-users:latest
     container_name: users-service
+    pull_policy: always
     ports:
       - "9100:9100"
     environment:

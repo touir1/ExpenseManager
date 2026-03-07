@@ -9,4 +9,5 @@ for /f "usebackq eol=# tokens=1,* delims==" %%A in (".env") do (
 REM login to local docker registry
 <nul set /p "=!DOCKER_REGISTRY_TOKEN!" | docker login localhost:5050 -u "!DOCKER_REGISTRY_USER!" --password-stdin
 
+REM Start the applications
 docker-compose -p expense-management-apps -f docker-compose-apps.yml up -d
