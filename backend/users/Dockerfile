@@ -22,4 +22,3 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "Touir.ExpensesManager.Users.dll"]
-ENTRYPOINT ["dotnet", "Touir.ExpensesManager.Users.dll"]
