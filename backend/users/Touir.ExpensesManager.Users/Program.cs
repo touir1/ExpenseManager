@@ -164,10 +164,14 @@ builder.Services.AddCors(options =>
 
 #region Health Checks
 
+static class HealthCheckTags
+{
+    public static readonly string[] ReadyDb = { "ready", "db" };
+}
+
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy())
-    .AddDbContextCheck<UsersAppDbContext>("database", tags: new[] { "ready", "db" });
-
+    .AddDbContextCheck<UsersAppDbContext>("database", tags: HealthCheckTags.ReadyDb);
 
 #endregion
 
