@@ -32,10 +32,10 @@ variables:
 # BUILD
 # ----------------------
 
-build:
+build-dev:
   extends: .node-build
   variables:
-    VITE_API_BASE: "http://localhost"
+    VITE_API_BASE: "https://localhost"
   cache:
     <<: *build-node-modules-cache
 
