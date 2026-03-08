@@ -14,6 +14,7 @@ export type AuthContextValue = {
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
+const AUTH_BASE = '/api/users/auth'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   // JWT token stored in memory for now (no persistence)
@@ -73,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login: AuthContextValue['login'] = async (email, password) => {
     const { ok, data } = await post<{ token: string; user?: { email: string } }>(
-      '/api/auth/login',
+      `${AUTH_BASE}/login`,
       { email, password, applicationCode: APPLICATION_CODE }
     )
     if (ok && data?.token) {
@@ -93,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const register: AuthContextValue['register'] = async (firstName, lastName, email) => {
-    const { ok } = await post<unknown>('/api/auth/register', {
+    const { ok } = await post<unknown>(`${AUTH_BASE}/register`, {
       firstName,
       lastName,
       email,
@@ -104,19 +105,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const changePassword: AuthContextValue['changePassword'] = async (oldPassword, newPassword, repeatPassword) => {
     if (!oldPassword || !newPassword || newPassword !== repeatPassword) return false
-    const { ok } = await post<unknown>('/api/auth/change-password', { oldPassword, newPassword, confirmPassword: repeatPassword })
+    const { ok } = await post<unknown>(`${AUTH_BASE}/change-password`, { oldPassword, newPassword, confirmPassword: repeatPassword })
     return ok
   }
 
   const resetPassword: AuthContextValue['resetPassword'] = async (email, verificationHash, newPassword, repeatPassword) => {
     if (!email || !verificationHash || !newPassword || newPassword !== repeatPassword) return false
-    const { ok } = await post<unknown>('/api/auth/change-password-reset', { email, verificationHash, newPassword, confirmPassword: repeatPassword })
+    const { ok } = await post<unknown>(`${AUTH_BASE}/change-password-reset`, { email, verificationHash, newPassword, confirmPassword: repeatPassword })
     return ok
   }
 
   const requestPasswordReset: NonNullable<AuthContextValue['requestPasswordReset']> = async (email: string) => {
     if (!email) return false
-    const { ok } = await post<unknown>('/api/auth/request-password-reset', { email })
+    const { ok } = await post<unknown>(`${AUTH_BASE}/request-password-reset`, { email })
     return ok
   }
 

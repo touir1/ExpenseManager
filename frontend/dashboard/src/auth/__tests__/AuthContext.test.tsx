@@ -17,6 +17,8 @@ Object.defineProperty(window, 'location', {
   writable: true
 })
 
+const AUTH_BASE = '/api/users/auth'
+
 describe('AuthContext', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -183,7 +185,7 @@ describe('AuthContext', () => {
       })
 
       expect(api.post).toHaveBeenCalledWith(
-        '/api/auth/login',
+        `${AUTH_BASE}/login`,
         expect.objectContaining({
           email: 'user@test.com',
           password: 'pass',
@@ -242,7 +244,7 @@ describe('AuthContext', () => {
 
       expect(registerResult).toBe(true)
       expect(api.post).toHaveBeenCalledWith(
-        '/api/auth/register',
+        `${AUTH_BASE}/register`,
         expect.objectContaining({
           firstName: 'John',
           lastName: 'Doe',
@@ -290,7 +292,7 @@ describe('AuthContext', () => {
 
       expect(changeResult).toBe(true)
       expect(api.post).toHaveBeenCalledWith(
-        '/api/auth/change-password',
+        `${AUTH_BASE}/change-password`,
         {
           oldPassword: 'oldpass',
           newPassword: 'newpass',
@@ -350,7 +352,7 @@ describe('AuthContext', () => {
 
       expect(resetResult).toBe(true)
       expect(api.post).toHaveBeenCalledWith(
-        '/api/auth/change-password-reset',
+        `${AUTH_BASE}/change-password-reset`,
         {
           email: 'user@test.com',
           verificationHash: 'verification-hash',
@@ -411,7 +413,7 @@ describe('AuthContext', () => {
 
       expect(requestResult).toBe(true)
       expect(api.post).toHaveBeenCalledWith(
-        '/api/auth/request-password-reset',
+        `${AUTH_BASE}/request-password-reset`,
         { email: 'user@test.com' }
       )
     })

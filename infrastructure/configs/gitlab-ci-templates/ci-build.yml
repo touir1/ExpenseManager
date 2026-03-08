@@ -19,7 +19,7 @@ variables:
   script:
     - npm config set cache .npm --location=project
     - npm ci
-    - npm run build
+    - npm run build:prod
   artifacts:
     when: always
     paths:
