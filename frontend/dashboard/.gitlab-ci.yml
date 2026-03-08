@@ -56,6 +56,9 @@ sonarqube:
   extends: .node-sonarqube
   variables:
     SONAR_PROJECT_KEY: "touir:expense-manager:frontend:dashboard"
+  dependencies:
+    - build-dev
+    - test
 
 # ----------------------
 # SCA – DEPENDENCY CHECK
@@ -68,6 +71,8 @@ sca:
   cache:
     - *dependency-check-cache
     - *build-node-modules-cache
+  dependencies:
+    - build-dev
 
 # ----------------------
 # SAST – SEMGREP
@@ -89,6 +94,8 @@ secrets-scan:
 
 deploy-dev:
   extends: .deploy-web-dev
+  dependencies:
+    - build-dev
   variables:
     ZIP_NAME_PREFIX: "expenses-manager-web-dashboard"
 

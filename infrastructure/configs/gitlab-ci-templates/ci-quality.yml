@@ -10,9 +10,6 @@ variables:
   image:
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""]
-  dependencies:
-    - build
-    - test
   script:
     - |
       if [ -z "$SONAR_PROJECT_KEY" ]; then
@@ -45,9 +42,6 @@ variables:
 .dotnet-sonarqube:
   stage: quality
   image: mcr.microsoft.com/dotnet/sdk:8.0
-  dependencies:
-    - build
-    - test
   script:
     - |
       if [ -z "$SONAR_PROJECT_KEY" ]; then

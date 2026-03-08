@@ -5,8 +5,6 @@
   image: 
     name: aquasec/trivy:latest
     entrypoint: [""]
-  dependencies:
-    - docker-build
   services:
     - name: docker:24-dind
       command: ["--host=tcp://0.0.0.0:2375", "--insecure-registry=gitlab:5050", "--insecure-registry=172.50.0.10:5050"]

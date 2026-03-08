@@ -3,8 +3,6 @@
 .deploy-web-dev:
   stage: deploy
   image: alpine:latest
-  dependencies:
-    - build
   variables:
     ZIP_NAME_PREFIX: "expenses-manager-web"
   script:

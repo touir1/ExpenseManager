@@ -46,6 +46,9 @@ sonarqube:
   extends: .dotnet-sonarqube
   variables:
     SONAR_PROJECT_KEY: "touir:expense-manager:backend:users"
+  dependencies:
+    - build
+    - test
 
 # ----------------------
 # DOCKER BUILD
@@ -64,6 +67,8 @@ sca:
     OWASP_PROJECT_NAME: "ExpenseManager-Backend-Users"
   cache:
     <<: *dependency-check-cache
+  dependencies:
+    - build
 
 # ----------------------
 # SAST – SEMGREP
@@ -85,6 +90,8 @@ secrets-scan:
 
 docker-security:
   extends: .docker-security
+  dependencies:
+    - docker-build
 
 # ----------------------
 # DEPLOYMENT

@@ -7,8 +7,6 @@ variables:
   image: 
     name: owasp/dependency-check:latest
     entrypoint: [""]
-  dependencies:
-    - build
   artifacts:
     when: always
     paths:
