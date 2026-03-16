@@ -29,7 +29,6 @@
   image: alpine:latest
   when: manual
   variables:
-    IMAGE_NAME: ""
     IMAGE_VERSION: "latest"
     IMAGE_NAMER_PREFIX: "$CI_REGISTRY_IMAGE/"
   script:
