@@ -4,6 +4,8 @@ networks:
     ipam:
       config:
         - subnet: 172.50.0.0/24
+  expense-management-apps_expenses_manager_apps_net:
+    external: true
 
 services:
   rabbitmq:
@@ -277,9 +279,12 @@ services:
     container_name: jobs-runner
     networks:
       - expenses_manager_tools_net
+      - expense-management-apps_expenses_manager_apps_net
     ports:
       - "9002:9002"
+      - "9898:9898"
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./jobs/scripts:/opt/jobs/scripts:ro
       - ./jobs/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf:ro
       - ./jobs/cron-configs:/opt/jobs/cron-configs:ro
@@ -294,7 +299,9 @@ services:
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
       SUPERVISOR_USER: ${SUPERVISOR_USER}
       SUPERVISOR_PASS: ${SUPERVISOR_PASS}
-
+      WATCHTOWER_HTTP_API_TOKEN: ${WATCHTOWER_HTTP_API_TOKEN}
+  
+  
 volumes:
   dind-data:
   runner-config-volume:

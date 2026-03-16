@@ -26,6 +26,8 @@ services:
     pull_policy: always
     ports:
       - "9100:9100"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     environment:
       - ASPNETCORE_HTTP_PORTS=9100
       - ENABLE_SWAGGER=true
