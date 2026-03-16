@@ -49,4 +49,4 @@
     - |
       curl -s -X GET \
         -H "Authorization: Bearer $WATCHTOWER_API_TOKEN" \
-        "http://jobs-runner:9898/v1/update?image=$FULL_IMAGE_NAME"
+        "http://jobs-runner:8080/v1/update?image=$FULL_IMAGE_NAME"

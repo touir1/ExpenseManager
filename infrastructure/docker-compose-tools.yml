@@ -282,7 +282,7 @@ services:
       - expense-management-apps_expenses_manager_apps_net
     ports:
       - "9002:9002"
-      - "9898:9898"
+      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./jobs/scripts:/opt/jobs/scripts:ro

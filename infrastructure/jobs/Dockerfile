@@ -13,9 +13,13 @@ RUN apt-get update && apt-get install -y \
     openssh-client \
     && rm -rf /var/lib/apt/lists/* \
     && curl -L -o /usr/local/bin/mc "https://dl.min.io/client/mc/release/linux-amd64/mc" \
-    && chmod +x /usr/local/bin/mc \
-    && curl -L -o /usr/local/bin/watchtower \
-    https://github.com/containrrr/watchtower/releases/latest/download/watchtower-linux-amd64 \
-    && chmod +x /usr/local/bin/watchtower
+    && chmod +x /usr/local/bin/mc
+
+RUN curl -L -o /tmp/watchtower_linux_amd64.tar.gz \
+    https://github.com/containrrr/watchtower/releases/download/v1.7.1/watchtower_linux_amd64.tar.gz \
+    && tar -xzvf /tmp/watchtower_linux_amd64.tar.gz -C /tmp \
+    && mv /tmp/watchtower /usr/local/bin/watchtower \
+    && chmod +x /usr/local/bin/watchtower \
+    && rm -rf /tmp/watchtower_linux_amd64.tar.gz
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
