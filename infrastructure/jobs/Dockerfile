@@ -15,8 +15,9 @@ RUN apt-get update && apt-get install -y \
     && curl -L -o /usr/local/bin/mc "https://dl.min.io/client/mc/release/linux-amd64/mc" \
     && chmod +x /usr/local/bin/mc
 
-RUN curl -L -o /tmp/watchtower_linux_amd64.tar.gz \
-    https://github.com/containrrr/watchtower/releases/download/v1.7.1/watchtower_linux_amd64.tar.gz \
+RUN WATCHTOWER_VERSION=$(curl -s https://api.github.com/repos/containrrr/watchtower/releases/latest | grep '"tag_name"' | cut -d'"' -f4) \
+    && curl -L -o /tmp/watchtower_linux_amd64.tar.gz \
+    "https://github.com/containrrr/watchtower/releases/download/${WATCHTOWER_VERSION}/watchtower_linux_amd64.tar.gz" \
     && tar -xzvf /tmp/watchtower_linux_amd64.tar.gz -C /tmp \
     && mv /tmp/watchtower /usr/local/bin/watchtower \
     && chmod +x /usr/local/bin/watchtower \

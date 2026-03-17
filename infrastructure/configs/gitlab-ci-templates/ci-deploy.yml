@@ -44,6 +44,7 @@
         exit 1
       fi
     - FULL_IMAGE_NAME="$IMAGE_NAMER_PREFIX$IMAGE_NAME:$IMAGE_VERSION"
+    - echo "image = $FULL_IMAGE_NAME"
     # Trigger the update! We pass the specific image name so it only updates this app.
     - |
       curl -s -X GET \

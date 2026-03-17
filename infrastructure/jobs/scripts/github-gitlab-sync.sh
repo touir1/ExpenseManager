@@ -12,7 +12,7 @@ cp /root/.ssh/id_ed25519 /tmp/id_ed25519
 chmod 600 /tmp/id_ed25519
 export GIT_SSH_COMMAND="ssh -i /tmp/id_ed25519 -o StrictHostKeyChecking=yes"
 
-LIST="/opt/jobs/cron-configs/github-gitlab-sync/repos.txt"
+LIST="/opt/jobs/configs/github-gitlab-sync-repos.txt"
 WORKDIR="/work"
 mkdir -p "$WORKDIR"
 

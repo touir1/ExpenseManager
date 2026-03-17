@@ -287,7 +287,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./jobs/scripts:/opt/jobs/scripts:ro
       - ./jobs/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf:ro
-      - ./jobs/cron-configs:/opt/jobs/cron-configs:ro
+      - ./jobs/configs:/opt/jobs/configs:ro
       - ./jobs/crontab:/etc/cron.d/jobs-runner-crontab:ro
       - ./volumes/jobs-runner/work:/work
       - ./volumes/jobs-runner/logs:/var/log
@@ -300,6 +300,8 @@ services:
       SUPERVISOR_USER: ${SUPERVISOR_USER}
       SUPERVISOR_PASS: ${SUPERVISOR_PASS}
       WATCHTOWER_HTTP_API_TOKEN: ${WATCHTOWER_HTTP_API_TOKEN}
+      DOCKER_REGISTRY_USER: ${DOCKER_REGISTRY_USER}
+      DOCKER_REGISTRY_TOKEN: ${DOCKER_REGISTRY_TOKEN}
   
   
 volumes:

@@ -1,1 +1,1 @@
-*/1 * * * * /opt/jobs/cron-configs/github-gitlab-sync/script.sh >> /var/log/github-gitlab-sync.log 2>&1
+*/1 * * * * /opt/jobs/scripts/github-gitlab-sync.sh >> /var/log/github-gitlab-sync.log 2>&1

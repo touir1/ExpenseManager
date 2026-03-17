@@ -1,0 +1,8 @@
+[
+  {
+    "source_host": "127.0.0.1",
+    "source_port": 5050,
+    "target_host": "gitlab",
+    "target_port": 5050
+  }
+]

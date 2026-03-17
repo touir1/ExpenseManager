@@ -16,7 +16,7 @@ This directory contains Docker Compose files, configuration folders, scripts, an
 	- `gitlab/`, `nginx/`, `prometheus/`, `rabbitmq/`, `sql_database_scripts/`, etc.
 
 - `jobs/` - Job runner and cron-related files
-	- `crontab`, `Dockerfile`, `supervisord.conf`, `cron-configs/`, `scripts/`
+	- `crontab`, `Dockerfile`, `supervisord.conf`, `configs/`, `scripts/`
 
 - `scripts/` - Utility scripts (e.g., `gitlab-register-runner.sh`)
 
