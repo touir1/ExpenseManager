@@ -14,6 +14,10 @@ This service provides the API for managing expenses.
 ## Endpoints
 - `/api/expenses` - CRUD operations for expenses
 - `/api/categories` - Expense categories
+- Health check endpoints configured for infrastructure liveness/readiness probes
+
+## Pipeline & Quality
+- Integrated with GitLab CI, including automated unit testing and rigorous SonarQube Quality Gates before deployment.
 
 ## Database
 - SQL scripts in `sql_database_scripts/` for setup

@@ -3,13 +3,24 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.1] - 2026-03-07
+## [0.12.0] - 2026-03-17
+### Added
+- Custom Docker Image Updater API in Python to replace Watchtower for automatic zero-downtime deployments.
+- Health check endpoints to backend services (`users` and `expenses`).
+- Unit tests and associated testing commands to the `frontend/dashboard`.
+
+### Changed
+- Fixed CI/CD pipelines across the repository and integrated strict SonarQube quality gates.
+- Resolved various SCA security scanner vulnerabilities.
+- Updated frontend URL routing logic and dashboard paths.
+
+## [0.11.0] - 2026-03-07
 ### Changed
 - Updated infrastructure/README.md and added README files to configs, jobs, scripts, and volumes directories for improved documentation.
 - Refactored infrastructure folder structure for clarity and maintainability.
 - Fixed SonarQube quality gate and coverage issues in backend services.
 
-## [1.0.0] - 2026-03-05
+## [0.10.0] - 2026-03-05
 ### Added
 - Initial workspace structure documented in README.md
 - Backend services: expenses, users (.NET, EF Core)

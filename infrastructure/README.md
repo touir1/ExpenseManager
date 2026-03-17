@@ -16,6 +16,7 @@ This directory contains Docker Compose files, configuration folders, scripts, an
 	- `gitlab/`, `nginx/`, `prometheus/`, `rabbitmq/`, `sql_database_scripts/`, etc.
 
 - `jobs/` - Job runner and cron-related files
+	- Contains the Custom Docker Image Updater API (Python) deployed via supervisord to automatically apply new image tags without dropping containers.
 	- `crontab`, `Dockerfile`, `supervisord.conf`, `configs/`, `scripts/`
 
 - `scripts/` - Utility scripts (e.g., `gitlab-register-runner.sh`)

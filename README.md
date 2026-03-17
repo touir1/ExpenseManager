@@ -68,6 +68,7 @@ cd infrastructure
 - **RabbitMQ**: Messaging (http://localhost:15672, default user: admin/admin)
 - **Grafana**: Dashboards (http://localhost:3000)
 - **Prometheus**: Monitoring (http://localhost:9090)
+- **Docker Image Updater API**: Custom Python API running on port `8989` of the `jobs-runner` that updates tagged containers securely via webhooks.
 
 ---
 
@@ -91,6 +92,7 @@ SQL scripts for DB setup are in `backend/expenses/sql_database_scripts/`.
 1. Fork and clone the repo
 2. Use feature branches
 3. Open PRs for review
+4. Ensure your code passes GitLab CI pipelines, including SonarQube quality gates, health checks, and unit tests.
 
 ---
 

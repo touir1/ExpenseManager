@@ -36,6 +36,13 @@ npm run build
 npm run preview
 ```
 
+## Testing
+
+Unit tests run using Vitest.
+```bash
+npm run test
+```
+
 ## Structure
 
 - index.html — Vite entry
