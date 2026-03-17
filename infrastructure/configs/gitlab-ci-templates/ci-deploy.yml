@@ -29,24 +29,21 @@
   image: alpine:latest
   when: manual
   variables:
-    IMAGE_VERSION: "latest"
-    IMAGE_NAMER_PREFIX: "$CI_REGISTRY_IMAGE/"
+    SERVICE_NAME: ""
   script:
     - apk add --no-cache curl
     - |
-      if [ -z "$WATCHTOWER_API_TOKEN" ]; then
-        echo "WATCHTOWER_API_TOKEN is not set."
+      if [ -z "$DOCKER_UPDATER_HTTP_API_TOKEN" ]; then
+        echo "DOCKER_UPDATER_HTTP_API_TOKEN is not set."
         exit 1
       fi
     - |
-      if [ -z "$IMAGE_NAME" ]; then
-        echo "IMAGE_NAME variable is not set. Please set it in the CI configuration."
+      if [ -z "$SERVICE_NAME" ]; then
+        echo "SERVICE_NAME variable is not set. Please set it in the CI configuration for the updater."
         exit 1
       fi
-    - FULL_IMAGE_NAME="$IMAGE_NAMER_PREFIX$IMAGE_NAME:$IMAGE_VERSION"
-    - echo "image = $FULL_IMAGE_NAME"
-    # Trigger the update! We pass the specific image name so it only updates this app.
+    - echo "Triggering update for service: $SERVICE_NAME"
     - |
       curl -s -X GET \
-        -H "Authorization: Bearer $WATCHTOWER_API_TOKEN" \
-        "http://jobs-runner:8080/v1/update?image=$FULL_IMAGE_NAME"
+        -H "Authorization: Bearer $DOCKER_UPDATER_HTTP_API_TOKEN" \
+        "http://jobs-runner:8989/v1/update?servicename=$SERVICE_NAME"

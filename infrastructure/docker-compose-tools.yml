@@ -283,7 +283,7 @@ services:
       expense-management-apps_expenses_manager_apps_net: {}
     ports:
       - "9002:9002"
-      - "8080:8080"
+      - "8989:8989"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./jobs/scripts:/opt/jobs/scripts:ro
@@ -300,7 +300,8 @@ services:
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
       SUPERVISOR_USER: ${SUPERVISOR_USER}
       SUPERVISOR_PASS: ${SUPERVISOR_PASS}
-      WATCHTOWER_HTTP_API_TOKEN: ${WATCHTOWER_HTTP_API_TOKEN}
+      DOCKER_UPDATER_HTTP_API_TOKEN: ${DOCKER_UPDATER_HTTP_API_TOKEN}
+      DOCKER_UPDATER_HTTP_API_PORT: "8989"
       DOCKER_REGISTRY_USER: ${DOCKER_REGISTRY_USER}
       DOCKER_REGISTRY_TOKEN: ${DOCKER_REGISTRY_TOKEN}
   

@@ -18,5 +18,6 @@ mkdir -p /root/.docker
 cp /config.json /root/.docker/config.json
 
 export DOCKER_CONFIG=/
-export WATCHTOWER_HTTP_API_TOKEN="${WATCHTOWER_HTTP_API_TOKEN}"
-exec /usr/local/bin/watchtower --api-version 1.41 --http-api-update --cleanup --label-enable
+export DOCKER_UPDATER_HTTP_API_TOKEN="${DOCKER_UPDATER_HTTP_API_TOKEN}"
+export DOCKER_UPDATER_HTTP_API_PORT="${DOCKER_UPDATER_HTTP_API_PORT}"
+python3 /opt/jobs/scripts/docker_image_updater_api.py

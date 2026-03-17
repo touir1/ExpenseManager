@@ -27,7 +27,8 @@ services:
     ports:
       - "9100:9100"
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.touir.expensesmanager.dockerupdater.enable=true"
+      - "com.touir.expensesmanager.dockerupdater.servicename=backend-users"
     environment:
       - ASPNETCORE_HTTP_PORTS=9100
       - ENABLE_SWAGGER=true
