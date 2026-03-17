@@ -278,8 +278,9 @@ services:
       context: ./jobs
     container_name: jobs-runner
     networks:
-      - expenses_manager_tools_net
-      - expense-management-apps_expenses_manager_apps_net
+      expenses_manager_tools_net:
+        ipv4_address: 172.50.0.40
+      expense-management-apps_expenses_manager_apps_net: {}
     ports:
       - "9002:9002"
       - "8080:8080"
