@@ -9,6 +9,7 @@ include:
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-security.yml'
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-docker.yml'
   - local: 'infrastructure/configs/gitlab-ci-templates/ci-docker-security.yml'
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-deploy.yml'
 
 variables:
   IMAGE_NAME: expense-manager-backend-expenses
