@@ -19,11 +19,10 @@ services:
       - ./configs/nginx:/etc/nginx
       - ./volumes/nginx/logs:/var/log/nginx
       - ./volumes/nginx/www:/usr/share/nginx/html
-  
+
   users-service:
     image: localhost:5050/expenses-manager/expensemanager/expense-manager-backend-users:latest
     container_name: users-service
-    pull_policy: always
     ports:
       - "9100:9100"
     labels:
@@ -47,5 +46,28 @@ services:
       - EXPENSES_MANAGEMENT_USERS_EMAILAUTH_PORT=${EXPENSES_MANAGEMENT_USERS_EMAILAUTH_PORT}
       - EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_VERIFY_EMAIL_URL=${EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_VERIFY_EMAIL_URL}
       - EXPENSES_MANAGEMENT_CRYPTOGRAPHY_MAXIMUM_SALT_SIZE=${EXPENSES_MANAGEMENT_CRYPTOGRAPHY_MAXIMUM_SALT_SIZE}
+    networks:
+      - expenses_manager_apps_net
+
+  expenses-service:
+    image: localhost:5050/expenses-manager/expensemanager/expense-manager-backend-expenses:latest
+    container_name: expenses-service
+    ports:
+      - "9200:9200"
+    labels:
+      - "com.touir.expensesmanager.dockerupdater.enable=true"
+      - "com.touir.expensesmanager.dockerupdater.servicename=backend-expenses"
+    environment:
+      - ASPNETCORE_HTTP_PORTS=9200
+      - ENABLE_SWAGGER=true
+      - EXPENSES_MANAGEMENT_EXPENSES_DATABASE_SERVER=${EXPENSES_MANAGEMENT_EXPENSES_DATABASE_SERVER}
+      - EXPENSES_MANAGEMENT_EXPENSES_DATABASE_PORT=${EXPENSES_MANAGEMENT_EXPENSES_DATABASE_PORT}
+      - EXPENSES_MANAGEMENT_EXPENSES_DATABASE_USERNAME=${EXPENSES_MANAGEMENT_EXPENSES_DATABASE_USERNAME}
+      - EXPENSES_MANAGEMENT_EXPENSES_DATABASE_PASSWORD=${EXPENSES_MANAGEMENT_EXPENSES_DATABASE_PASSWORD}
+      - EXPENSES_MANAGEMENT_EXPENSES_DATABASE_DATABASE=${EXPENSES_MANAGEMENT_EXPENSES_DATABASE_DATABASE}
+      - EXPENSES_MANAGEMENT_EXPENSES_RABBITMQ_HOSTNAME=${EXPENSES_MANAGEMENT_EXPENSES_RABBITMQ_HOSTNAME}
+      - EXPENSES_MANAGEMENT_EXPENSES_RABBITMQ_PORT=${EXPENSES_MANAGEMENT_EXPENSES_RABBITMQ_PORT}
+      - EXPENSES_MANAGEMENT_EXPENSES_RABBITMQ_USERNAME=${EXPENSES_MANAGEMENT_EXPENSES_RABBITMQ_USERNAME}
+      - EXPENSES_MANAGEMENT_EXPENSES_RABBITMQ_PASSWORD=${EXPENSES_MANAGEMENT_EXPENSES_RABBITMQ_PASSWORD}
     networks:
       - expenses_manager_apps_net

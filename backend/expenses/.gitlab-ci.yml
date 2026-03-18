@@ -90,3 +90,12 @@ docker-security:
   extends: .docker-security
   dependencies:
     - docker-build
+
+# ----------------------
+# DEPLOYMENT
+# ----------------------
+
+deploy-dev:
+  extends: .docker-deploy-dev
+  variables:
+    SERVICE_NAME: 'backend-expenses'
