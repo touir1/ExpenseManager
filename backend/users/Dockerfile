@@ -19,7 +19,7 @@ RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 
 # Use the official ASP.NET Core runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
-USER app
 WORKDIR /app
-COPY --chown=app:app --from=build /app/publish .
+COPY --from=build /app/publish .
+USER app
 ENTRYPOINT ["dotnet", "Touir.ExpensesManager.Users.dll"]
