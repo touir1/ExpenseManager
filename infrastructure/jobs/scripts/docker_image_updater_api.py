@@ -47,8 +47,11 @@ def recreate_container(c, new_image_tag):
     network_settings = info.get('NetworkSettings', {})
     networks = network_settings.get('Networks', {})
     
-    log(f"Stopping container {name}...")
-    c.stop()
+    if info.get('State', {}).get('Status') == 'running':
+        log(f"Stopping container {name}...")
+        c.stop()
+    else:
+        log(f"Container {name} is already stopped, skipping stop...")
     log(f"Removing container {name}...")
     c.remove()
     
@@ -92,7 +95,7 @@ def update():
     
     updated_containers = []
     
-    containers = client.containers.list()
+    containers = client.containers.list(all=True)
     for c in containers:
         labels = c.labels
         if labels.get(LABEL_ENABLE) == "true" or labels.get("autoupdate") == "true":
