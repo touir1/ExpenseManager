@@ -4,6 +4,7 @@ using Touir.ExpensesManager.Users.Controllers.Responses;
 using Touir.ExpensesManager.Users.Services.Contracts;
 using Touir.ExpensesManager.Users.Controllers.EO;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Moq;
 
 namespace Touir.ExpensesManager.Users.Tests.Controllers
@@ -619,6 +620,88 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var request = new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "new", ConfirmPassword = "new" };
             var result = await controller.ChangePasswordReset(request);
             
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            var response = Assert.IsType<ErrorResponse>(badRequestResult.Value);
+            Assert.Equal("SERVER_ERROR", response.Message);
+        }
+
+        #endregion
+
+        #region Check Tests
+
+        [Fact]
+        public void Check_ReturnsUnauthorized_WhenAuthorizationHeaderIsMissing()
+        {
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var httpContext = new DefaultHttpContext();
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            var result = controller.Check();
+
+            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
+            var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
+            Assert.Equal("MISSING_TOKEN", response.Message);
+        }
+
+        [Fact]
+        public void Check_ReturnsUnauthorized_WhenAuthorizationHeaderIsInvalidFormat()
+        {
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers["Authorization"] = "Basic token";
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            var result = controller.Check();
+
+            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
+            var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
+            Assert.Equal("MISSING_TOKEN", response.Message);
+        }
+
+        [Fact]
+        public void Check_ReturnsUnauthorized_WhenTokenIsInvalid()
+        {
+            var mockAuthService = new Mock<IAuthenticationService>();
+            mockAuthService.Setup(s => s.ValidateToken("invalid_token")).Returns(new Microsoft.IdentityModel.Tokens.TokenValidationResult { IsValid = false });
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers["Authorization"] = "Bearer invalid_token";
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            var result = controller.Check();
+
+            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
+            var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
+            Assert.Equal("INVALID_TOKEN", response.Message);
+        }
+
+        [Fact]
+        public void Check_ReturnsOk_WhenTokenIsValid()
+        {
+            var mockAuthService = new Mock<IAuthenticationService>();
+            mockAuthService.Setup(s => s.ValidateToken("valid_token")).Returns(new Microsoft.IdentityModel.Tokens.TokenValidationResult { IsValid = true });
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers["Authorization"] = "Bearer valid_token";
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            var result = controller.Check();
+
+            Assert.IsType<OkResult>(result);
+        }
+
+        [Fact]
+        public void Check_ReturnsBadRequest_WhenExceptionThrown()
+        {
+            var mockAuthService = new Mock<IAuthenticationService>();
+            mockAuthService.Setup(s => s.ValidateToken(It.IsAny<string>())).Throws(new Exception("Database error"));
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers["Authorization"] = "Bearer some_token";
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            var result = controller.Check();
+
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             var response = Assert.IsType<ErrorResponse>(badRequestResult.Value);
             Assert.Equal("SERVER_ERROR", response.Message);

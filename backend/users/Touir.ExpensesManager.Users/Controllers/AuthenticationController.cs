@@ -1,4 +1,4 @@
-﻿using Touir.ExpensesManager.Users.Controllers.EO;
+using Touir.ExpensesManager.Users.Controllers.EO;
 using Touir.ExpensesManager.Users.Controllers.Requests;
 using Touir.ExpensesManager.Users.Controllers.Responses;
 using Touir.ExpensesManager.Users.Services.Contracts;
@@ -216,6 +216,29 @@ namespace Touir.ExpensesManager.Users.Controllers
                 if (!(await _authenticationService.ResetPasswordAsync(email, request.VerificationHash, request.NewPassword)))
                     return Unauthorized(new ErrorResponse { Message = "RESET_PASSWORD_FAILED" });
                 
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return BadRequest(new ErrorResponse { Message = "SERVER_ERROR" });
+            }
+        }
+        [Route("check")]
+        [HttpGet]
+        public IActionResult Check()
+        {
+            try
+            {
+                var authorizationHeader = Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(authorizationHeader) || !authorizationHeader.StartsWith("Bearer ", StringComparison.InvariantCultureIgnoreCase))
+                    return Unauthorized(new ErrorResponse { Message = "MISSING_TOKEN" });
+
+                var token = authorizationHeader.Substring("Bearer ".Length).Trim();
+                var validationResult = _authenticationService.ValidateToken(token);
+
+                if (!validationResult.IsValid)
+                    return Unauthorized(new ErrorResponse { Message = "INVALID_TOKEN" });
+
                 return Ok();
             }
             catch (Exception)
