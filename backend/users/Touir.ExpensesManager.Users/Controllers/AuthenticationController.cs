@@ -229,7 +229,7 @@ namespace Touir.ExpensesManager.Users.Controllers
         {
             try
             {
-                var authorizationHeader = Request.Headers["Authorization"].FirstOrDefault();
+                var authorizationHeader = Request.Headers.Authorization.FirstOrDefault();
                 if (string.IsNullOrWhiteSpace(authorizationHeader) || !authorizationHeader.StartsWith("Bearer ", StringComparison.InvariantCultureIgnoreCase))
                     return Unauthorized(new ErrorResponse { Message = "MISSING_TOKEN" });
 

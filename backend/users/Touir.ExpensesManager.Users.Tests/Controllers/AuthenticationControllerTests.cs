@@ -648,7 +648,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         {
             var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
             var httpContext = new DefaultHttpContext();
-            httpContext.Request.Headers["Authorization"] = "Basic token";
+            httpContext.Request.Headers.Authorization = "Basic token";
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             var result = controller.Check();
@@ -665,7 +665,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             mockAuthService.Setup(s => s.ValidateToken("invalid_token")).Returns(new Microsoft.IdentityModel.Tokens.TokenValidationResult { IsValid = false });
             var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
             var httpContext = new DefaultHttpContext();
-            httpContext.Request.Headers["Authorization"] = "Bearer invalid_token";
+            httpContext.Request.Headers.Authorization = "Bearer invalid_token";
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             var result = controller.Check();
@@ -682,7 +682,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             mockAuthService.Setup(s => s.ValidateToken("valid_token")).Returns(new Microsoft.IdentityModel.Tokens.TokenValidationResult { IsValid = true });
             var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
             var httpContext = new DefaultHttpContext();
-            httpContext.Request.Headers["Authorization"] = "Bearer valid_token";
+            httpContext.Request.Headers.Authorization = "Bearer valid_token";
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             var result = controller.Check();
@@ -697,7 +697,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             mockAuthService.Setup(s => s.ValidateToken(It.IsAny<string>())).Throws(new Exception("Database error"));
             var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
             var httpContext = new DefaultHttpContext();
-            httpContext.Request.Headers["Authorization"] = "Bearer some_token";
+            httpContext.Request.Headers.Authorization = "Bearer some_token";
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             var result = controller.Check();
