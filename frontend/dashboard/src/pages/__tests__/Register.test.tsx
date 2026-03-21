@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
 import Register from '@/pages/Register'
 
 const mockRegister = vi.fn()
@@ -26,6 +26,7 @@ describe('Register page', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
+    vi.useRealTimers()
   })
 
   it('renders register form with all fields', () => {
@@ -146,6 +147,35 @@ describe('Register page', () => {
     await waitFor(() => {
       expect(screen.getByText('Registered successfully. You can now log in.')).toBeInTheDocument()
     })
+  })
+
+  it('navigates to /login after successful registration delay', async () => {
+    vi.useFakeTimers()
+    mockRegister.mockResolvedValueOnce(true)
+    mockUseAuth.mockReturnValue({ register: mockRegister })
+
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>
+    )
+
+    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Jane' } })
+    fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'Smith' } })
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'jane@example.com' } })
+
+    // Flush the async submit (resolves the register() promise + state updates)
+    await act(async () => {
+      fireEvent.submit(screen.getByRole('button', { name: /register/i }).closest('form')!)
+    })
+
+    expect(screen.getByText('Registered successfully. You can now log in.')).toBeInTheDocument()
+
+    act(() => {
+      vi.advanceTimersByTime(800)
+    })
+
+    expect(mockNavigate).toHaveBeenCalledWith('/login')
   })
 
   it('shows error message when registration fails', async () => {

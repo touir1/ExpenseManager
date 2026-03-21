@@ -89,6 +89,47 @@ describe('API utilities', () => {
       expect(result.error).toBe('Unauthorized')
     })
 
+    it('redirects to /login on 401 when no unauthorized handler is set', async () => {
+      const mockAssign = vi.fn()
+      Object.defineProperty(window, 'location', { value: { assign: mockAssign }, writable: true })
+
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 401,
+        json: async () => ({})
+      })
+
+      const result = await request('/protected')
+
+      expect(mockAssign).toHaveBeenCalledWith('/login')
+      expect(result.ok).toBe(false)
+      expect(result.status).toBe(401)
+    })
+
+    it('does not throw when non-ok response has no error handler set', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: async () => ({})
+      })
+
+      const result = await request('/error')
+
+      expect(result.ok).toBe(false)
+      expect(result.status).toBe(500)
+      expect(result.error).toBe('Server error, please retry later.')
+    })
+
+    it('does not throw on network error when no error handler is set', async () => {
+      mockFetch.mockRejectedValue(new Error('Network failure'))
+
+      const result = await request('/fail')
+
+      expect(result.ok).toBe(false)
+      expect(result.status).toBe(0)
+      expect(result.error).toBe('Network error. Please check your connection and try again.')
+    })
+
     it('handles 404 not found', async () => {
       const errorHandler = vi.fn()
       onError(errorHandler)

@@ -34,3 +34,10 @@ infrastructure/configs/nginx/ssl/*.crt
 
 # enabled nginx sites
 infrastructure/configs/nginx/sites-enabled/
+
+# IDE
+.vscode/
+!.vscode/extensions.json
+
+# Claude
+.claude/

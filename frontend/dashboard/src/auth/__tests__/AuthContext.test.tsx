@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, renderHook, act } from '@testing-library/react'
+import { act } from 'react'
+import { render, renderHook } from '@testing-library/react'
 import { AuthProvider, useAuth } from '@/auth/AuthContext'
 import * as api from '@/api'
 
@@ -518,6 +519,53 @@ describe('AuthContext', () => {
       })
 
       expect(result.current.isAuthenticated).toBe(false)
+    })
+
+    it('extracts user from sub field when email is absent in token', () => {
+      const futureTimestamp = Math.floor(Date.now() / 1000) + 3600
+      const payload = { sub: 'sub@test.com', exp: futureTimestamp }
+      const encodedPayload = btoa(JSON.stringify(payload))
+      const mockToken = `header.${encodedPayload}.signature`
+
+      localStorage.setItem('auth:token', mockToken)
+      // No user in localStorage so it falls back to decoding the token
+
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: AuthProvider
+      })
+
+      expect(result.current.user).toEqual({ email: 'sub@test.com' })
+    })
+
+    it('returns null user when valid token has no email or sub field', () => {
+      const futureTimestamp = Math.floor(Date.now() / 1000) + 3600
+      const payload = { role: 'user', exp: futureTimestamp } // no email, no sub
+      const encodedPayload = btoa(JSON.stringify(payload))
+      const mockToken = `header.${encodedPayload}.signature`
+
+      localStorage.setItem('auth:token', mockToken)
+      // No user in localStorage so it falls back to decoding the token
+
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: AuthProvider
+      })
+
+      expect(result.current.isAuthenticated).toBe(true) // token is valid
+      expect(result.current.user).toBeNull()            // but no email to extract
+    })
+
+    it('handles JWT payload with base64 length mod 4 equal to 1', () => {
+      // A single-character base64url payload triggers the pad === 1 branch in decodeJwtPayload.
+      // atob will fail for this degenerate input and the function returns null (token rejected).
+      const mockToken = 'header.A.signature'
+      localStorage.setItem('auth:token', mockToken)
+
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: AuthProvider
+      })
+
+      expect(result.current.isAuthenticated).toBe(false)
+      expect(result.current.token).toBeNull()
     })
   })
 })
