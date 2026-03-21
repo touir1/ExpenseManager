@@ -1,51 +1,95 @@
-# Expenses Manager Frontend (React + Vite + TypeScript)
+# Expenses Manager Frontend
 
-A minimal React template to get you moving fast. Includes Vite for dev/build and strict TypeScript settings.
+React 18 + TypeScript + Vite SPA with Tailwind CSS v3, serving the main user-facing dashboard.
 
-## Quick start
+## Tech Stack
+
+- **React 18** + **TypeScript**
+- **Vite 7** — dev server and bundler
+- **Tailwind CSS v3** — utility-first styling with custom design system
+- **React Router v6** — client-side routing
+- **Vitest 4** + **React Testing Library** — unit and component tests
+
+## Quick Start
 
 ```bash
 # from this folder
-npm install
-npm run dev
+npm ci
+npm run dev        # http://localhost:5173
 ```
 
-## Environment config
+## Environment Config
 
-Create an `.env` in this folder with your backend base URL:
+Create a `.env` in this folder with your backend base URL:
 
 ```
 VITE_API_BASE="https://api.example.com"
 ```
 
-`AuthContext` reads `import.meta.env.VITE_API_BASE` to call APIs (e.g., `/auth/login`).
-For TypeScript support, `src/env.d.ts` includes Vite env types.
+`AuthContext` reads `import.meta.env.VITE_API_BASE` to call APIs. TypeScript support via `src/env.d.ts`.
 
 ## Routes
 
-- Public: `/` (Home), `/login`, `/register`, `/reset-password`
-- Private: `/home-auth`, `/change-password` (requires login)
+| Path | Visibility | Component |
+|---|---|---|
+| `/` | Public | HomePublic |
+| `/login` | Public | Login — email + password |
+| `/register` | Public | Register — first name, last name, email |
+| `/request-password-reset` | Public | RequestPasswordReset |
+| `/reset-password` | Public | ResetPassword — prefilled from `?email` and `?h` query params |
+| `/home-auth` | Private | HomeDashboard |
+| `/change-password` | Private | ChangePassword — old + new + repeat |
+| `*` | Public | Redirects to HomePublic |
 
-Login expects email + password. Register collects first name, last name, email. Change password requires old + new + repeat. Reset password requires email + verificationHash (prefilled via link query `?email` and `?h`) + new + repeat.
+Private routes are guarded by `ProtectedRoute`, which checks JWT auth state from `AuthContext`.
 
-- Dev server: http://localhost:5173
-- Build for production:
+## Commands
 
 ```bash
-npm run build
-npm run preview
+npm ci                # Install dependencies
+npm run dev           # Development server
+npm run build:prod    # Production build
+npm run typecheck     # TypeScript type checking (no emit)
+npm test              # Run tests with coverage (V8)
+npm run test:watch    # Watch mode
 ```
 
-## Testing
+## Styling
 
-Unit tests run using Vitest.
-```bash
-npm run test
-```
+Tailwind CSS v3 with a custom design system defined in `tailwind.config.ts`:
+
+- **Brand color:** indigo (`brand-600` = `#4f46e5`)
+- **Font:** Inter (loaded via Google Fonts in `index.html`)
+- **Reusable UI primitives** are defined in `@layer components` in `src/index.css`:
+  - `.field-label`, `.field-input` — form controls
+  - `.btn-primary`, `.btn-secondary` — buttons
+  - `.auth-page`, `.auth-card` — centered card layout for auth pages
+  - `.msg-error`, `.msg-success`, `.msg-info` — feedback messages
 
 ## Structure
 
-- index.html — Vite entry
-- src/main.tsx — App bootstrap
-- src/App.tsx — Sample component
-- src/index.css — Minimal styles (you can replace with Tailwind later)
+```
+src/
+  api.ts                  # Centralized API client
+  App.tsx                 # Root component, router, providers
+  index.css               # Tailwind directives + component layer
+  env.d.ts                # Vite env type declarations
+  auth/
+    AuthContext.tsx        # JWT auth state and context
+  components/
+    NavBar.tsx             # Auth-aware responsive navigation
+    ProtectedRoute.tsx     # Route guard (redirects to /login)
+    Toast.tsx              # Notification toasts
+    __tests__/
+  pages/
+    HomePublic.tsx
+    Login.tsx
+    Register.tsx
+    HomeDashboard.tsx
+    ChangePassword.tsx
+    ResetPassword.tsx
+    RequestPasswordReset.tsx
+    __tests__/
+tailwind.config.ts         # Design system tokens and font config
+postcss.config.cjs         # PostCSS pipeline for Tailwind
+```

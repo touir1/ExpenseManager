@@ -36,9 +36,9 @@ describe('ToastProvider', () => {
     )
 
     await user.click(screen.getByRole('button', { name: /show toast/i }))
-    const toast = screen.getByText('Success!')
+    const toast = screen.getByText('Success!').closest('div')
     expect(toast).toBeInTheDocument()
-    expect(toast).toHaveStyle({ background: '#16a34a' })
+    expect(toast).toHaveClass('bg-emerald-50')
   })
 
   it('shows an error toast with correct styling', async () => {
@@ -51,9 +51,9 @@ describe('ToastProvider', () => {
     )
 
     await user.click(screen.getByRole('button', { name: /show toast/i }))
-    const toast = screen.getByText('Error!')
+    const toast = screen.getByText('Error!').closest('div')
     expect(toast).toBeInTheDocument()
-    expect(toast).toHaveStyle({ background: '#dc2626' })
+    expect(toast).toHaveClass('bg-rose-50')
   })
 
   it('shows an info toast with correct styling', async () => {
@@ -66,9 +66,9 @@ describe('ToastProvider', () => {
     )
 
     await user.click(screen.getByRole('button', { name: /show toast/i }))
-    const toast = screen.getByText('Info!')
+    const toast = screen.getByText('Info!').closest('div')
     expect(toast).toBeInTheDocument()
-    expect(toast).toHaveStyle({ background: '#2563eb' })
+    expect(toast).toHaveClass('bg-sky-50')
   })
 
   it('auto-dismisses a toast after 4 seconds', () => {
@@ -81,17 +81,17 @@ describe('ToastProvider', () => {
     )
 
     const button = screen.getByRole('button', { name: /show toast/i })
-    
+
     act(() => {
       button.click()
     })
-    
+
     expect(screen.getByText('Auto Dismiss')).toBeInTheDocument()
 
     act(() => {
       vi.advanceTimersByTime(4000)
     })
-    
+
     expect(screen.queryByText('Auto Dismiss')).not.toBeInTheDocument()
   })
 
@@ -116,7 +116,7 @@ describe('ToastProvider', () => {
 
     await user.click(screen.getByRole('button', { name: /first/i }))
     await user.click(screen.getByRole('button', { name: /second/i }))
-    
+
     expect(screen.getByText('Toast One')).toBeInTheDocument()
     expect(screen.getByText('Toast Two')).toBeInTheDocument()
   })
@@ -145,9 +145,9 @@ describe('ToastProvider', () => {
     )
 
     await user.click(screen.getByRole('button', { name: /show/i }))
-    const toast = screen.getByText('Default Type')
+    const toast = screen.getByText('Default Type').closest('div')
     expect(toast).toBeInTheDocument()
-    expect(toast).toHaveStyle({ background: '#dc2626' })
+    expect(toast).toHaveClass('bg-rose-50')
   })
 
   it('dismisses toasts independently', () => {
@@ -173,7 +173,6 @@ describe('ToastProvider', () => {
       screen.getByRole('button', { name: /first/i }).click()
     })
 
-    // Wait 2 seconds
     act(() => {
       vi.advanceTimersByTime(2000)
     })
@@ -185,21 +184,17 @@ describe('ToastProvider', () => {
     expect(screen.getByText('First Toast')).toBeInTheDocument()
     expect(screen.getByText('Second Toast')).toBeInTheDocument()
 
-    // Advance 2 more seconds (4 total for first toast)
     act(() => {
       vi.advanceTimersByTime(2000)
     })
 
-    // First toast should be gone, second should still be visible
     expect(screen.queryByText('First Toast')).not.toBeInTheDocument()
     expect(screen.getByText('Second Toast')).toBeInTheDocument()
 
-    // Advance 2 more seconds (4 total for second toast)
     act(() => {
       vi.advanceTimersByTime(2000)
     })
 
-    // Both should be gone
     expect(screen.queryByText('First Toast')).not.toBeInTheDocument()
     expect(screen.queryByText('Second Toast')).not.toBeInTheDocument()
   })
@@ -227,7 +222,7 @@ describe('ToastProvider', () => {
     )
 
     await user.click(screen.getByRole('button', { name: /trigger multiple/i }))
-    
+
     expect(screen.getByText('Toast 1')).toBeInTheDocument()
     expect(screen.getByText('Toast 2')).toBeInTheDocument()
     expect(screen.getByText('Toast 3')).toBeInTheDocument()
@@ -248,9 +243,9 @@ describe('ToastProvider', () => {
     )
 
     await user.click(screen.getByRole('button', { name: /empty/i }))
-    
-    // Toast container should still exist even with empty message
-    const container = document.querySelector('[style*="position: fixed"]')
+
+    // Toast notifications region is always rendered
+    const container = screen.getByRole('region', { name: /notifications/i })
     expect(container).toBeInTheDocument()
   })
 

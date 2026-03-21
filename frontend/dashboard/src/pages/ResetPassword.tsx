@@ -8,6 +8,7 @@ export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState('')
   const [repeatPassword, setRepeatPassword] = useState('')
   const [message, setMessage] = useState<string | null>(null)
+  const [isSuccess, setIsSuccess] = useState(false)
   const { resetPassword } = useAuth()
   const [params] = useSearchParams()
 
@@ -21,26 +22,80 @@ export default function ResetPassword() {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
     const ok = await resetPassword(email, verificationHash, newPassword, repeatPassword)
+    setIsSuccess(ok)
     setMessage(ok ? 'Password reset.' : 'Please fill all fields correctly and ensure passwords match.')
   }
 
+  const missingParams = !email || !verificationHash
+
   return (
-    <div className="container">
-      <h1>Reset Password</h1>
-      {!email || !verificationHash ? (
-        <p className="info">Invalid or missing verification link. Please request a new reset link.</p>
-      ) : null}
-      <form onSubmit={onSubmit} className="form">
-        <label>New password<input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} required /></label>
-        <label>Repeat new password<input type="password" value={repeatPassword} onChange={e => setRepeatPassword(e.target.value)} required /></label>
-        <button type="submit" disabled={!email || !verificationHash}>Reset</button>
-      </form>
-      {!email || !verificationHash ? (
-        <div className="links" style={{ marginTop: 8 }}>
-          <Link to="/request-password-reset">Request password reset</Link>
+    <div className="auth-page">
+      <div className="auth-card">
+        {/* Header */}
+        <div className="mb-7">
+          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Reset Password</h1>
+          <p className="text-sm text-slate-500 mt-1">Enter a new password for your account.</p>
         </div>
-      ) : null}
-      {message && <p className="info">{message}</p>}
+
+        {missingParams && (
+          <div className="msg-info mb-5" role="alert">
+            Invalid or missing verification link. Please request a new reset link.
+          </div>
+        )}
+
+        <form onSubmit={onSubmit} className="space-y-4" noValidate>
+          <div>
+            <label htmlFor="newPassword" className="field-label">New password</label>
+            <input
+              id="newPassword"
+              type="password"
+              autoComplete="new-password"
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              required
+              disabled={missingParams}
+              className="field-input"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="repeatPassword" className="field-label">Repeat new password</label>
+            <input
+              id="repeatPassword"
+              type="password"
+              autoComplete="new-password"
+              value={repeatPassword}
+              onChange={e => setRepeatPassword(e.target.value)}
+              required
+              disabled={missingParams}
+              className="field-input"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <button type="submit" disabled={missingParams} className="btn-primary mt-1">
+            Reset
+          </button>
+        </form>
+
+        {message && (
+          <p className={`mt-4 ${isSuccess ? 'msg-success' : 'msg-error'}`} role="alert">
+            {message}
+          </p>
+        )}
+
+        {missingParams && (
+          <div className="mt-5 pt-5 border-t border-slate-100 text-center">
+            <Link
+              to="/request-password-reset"
+              className="text-sm text-brand-600 hover:text-brand-700 font-medium transition-colors duration-150"
+            >
+              Request password reset
+            </Link>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

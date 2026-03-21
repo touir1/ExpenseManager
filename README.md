@@ -1,6 +1,6 @@
 # ExpenseManager
 
-> **ExpenseManager** is a full-stack application for managing expenses, users, and dashboards, built with .NET (backend), React (frontend), and Docker-based infrastructure.
+> **ExpenseManager** is a full-stack application for managing expenses, users, and dashboards, built with .NET 8 (backend), React 18 + Tailwind CSS (frontend), and Docker-based infrastructure.
 
 ---
 
@@ -17,8 +17,8 @@ mobile/          # (Reserved for mobile app)
 
 ## Backend Services
 
-- **expenses**: Expense management API (.NET, EF Core)
-- **users**: User management API (.NET, EF Core)
+- **expenses** (port 9200): Expense management API — .NET 8, EF Core 8, PostgreSQL
+- **users** (port 9100): User management and JWT auth API — .NET 8, EF Core 8, PostgreSQL
 - **dashboard**: (Planned) Dashboard API
 
 Each service has its own solution and project files. Configurations use environment variables for secrets (see `appsettings.json` and Docker Compose files).
@@ -38,17 +38,19 @@ Each service has its own solution and project files. Configurations use environm
 
 Location: `frontend/dashboard`
 
+React 18 + TypeScript + Vite 7 SPA styled with Tailwind CSS v3. All traffic flows through nginx (port 80/443), which enforces JWT auth before forwarding to backend services.
+
 ### Quick Start
 
 ```sh
 cd frontend/dashboard
-npm install
+npm ci
 npm run dev
 ```
 
 Configure API base URL in `.env`:
 ```
-VITE_API_BASE="http://localhost:5000" # or your backend URL
+VITE_API_BASE="http://localhost:80" # nginx reverse proxy
 ```
 
 ---

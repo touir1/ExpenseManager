@@ -27,7 +27,7 @@ describe('Login page', () => {
       </MemoryRouter>
     )
 
-    expect(screen.getByRole('heading', { name: /login/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /welcome back/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument()
@@ -44,9 +44,9 @@ describe('Login page', () => {
       </MemoryRouter>
     )
 
-    expect(screen.getByRole('link', { name: /create account/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /request password reset/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /use verification link/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /register/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /forgot your password/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /have a verification link/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /back to home/i })).toBeInTheDocument()
   })
 

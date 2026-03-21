@@ -11,8 +11,8 @@ describe('HomePublic', () => {
       </MemoryRouter>
     )
 
-    expect(screen.getByRole('heading', { name: /welcome/i })).toBeInTheDocument()
-    expect(screen.getByText(/this is the public home page/i)).toBeInTheDocument()
+    expect(screen.getByRole('heading')).toBeInTheDocument()
+    expect(screen.getByText(/track your expenses/i)).toBeInTheDocument()
   })
 
   it('renders login link', () => {
@@ -22,7 +22,7 @@ describe('HomePublic', () => {
       </MemoryRouter>
     )
 
-    const loginLink = screen.getByRole('link', { name: /login/i })
+    const loginLink = screen.getByRole('link', { name: /sign in/i })
     expect(loginLink).toBeInTheDocument()
     expect(loginLink).toHaveAttribute('href', '/login')
   })
@@ -34,7 +34,7 @@ describe('HomePublic', () => {
       </MemoryRouter>
     )
 
-    const registerLink = screen.getByRole('link', { name: /register/i })
+    const registerLink = screen.getByRole('link', { name: /create account/i })
     expect(registerLink).toBeInTheDocument()
     expect(registerLink).toHaveAttribute('href', '/register')
   })

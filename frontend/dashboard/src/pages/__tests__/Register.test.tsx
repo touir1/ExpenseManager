@@ -37,7 +37,7 @@ describe('Register page', () => {
       </MemoryRouter>
     )
 
-    expect(screen.getByRole('heading', { name: /register/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /create an account/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/first name/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/last name/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
