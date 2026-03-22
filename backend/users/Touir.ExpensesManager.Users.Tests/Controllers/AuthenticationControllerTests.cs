@@ -3,8 +3,10 @@ using Touir.ExpensesManager.Users.Controllers.Requests;
 using Touir.ExpensesManager.Users.Controllers.Responses;
 using Touir.ExpensesManager.Users.Services.Contracts;
 using Touir.ExpensesManager.Users.Controllers.EO;
+using Touir.ExpensesManager.Users.Infrastructure.Options;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Touir.ExpensesManager.Users.Tests.Controllers
@@ -16,7 +18,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task RegisterAsync_ReturnsUnauthorized_WhenRequestIsNull()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var result = await controller.RegisterAsync(null!);
             
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
@@ -27,7 +29,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task RegisterAsync_ReturnsUnauthorized_WhenFirstNameIsEmpty()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new RegisterRequest { FirstName = "", LastName = "Doe", Email = "john@doe.com", ApplicationCode = "APP1" };
             var result = await controller.RegisterAsync(request);
             
@@ -39,7 +41,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task RegisterAsync_ReturnsUnauthorized_WhenLastNameIsEmpty()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new RegisterRequest { FirstName = "John", LastName = "", Email = "john@doe.com", ApplicationCode = "APP1" };
             var result = await controller.RegisterAsync(request);
             
@@ -51,7 +53,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task RegisterAsync_ReturnsUnauthorized_WhenEmailIsEmpty()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new RegisterRequest { FirstName = "John", LastName = "Doe", Email = "", ApplicationCode = "APP1" };
             var result = await controller.RegisterAsync(request);
             
@@ -66,7 +68,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.RegisterNewUserAsync("John", "Doe", "john@doe.com", "APP1"))
                 .ReturnsAsync(new List<string>());
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new RegisterRequest { FirstName = "John", LastName = "Doe", Email = "john@doe.com", ApplicationCode = "APP1" };
             var result = await controller.RegisterAsync(request);
             
@@ -82,7 +84,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.RegisterNewUserAsync("John", "Doe", "john@doe.com", "APP1"))
                 .ReturnsAsync(new List<string> { "email is already used" });
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new RegisterRequest { FirstName = "John", LastName = "Doe", Email = "john@doe.com", ApplicationCode = "APP1" };
             var result = await controller.RegisterAsync(request);
             
@@ -100,7 +102,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.RegisterNewUserAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ThrowsAsync(new Exception("Database error"));
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new RegisterRequest { FirstName = "John", LastName = "Doe", Email = "john@doe.com", ApplicationCode = "APP1" };
             var result = await controller.RegisterAsync(request);
             
@@ -116,7 +118,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task LoginAsync_ReturnsUnauthorized_WhenRequestIsNull()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var result = await controller.LoginAsync(null!);
             
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
@@ -127,7 +129,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task LoginAsync_ReturnsUnauthorized_WhenApplicationCodeIsEmpty()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new LoginRequest { Email = "john@doe.com", Password = "password", ApplicationCode = "" };
             var result = await controller.LoginAsync(request);
             
@@ -139,7 +141,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task LoginAsync_ReturnsUnauthorized_WhenEmailIsEmpty()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new LoginRequest { Email = "", Password = "password", ApplicationCode = "APP1" };
             var result = await controller.LoginAsync(request);
             
@@ -151,7 +153,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task LoginAsync_ReturnsUnauthorized_WhenPasswordIsEmpty()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new LoginRequest { Email = "john@doe.com", Password = "", ApplicationCode = "APP1" };
             var result = await controller.LoginAsync(request);
             
@@ -165,7 +167,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         {
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync((UserEo?)null);
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new LoginRequest { Email = "john@doe.com", Password = "password", ApplicationCode = "APP1" };
             var result = await controller.LoginAsync(request);
             
@@ -182,7 +184,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync(user);
             var mockRoleService = new Mock<IRoleService>();
             mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id.Value)).ReturnsAsync(new List<RoleEo>());
-            var controller = new AuthenticationController(mockAuthService.Object, mockRoleService.Object, Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, mockRoleService.Object, Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new LoginRequest { Email = "john@doe.com", Password = "password", ApplicationCode = "APP1" };
             var result = await controller.LoginAsync(request);
             
@@ -200,15 +202,37 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             mockAuthService.Setup(s => s.GenerateJwtToken(user.Id.Value, user.Email)).Returns("token");
             var mockRoleService = new Mock<IRoleService>();
             mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id.Value)).ReturnsAsync(new List<RoleEo> { new RoleEo { Code = "ADMIN", Name = "Admin" } });
-            var controller = new AuthenticationController(mockAuthService.Object, mockRoleService.Object, Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, mockRoleService.Object, Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions { ExpiryInMinutes = 60 }));
+            controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
             var request = new LoginRequest { Email = "john@doe.com", Password = "password", ApplicationCode = "APP1" };
             var result = await controller.LoginAsync(request);
-            
+
             var okResult = Assert.IsType<OkObjectResult>(result);
             var response = Assert.IsType<LoginResponse>(okResult.Value);
-            
+
             Assert.Equal("john@doe.com", response.User?.Email);
             Assert.Equal("token", response.Token);
+        }
+
+        [Fact]
+        public async Task LoginAsync_SetsHttpOnlyCookie_WhenValid()
+        {
+            var user = new UserEo { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@doe.com" };
+            var mockAuthService = new Mock<IAuthenticationService>();
+            mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync(user);
+            mockAuthService.Setup(s => s.GenerateJwtToken(user.Id.Value, user.Email)).Returns("token");
+            var mockRoleService = new Mock<IRoleService>();
+            mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id.Value)).ReturnsAsync(new List<RoleEo> { new RoleEo { Code = "ADMIN", Name = "Admin" } });
+            var controller = new AuthenticationController(mockAuthService.Object, mockRoleService.Object, Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions { ExpiryInMinutes = 60 }));
+            var httpContext = new DefaultHttpContext();
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+            var request = new LoginRequest { Email = "john@doe.com", Password = "password", ApplicationCode = "APP1" };
+
+            await controller.LoginAsync(request);
+
+            Assert.True(httpContext.Response.Headers.ContainsKey("Set-Cookie"));
+            Assert.Contains("auth_token", httpContext.Response.Headers["Set-Cookie"].ToString());
+            Assert.Contains("httponly", httpContext.Response.Headers["Set-Cookie"].ToString(), StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -217,7 +241,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.AuthenticateAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ThrowsAsync(new Exception("Database error"));
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new LoginRequest { Email = "john@doe.com", Password = "password", ApplicationCode = "APP1" };
             var result = await controller.LoginAsync(request);
             
@@ -233,7 +257,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ValidateEmail_ReturnsUnauthorized_WhenHashIsEmpty()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var result = await controller.ValidateEmail("", "john@doe.com", "APP1");
             
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
@@ -244,7 +268,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ValidateEmail_ReturnsUnauthorized_WhenEmailIsEmpty()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var result = await controller.ValidateEmail("hash", "", "APP1");
             
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
@@ -255,7 +279,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ValidateEmail_ReturnsUnauthorized_WhenAppCodeIsEmpty()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var result = await controller.ValidateEmail("hash", "john@doe.com", "");
             
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
@@ -268,7 +292,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         {
             var mockAppService = new Mock<IApplicationService>();
             mockAppService.Setup(s => s.GetApplicationByCodeAsync("APP1")).ReturnsAsync((ApplicationEo?)null);
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), mockAppService.Object);
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), mockAppService.Object, Options.Create(new JwtAuthOptions()));
             var result = await controller.ValidateEmail("hash", "john@doe.com", "APP1");
             
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
@@ -284,7 +308,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             mockAppService.Setup(s => s.GetApplicationByCodeAsync("APP1")).ReturnsAsync(app);
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.ValidateEmailAsync("hash", "john@doe.com")).ReturnsAsync(false);
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), mockAppService.Object);
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), mockAppService.Object, Options.Create(new JwtAuthOptions()));
             var result = await controller.ValidateEmail("hash", "john@doe.com", "APP1");
             
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
@@ -300,7 +324,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             mockAppService.Setup(s => s.GetApplicationByCodeAsync("APP1")).ReturnsAsync(app);
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.ValidateEmailAsync("hash", "john@doe.com")).ReturnsAsync(true);
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), mockAppService.Object);
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), mockAppService.Object, Options.Create(new JwtAuthOptions()));
             
             var result = await controller.ValidateEmail("hash", "john@doe.com", "APP1");
             var redirectResult = Assert.IsType<RedirectResult>(result);
@@ -314,7 +338,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var mockAppService = new Mock<IApplicationService>();
             mockAppService.Setup(s => s.GetApplicationByCodeAsync(It.IsAny<string>()))
                 .ThrowsAsync(new Exception("Database error"));
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), mockAppService.Object);
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), mockAppService.Object, Options.Create(new JwtAuthOptions()));
             var result = await controller.ValidateEmail("hash", "john@doe.com", "APP1");
             
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -329,7 +353,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ChangePassword_ReturnsUnauthorized_WhenRequestIsNull()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var result = await controller.ChangePassword(null!);
             
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
@@ -340,7 +364,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ChangePassword_ReturnsUnauthorized_WhenEmailIsEmpty()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new ChangePasswordRequest { Email = "", OldPassword = "old", NewPassword = "new", ConfirmPassword = "new" };
             var result = await controller.ChangePassword(request);
             
@@ -352,7 +376,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ChangePassword_ReturnsUnauthorized_WhenOldPasswordIsEmpty()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "", NewPassword = "new", ConfirmPassword = "new" };
             var result = await controller.ChangePassword(request);
             
@@ -364,7 +388,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ChangePassword_ReturnsUnauthorized_WhenNewPasswordIsEmpty()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "old", NewPassword = "", ConfirmPassword = "new" };
             var result = await controller.ChangePassword(request);
             
@@ -376,7 +400,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ChangePassword_ReturnsUnauthorized_WhenConfirmPasswordIsEmpty()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "old", NewPassword = "new", ConfirmPassword = "" };
             var result = await controller.ChangePassword(request);
             
@@ -388,7 +412,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ChangePassword_ReturnsUnauthorized_WhenPasswordsDoNotMatch()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "old", NewPassword = "new", ConfirmPassword = "different" };
             var result = await controller.ChangePassword(request);
             
@@ -402,7 +426,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         {
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.ChangePasswordAsync("john@doe.com", "old", "new")).ReturnsAsync(false);
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "old", NewPassword = "new", ConfirmPassword = "new" };
             var result = await controller.ChangePassword(request);
             
@@ -416,7 +440,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         {
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.ChangePasswordAsync("john@doe.com", "old", "new")).ReturnsAsync(true);
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "old", NewPassword = "new", ConfirmPassword = "new" };
             
             var result = await controller.ChangePassword(request);
@@ -430,7 +454,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.ChangePasswordAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ThrowsAsync(new Exception("Database error"));
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "old", NewPassword = "new", ConfirmPassword = "new" };
             var result = await controller.ChangePassword(request);
             
@@ -446,7 +470,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task RequestPasswordReset_ReturnsUnauthorized_WhenRequestIsNull()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var result = await controller.RequestPasswordReset(null!);
             
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
@@ -457,7 +481,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task RequestPasswordReset_ReturnsUnauthorized_WhenEmailIsEmpty()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new RequestPasswordResetRequest { Email = "" };
             var result = await controller.RequestPasswordReset(request);
             
@@ -471,7 +495,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         {
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.RequestPasswordResetAsync("john@doe.com")).ReturnsAsync(false);
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new RequestPasswordResetRequest { Email = "john@doe.com" };
             var result = await controller.RequestPasswordReset(request);
             
@@ -485,7 +509,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         {
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.RequestPasswordResetAsync("john@doe.com")).ReturnsAsync(true);
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new RequestPasswordResetRequest { Email = "john@doe.com" };
             
             var result = await controller.RequestPasswordReset(request);
@@ -499,7 +523,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.RequestPasswordResetAsync(It.IsAny<string>()))
                 .ThrowsAsync(new Exception("Database error"));
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new RequestPasswordResetRequest { Email = "john@doe.com" };
             var result = await controller.RequestPasswordReset(request);
             
@@ -515,7 +539,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ChangePasswordReset_ReturnsUnauthorized_WhenRequestIsNull()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var result = await controller.ChangePasswordReset(null!);
             
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
@@ -526,7 +550,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ChangePasswordReset_ReturnsUnauthorized_WhenEmailIsEmpty()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new ChangePasswordResetRequest { Email = "", VerificationHash = "hash", NewPassword = "new", ConfirmPassword = "new" };
             var result = await controller.ChangePasswordReset(request);
             
@@ -538,7 +562,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ChangePasswordReset_ReturnsUnauthorized_WhenVerificationHashIsEmpty()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "", NewPassword = "new", ConfirmPassword = "new" };
             var result = await controller.ChangePasswordReset(request);
             
@@ -550,7 +574,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ChangePasswordReset_ReturnsUnauthorized_WhenNewPasswordIsEmpty()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "", ConfirmPassword = "new" };
             var result = await controller.ChangePasswordReset(request);
             
@@ -562,7 +586,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ChangePasswordReset_ReturnsUnauthorized_WhenConfirmPasswordIsEmpty()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "new", ConfirmPassword = "" };
             var result = await controller.ChangePasswordReset(request);
             
@@ -574,7 +598,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ChangePasswordReset_ReturnsUnauthorized_WhenPasswordsDoNotMatch()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "new", ConfirmPassword = "different" };
             var result = await controller.ChangePasswordReset(request);
             
@@ -588,7 +612,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         {
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.ResetPasswordAsync("john@doe.com", "hash", "new")).ReturnsAsync(false);
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "new", ConfirmPassword = "new" };
             var result = await controller.ChangePasswordReset(request);
             
@@ -602,7 +626,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         {
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.ResetPasswordAsync("john@doe.com", "hash", "new")).ReturnsAsync(true);
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "new", ConfirmPassword = "new" };
             
             var result = await controller.ChangePasswordReset(request);
@@ -616,7 +640,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.ResetPasswordAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ThrowsAsync(new Exception("Database error"));
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var request = new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "new", ConfirmPassword = "new" };
             var result = await controller.ChangePasswordReset(request);
             
@@ -632,7 +656,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public void Check_ReturnsUnauthorized_WhenAuthorizationHeaderIsMissing()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var httpContext = new DefaultHttpContext();
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
@@ -646,7 +670,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public void Check_ReturnsUnauthorized_WhenAuthorizationHeaderIsInvalidFormat()
         {
-            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Headers.Authorization = "Basic token";
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
@@ -663,7 +687,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         {
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.ValidateToken("invalid_token")).Returns(new Microsoft.IdentityModel.Tokens.TokenValidationResult { IsValid = false });
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Headers.Authorization = "Bearer invalid_token";
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
@@ -680,7 +704,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         {
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.ValidateToken("valid_token")).Returns(new Microsoft.IdentityModel.Tokens.TokenValidationResult { IsValid = true });
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Headers.Authorization = "Bearer valid_token";
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
@@ -695,7 +719,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         {
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.ValidateToken(It.IsAny<string>())).Throws(new Exception("Database error"));
-            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>());
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Headers.Authorization = "Bearer some_token";
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
@@ -705,6 +729,122 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             var response = Assert.IsType<ErrorResponse>(badRequestResult.Value);
             Assert.Equal("SERVER_ERROR", response.Message);
+        }
+
+        [Fact]
+        public void Check_ReturnsUnauthorized_WhenCookieTokenIsInvalid()
+        {
+            var mockAuthService = new Mock<IAuthenticationService>();
+            mockAuthService.Setup(s => s.ValidateToken("invalid_cookie_token")).Returns(new Microsoft.IdentityModel.Tokens.TokenValidationResult { IsValid = false });
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers["Cookie"] = "auth_token=invalid_cookie_token";
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            var result = controller.Check();
+
+            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
+            var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
+            Assert.Equal("INVALID_TOKEN", response.Message);
+        }
+
+        [Fact]
+        public void Check_ReturnsOk_WhenCookieTokenIsValid()
+        {
+            var mockAuthService = new Mock<IAuthenticationService>();
+            mockAuthService.Setup(s => s.ValidateToken("valid_cookie_token")).Returns(new Microsoft.IdentityModel.Tokens.TokenValidationResult { IsValid = true });
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers["Cookie"] = "auth_token=valid_cookie_token";
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            var result = controller.Check();
+
+            Assert.IsType<OkResult>(result);
+        }
+
+        #endregion
+
+        #region Session Tests
+
+        [Fact]
+        public void Session_ReturnsUnauthorized_WhenCookieIsMissing()
+        {
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
+            controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+
+            var result = controller.Session();
+
+            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
+            var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
+            Assert.Equal("MISSING_TOKEN", response.Message);
+        }
+
+        [Fact]
+        public void Session_ReturnsUnauthorized_WhenTokenIsInvalid()
+        {
+            var mockAuthService = new Mock<IAuthenticationService>();
+            mockAuthService.Setup(s => s.ValidateToken("invalid_token")).Returns(new Microsoft.IdentityModel.Tokens.TokenValidationResult { IsValid = false });
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers["Cookie"] = "auth_token=invalid_token";
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            var result = controller.Session();
+
+            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
+            var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
+            Assert.Equal("INVALID_TOKEN", response.Message);
+        }
+
+        [Fact]
+        public void Session_ReturnsOk_WhenTokenIsValid()
+        {
+            var mockAuthService = new Mock<IAuthenticationService>();
+            mockAuthService.Setup(s => s.ValidateToken("valid_token")).Returns(new Microsoft.IdentityModel.Tokens.TokenValidationResult { IsValid = true });
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers["Cookie"] = "auth_token=valid_token";
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            var result = controller.Session();
+
+            Assert.IsType<OkResult>(result);
+        }
+
+        [Fact]
+        public void Session_ReturnsBadRequest_WhenExceptionThrown()
+        {
+            var mockAuthService = new Mock<IAuthenticationService>();
+            mockAuthService.Setup(s => s.ValidateToken(It.IsAny<string>())).Throws(new Exception("Unexpected error"));
+            var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers["Cookie"] = "auth_token=some_token";
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            var result = controller.Session();
+
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            var response = Assert.IsType<ErrorResponse>(badRequestResult.Value);
+            Assert.Equal("SERVER_ERROR", response.Message);
+        }
+
+        #endregion
+
+        #region Logout Tests
+
+        [Fact]
+        public void Logout_ReturnsOk_AndDeletesCookie()
+        {
+            var controller = new AuthenticationController(Mock.Of<IAuthenticationService>(), Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
+            var httpContext = new DefaultHttpContext();
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            var result = controller.Logout();
+
+            Assert.IsType<OkResult>(result);
+            Assert.True(httpContext.Response.Headers.ContainsKey("Set-Cookie"));
+            Assert.Contains("auth_token", httpContext.Response.Headers["Set-Cookie"].ToString());
         }
 
         #endregion

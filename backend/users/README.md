@@ -21,14 +21,17 @@ Service runs on port **9100** by default. Configuration via `appsettings.json` a
 ## Key Endpoints
 
 Public (no auth required, accessible via `/api/users/auth/` through nginx):
-- `POST /auth/login` — JWT login
+- `POST /auth/login` — Authenticate user; sets `auth_token` as an `HttpOnly; SameSite=Strict` cookie and returns user info
+- `POST /auth/logout` — Clear the `auth_token` cookie
+- `GET  /auth/session` — Validate the `auth_token` cookie; returns 200 if valid, 401 otherwise (used for session restore on page load)
 - `POST /auth/register` — User registration
+- `GET  /auth/validate-email` — Verify email from link
 - `POST /auth/request-password-reset` — Send reset email
-- `POST /auth/reset-password` — Reset password with token
-- `GET  /auth/check` — Internal auth check used by nginx `auth_request`
+- `POST /auth/change-password-reset` — Reset password with verification hash
+- `GET  /auth/check` — Internal auth check used by nginx `auth_request`; accepts Bearer token header or `auth_token` cookie
 
 Protected:
-- `POST /auth/change-password` — Change password (authenticated)
+- `POST /auth/change-password` — Change password (requires email + old password)
 - `GET/POST/PUT/DELETE /users` — User CRUD
 - `GET /health` — Liveness/readiness probe
 

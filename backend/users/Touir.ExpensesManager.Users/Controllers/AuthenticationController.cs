@@ -1,8 +1,10 @@
 using Touir.ExpensesManager.Users.Controllers.EO;
 using Touir.ExpensesManager.Users.Controllers.Requests;
 using Touir.ExpensesManager.Users.Controllers.Responses;
+using Touir.ExpensesManager.Users.Infrastructure.Options;
 using Touir.ExpensesManager.Users.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace Touir.ExpensesManager.Users.Controllers
 {
@@ -13,15 +15,18 @@ namespace Touir.ExpensesManager.Users.Controllers
         private readonly IAuthenticationService _authenticationService;
         private readonly IRoleService _roleService;
         private readonly IApplicationService _applicationService;
+        private readonly JwtAuthOptions _jwtAuthOptions;
 
         public AuthenticationController(
-            IAuthenticationService authenticationService, 
-            IRoleService roleService, 
-            IApplicationService applicationService)
+            IAuthenticationService authenticationService,
+            IRoleService roleService,
+            IApplicationService applicationService,
+            IOptions<JwtAuthOptions> jwtAuthOptions)
         {
             _authenticationService = authenticationService;
             _roleService = roleService;
             _applicationService = applicationService;
+            _jwtAuthOptions = jwtAuthOptions.Value;
         }
 
         [Route("register")]
@@ -73,6 +78,14 @@ namespace Touir.ExpensesManager.Users.Controllers
                     return Unauthorized(new ErrorResponse { Message = "NO_ASSIGNED_ROLE" });
 
                 var token = _authenticationService.GenerateJwtToken(user.Id!.Value, user.Email);
+
+                Response.Cookies.Append("auth_token", token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.Strict,
+                    Path = "/",
+                    Expires = DateTimeOffset.UtcNow.AddMinutes(_jwtAuthOptions.ExpiryInMinutes)
+                });
 
                 return Ok(new LoginResponse
                 {
@@ -229,11 +242,17 @@ namespace Touir.ExpensesManager.Users.Controllers
         {
             try
             {
+                string? token = null;
+
                 var authorizationHeader = Request.Headers.Authorization.FirstOrDefault();
-                if (string.IsNullOrWhiteSpace(authorizationHeader) || !authorizationHeader.StartsWith("Bearer ", StringComparison.InvariantCultureIgnoreCase))
+                if (!string.IsNullOrWhiteSpace(authorizationHeader) && authorizationHeader.StartsWith("Bearer ", StringComparison.InvariantCultureIgnoreCase))
+                    token = authorizationHeader.Substring("Bearer ".Length).Trim();
+                else
+                    Request.Cookies.TryGetValue("auth_token", out token);
+
+                if (string.IsNullOrWhiteSpace(token))
                     return Unauthorized(new ErrorResponse { Message = "MISSING_TOKEN" });
 
-                var token = authorizationHeader.Substring("Bearer ".Length).Trim();
                 var validationResult = _authenticationService.ValidateToken(token);
 
                 if (!validationResult.IsValid)
@@ -245,6 +264,36 @@ namespace Touir.ExpensesManager.Users.Controllers
             {
                 return BadRequest(new ErrorResponse { Message = "SERVER_ERROR" });
             }
+        }
+
+        [Route("session")]
+        [HttpGet]
+        public IActionResult Session()
+        {
+            try
+            {
+                if (!Request.Cookies.TryGetValue("auth_token", out var token) || string.IsNullOrWhiteSpace(token))
+                    return Unauthorized(new ErrorResponse { Message = "MISSING_TOKEN" });
+
+                var validationResult = _authenticationService.ValidateToken(token);
+
+                if (!validationResult.IsValid)
+                    return Unauthorized(new ErrorResponse { Message = "INVALID_TOKEN" });
+
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return BadRequest(new ErrorResponse { Message = "SERVER_ERROR" });
+            }
+        }
+
+        [Route("logout")]
+        [HttpPost]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("auth_token");
+            return Ok();
         }
     }
 }

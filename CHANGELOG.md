@@ -3,6 +3,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.0] - 2026-03-22
+### Added
+- HttpOnly cookie-based authentication: the backend now sets `auth_token` as an `HttpOnly; SameSite=Strict; Secure` cookie on login and clears it on logout, eliminating the JWT XSS vulnerability.
+- `GET /auth/session` endpoint in users service: validates the HttpOnly cookie and returns 200/401, used by the frontend to restore session state on page load.
+- `isLoading` state in `AuthContext`: prevents `ProtectedRoute` and `PublicOnlyRoute` from incorrectly redirecting while session restore is in progress.
+
+### Fixed
+- JWT token no longer stored in `localStorage` — resolves critical XSS risk (Bug #3).
+- `api.ts` now passes `credentials: 'include'` on all requests to support cross-origin cookie forwarding.
+- nginx config updated to forward `Cookie` header in `/internal/auth/check` subrequest and include `Access-Control-Allow-Credentials: true` on all API location blocks.
+
+### Changed
+- `AuthContext` removed all token state (`token`, `setAuthToken`, JWT decode logic); login now stores only user info in localStorage for UI display.
+- All auth `post()` calls use `{ skipUnauthorized: true }` to prevent the global unauthorized handler from firing on expected 401 responses.
+
 ## [0.14.0] - 2026-03-22
 ### Added
 - `PublicOnlyRoute` component: redirects authenticated users to `/home` when accessing `/`, `/login`, or `/register`.

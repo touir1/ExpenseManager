@@ -2,13 +2,8 @@ type ApiResponse<T> = { ok: boolean; data?: T; status: number; error?: string }
 
 const API_BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
 
-let authToken: string | null = null
 let unauthorizedHandler: (() => void) | null = null
 let errorHandler: ((message: string) => void) | null = null
-
-export function setAuthToken(token: string | null) {
-  authToken = token
-}
 
 export function onUnauthorized(handler: (() => void) | null) {
   unauthorizedHandler = handler
@@ -22,30 +17,25 @@ async function parseJsonSafe(res: Response) {
   try { return await res.json() } catch { return undefined }
 }
 
-export async function request<T>(path: string, init: RequestInit = {}): Promise<ApiResponse<T>> {
+export async function request<T>(path: string, init: RequestInit = {}, opts: { skipUnauthorized?: boolean } = {}): Promise<ApiResponse<T>> {
   const headers: Record<string, string> = { ...(init.headers as any) }
-  // Set JSON content type if a body is provided and not already set
   if (init.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json'
-  if (authToken) headers['Authorization'] = `Bearer ${authToken}`
 
   const url = `${API_BASE}${path}`
   try {
-    const res = await fetch(url, { ...init, headers })
+    const res = await fetch(url, { ...init, headers, credentials: 'include' })
     const status = res.status
     const ok = res.ok
     const data = await parseJsonSafe(res)
 
-    if (status === 401) {
-      // Auto-logout + redirect if configured
+    if (status === 401 && !opts.skipUnauthorized) {
       if (unauthorizedHandler) unauthorizedHandler()
-      // Fallback redirect to login if no handler provided
       if (!unauthorizedHandler) window.location.assign('/login')
       return { ok: false, status, error: 'Unauthorized' }
     }
 
     if (!ok) {
       let msg = (data && (data.error || data.message)) || res.statusText || 'Request failed'
-      // Friendly messages by status
       if (status >= 500) {
         msg = 'Server error, please retry later.'
       } else if (status === 404) {
@@ -73,8 +63,8 @@ export async function get<T>(path: string): Promise<ApiResponse<T>> {
   return request<T>(path, { method: 'GET' })
 }
 
-export async function post<T>(path: string, body: unknown): Promise<ApiResponse<T>> {
-  return request<T>(path, { method: 'POST', body: JSON.stringify(body) })
+export async function post<T>(path: string, body: unknown, opts: { skipUnauthorized?: boolean } = {}): Promise<ApiResponse<T>> {
+  return request<T>(path, { method: 'POST', body: JSON.stringify(body) }, opts)
 }
 
 export async function put<T>(path: string, body: unknown): Promise<ApiResponse<T>> {

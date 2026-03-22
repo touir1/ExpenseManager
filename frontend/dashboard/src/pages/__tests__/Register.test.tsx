@@ -117,7 +117,7 @@ describe('Register page', () => {
     )
 
     expect(screen.queryByText(/registered successfully/i)).not.toBeInTheDocument()
-    expect(screen.queryByText(/please fill all fields correctly/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/all fields are required/i)).not.toBeInTheDocument()
   })
 
   it('shows success message after successful registration', async () => {
@@ -172,10 +172,47 @@ describe('Register page', () => {
     expect(screen.getByText('Registered successfully. You can now log in.')).toBeInTheDocument()
 
     act(() => {
-      vi.advanceTimersByTime(800)
+      vi.advanceTimersByTime(2000)
     })
 
     expect(mockNavigate).toHaveBeenCalledWith('/login')
+  })
+
+  it('shows error when email format is invalid', async () => {
+    mockUseAuth.mockReturnValue({ register: mockRegister })
+
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>
+    )
+
+    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Jane' } })
+    fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'Smith' } })
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'notanemail' } })
+    fireEvent.submit(screen.getByRole('button', { name: /register/i }).closest('form')!)
+
+    await waitFor(() => {
+      expect(screen.getByText('Please enter a valid email address.')).toBeInTheDocument()
+    })
+    expect(mockRegister).not.toHaveBeenCalled()
+  })
+
+  it('shows error when fields are empty', async () => {
+    mockUseAuth.mockReturnValue({ register: mockRegister })
+
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>
+    )
+
+    fireEvent.submit(screen.getByRole('button', { name: /register/i }).closest('form')!)
+
+    await waitFor(() => {
+      expect(screen.getByText('All fields are required.')).toBeInTheDocument()
+    })
+    expect(mockRegister).not.toHaveBeenCalled()
   })
 
   it('shows error message when registration fails', async () => {
@@ -188,22 +225,17 @@ describe('Register page', () => {
       </MemoryRouter>
     )
 
-    const firstNameInput = screen.getByLabelText(/first name/i)
-    const lastNameInput = screen.getByLabelText(/last name/i)
-    const emailInput = screen.getByLabelText(/email/i)
-    const form = screen.getByRole('button', { name: /register/i }).closest('form')!
-
-    fireEvent.change(firstNameInput, { target: { value: 'Jane' } })
-    fireEvent.change(lastNameInput, { target: { value: 'Smith' } })
-    fireEvent.change(emailInput, { target: { value: 'invalid' } })
-    fireEvent.submit(form)
+    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Jane' } })
+    fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'Smith' } })
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'jane@example.com' } })
+    fireEvent.submit(screen.getByRole('button', { name: /register/i }).closest('form')!)
 
     await waitFor(() => {
-      expect(mockRegister).toHaveBeenCalledWith('Jane', 'Smith', 'invalid')
+      expect(mockRegister).toHaveBeenCalledWith('Jane', 'Smith', 'jane@example.com')
     })
 
     await waitFor(() => {
-      expect(screen.getByText('Please fill all fields correctly.')).toBeInTheDocument()
+      expect(screen.getByText('Registration failed. Please try again.')).toBeInTheDocument()
     })
   })
 })

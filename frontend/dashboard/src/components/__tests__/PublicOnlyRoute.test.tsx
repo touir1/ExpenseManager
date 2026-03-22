@@ -14,8 +14,25 @@ describe('PublicOnlyRoute', () => {
     vi.clearAllMocks()
   })
 
+  it('renders nothing when isLoading is true', () => {
+    mockUseAuth.mockReturnValue({ isAuthenticated: false, isLoading: true })
+
+    const { container } = render(
+      <MemoryRouter initialEntries={['/login']}>
+        <Routes>
+          <Route path="/home" element={<div>Home Dashboard</div>} />
+          <Route path="/login" element={<PublicOnlyRoute><div>Login Page</div></PublicOnlyRoute>} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    expect(container).toBeEmptyDOMElement()
+    expect(screen.queryByText('Login Page')).not.toBeInTheDocument()
+    expect(screen.queryByText('Home Dashboard')).not.toBeInTheDocument()
+  })
+
   it('renders children when unauthenticated', () => {
-    mockUseAuth.mockReturnValue({ isAuthenticated: false })
+    mockUseAuth.mockReturnValue({ isAuthenticated: false, isLoading: false })
 
     render(
       <MemoryRouter initialEntries={['/login']}>
@@ -29,7 +46,7 @@ describe('PublicOnlyRoute', () => {
   })
 
   it('redirects to /home when authenticated', () => {
-    mockUseAuth.mockReturnValue({ isAuthenticated: true })
+    mockUseAuth.mockReturnValue({ isAuthenticated: true, isLoading: false })
 
     render(
       <MemoryRouter initialEntries={['/login']}>
@@ -45,7 +62,7 @@ describe('PublicOnlyRoute', () => {
   })
 
   it('redirects from /register to /home when authenticated', () => {
-    mockUseAuth.mockReturnValue({ isAuthenticated: true })
+    mockUseAuth.mockReturnValue({ isAuthenticated: true, isLoading: false })
 
     render(
       <MemoryRouter initialEntries={['/register']}>
@@ -61,7 +78,7 @@ describe('PublicOnlyRoute', () => {
   })
 
   it('redirects from / to /home when authenticated', () => {
-    mockUseAuth.mockReturnValue({ isAuthenticated: true })
+    mockUseAuth.mockReturnValue({ isAuthenticated: true, isLoading: false })
 
     render(
       <MemoryRouter initialEntries={['/']}>

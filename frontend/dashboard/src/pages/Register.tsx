@@ -13,14 +13,25 @@ export default function Register() {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
+    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
+      setIsSuccess(false)
+      setMessage('All fields are required.')
+      return
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email.trim())) {
+      setIsSuccess(false)
+      setMessage('Please enter a valid email address.')
+      return
+    }
     const ok = await register(firstName, lastName, email)
     if (ok) {
       setIsSuccess(true)
       setMessage('Registered successfully. You can now log in.')
-      setTimeout(() => navigate('/login'), 800)
+      setTimeout(() => navigate('/login'), 2000)
     } else {
       setIsSuccess(false)
-      setMessage('Please fill all fields correctly.')
+      setMessage('Registration failed. Please try again.')
     }
   }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { request, get, post, put, del, setAuthToken, onUnauthorized, onError } from '@/api'
+import { request, get, post, put, del, onUnauthorized, onError } from '@/api'
 
 // Mock fetch globally
 const mockFetch = vi.fn()
@@ -8,7 +8,6 @@ globalThis.fetch = mockFetch as any
 describe('API utilities', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    setAuthToken(null)
     onUnauthorized(null)
     onError(null)
   })
@@ -32,8 +31,7 @@ describe('API utilities', () => {
       expect(result.data).toEqual({ id: 1, name: 'Test' })
     })
 
-    it('includes auth token in headers when set', async () => {
-      setAuthToken('test-token-123')
+    it('includes credentials: include on every request', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
         status: 200,
@@ -44,11 +42,7 @@ describe('API utilities', () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.any(String),
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            Authorization: 'Bearer test-token-123'
-          })
-        })
+        expect.objectContaining({ credentials: 'include' })
       )
     })
 
@@ -87,6 +81,23 @@ describe('API utilities', () => {
       expect(result.ok).toBe(false)
       expect(result.status).toBe(401)
       expect(result.error).toBe('Unauthorized')
+    })
+
+    it('skips unauthorized handler on 401 when skipUnauthorized is true', async () => {
+      const unauthorizedHandler = vi.fn()
+      onUnauthorized(unauthorizedHandler)
+
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 401,
+        json: async () => ({})
+      })
+
+      const result = await request('/auth/login', {}, { skipUnauthorized: true })
+
+      expect(unauthorizedHandler).not.toHaveBeenCalled()
+      expect(result.ok).toBe(false)
+      expect(result.status).toBe(401)
     })
 
     it('redirects to /login on 401 when no unauthorized handler is set', async () => {
@@ -329,42 +340,4 @@ describe('API utilities', () => {
     })
   })
 
-  describe('setAuthToken', () => {
-    it('sets auth token', async () => {
-      setAuthToken('my-token')
-
-      mockFetch.mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({})
-      })
-
-      await request('/test')
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            Authorization: 'Bearer my-token'
-          })
-        })
-      )
-    })
-
-    it('clears auth token when set to null', async () => {
-      setAuthToken('token')
-      setAuthToken(null)
-
-      mockFetch.mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({})
-      })
-
-      await request('/test')
-
-      const call = mockFetch.mock.calls[0][1]
-      expect(call.headers.Authorization).toBeUndefined()
-    })
-  })
 })
