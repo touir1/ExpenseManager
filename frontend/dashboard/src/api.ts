@@ -17,6 +17,15 @@ async function parseJsonSafe(res: Response) {
   try { return await res.json() } catch { return undefined }
 }
 
+function getErrorMessage(status: number, data: any, statusText: string): string {
+  if (status >= 500) return 'Server error, please retry later.'
+  if (status === 429) return 'Too many requests. Please wait and try again.'
+  if (status === 404) return 'Resource not found.'
+  if (status === 403) return 'Access denied. You might not have permission.'
+  if (status === 400) return 'Invalid request. Please check your input.'
+  return (data?.error || data?.message) || statusText || 'Request failed'
+}
+
 export async function request<T>(path: string, init: RequestInit = {}, opts: { skipUnauthorized?: boolean } = {}): Promise<ApiResponse<T>> {
   const headers: Record<string, string> = { ...(init.headers as any) }
   if (init.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json'
@@ -25,34 +34,22 @@ export async function request<T>(path: string, init: RequestInit = {}, opts: { s
   try {
     const res = await fetch(url, { ...init, headers, credentials: 'include' })
     const status = res.status
-    const ok = res.ok
     const data = await parseJsonSafe(res)
 
     if (status === 401 && !opts.skipUnauthorized) {
       if (unauthorizedHandler) unauthorizedHandler()
-      if (!unauthorizedHandler) window.location.assign('/login')
+      else window.location.assign('/login')
       return { ok: false, status, error: 'Unauthorized' }
     }
 
-    if (!ok) {
-      let msg = (data && (data.error || data.message)) || res.statusText || 'Request failed'
-      if (status >= 500) {
-        msg = 'Server error, please retry later.'
-      } else if (status === 404) {
-        msg = 'Resource not found.'
-      } else if (status === 400) {
-        msg = 'Invalid request. Please check your input.'
-      } else if (status === 403) {
-        msg = 'Access denied. You might not have permission.'
-      } else if (status === 429) {
-        msg = 'Too many requests. Please wait and try again.'
-      }
+    if (!res.ok) {
+      const msg = getErrorMessage(status, data, res.statusText)
       if (errorHandler) errorHandler(msg)
-      return { ok, status, error: msg }
+      return { ok: false, status, error: msg }
     }
 
-    return { ok, status, data }
-  } catch (err: any) {
+    return { ok: true, status, data }
+  } catch {
     const msg = 'Network error. Please check your connection and try again.'
     if (errorHandler) errorHandler(msg)
     return { ok: false, status: 0, error: msg }

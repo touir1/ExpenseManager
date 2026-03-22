@@ -230,9 +230,10 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
 
             await controller.LoginAsync(request);
 
-            Assert.True(httpContext.Response.Headers.ContainsKey("Set-Cookie"));
-            Assert.Contains("auth_token", httpContext.Response.Headers["Set-Cookie"].ToString());
-            Assert.Contains("httponly", httpContext.Response.Headers["Set-Cookie"].ToString(), StringComparison.OrdinalIgnoreCase);
+            Assert.NotEmpty(httpContext.Response.Headers.SetCookie);
+            Assert.Contains("auth_token", httpContext.Response.Headers.SetCookie.ToString());
+            Assert.Contains("httponly", httpContext.Response.Headers.SetCookie.ToString(), StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("secure", httpContext.Response.Headers.SetCookie.ToString(), StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -738,7 +739,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             mockAuthService.Setup(s => s.ValidateToken("invalid_cookie_token")).Returns(new Microsoft.IdentityModel.Tokens.TokenValidationResult { IsValid = false });
             var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var httpContext = new DefaultHttpContext();
-            httpContext.Request.Headers["Cookie"] = "auth_token=invalid_cookie_token";
+            httpContext.Request.Headers.Cookie = "auth_token=invalid_cookie_token";
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             var result = controller.Check();
@@ -755,7 +756,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             mockAuthService.Setup(s => s.ValidateToken("valid_cookie_token")).Returns(new Microsoft.IdentityModel.Tokens.TokenValidationResult { IsValid = true });
             var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var httpContext = new DefaultHttpContext();
-            httpContext.Request.Headers["Cookie"] = "auth_token=valid_cookie_token";
+            httpContext.Request.Headers.Cookie = "auth_token=valid_cookie_token";
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             var result = controller.Check();
@@ -787,7 +788,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             mockAuthService.Setup(s => s.ValidateToken("invalid_token")).Returns(new Microsoft.IdentityModel.Tokens.TokenValidationResult { IsValid = false });
             var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var httpContext = new DefaultHttpContext();
-            httpContext.Request.Headers["Cookie"] = "auth_token=invalid_token";
+            httpContext.Request.Headers.Cookie = "auth_token=invalid_token";
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             var result = controller.Session();
@@ -804,7 +805,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             mockAuthService.Setup(s => s.ValidateToken("valid_token")).Returns(new Microsoft.IdentityModel.Tokens.TokenValidationResult { IsValid = true });
             var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var httpContext = new DefaultHttpContext();
-            httpContext.Request.Headers["Cookie"] = "auth_token=valid_token";
+            httpContext.Request.Headers.Cookie = "auth_token=valid_token";
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             var result = controller.Session();
@@ -819,7 +820,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             mockAuthService.Setup(s => s.ValidateToken(It.IsAny<string>())).Throws(new Exception("Unexpected error"));
             var controller = new AuthenticationController(mockAuthService.Object, Mock.Of<IRoleService>(), Mock.Of<IApplicationService>(), Options.Create(new JwtAuthOptions()));
             var httpContext = new DefaultHttpContext();
-            httpContext.Request.Headers["Cookie"] = "auth_token=some_token";
+            httpContext.Request.Headers.Cookie = "auth_token=some_token";
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
 
             var result = controller.Session();
@@ -843,8 +844,8 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var result = controller.Logout();
 
             Assert.IsType<OkResult>(result);
-            Assert.True(httpContext.Response.Headers.ContainsKey("Set-Cookie"));
-            Assert.Contains("auth_token", httpContext.Response.Headers["Set-Cookie"].ToString());
+            Assert.NotEmpty(httpContext.Response.Headers.SetCookie);
+            Assert.Contains("auth_token", httpContext.Response.Headers.SetCookie.ToString());
         }
 
         #endregion

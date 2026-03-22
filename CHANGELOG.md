@@ -3,29 +3,26 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.15.0] - 2026-03-22
+## [0.14.0] - 2026-03-22
 ### Added
-- HttpOnly cookie-based authentication: the backend now sets `auth_token` as an `HttpOnly; SameSite=Strict; Secure` cookie on login and clears it on logout, eliminating the JWT XSS vulnerability.
+- HttpOnly cookie-based authentication: the backend now sets `auth_token` as an `HttpOnly; Secure; SameSite=Strict` cookie on login and clears it on logout, eliminating the JWT XSS vulnerability.
 - `GET /auth/session` endpoint in users service: validates the HttpOnly cookie and returns 200/401, used by the frontend to restore session state on page load.
 - `isLoading` state in `AuthContext`: prevents `ProtectedRoute` and `PublicOnlyRoute` from incorrectly redirecting while session restore is in progress.
+- `PublicOnlyRoute` component: redirects authenticated users to `/home` when accessing `/`, `/login`, or `/register`.
 
 ### Fixed
 - JWT token no longer stored in `localStorage` — resolves critical XSS risk (Bug #3).
 - `api.ts` now passes `credentials: 'include'` on all requests to support cross-origin cookie forwarding.
+- `api.ts` `request()` cognitive complexity reduced from 21 to 13 (SonarQube gate): extracted `getErrorMessage()` helper and simplified the unauthorized handler to `if/else`.
+- `AuthenticationController` `auth_token` cookie now sets `Secure = true` (SonarQube gate).
 - nginx config updated to forward `Cookie` header in `/internal/auth/check` subrequest and include `Access-Control-Allow-Credentials: true` on all API location blocks.
+- `changePassword` now includes the user's email in the request body, resolving a 400 validation error from the API.
 
 ### Changed
 - `AuthContext` removed all token state (`token`, `setAuthToken`, JWT decode logic); login now stores only user info in localStorage for UI display.
 - All auth `post()` calls use `{ skipUnauthorized: true }` to prevent the global unauthorized handler from firing on expected 401 responses.
-
-## [0.14.0] - 2026-03-22
-### Added
-- `PublicOnlyRoute` component: redirects authenticated users to `/home` when accessing `/`, `/login`, or `/register`.
-
-### Fixed
-- `changePassword` now includes the user's email in the request body, resolving a 400 validation error from the API.
-
-### Changed
+- `AuthenticationController`: extracted cookie name into `private const string AuthTokenCookie = "auth_token"` to eliminate magic string duplication (SonarQube gate).
+- `AuthenticationControllerTests`: updated cookie assertions to use `Headers.SetCookie` and `Headers.Cookie` typed properties instead of string indexers (SonarQube recommendations).
 - Dashboard welcome message now displays the user's first name instead of their email address, falling back to email if first name is unavailable.
 - `AuthContext` user type extended with optional `firstName` field, populated from the login API response.
 

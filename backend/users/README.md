@@ -21,7 +21,7 @@ Service runs on port **9100** by default. Configuration via `appsettings.json` a
 ## Key Endpoints
 
 Public (no auth required, accessible via `/api/users/auth/` through nginx):
-- `POST /auth/login` — Authenticate user; sets `auth_token` as an `HttpOnly; SameSite=Strict` cookie and returns user info
+- `POST /auth/login` — Authenticate user; sets `auth_token` as an `HttpOnly; Secure; SameSite=Strict` cookie and returns user info
 - `POST /auth/logout` — Clear the `auth_token` cookie
 - `GET  /auth/session` — Validate the `auth_token` cookie; returns 200 if valid, 401 otherwise (used for session restore on page load)
 - `POST /auth/register` — User registration

@@ -12,6 +12,8 @@ namespace Touir.ExpensesManager.Users.Controllers
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
+        private const string AuthTokenCookie = "auth_token";
+
         private readonly IAuthenticationService _authenticationService;
         private readonly IRoleService _roleService;
         private readonly IApplicationService _applicationService;
@@ -79,9 +81,10 @@ namespace Touir.ExpensesManager.Users.Controllers
 
                 var token = _authenticationService.GenerateJwtToken(user.Id!.Value, user.Email);
 
-                Response.Cookies.Append("auth_token", token, new CookieOptions
+                Response.Cookies.Append(AuthTokenCookie, token, new CookieOptions
                 {
                     HttpOnly = true,
+                    Secure = true,
                     SameSite = SameSiteMode.Strict,
                     Path = "/",
                     Expires = DateTimeOffset.UtcNow.AddMinutes(_jwtAuthOptions.ExpiryInMinutes)
@@ -248,7 +251,7 @@ namespace Touir.ExpensesManager.Users.Controllers
                 if (!string.IsNullOrWhiteSpace(authorizationHeader) && authorizationHeader.StartsWith("Bearer ", StringComparison.InvariantCultureIgnoreCase))
                     token = authorizationHeader.Substring("Bearer ".Length).Trim();
                 else
-                    Request.Cookies.TryGetValue("auth_token", out token);
+                    Request.Cookies.TryGetValue(AuthTokenCookie, out token);
 
                 if (string.IsNullOrWhiteSpace(token))
                     return Unauthorized(new ErrorResponse { Message = "MISSING_TOKEN" });
@@ -272,7 +275,7 @@ namespace Touir.ExpensesManager.Users.Controllers
         {
             try
             {
-                if (!Request.Cookies.TryGetValue("auth_token", out var token) || string.IsNullOrWhiteSpace(token))
+                if (!Request.Cookies.TryGetValue(AuthTokenCookie, out var token) || string.IsNullOrWhiteSpace(token))
                     return Unauthorized(new ErrorResponse { Message = "MISSING_TOKEN" });
 
                 var validationResult = _authenticationService.ValidateToken(token);
@@ -292,7 +295,7 @@ namespace Touir.ExpensesManager.Users.Controllers
         [HttpPost]
         public IActionResult Logout()
         {
-            Response.Cookies.Delete("auth_token");
+            Response.Cookies.Delete(AuthTokenCookie);
             return Ok();
         }
     }
