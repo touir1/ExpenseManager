@@ -295,6 +295,7 @@ describe('AuthContext', () => {
       expect(api.post).toHaveBeenCalledWith(
         `${AUTH_BASE}/change-password`,
         {
+          email: undefined,
           oldPassword: 'oldpass',
           newPassword: 'newpass',
           confirmPassword: 'newpass'
