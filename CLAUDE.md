@@ -162,7 +162,8 @@ ExpenseManager/
 ├── CLAUDE.md                          — Claude Code instructions (this file)
 ├── LICENSE                            — Project license
 ├── README.md                          — Main project README
-├── frontend-dashboard-test-result.md  — Frontend test results summary
+├── qa/
+│   └── 2026-03-22-frontend-dashboard-qa.md  — Frontend dashboard QA report (bugs, UX issues, fixes)
 │
 ├── backend/
 │   ├── dashboard/
