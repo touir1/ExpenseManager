@@ -38,7 +38,7 @@ export async function request<T>(path: string, init: RequestInit = {}, opts: { s
 
     if (status === 401 && !opts.skipUnauthorized) {
       if (unauthorizedHandler) unauthorizedHandler()
-      else window.location.assign('/login')
+      else globalThis.location.assign('/login')
       return { ok: false, status, error: 'Unauthorized' }
     }
 

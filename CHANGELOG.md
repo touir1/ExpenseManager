@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - `api.ts` now passes `credentials: 'include'` on all requests to support cross-origin cookie forwarding.
 - `api.ts` `request()` cognitive complexity reduced from 21 to 13 (SonarQube gate): extracted `getErrorMessage()` helper and simplified the unauthorized handler to `if/else`.
 - `AuthenticationController` `auth_token` cookie now sets `Secure = true` (SonarQube gate).
+- `api.ts` login redirect changed from `window.location.assign` to `globalThis.location.assign` (SonarQube gate: prefer `globalThis` over `window`).
 - nginx config updated to forward `Cookie` header in `/internal/auth/check` subrequest and include `Access-Control-Allow-Credentials: true` on all API location blocks.
 - `changePassword` now includes the user's email in the request body, resolving a 400 validation error from the API.
 
