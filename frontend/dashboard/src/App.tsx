@@ -4,6 +4,7 @@ import { AuthProvider } from '@/auth/AuthContext'
 import { ToastProvider, useToast } from '@/components/Toast'
 import { onError } from '@/api'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import PublicOnlyRoute from '@/components/PublicOnlyRoute'
 import NavBar from '@/components/NavBar'
 import HomePublic from '@/pages/HomePublic'
 import HomeDashboard from '@/pages/HomeDashboard'
@@ -24,15 +25,15 @@ export default function App() {
             <main className="flex-1 flex flex-col">
               <Routes>
                 {/* Public */}
-                <Route path="/" element={<HomePublic />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
+                <Route path="/" element={<PublicOnlyRoute><HomePublic /></PublicOnlyRoute>} />
+                <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
+                <Route path="/register" element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/request-password-reset" element={<RequestPasswordReset />} />
 
                 {/* Private */}
                 <Route
-                  path="/home-auth"
+                  path="/home"
                   element={
                     <ProtectedRoute>
                       <HomeDashboard />

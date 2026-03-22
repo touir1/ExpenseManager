@@ -28,7 +28,7 @@ export default function NavBar() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
         {/* Logo */}
         <Link
-          to={isAuthenticated ? '/home-auth' : '/'}
+          to={isAuthenticated ? '/home' : '/'}
           className="flex items-center gap-1.5 shrink-0"
         >
           {/* Minimal icon mark */}
@@ -57,7 +57,7 @@ export default function NavBar() {
         <nav className="hidden sm:flex items-center gap-1">
           {isAuthenticated ? (
             <>
-              <Link to="/home-auth" className={linkClass('/home-auth')}>
+              <Link to="/home" className={linkClass('/home')}>
                 Dashboard
               </Link>
               <Link to="/change-password" className={linkClass('/change-password')}>
@@ -117,8 +117,8 @@ export default function NavBar() {
           {isAuthenticated ? (
             <>
               <Link
-                to="/home-auth"
-                className={linkClass('/home-auth')}
+                to="/home"
+                className={linkClass('/home')}
                 onClick={() => setMobileOpen(false)}
               >
                 Dashboard

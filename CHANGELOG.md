@@ -3,6 +3,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.0] - 2026-03-22
+### Added
+- `PublicOnlyRoute` component: redirects authenticated users to `/home` when accessing `/`, `/login`, or `/register`.
+
+### Fixed
+- `changePassword` now includes the user's email in the request body, resolving a 400 validation error from the API.
+
+### Changed
+- Dashboard welcome message now displays the user's first name instead of their email address, falling back to email if first name is unavailable.
+- `AuthContext` user type extended with optional `firstName` field, populated from the login API response.
+
 ## [0.13.0] - 2026-03-21
 ### Added
 - Tailwind CSS v3 integrated into the frontend dashboard (PostCSS pipeline, `tailwind.config.ts` with custom design system: indigo brand palette, Inter font, surface tokens, custom shadows).

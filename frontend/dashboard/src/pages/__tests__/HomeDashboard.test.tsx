@@ -28,7 +28,19 @@ describe('HomeDashboard', () => {
     expect(screen.getByRole('heading', { name: /dashboard/i })).toBeInTheDocument()
   })
 
-  it('displays user email', () => {
+  it('displays firstName when available', () => {
+    mockUseAuth.mockReturnValue({ user: { email: 'john@example.com', firstName: 'John' }, logout: mockLogout })
+
+    render(
+      <MemoryRouter>
+        <HomeDashboard />
+      </MemoryRouter>
+    )
+
+    expect(screen.getByText(/welcome john!/i)).toBeInTheDocument()
+  })
+
+  it('falls back to email when firstName is not available', () => {
     mockUseAuth.mockReturnValue({ user: { email: 'john@example.com' }, logout: mockLogout })
 
     render(

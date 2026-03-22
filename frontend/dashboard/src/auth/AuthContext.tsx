@@ -3,7 +3,7 @@ import { post, setAuthToken, onUnauthorized } from '@/api'
 
 export type AuthContextValue = {
   isAuthenticated: boolean
-  user: { email: string } | null
+  user: { email: string; firstName?: string } | null
   token?: string | null
   login: (email: string, password: string) => Promise<boolean>
   logout: () => void
@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     return t
   })
-  const [user, setUser] = useState<{ email: string } | null>(() => {
+  const [user, setUser] = useState<{ email: string; firstName?: string } | null>(() => {
     const u = localStorage.getItem('auth:user')
     if (u) {
       try { return JSON.parse(u) } catch { /* ignore */ }
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [token, user])
 
   const login: AuthContextValue['login'] = async (email, password) => {
-    const { ok, data } = await post<{ token: string; user?: { email: string } }>(
+    const { ok, data } = await post<{ token: string; user?: { email: string; firstName?: string } }>(
       `${AUTH_BASE}/login`,
       { email, password, applicationCode: APPLICATION_CODE }
     )
@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const changePassword: AuthContextValue['changePassword'] = async (oldPassword, newPassword, repeatPassword) => {
     if (!oldPassword || !newPassword || newPassword !== repeatPassword) return false
-    const { ok } = await post<unknown>(`${AUTH_BASE}/change-password`, { oldPassword, newPassword, confirmPassword: repeatPassword })
+    const { ok } = await post<unknown>(`${AUTH_BASE}/change-password`, { email: user?.email, oldPassword, newPassword, confirmPassword: repeatPassword })
     return ok
   }
 

@@ -18,10 +18,10 @@ describe('ProtectedRoute', () => {
     mockUseAuth.mockReturnValue({ isAuthenticated: false })
 
     render(
-      <MemoryRouter initialEntries={["/home-auth"]}>
+      <MemoryRouter initialEntries={["/home"]}>
         <Routes>
           <Route path="/login" element={<div>Login Page</div>} />
-          <Route path="/home-auth" element={<ProtectedRoute><div>Private</div></ProtectedRoute>} />
+          <Route path="/home" element={<ProtectedRoute><div>Private</div></ProtectedRoute>} />
         </Routes>
       </MemoryRouter>
     )
@@ -34,9 +34,9 @@ describe('ProtectedRoute', () => {
     mockUseAuth.mockReturnValue({ isAuthenticated: true })
 
     render(
-      <MemoryRouter initialEntries={["/home-auth"]}>
+      <MemoryRouter initialEntries={["/home"]}>
         <Routes>
-          <Route path="/home-auth" element={<ProtectedRoute><div>Private</div></ProtectedRoute>} />
+          <Route path="/home" element={<ProtectedRoute><div>Private</div></ProtectedRoute>} />
         </Routes>
       </MemoryRouter>
     )

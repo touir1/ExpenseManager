@@ -37,11 +37,11 @@ VITE_API_BASE="https://api.example.com"
 | `/register` | Public | Register — first name, last name, email |
 | `/request-password-reset` | Public | RequestPasswordReset |
 | `/reset-password` | Public | ResetPassword — prefilled from `?email` and `?h` query params |
-| `/home-auth` | Private | HomeDashboard |
+| `/home` | Private | HomeDashboard |
 | `/change-password` | Private | ChangePassword — old + new + repeat |
 | `*` | Public | Redirects to HomePublic |
 
-Private routes are guarded by `ProtectedRoute`, which checks JWT auth state from `AuthContext`.
+Private routes are guarded by `ProtectedRoute`, which checks JWT auth state from `AuthContext`. Public routes (`/`, `/login`, `/register`) are wrapped with `PublicOnlyRoute`, which redirects already-authenticated users to `/home`.
 
 ## Commands
 
@@ -78,7 +78,8 @@ src/
     AuthContext.tsx        # JWT auth state and context
   components/
     NavBar.tsx             # Auth-aware responsive navigation
-    ProtectedRoute.tsx     # Route guard (redirects to /login)
+    ProtectedRoute.tsx     # Route guard (redirects to /login when unauthenticated)
+    PublicOnlyRoute.tsx    # Route guard (redirects to /home when authenticated)
     Toast.tsx              # Notification toasts
     __tests__/
   pages/
