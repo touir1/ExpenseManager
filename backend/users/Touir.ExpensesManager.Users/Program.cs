@@ -90,6 +90,8 @@ builder.Services.Configure<EmailOptions>(c =>
                 Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_EMAILAUTH_HOST")) ?? "smtp.gmail.com";
     c.Port = int.Parse(builder.Configuration.GetValue("EmailAuth:Port",
                     Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_EMAILAUTH_PORT")) ?? "587");
+    c.EnableSsl = bool.Parse(builder.Configuration.GetValue("EmailAuth:EnableSsl",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_EMAILAUTH_ENABLESSL")) ?? "true");
 });
 
 builder.Services.Configure<AuthenticationServiceOptions>(c =>

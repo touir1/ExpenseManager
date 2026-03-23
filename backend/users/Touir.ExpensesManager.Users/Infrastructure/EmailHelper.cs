@@ -13,12 +13,14 @@ namespace Touir.ExpensesManager.Users.Infrastructure
         private readonly string? _senderPassword;
         private readonly string? _host;
         private readonly int? _port;
-        public EmailHelper(IOptions<EmailOptions> emailOptions) 
+        private readonly bool _enableSsl;
+        public EmailHelper(IOptions<EmailOptions> emailOptions)
         {
             this._sender = emailOptions.Value.Email;
             this._senderPassword = emailOptions.Value.Password;
             this._host = emailOptions.Value.Host;
             this._port = emailOptions.Value.Port;
+            this._enableSsl = emailOptions.Value.EnableSsl;
         }
 
         public bool SendEmail(
@@ -37,7 +39,7 @@ namespace Touir.ExpensesManager.Users.Infrastructure
                     client.Port = _port!.Value;
                     client.DeliveryMethod = SmtpDeliveryMethod.Network;
                     client.UseDefaultCredentials = false;
-                    client.EnableSsl = true;
+                    client.EnableSsl = _enableSsl;
                     client.Credentials = new NetworkCredential(_sender, _senderPassword);
 
                     using (var message = new MailMessage())

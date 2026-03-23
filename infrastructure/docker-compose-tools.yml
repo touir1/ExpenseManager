@@ -8,6 +8,15 @@ networks:
     external: true
 
 services:
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    networks:
+      - expenses_manager_tools_net
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:8025"  # Web UI port
+
   rabbitmq:
     container_name: rabbitmq
     image: rabbitmq:3.9.9-management
