@@ -9,14 +9,15 @@ namespace Touir.ExpensesManager.Users.Tests.Infrastructure
 {
     public class EmailHelperTests
     {
-        private static EmailHelper CreateEmailHelper()
+        private static EmailHelper CreateEmailHelper(bool enableSsl = true)
         {
-            var options = Options.Create(new EmailOptions 
-            { 
-                Email = "sender@test.com", 
-                Password = "pass", 
-                Host = "smtp.test.com", 
-                Port = 587 
+            var options = Options.Create(new EmailOptions
+            {
+                Email = "sender@test.com",
+                Password = "pass",
+                Host = "smtp.test.com",
+                Port = 587,
+                EnableSsl = enableSsl
             });
             return new EmailHelper(options);
         }
@@ -310,6 +311,21 @@ namespace Touir.ExpensesManager.Users.Tests.Infrastructure
             // Call with all defaults (all nulls)
             var result = helper.SendEmail();
             
+            Assert.False(result);
+        }
+
+        [Fact]
+        public void SendEmail_ReturnsFalse_WhenSmtpConnectionFails_WithSslDisabled()
+        {
+            // Simulates Mailpit / dev SMTP with EnableSsl=false
+            var helper = CreateEmailHelper(enableSsl: false);
+
+            var result = helper.SendEmail(
+                recipientTo: "test@example.com",
+                emailSubject: "Test Subject",
+                emailBody: "Test Body"
+            );
+
             Assert.False(result);
         }
 

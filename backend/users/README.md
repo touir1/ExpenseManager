@@ -35,6 +35,20 @@ Protected:
 - `GET/POST/PUT/DELETE /users` — User CRUD
 - `GET /health` — Liveness/readiness probe
 
+## Email Configuration
+
+Configured via environment variables:
+
+| Variable | Description | Default |
+|---|---|---|
+| `EXPENSES_MANAGEMENT_USERS_EMAILAUTH_HOST` | SMTP server hostname | `smtp.gmail.com` |
+| `EXPENSES_MANAGEMENT_USERS_EMAILAUTH_PORT` | SMTP server port | `587` |
+| `EXPENSES_MANAGEMENT_USERS_EMAILAUTH_EMAIL` | Sender address | — |
+| `EXPENSES_MANAGEMENT_USERS_EMAILAUTH_PASSWORD` | SMTP password | — |
+| `EXPENSES_MANAGEMENT_USERS_EMAILAUTH_ENABLESSL` | Enable SSL/TLS on the SMTP connection | `true` |
+
+For local development, [Mailpit](https://mailpit.axllent.org/) is included in the tools Docker Compose stack (`host.docker.internal:1025`, `EnableSsl=false`). The web UI is available at `http://localhost:8025`.
+
 ## Database Schema
 
 Manages tables: `USR_Users`, `ATH_Authentications`, `RLE_Roles`, `APP_Applications`, `RQA_RequestAccesses`, `RRA_RoleRequestAccesses`, `URR_UserRoles`, `ALW_AllowedOrigins`
