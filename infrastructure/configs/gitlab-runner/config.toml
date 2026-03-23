@@ -15,6 +15,7 @@ concurrent = 1
     shm_size = 256000000
     volumes = ["/cache"]
     extra_hosts = ["gitlab:172.50.0.10", "sonarqube:172.50.0.20", "minio:172.50.0.30", "jobs-runner:172.50.0.40"]
+    dns = ["8.8.8.8", "8.8.4.4"]
 
   [runners.cache]
     Type = "s3"
