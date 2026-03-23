@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
 - `EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_VERIFY_EMAIL_URL` corrected in `.env` from `localhost:9100/api/auth/validate-email` to `localhost/api/users/auth/validate-email` (nginx route, not direct service port).
 - `APP_UrlPath` and `APP_ResetPasswordUrlPath` for the `EXPENSES_MANAGER` application updated from `localhost:5173` (Vite dev server) to `localhost` (nginx) via migration `20260323120000_UpdateApplicationUrls`.
 
+### Changed
+- `Migrations/` added to `sonar.exclusions` (full analysis exclusion) in both backend `SonarQube.Analysis.xml` files; it was already in `sonar.coverage.exclusions` but SonarQube still raised issues on migration files — auto-generated code that cannot be meaningfully fixed.
+
+
 ## [0.15.0] - 2026-03-23
 ### Added
 - Mailpit added to `docker-compose-tools.yml` for local email testing (SMTP on port 1025, web UI on `http://localhost:8025`).

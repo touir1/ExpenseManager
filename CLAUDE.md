@@ -127,7 +127,9 @@ The pipeline is defined in `.gitlab-ci.yml` at the root, with reusable templates
 - **Security:** Semgrep (SAST), OWASP Dependency Check (SCA), Gitleaks (secrets), Trivy (Docker image scanning)
 - **Coverage:** OpenCover format for .NET; V8 for frontend; reports consumed by SonarQube
 
-SonarQube exclusions (no coverage required): `Migrations/`, `Models/`, `Options/`, `EO/`, `Requests/`, `Responses/`, `Program.cs`
+SonarQube exclusions from issue analysis and coverage (`sonar.exclusions`): `Migrations/`, `obj/`, `bin/`, `*.Designer.cs`, `*.g.cs`
+
+SonarQube exclusions from coverage only (`sonar.coverage.exclusions`): `Models/`, `Options/`, `EO/`, `Requests/`, `Responses/`, `Program.cs`
 
 ---
 
