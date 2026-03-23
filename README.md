@@ -70,6 +70,7 @@ cd infrastructure
 - **RabbitMQ**: Messaging (http://localhost:15672, default user: admin/admin)
 - **Grafana**: Dashboards (http://localhost:3000)
 - **Prometheus**: Monitoring (http://localhost:9090)
+- **Mailpit**: Local email testing — SMTP on port 1025, web UI at http://localhost:8025
 - **Docker Image Updater API**: Custom Python API running on port `8989` of the `jobs-runner` that updates tagged containers securely via webhooks.
 
 ---
@@ -85,6 +86,7 @@ SQL scripts for DB setup are in `backend/expenses/sql_database_scripts/`.
 - [RabbitMQ Management](http://localhost:15672/)
 - [Grafana Dashboards](http://localhost:3000/)
 - [Prometheus](http://localhost:9090/)
+- [Mailpit Web UI](http://localhost:8025/)
 - [RabbitMQ API Docs](https://rawcdn.githack.com/rabbitmq/rabbitmq-server/v3.12.12/deps/rabbitmq_management/priv/www/api/index.html)
 
 ---

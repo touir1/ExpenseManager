@@ -39,7 +39,7 @@ namespace Touir.ExpensesManager.Users.Infrastructure
                     client.Port = _port!.Value;
                     client.DeliveryMethod = SmtpDeliveryMethod.Network;
                     client.UseDefaultCredentials = false;
-                    client.EnableSsl = _enableSsl;
+                    client.EnableSsl = _enableSsl; // NOSONAR - intentionally configurable: false only for local dev (Mailpit), true in all other environments
                     client.Credentials = new NetworkCredential(_sender, _senderPassword);
 
                     using (var message = new MailMessage())

@@ -5,10 +5,16 @@ All notable changes to this project will be documented in this file.
 
 ## [0.15.0] - 2026-03-23
 ### Added
-- Mailpit added to `docker-compose-tools.yml` for local email testing (SMTP on port 1025, web UI on port 8025).
+- Mailpit added to `docker-compose-tools.yml` for local email testing (SMTP on port 1025, web UI on `http://localhost:8025`).
 - `EXPENSES_MANAGEMENT_USERS_EMAILAUTH_ENABLESSL` env var to control SSL on the SMTP connection; defaults to `true` to preserve existing behaviour.
-- `EnableSsl` property on `EmailOptions` and wired through `Program.cs` and `EmailHelper`.
-- `.env` updated to point at MailHog (`host.docker.internal:1025`, `EnableSsl=false`); `.env.example` includes the new variable.
+- `EnableSsl` property on `EmailOptions`, wired through `Program.cs`, `EmailHelper`, and passed via `docker-compose-apps.yml`.
+- `.env` updated to point at Mailpit (`host.docker.internal:1025`, `EnableSsl=false`); `.env.example` includes the new variable.
+- NuGet package cache added to `ci-build.yml` and `ci-test.yml` (stored in MinIO via the S3 runner cache) to avoid redundant downloads across pipeline runs.
+- `network_mode = "host"` added to the GitLab runner Docker config (`config.toml`) so job containers inherit the dind container's network and can reach external hosts (fixes `NU1301` restore failures).
+
+### Fixed
+- GitLab CI `dotnet restore` failing with `NU1301` (unable to reach `api.nuget.org`) caused by broken NAT inside nested Docker; resolved by setting `network_mode = "host"` on the runner.
+- SonarQube S5332 hotspot on `client.EnableSsl` in `EmailHelper` suppressed with `// NOSONAR` and a justification comment (value is `false` only in local dev against Mailpit; all other environments use `true`).
 
 ## [0.14.0] - 2026-03-22
 ### Added
