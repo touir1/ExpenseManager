@@ -165,6 +165,7 @@ ExpenseManager/
 │       │       ├── 20260101165439_AddIsDefaultColumnRole.cs
 │       │       ├── 20260101171739_SetDefaultRoles.cs
 │       │       ├── 20260101174904_SetResetPasswordUrlApplication.cs
+│       │       ├── 20260323120000_UpdateApplicationUrls.cs — Updates APP_UrlPath and APP_ResetPasswordUrlPath from localhost:5173 to localhost (nginx)
 │       │       └── UsersAppDbContextModelSnapshot.cs
 │       └── Touir.ExpensesManager.Users.Tests/
 │           ├── Touir.ExpensesManager.Users.Tests.csproj
@@ -246,7 +247,7 @@ ExpenseManager/
 │   ├── .env.example
 │   ├── README.md
 │   ├── docker-compose-apps.yml        — App stack: nginx, users-service, expenses-service
-│   ├── docker-compose-tools.yml       — Tool stack: PostgreSQL, RabbitMQ, Grafana, Prometheus, SonarQube
+│   ├── docker-compose-tools.yml       — Tool stack: PostgreSQL, RabbitMQ, Grafana, Prometheus, SonarQube, Mailpit
 │   ├── run-docker-compose-apps.bat    — Start app containers (Windows)
 │   ├── run-docker-compose-tools.bat   — Start tool containers (Windows)
 │   ├── start-expenses-manager-apps.bat

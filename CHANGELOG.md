@@ -7,6 +7,9 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Change Password and Reset Password pages now show distinct validation error messages: "All fields are required." when any field is empty, and "New passwords do not match." when the new password fields differ (Bug #6). API failures show "Incorrect current password." / "Password reset failed. Please try again." respectively. The API is no longer called when client-side validation fails.
 - Trivy Docker image reference updated from `aquasec/trivy:latest` (removed from Docker Hub) to `ghcr.io/aquasecurity/trivy:latest` in `ci-docker-security.yml`; fixes `docker-security` pipeline stage failing with manifest unknown error.
+- Mailpit `MP_SMTP_AUTH_ACCEPT_ANY` and `MP_SMTP_AUTH_ALLOW_INSECURE` env vars added to `docker-compose-tools.yml`; fixes `5.7.0 Authentication Required` SMTP error that silently swallowed registration emails.
+- `EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_VERIFY_EMAIL_URL` corrected in `.env` from `localhost:9100/api/auth/validate-email` to `localhost/api/users/auth/validate-email` (nginx route, not direct service port).
+- `APP_UrlPath` and `APP_ResetPasswordUrlPath` for the `EXPENSES_MANAGER` application updated from `localhost:5173` (Vite dev server) to `localhost` (nginx) via migration `20260323120000_UpdateApplicationUrls`.
 
 ## [0.15.0] - 2026-03-23
 ### Added
