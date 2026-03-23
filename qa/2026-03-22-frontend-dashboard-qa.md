@@ -45,10 +45,10 @@ Here is the full QA report based on thorough testing of the application, includi
 
 ---
 
-### 6. Change Password error message is generic — no differentiation between empty fields vs. mismatched passwords
+### 6. ~~Change Password error message is generic — no differentiation between empty fields vs. mismatched passwords~~ ✅ FIXED
 **Page:** `/change-password`
 **Detail:** Both "fields are empty" and "passwords don't match" show the exact same message: "Please verify inputs." This gives users no actionable guidance.
-**Fix:** Show distinct messages: e.g., "All fields are required." vs. "New passwords do not match." (also applies to `/reset-password`).
+**Fix applied:** Added client-side validation in `onSubmit` for both `ChangePassword.tsx` and `ResetPassword.tsx`. Empty fields → "All fields are required." Mismatched passwords → "New passwords do not match." API failure → "Incorrect current password." / "Password reset failed. Please try again."
 
 ---
 
@@ -228,7 +228,7 @@ These warnings clutter the console and will become breaking changes in v7.
 | 3 | ✅ Fixed | Security | ~~JWT stored in localStorage (XSS risk)~~ |
 | 4 | ✅ Fixed | Bug | ~~Global `onUnauthorized` fires on ALL 401s including login~~ |
 | 5 | ✅ Fixed | Bug | ~~Register: `noValidate` + no JS validation = no error~~ |
-| 6 | 🟠 Major | UX | Generic error messages on Change/Reset Password |
+| 6 | ✅ Fixed | UX | ~~Generic error messages on Change/Reset Password~~ |
 | 7 | 🟠 Major | Routing | `/dashboard` route does not exist |
 | 8 | 🟠 Major | Routing | No 404 page — unknown routes silently show landing page |
 | 9 | 🟡 Moderate | Security/UX | Reset password pages accessible while logged in |

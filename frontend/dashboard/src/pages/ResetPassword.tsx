@@ -21,9 +21,19 @@ export default function ResetPassword() {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
+    if (!newPassword || !repeatPassword) {
+      setIsSuccess(false)
+      setMessage('All fields are required.')
+      return
+    }
+    if (newPassword !== repeatPassword) {
+      setIsSuccess(false)
+      setMessage('New passwords do not match.')
+      return
+    }
     const ok = await resetPassword(email, verificationHash, newPassword, repeatPassword)
     setIsSuccess(ok)
-    setMessage(ok ? 'Password reset.' : 'Please fill all fields correctly and ensure passwords match.')
+    setMessage(ok ? 'Password reset.' : 'Password reset failed. Please try again.')
   }
 
   const missingParams = !email || !verificationHash

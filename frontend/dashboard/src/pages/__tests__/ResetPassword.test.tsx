@@ -170,7 +170,9 @@ describe('ResetPassword page', () => {
     )
 
     expect(screen.queryByText(/password reset\./i)).not.toBeInTheDocument()
-    expect(screen.queryByText(/please fill all fields correctly/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/all fields are required/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/new passwords do not match/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/password reset failed/i)).not.toBeInTheDocument()
   })
 
   it('shows success message when password reset succeeds', async () => {
@@ -216,17 +218,54 @@ describe('ResetPassword page', () => {
     const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
     const form = screen.getByRole('button', { name: /reset/i }).closest('form')!
 
+    fireEvent.change(newPasswordInput, { target: { value: 'newpass123' } })
+    fireEvent.change(repeatPasswordInput, { target: { value: 'newpass123' } })
+    fireEvent.submit(form)
+
+    await waitFor(() => {
+      expect(mockResetPassword).toHaveBeenCalledWith('test@example.com', 'abc123', 'newpass123', 'newpass123')
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('Password reset failed. Please try again.')).toBeInTheDocument()
+    })
+  })
+
+  it('shows "All fields are required." when any field is empty', async () => {
+    render(
+      <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
+        <Routes>
+          <Route path="/reset-password" element={<ResetPassword />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    const form = screen.getByRole('button', { name: /reset/i }).closest('form')!
+    fireEvent.submit(form)
+
+    expect(screen.getByText('All fields are required.')).toBeInTheDocument()
+    expect(mockResetPassword).not.toHaveBeenCalled()
+  })
+
+  it('shows "New passwords do not match." when passwords differ', async () => {
+    render(
+      <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
+        <Routes>
+          <Route path="/reset-password" element={<ResetPassword />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    const newPasswordInput = screen.getByLabelText(/^new password$/i)
+    const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
+    const form = screen.getByRole('button', { name: /reset/i }).closest('form')!
+
     fireEvent.change(newPasswordInput, { target: { value: 'pass1' } })
     fireEvent.change(repeatPasswordInput, { target: { value: 'pass2' } })
     fireEvent.submit(form)
 
-    await waitFor(() => {
-      expect(mockResetPassword).toHaveBeenCalledWith('test@example.com', 'abc123', 'pass1', 'pass2')
-    })
-
-    await waitFor(() => {
-      expect(screen.getByText(/please fill all fields correctly and ensure passwords match/i)).toBeInTheDocument()
-    })
+    expect(screen.getByText('New passwords do not match.')).toBeInTheDocument()
+    expect(mockResetPassword).not.toHaveBeenCalled()
   })
 
   it('calls resetPassword with verificationHash parameter', async () => {

@@ -120,7 +120,7 @@ describe('ChangePassword page', () => {
     })
   })
 
-  it('shows error message when password change fails', async () => {
+  it('shows error message when password change fails due to incorrect current password', async () => {
     mockChangePassword.mockResolvedValueOnce(false)
 
     render(
@@ -135,13 +135,48 @@ describe('ChangePassword page', () => {
     const submitButton = screen.getByRole('button', { name: /change password/i })
 
     fireEvent.change(oldPasswordInput, { target: { value: 'wrongpass' } })
-    fireEvent.change(newPasswordInput, { target: { value: 'new123' } })
-    fireEvent.change(repeatPasswordInput, { target: { value: 'new456' } })
+    fireEvent.change(newPasswordInput, { target: { value: 'newpass456' } })
+    fireEvent.change(repeatPasswordInput, { target: { value: 'newpass456' } })
     fireEvent.click(submitButton)
 
     await waitFor(() => {
-      expect(screen.getByText('Please verify inputs.')).toBeInTheDocument()
+      expect(screen.getByText('Incorrect current password.')).toBeInTheDocument()
     })
+  })
+
+  it('shows "All fields are required." when any field is empty', async () => {
+    render(
+      <MemoryRouter>
+        <ChangePassword />
+      </MemoryRouter>
+    )
+
+    const submitButton = screen.getByRole('button', { name: /change password/i })
+    fireEvent.click(submitButton)
+
+    expect(screen.getByText('All fields are required.')).toBeInTheDocument()
+    expect(mockChangePassword).not.toHaveBeenCalled()
+  })
+
+  it('shows "New passwords do not match." when new passwords differ', async () => {
+    render(
+      <MemoryRouter>
+        <ChangePassword />
+      </MemoryRouter>
+    )
+
+    const oldPasswordInput = screen.getByLabelText(/old password/i)
+    const newPasswordInput = screen.getByLabelText(/^new password$/i)
+    const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
+    const submitButton = screen.getByRole('button', { name: /change password/i })
+
+    fireEvent.change(oldPasswordInput, { target: { value: 'oldpass123' } })
+    fireEvent.change(newPasswordInput, { target: { value: 'newpass1' } })
+    fireEvent.change(repeatPasswordInput, { target: { value: 'newpass2' } })
+    fireEvent.click(submitButton)
+
+    expect(screen.getByText('New passwords do not match.')).toBeInTheDocument()
+    expect(mockChangePassword).not.toHaveBeenCalled()
   })
 
   it('does not show message initially', () => {
@@ -152,7 +187,9 @@ describe('ChangePassword page', () => {
     )
 
     expect(screen.queryByText('Password changed.')).not.toBeInTheDocument()
-    expect(screen.queryByText('Please verify inputs.')).not.toBeInTheDocument()
+    expect(screen.queryByText('All fields are required.')).not.toBeInTheDocument()
+    expect(screen.queryByText('New passwords do not match.')).not.toBeInTheDocument()
+    expect(screen.queryByText('Incorrect current password.')).not.toBeInTheDocument()
   })
 
   it('prevents default form submission', async () => {

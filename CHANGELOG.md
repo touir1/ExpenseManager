@@ -3,6 +3,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.16.0] - 2026-03-23
+### Fixed
+- Change Password and Reset Password pages now show distinct validation error messages: "All fields are required." when any field is empty, and "New passwords do not match." when the new password fields differ (Bug #6). API failures show "Incorrect current password." / "Password reset failed. Please try again." respectively. The API is no longer called when client-side validation fails.
+- Trivy Docker image reference updated from `aquasec/trivy:latest` (removed from Docker Hub) to `ghcr.io/aquasecurity/trivy:latest` in `ci-docker-security.yml`; fixes `docker-security` pipeline stage failing with manifest unknown error.
+
 ## [0.15.0] - 2026-03-23
 ### Added
 - Mailpit added to `docker-compose-tools.yml` for local email testing (SMTP on port 1025, web UI on `http://localhost:8025`).

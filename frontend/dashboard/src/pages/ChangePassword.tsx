@@ -11,9 +11,19 @@ export default function ChangePassword() {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
+    if (!oldPassword || !newPassword || !repeatPassword) {
+      setIsSuccess(false)
+      setMessage('All fields are required.')
+      return
+    }
+    if (newPassword !== repeatPassword) {
+      setIsSuccess(false)
+      setMessage('New passwords do not match.')
+      return
+    }
     const ok = await changePassword(oldPassword, newPassword, repeatPassword)
     setIsSuccess(ok)
-    setMessage(ok ? 'Password changed.' : 'Please verify inputs.')
+    setMessage(ok ? 'Password changed.' : 'Incorrect current password.')
   }
 
   return (
