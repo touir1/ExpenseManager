@@ -199,7 +199,7 @@ describe('ResetPassword page', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText('Password reset.')).toBeInTheDocument()
+      expect(screen.getByText('Password reset successfully. Redirecting to home\u2026')).toBeInTheDocument()
     })
   })
 
