@@ -3,6 +3,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.18.0] - 2026-04-12
+### Fixed
+- Email validation redirect now correctly lands on the frontend `/reset-password` page: `APP_ResetPasswordUrlPath` was empty in the database despite the `UpdateApplicationUrls` migration (likely a Docker volume/snapshot issue). Added `FixResetPasswordUrl` migration to re-apply the correct value (`https://localhost/reset-password`) idempotently on next startup.
+- Email address in the validate-email redirect URL is now percent-encoded via `Uri.EscapeDataString` so the `@` character is safely encoded as `%40` in the `Location` header (`AuthenticationController.cs`).
+
 ## [0.17.0] - 2026-04-12
 ### Fixed
 - Route `/dashboard` now works for authenticated users: renamed the authenticated route from `/home` to `/dashboard` throughout the frontend (`App.tsx`, `NavBar.tsx`, `PublicOnlyRoute.tsx`, `Login.tsx`). All redirect targets, logo links, and nav links updated. Resolves QA Bug #7 and naming inconsistency #30.
