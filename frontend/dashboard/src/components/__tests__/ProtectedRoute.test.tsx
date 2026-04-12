@@ -18,10 +18,10 @@ describe('ProtectedRoute', () => {
     mockUseAuth.mockReturnValue({ isAuthenticated: false, isLoading: true })
 
     const { container } = render(
-      <MemoryRouter initialEntries={["/home"]}>
+      <MemoryRouter initialEntries={["/dashboard"]}>
         <Routes>
           <Route path="/login" element={<div>Login Page</div>} />
-          <Route path="/home" element={<ProtectedRoute><div>Private</div></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><div>Private</div></ProtectedRoute>} />
         </Routes>
       </MemoryRouter>
     )
@@ -35,10 +35,10 @@ describe('ProtectedRoute', () => {
     mockUseAuth.mockReturnValue({ isAuthenticated: false, isLoading: false })
 
     render(
-      <MemoryRouter initialEntries={["/home"]}>
+      <MemoryRouter initialEntries={["/dashboard"]}>
         <Routes>
           <Route path="/login" element={<div>Login Page</div>} />
-          <Route path="/home" element={<ProtectedRoute><div>Private</div></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><div>Private</div></ProtectedRoute>} />
         </Routes>
       </MemoryRouter>
     )
@@ -51,9 +51,9 @@ describe('ProtectedRoute', () => {
     mockUseAuth.mockReturnValue({ isAuthenticated: true, isLoading: false })
 
     render(
-      <MemoryRouter initialEntries={["/home"]}>
+      <MemoryRouter initialEntries={["/dashboard"]}>
         <Routes>
-          <Route path="/home" element={<ProtectedRoute><div>Private</div></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><div>Private</div></ProtectedRoute>} />
         </Routes>
       </MemoryRouter>
     )

@@ -52,9 +52,9 @@ Here is the full QA report based on thorough testing of the application, includi
 
 ---
 
-### 7. Route `/dashboard` doesn't exist for authenticated users
+### 7. ~~Route `/dashboard` doesn't exist for authenticated users~~ ✅ FIXED
 **Detail:** When logged in and navigating to `/dashboard` (a very common, expected URL for a dashboard app), the app shows the public landing page (`HomePublic`) inside the authenticated navbar — a broken, confusing half-state. The authenticated route is `/home`, which is non-obvious.
-**Fix:** Add `<Route path="/dashboard" element={<Navigate to="/home" />} />` as an alias, or rename the route to `/dashboard`.
+**Fix applied:** Renamed the route from `/home` to `/dashboard` throughout the frontend — `App.tsx`, `NavBar.tsx`, `PublicOnlyRoute.tsx`, and `Login.tsx`. All redirect targets, logo links, and nav links updated. Also resolves naming inconsistency #30.
 
 ---
 
@@ -213,9 +213,9 @@ These warnings clutter the console and will become breaking changes in v7.
 
 ---
 
-### 30. App URL is `/home` but the nav calls it "Dashboard" — naming inconsistency
+### 30. ~~App URL is `/home` but the nav calls it "Dashboard" — naming inconsistency~~ ✅ FIXED
 **Detail:** The route is `/home`, the page heading says "Dashboard", the nav link says "Dashboard" and links to `/home`, and the logo also links to `/home` when authenticated. The URL `/dashboard` goes to a broken state.
-**Fix:** Unify the naming — either rename the route to `/dashboard` (better semantics) or rename all UI references to "Home".
+**Fix applied:** See Bug #7 — route renamed to `/dashboard`, resolving the inconsistency.
 
 ---
 
@@ -229,7 +229,7 @@ These warnings clutter the console and will become breaking changes in v7.
 | 4 | ✅ Fixed | Bug | ~~Global `onUnauthorized` fires on ALL 401s including login~~ |
 | 5 | ✅ Fixed | Bug | ~~Register: `noValidate` + no JS validation = no error~~ |
 | 6 | ✅ Fixed | UX | ~~Generic error messages on Change/Reset Password~~ |
-| 7 | 🟠 Major | Routing | `/dashboard` route does not exist |
+| 7 | ✅ Fixed | Routing | ~~`/dashboard` route does not exist~~ |
 | 8 | 🟠 Major | Routing | No 404 page — unknown routes silently show landing page |
 | 9 | 🟡 Moderate | Security/UX | Reset password pages accessible while logged in |
 | 10 | 🟡 Moderate | UX | Registration success message not readable before redirect |
@@ -252,4 +252,4 @@ These warnings clutter the console and will become breaking changes in v7.
 | 27 | ⚙️ Code | Performance | Auth functions not memoized with `useCallback` |
 | 28 | ⚙️ Security | Feature | No brute-force/rate-limit protection on login |
 | 29 | ⚙️ Security | Feature | No password strength indicator or minimum length |
-| 30 | ⚙️ Code | Architecture | Route `/home` vs. UI label "Dashboard" inconsistency |
+| 30 | ✅ Fixed | Architecture | ~~Route `/home` vs. UI label "Dashboard" inconsistency~~ |

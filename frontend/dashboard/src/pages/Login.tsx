@@ -13,7 +13,7 @@ export default function Login() {
     e.preventDefault()
     const ok = await login(email, password)
     if (!ok) return setError('Invalid credentials. Please try again.')
-    navigate('/home')
+    navigate('/dashboard')
   }
 
   return (

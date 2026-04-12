@@ -20,7 +20,7 @@ describe('PublicOnlyRoute', () => {
     const { container } = render(
       <MemoryRouter initialEntries={['/login']}>
         <Routes>
-          <Route path="/home" element={<div>Home Dashboard</div>} />
+          <Route path="/dashboard" element={<div>Home Dashboard</div>} />
           <Route path="/login" element={<PublicOnlyRoute><div>Login Page</div></PublicOnlyRoute>} />
         </Routes>
       </MemoryRouter>
@@ -45,13 +45,13 @@ describe('PublicOnlyRoute', () => {
     expect(screen.getByText('Login Page')).toBeInTheDocument()
   })
 
-  it('redirects to /home when authenticated', () => {
+  it('redirects to /dashboard when authenticated', () => {
     mockUseAuth.mockReturnValue({ isAuthenticated: true, isLoading: false })
 
     render(
       <MemoryRouter initialEntries={['/login']}>
         <Routes>
-          <Route path="/home" element={<div>Home Dashboard</div>} />
+          <Route path="/dashboard" element={<div>Home Dashboard</div>} />
           <Route path="/login" element={<PublicOnlyRoute><div>Login Page</div></PublicOnlyRoute>} />
         </Routes>
       </MemoryRouter>
@@ -61,13 +61,13 @@ describe('PublicOnlyRoute', () => {
     expect(screen.queryByText('Login Page')).not.toBeInTheDocument()
   })
 
-  it('redirects from /register to /home when authenticated', () => {
+  it('redirects from /register to /dashboard when authenticated', () => {
     mockUseAuth.mockReturnValue({ isAuthenticated: true, isLoading: false })
 
     render(
       <MemoryRouter initialEntries={['/register']}>
         <Routes>
-          <Route path="/home" element={<div>Home Dashboard</div>} />
+          <Route path="/dashboard" element={<div>Home Dashboard</div>} />
           <Route path="/register" element={<PublicOnlyRoute><div>Register Page</div></PublicOnlyRoute>} />
         </Routes>
       </MemoryRouter>
@@ -77,13 +77,13 @@ describe('PublicOnlyRoute', () => {
     expect(screen.queryByText('Register Page')).not.toBeInTheDocument()
   })
 
-  it('redirects from / to /home when authenticated', () => {
+  it('redirects from / to /dashboard when authenticated', () => {
     mockUseAuth.mockReturnValue({ isAuthenticated: true, isLoading: false })
 
     render(
       <MemoryRouter initialEntries={['/']}>
         <Routes>
-          <Route path="/home" element={<div>Home Dashboard</div>} />
+          <Route path="/dashboard" element={<div>Home Dashboard</div>} />
           <Route path="/" element={<PublicOnlyRoute><div>Public Home</div></PublicOnlyRoute>} />
         </Routes>
       </MemoryRouter>

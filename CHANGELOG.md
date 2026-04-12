@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.0] - 2026-04-12
+### Fixed
+- Route `/dashboard` now works for authenticated users: renamed the authenticated route from `/home` to `/dashboard` throughout the frontend (`App.tsx`, `NavBar.tsx`, `PublicOnlyRoute.tsx`, `Login.tsx`). All redirect targets, logo links, and nav links updated. Resolves QA Bug #7 and naming inconsistency #30.
+
 ## [0.16.0] - 2026-03-23
 ### Fixed
 - Change Password and Reset Password pages now show distinct validation error messages: "All fields are required." when any field is empty, and "New passwords do not match." when the new password fields differ (Bug #6). API failures show "Incorrect current password." / "Password reset failed. Please try again." respectively. The API is no longer called when client-side validation fails.

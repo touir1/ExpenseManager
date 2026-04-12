@@ -70,7 +70,7 @@ describe('NavBar', () => {
     })
 
     it('shows Dashboard, Settings, and Sign out in desktop nav', () => {
-      renderNavBar('/home')
+      renderNavBar('/dashboard')
       const nav = screen.getByRole('navigation')
       expect(nav).toHaveTextContent('Dashboard')
       expect(nav).toHaveTextContent('Settings')
@@ -78,17 +78,17 @@ describe('NavBar', () => {
     })
 
     it('does not show Home, Sign in, or Get started in desktop nav', () => {
-      renderNavBar('/home')
+      renderNavBar('/dashboard')
       const nav = screen.getByRole('navigation')
       expect(nav).not.toHaveTextContent('Home')
       expect(nav).not.toHaveTextContent('Sign in')
       expect(nav).not.toHaveTextContent('Get started')
     })
 
-    it('links logo to /home', () => {
-      renderNavBar('/home')
+    it('links logo to /dashboard', () => {
+      renderNavBar('/dashboard')
       const logo = screen.getByRole('link', { name: /expensesmanager/i })
-      expect(logo).toHaveAttribute('href', '/home')
+      expect(logo).toHaveAttribute('href', '/dashboard')
     })
   })
 
@@ -100,7 +100,7 @@ describe('NavBar', () => {
       mockUseAuth.mockReturnValue({ isAuthenticated: true, logout })
       const user = userEvent.setup()
 
-      renderNavBar('/home')
+      renderNavBar('/dashboard')
 
       const signOut = screen.getAllByRole('button', { name: /sign out/i })[0]
       await user.click(signOut)
@@ -113,9 +113,9 @@ describe('NavBar', () => {
   // ── Active link styling ──────────────────────────────────────────────────
 
   describe('active link styling', () => {
-    it('applies active class to Dashboard when on /home', () => {
+    it('applies active class to Dashboard when on /dashboard', () => {
       mockUseAuth.mockReturnValue({ isAuthenticated: true, logout: vi.fn() })
-      renderNavBar('/home')
+      renderNavBar('/dashboard')
 
       const nav = screen.getByRole('navigation')
       const dashboardLink = Array.from(nav.querySelectorAll('a')).find(
@@ -137,7 +137,7 @@ describe('NavBar', () => {
 
     it('applies inactive class to non-current links', () => {
       mockUseAuth.mockReturnValue({ isAuthenticated: true, logout: vi.fn() })
-      renderNavBar('/home')
+      renderNavBar('/dashboard')
 
       const nav = screen.getByRole('navigation')
       const settingsLink = Array.from(nav.querySelectorAll('a')).find(
@@ -187,7 +187,7 @@ describe('NavBar', () => {
     it('shows authenticated links in mobile menu', async () => {
       mockUseAuth.mockReturnValue({ isAuthenticated: true, logout: vi.fn() })
       const user = userEvent.setup()
-      renderNavBar('/home')
+      renderNavBar('/dashboard')
 
       await user.click(screen.getByRole('button', { name: /toggle menu/i }))
 
@@ -225,7 +225,7 @@ describe('NavBar', () => {
       const logout = vi.fn()
       mockUseAuth.mockReturnValue({ isAuthenticated: true, logout })
       const user = userEvent.setup()
-      renderNavBar('/home')
+      renderNavBar('/dashboard')
 
       await user.click(screen.getByRole('button', { name: /toggle menu/i }))
 
@@ -239,7 +239,7 @@ describe('NavBar', () => {
     it('closes mobile menu when mobile Dashboard link is clicked', async () => {
       mockUseAuth.mockReturnValue({ isAuthenticated: true, logout: vi.fn() })
       const user = userEvent.setup()
-      renderNavBar('/home')
+      renderNavBar('/dashboard')
 
       await user.click(screen.getByRole('button', { name: /toggle menu/i }))
       expect(screen.getAllByText('Dashboard')).toHaveLength(2)
@@ -252,7 +252,7 @@ describe('NavBar', () => {
     it('closes mobile menu when mobile Settings link is clicked', async () => {
       mockUseAuth.mockReturnValue({ isAuthenticated: true, logout: vi.fn() })
       const user = userEvent.setup()
-      renderNavBar('/home')
+      renderNavBar('/dashboard')
 
       await user.click(screen.getByRole('button', { name: /toggle menu/i }))
       expect(screen.getAllByText('Settings')).toHaveLength(2)

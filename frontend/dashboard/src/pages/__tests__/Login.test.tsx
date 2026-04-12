@@ -50,7 +50,7 @@ describe('Login page', () => {
     expect(screen.getByRole('link', { name: /back to home/i })).toBeInTheDocument()
   })
 
-  it('navigates to /home on successful login', async () => {
+  it('navigates to /dashboard on successful login', async () => {
     const user = userEvent.setup()
     mockLogin.mockResolvedValue(true)
     mockUseAuth.mockReturnValue({ login: mockLogin })
@@ -59,7 +59,7 @@ describe('Login page', () => {
       <MemoryRouter initialEntries={["/login"]}>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/home" element={<div>Dashboard</div>} />
+          <Route path="/dashboard" element={<div>Dashboard</div>} />
         </Routes>
       </MemoryRouter>
     )
@@ -133,7 +133,7 @@ describe('Login page', () => {
       <MemoryRouter initialEntries={["/login"]}>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/home" element={<div>Dashboard</div>} />
+          <Route path="/dashboard" element={<div>Dashboard</div>} />
         </Routes>
       </MemoryRouter>
     )
@@ -270,7 +270,7 @@ describe('Login page', () => {
       <MemoryRouter initialEntries={["/login"]}>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/home" element={<div>Dashboard</div>} />
+          <Route path="/dashboard" element={<div>Dashboard</div>} />
         </Routes>
       </MemoryRouter>
     )

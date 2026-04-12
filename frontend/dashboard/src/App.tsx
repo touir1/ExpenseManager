@@ -33,7 +33,7 @@ export default function App() {
 
                 {/* Private */}
                 <Route
-                  path="/home"
+                  path="/dashboard"
                   element={
                     <ProtectedRoute>
                       <HomeDashboard />
