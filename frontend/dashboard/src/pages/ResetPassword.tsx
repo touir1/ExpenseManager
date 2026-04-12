@@ -1,6 +1,6 @@
 import { FormEvent, useState, useEffect } from 'react'
 import { useAuth } from '@/auth/AuthContext'
-import { useSearchParams, Link } from 'react-router-dom'
+import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 
 export default function ResetPassword() {
   const [email, setEmail] = useState('')
@@ -11,6 +11,7 @@ export default function ResetPassword() {
   const [isSuccess, setIsSuccess] = useState(false)
   const { resetPassword } = useAuth()
   const [params] = useSearchParams()
+  const navigate = useNavigate()
 
   useEffect(() => {
     const pEmail = params.get('email') || ''
@@ -33,7 +34,12 @@ export default function ResetPassword() {
     }
     const ok = await resetPassword(email, verificationHash, newPassword, repeatPassword)
     setIsSuccess(ok)
-    setMessage(ok ? 'Password reset.' : 'Password reset failed. Please try again.')
+    setMessage(ok ? 'Password reset successfully. Redirecting to home…' : 'Password reset failed. Please try again.')
+    if (ok) {
+      setNewPassword('')
+      setRepeatPassword('')
+      setTimeout(() => navigate('/'), 3000)
+    }
   }
 
   const missingParams = !email || !verificationHash
@@ -84,7 +90,7 @@ export default function ResetPassword() {
             />
           </div>
 
-          <button type="submit" disabled={missingParams} className="btn-primary mt-1">
+          <button type="submit" disabled={missingParams || isSuccess} className="btn-primary mt-1">
             Reset
           </button>
         </form>

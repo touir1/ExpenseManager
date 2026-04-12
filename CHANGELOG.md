@@ -3,6 +3,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.0] - 2026-04-12
+### Fixed
+- `/reset-password` and `/request-password-reset` routes are now wrapped in `PublicOnlyRoute` — authenticated users are redirected to `/dashboard` instead of seeing the unauthenticated form (QA #9).
+- Reset Password page: on successful reset, the form fields are cleared, the submit button is disabled, and the user is redirected to `/` after 3 seconds so the success message is readable.
+
 ## [0.18.0] - 2026-04-12
 ### Fixed
 - Email validation redirect now correctly lands on the frontend `/reset-password` page. Root cause: `ApplicationService.GetApplicationByCodeAsync` mapped the `Application` entity to `ApplicationEo` but omitted `ResetPasswordUrlPath`, so it was always `null` and the redirect became a bare `?email=...` relative URL. Fixed by adding `ResetPasswordUrlPath = app.ResetPasswordUrlPath` to the mapping in `ApplicationService.cs`.

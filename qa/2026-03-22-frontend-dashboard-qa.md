@@ -67,10 +67,10 @@ Here is the full QA report based on thorough testing of the application, includi
 
 ## 🟡 MODERATE ISSUES
 
-### 9. "Request Password Reset" page is accessible while logged in
+### 9. ~~"Request Password Reset" page is accessible while logged in~~ ✅ FIXED
 **Pages:** `/request-password-reset`, `/reset-password`
 **Detail:** Neither page is wrapped in `PublicOnlyRoute`, so authenticated users can access them. This creates a confusing UX (the navbar shows "Dashboard / Settings / Sign out" but the page is a password-reset form for unauthenticated flows).
-**Fix:** Wrap both routes in `<PublicOnlyRoute>`, or at least redirect authenticated users to `/home`.
+**Fix applied:** Both routes wrapped in `<PublicOnlyRoute>` in `App.tsx`. Authenticated users are now redirected to `/dashboard`.
 
 ---
 
@@ -231,7 +231,7 @@ These warnings clutter the console and will become breaking changes in v7.
 | 6 | ✅ Fixed | UX | ~~Generic error messages on Change/Reset Password~~ |
 | 7 | ✅ Fixed | Routing | ~~`/dashboard` route does not exist~~ |
 | 8 | 🟠 Major | Routing | No 404 page — unknown routes silently show landing page |
-| 9 | 🟡 Moderate | Security/UX | Reset password pages accessible while logged in |
+| 9 | ✅ Fixed | Security/UX | ~~Reset password pages accessible while logged in~~ |
 | 10 | 🟡 Moderate | UX | Registration success message not readable before redirect |
 | 11 | 🟡 Moderate | Feature | Core "Expenses" feature is "Coming soon…" |
 | 12 | 🟡 Moderate | UX | Duplicate logout buttons with inconsistent destinations |

@@ -28,8 +28,8 @@ export default function App() {
                 <Route path="/" element={<PublicOnlyRoute><HomePublic /></PublicOnlyRoute>} />
                 <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
                 <Route path="/register" element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/request-password-reset" element={<RequestPasswordReset />} />
+                <Route path="/reset-password" element={<PublicOnlyRoute><ResetPassword /></PublicOnlyRoute>} />
+                <Route path="/request-password-reset" element={<PublicOnlyRoute><RequestPasswordReset /></PublicOnlyRoute>} />
 
                 {/* Private */}
                 <Route
