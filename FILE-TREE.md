@@ -166,6 +166,7 @@ ExpenseManager/
 │       │       ├── 20260101171739_SetDefaultRoles.cs
 │       │       ├── 20260101174904_SetResetPasswordUrlApplication.cs
 │       │       ├── 20260323120000_UpdateApplicationUrls.cs — Updates APP_UrlPath and APP_ResetPasswordUrlPath from localhost:5173 to localhost (nginx)
+│       │       ├── 20260412165435_FixResetPasswordUrl.cs — Sets APP_ResetPasswordUrlPath to host-agnostic relative path /reset-password
 │       │       └── UsersAppDbContextModelSnapshot.cs
 │       └── Touir.ExpensesManager.Users.Tests/
 │           ├── Touir.ExpensesManager.Users.Tests.csproj
@@ -218,7 +219,7 @@ ExpenseManager/
 │           ├── components/
 │           │   ├── NavBar.tsx         — Auth-aware nav; desktop + mobile responsive
 │           │   ├── ProtectedRoute.tsx — Redirects unauthenticated users to /login
-│           │   ├── PublicOnlyRoute.tsx — Redirects authenticated users to /home
+│           │   ├── PublicOnlyRoute.tsx — Redirects authenticated users to /dashboard
 │           │   ├── Toast.tsx          — Toast notification provider and hook
 │           │   └── __tests__/
 │           │       ├── NavBar.test.tsx
