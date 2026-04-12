@@ -5,8 +5,9 @@ All notable changes to this project will be documented in this file.
 
 ## [0.18.0] - 2026-04-12
 ### Fixed
-- Email validation redirect now correctly lands on the frontend `/reset-password` page: `APP_ResetPasswordUrlPath` was empty in the database despite the `UpdateApplicationUrls` migration (likely a Docker volume/snapshot issue). Added `FixResetPasswordUrl` migration to set the value to the relative path `/reset-password` (host-agnostic) — the browser resolves it against the origin automatically.
-- Email address in the validate-email redirect URL is now percent-encoded via `Uri.EscapeDataString` so the `@` character is safely encoded as `%40` in the `Location` header (`AuthenticationController.cs`).
+- Email validation redirect now correctly lands on the frontend `/reset-password` page. Root cause: `ApplicationService.GetApplicationByCodeAsync` mapped the `Application` entity to `ApplicationEo` but omitted `ResetPasswordUrlPath`, so it was always `null` and the redirect became a bare `?email=...` relative URL. Fixed by adding `ResetPasswordUrlPath = app.ResetPasswordUrlPath` to the mapping in `ApplicationService.cs`.
+- `APP_ResetPasswordUrlPath` changed from absolute URL (`https://localhost/reset-password`) to a host-agnostic relative path (`/reset-password`) via `FixResetPasswordUrl` migration — the browser resolves it against the request origin automatically, removing any environment-specific host from the database.
+- Email address in the validate-email redirect URL is now percent-encoded via `Uri.EscapeDataString` so `@` is safely transmitted as `%40` in the `Location` header (`AuthenticationController.cs`).
 
 ## [0.17.0] - 2026-04-12
 ### Fixed
