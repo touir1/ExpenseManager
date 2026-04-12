@@ -233,6 +233,7 @@ ExpenseManager/
 │               ├── ChangePassword.tsx        — Change password form
 │               ├── RequestPasswordReset.tsx  — Request password reset email
 │               ├── ResetPassword.tsx         — Reset password with token from email
+│               ├── NotFound.tsx              — 404 page; shown for any unmatched route
 │               └── __tests__/
 │                   ├── HomeDashboard.test.tsx
 │                   ├── Login.test.tsx
@@ -240,7 +241,8 @@ ExpenseManager/
 │                   ├── HomePublic.test.tsx
 │                   ├── ChangePassword.test.tsx
 │                   ├── RequestPasswordReset.test.tsx
-│                   └── ResetPassword.test.tsx
+│                   ├── ResetPassword.test.tsx
+│                   └── NotFound.test.tsx
 │
 ├── infrastructure/
 │   ├── .env                           — Local infrastructure env vars (gitignored)

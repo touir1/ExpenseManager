@@ -58,10 +58,10 @@ Here is the full QA report based on thorough testing of the application, includi
 
 ---
 
-### 8. `*` (catch-all / 404) route renders the public landing page — no 404 page exists
+### 8. ~~`*` (catch-all / 404) route renders the public landing page — no 404 page exists~~ ✅ FIXED
 **File:** `App.tsx`
 **Detail:** `<Route path="*" element={<HomePublic />} />` silently renders the public home page for any unknown URL. Users who mistype a URL get no indication that the page doesn't exist.
-**Fix:** Create a dedicated `NotFound` (404) component and use it for the `*` route.
+**Fix applied:** Created `NotFound.tsx` with a "Page not found" heading and a "Go to home" link. The `*` catch-all route in `App.tsx` now renders `<NotFound />` instead of `<HomePublic />`.
 
 ---
 
@@ -230,7 +230,7 @@ These warnings clutter the console and will become breaking changes in v7.
 | 5 | ✅ Fixed | Bug | ~~Register: `noValidate` + no JS validation = no error~~ |
 | 6 | ✅ Fixed | UX | ~~Generic error messages on Change/Reset Password~~ |
 | 7 | ✅ Fixed | Routing | ~~`/dashboard` route does not exist~~ |
-| 8 | 🟠 Major | Routing | No 404 page — unknown routes silently show landing page |
+| 8 | ✅ Fixed | Routing | ~~No 404 page — unknown routes silently show landing page~~ |
 | 9 | ✅ Fixed | Security/UX | ~~Reset password pages accessible while logged in~~ |
 | 10 | 🟡 Moderate | UX | Registration success message not readable before redirect |
 | 11 | 🟡 Moderate | Feature | Core "Expenses" feature is "Coming soon…" |

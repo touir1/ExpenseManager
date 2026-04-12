@@ -13,6 +13,7 @@ import Register from '@/pages/Register'
 import ChangePassword from '@/pages/ChangePassword'
 import ResetPassword from '@/pages/ResetPassword'
 import RequestPasswordReset from '@/pages/RequestPasswordReset'
+import NotFound from '@/pages/NotFound'
 
 export default function App() {
   return (
@@ -50,7 +51,7 @@ export default function App() {
                 />
 
                 {/* Fallback */}
-                <Route path="*" element={<HomePublic />} />
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
           </AuthProvider>

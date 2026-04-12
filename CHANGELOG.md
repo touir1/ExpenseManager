@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.20.0] - 2026-04-12
+### Added
+- `NotFound` page (`src/pages/NotFound.tsx`): dedicated 404 component with a "Go to home" link, replacing the silent fallback that rendered the public landing page for unknown routes (QA #8). The `*` catch-all route in `App.tsx` now uses `<NotFound />`.
+
 ## [0.19.0] - 2026-04-12
 ### Fixed
 - `/reset-password` and `/request-password-reset` routes are now wrapped in `PublicOnlyRoute` — authenticated users are redirected to `/dashboard` instead of seeing the unauthenticated form (QA #9).
