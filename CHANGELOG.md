@@ -3,6 +3,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.21.0] - 2026-04-14
+### Fixed
+- Register page: replaced auto-redirect after successful registration with a dedicated success state. The form is now replaced by a full-card success message and a manual "Go to login →" link — users control when to proceed and the message is always fully visible (QA #10).
+- Register page: corrected misleading success message. Registration creates an unvalidated account with no password; the user must click the verification link in their inbox (which redirects to `/reset-password`) before they can log in. The new message tells the user exactly what to do next.
+
 ## [0.20.0] - 2026-04-12
 ### Added
 - `NotFound` page (`src/pages/NotFound.tsx`): dedicated 404 component with a "Go to home" link, replacing the silent fallback that rendered the public landing page for unknown routes (QA #8). The `*` catch-all route in `App.tsx` now uses `<NotFound />`.

@@ -5,19 +5,10 @@ import Register from '@/pages/Register'
 
 const mockRegister = vi.fn()
 const mockUseAuth = vi.fn()
-const mockNavigate = vi.fn()
 
 vi.mock('@/auth/AuthContext', () => ({
   useAuth: () => mockUseAuth()
 }))
-
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom')
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate
-  }
-})
 
 describe('Register page', () => {
   beforeEach(() => {
@@ -26,7 +17,6 @@ describe('Register page', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
-    vi.useRealTimers()
   })
 
   it('renders register form with all fields', () => {
@@ -145,12 +135,11 @@ describe('Register page', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText('Registered successfully. You can now log in.')).toBeInTheDocument()
+      expect(screen.getByText('Registration successful! Check your inbox for a verification email. Click the link to verify your address and set your password — you will then be able to log in.')).toBeInTheDocument()
     })
   })
 
-  it('navigates to /login after successful registration delay', async () => {
-    vi.useFakeTimers()
+  it('shows go-to-login link and hides form after successful registration', async () => {
     mockRegister.mockResolvedValueOnce(true)
     mockUseAuth.mockReturnValue({ register: mockRegister })
 
@@ -164,18 +153,15 @@ describe('Register page', () => {
     fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'Smith' } })
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'jane@example.com' } })
 
-    // Flush the async submit (resolves the register() promise + state updates)
     await act(async () => {
       fireEvent.submit(screen.getByRole('button', { name: /register/i }).closest('form')!)
     })
 
-    expect(screen.getByText('Registered successfully. You can now log in.')).toBeInTheDocument()
+    expect(screen.getByText('Registration successful! Check your inbox for a verification email. Click the link to verify your address and set your password — you will then be able to log in.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /register/i })).not.toBeInTheDocument()
 
-    act(() => {
-      vi.advanceTimersByTime(2000)
-    })
-
-    expect(mockNavigate).toHaveBeenCalledWith('/login')
+    const loginLink = screen.getByRole('link', { name: /go to login/i })
+    expect(loginLink).toHaveAttribute('href', '/login')
   })
 
   it('shows error when email format is invalid', async () => {

@@ -74,10 +74,10 @@ Here is the full QA report based on thorough testing of the application, includi
 
 ---
 
-### 10. Registration success message is never visible — auto-redirects too fast
+### 10. ~~Registration success message is never visible — auto-redirects too fast~~ ✅ FIXED
 **File:** `Register.tsx`
-**Detail:** On successful registration, `setMessage('Registered successfully. You can now log in.')` is set, but `setTimeout(() => navigate('/login'), 800)` redirects after only 800ms — too fast for users to read, and the message renders below the submit button which may not be in view.
-**Fix:** Increase the delay to at least 2000ms, or replace the auto-redirect with a manual "Go to login" button shown after success.
+**Detail:** On successful registration, `setMessage('Registered successfully. You can now log in.')` was set, but `setTimeout(() => navigate('/login'), 800)` redirected after only 800ms — too fast to read, and the message rendered below the submit button which may not have been in view.
+**Fix applied:** Removed the auto-redirect entirely. On success, the form is replaced by a full-card success state showing the message prominently and a manual "Go to login →" link, giving the user full control over when to proceed. The success message was also corrected: the previous text ("You can now log in.") was factually wrong — registration creates an unvalidated account with no password. The user must click the verification link sent to their inbox, which redirects to `/reset-password` to set a password before they can log in. The new message reflects this flow.
 
 ---
 
@@ -232,7 +232,7 @@ These warnings clutter the console and will become breaking changes in v7.
 | 7 | ✅ Fixed | Routing | ~~`/dashboard` route does not exist~~ |
 | 8 | ✅ Fixed | Routing | ~~No 404 page — unknown routes silently show landing page~~ |
 | 9 | ✅ Fixed | Security/UX | ~~Reset password pages accessible while logged in~~ |
-| 10 | 🟡 Moderate | UX | Registration success message not readable before redirect |
+| 10 | ✅ Fixed | UX | ~~Registration success message not readable before redirect~~ |
 | 11 | 🟡 Moderate | Feature | Core "Expenses" feature is "Coming soon…" |
 | 12 | 🟡 Moderate | UX | Duplicate logout buttons with inconsistent destinations |
 | 13 | 🟡 Moderate | UX | "Settings" nav leads to change-password, not a settings page |

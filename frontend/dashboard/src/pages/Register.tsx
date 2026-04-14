@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthContext'
 
 export default function Register() {
@@ -9,7 +9,6 @@ export default function Register() {
   const [message, setMessage] = useState<string | null>(null)
   const [isSuccess, setIsSuccess] = useState(false)
   const { register } = useAuth()
-  const navigate = useNavigate()
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -27,12 +26,26 @@ export default function Register() {
     const ok = await register(firstName, lastName, email)
     if (ok) {
       setIsSuccess(true)
-      setMessage('Registered successfully. You can now log in.')
-      setTimeout(() => navigate('/login'), 2000)
+      setMessage('Registration successful! Check your inbox for a verification email. Click the link to verify your address and set your password — you will then be able to log in.')
     } else {
       setIsSuccess(false)
       setMessage('Registration failed. Please try again.')
     }
+  }
+
+  if (isSuccess) {
+    return (
+      <div className="auth-page">
+        <div className="auth-card">
+          <p className="msg-success" role="alert">{message}</p>
+          <div className="mt-6 pt-5 border-t border-slate-100 text-center">
+            <Link to="/login" className="text-sm text-brand-600 hover:text-brand-700 transition-colors duration-150 font-medium">
+              Go to login →
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -90,7 +103,7 @@ export default function Register() {
         </form>
 
         {message && (
-          <p className={`mt-4 ${isSuccess ? 'msg-success' : 'msg-error'}`} role="alert">
+          <p className="mt-4 msg-error" role="alert">
             {message}
           </p>
         )}
