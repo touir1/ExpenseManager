@@ -36,10 +36,11 @@ export default function ResetPassword() {
     }
     const ok = await resetPassword(email, verificationHash, newPassword, repeatPassword)
     setIsSuccess(ok)
-    setMessage(ok
-      ? isCreateMode ? 'Password created successfully. Redirecting to home…' : 'Password reset successfully. Redirecting to home…'
-      : isCreateMode ? 'Password creation failed. Please try again.' : 'Password reset failed. Please try again.'
-    )
+    if (ok) {
+      setMessage(isCreateMode ? 'Password created successfully. Redirecting to home…' : 'Password reset successfully. Redirecting to home…')
+    } else {
+      setMessage(isCreateMode ? 'Password creation failed. Please try again.' : 'Password reset failed. Please try again.')
+    }
     if (ok) {
       setNewPassword('')
       setRepeatPassword('')
