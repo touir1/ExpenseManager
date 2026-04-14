@@ -315,4 +315,73 @@ describe('ResetPassword page', () => {
       expect(mockResetPassword).toHaveBeenCalled()
     })
   })
+
+  describe('create mode (mode=create)', () => {
+    it('shows "Create Password" heading and "Create" button', () => {
+      render(
+        <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123&mode=create']}>
+          <Routes>
+            <Route path="/reset-password" element={<ResetPassword />} />
+          </Routes>
+        </MemoryRouter>
+      )
+
+      expect(screen.getByRole('heading', { name: /create password/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /^create$/i })).toBeInTheDocument()
+      expect(screen.queryByRole('heading', { name: /reset password/i })).not.toBeInTheDocument()
+    })
+
+    it('shows success message for create mode', async () => {
+      mockResetPassword.mockResolvedValueOnce(true)
+
+      render(
+        <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123&mode=create']}>
+          <Routes>
+            <Route path="/reset-password" element={<ResetPassword />} />
+          </Routes>
+        </MemoryRouter>
+      )
+
+      fireEvent.change(screen.getByLabelText(/^new password$/i), { target: { value: 'newpass123' } })
+      fireEvent.change(screen.getByLabelText(/repeat new password/i), { target: { value: 'newpass123' } })
+      fireEvent.submit(screen.getByRole('button', { name: /^create$/i }).closest('form')!)
+
+      await waitFor(() => {
+        expect(screen.getByText('Password created successfully. Redirecting to home\u2026')).toBeInTheDocument()
+      })
+    })
+
+    it('shows error message for create mode on failure', async () => {
+      mockResetPassword.mockResolvedValueOnce(false)
+
+      render(
+        <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123&mode=create']}>
+          <Routes>
+            <Route path="/reset-password" element={<ResetPassword />} />
+          </Routes>
+        </MemoryRouter>
+      )
+
+      fireEvent.change(screen.getByLabelText(/^new password$/i), { target: { value: 'newpass123' } })
+      fireEvent.change(screen.getByLabelText(/repeat new password/i), { target: { value: 'newpass123' } })
+      fireEvent.submit(screen.getByRole('button', { name: /^create$/i }).closest('form')!)
+
+      await waitFor(() => {
+        expect(screen.getByText('Password creation failed. Please try again.')).toBeInTheDocument()
+      })
+    })
+
+    it('shows "Reset Password" heading and "Reset" button when mode is absent', () => {
+      render(
+        <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
+          <Routes>
+            <Route path="/reset-password" element={<ResetPassword />} />
+          </Routes>
+        </MemoryRouter>
+      )
+
+      expect(screen.getByRole('heading', { name: /reset password/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /^reset$/i })).toBeInTheDocument()
+    })
+  })
 })

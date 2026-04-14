@@ -140,7 +140,7 @@ namespace Touir.ExpensesManager.Users.Controllers
                 bool result = await _authenticationService.ValidateEmailAsync(emailVerificationHash, emailLower);
                 if (!result)
                     return Unauthorized(new ErrorResponse { Message = "EMAIL_VERIFICATION_FAILED" });
-                return Redirect($"{app.ResetPasswordUrlPath}?email={Uri.EscapeDataString(emailLower)}&h={emailVerificationHash}");
+                return Redirect($"{app.ResetPasswordUrlPath}?email={Uri.EscapeDataString(emailLower)}&h={emailVerificationHash}&mode=create");
             }
             catch(Exception)
             {

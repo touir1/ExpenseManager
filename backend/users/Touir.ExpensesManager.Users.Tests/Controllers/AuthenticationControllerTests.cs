@@ -329,8 +329,9 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             
             var result = await controller.ValidateEmail("hash", "john@doe.com", "APP1");
             var redirectResult = Assert.IsType<RedirectResult>(result);
-            
+
             Assert.StartsWith("http://reset", redirectResult.Url);
+            Assert.Contains("mode=create", redirectResult.Url);
         }
 
         [Fact]

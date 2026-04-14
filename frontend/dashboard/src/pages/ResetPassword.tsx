@@ -13,6 +13,8 @@ export default function ResetPassword() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
 
+  const isCreateMode = params.get('mode') === 'create'
+
   useEffect(() => {
     const pEmail = params.get('email') || ''
     const pHash = params.get('h') || params.get('verificationHash') || ''
@@ -34,7 +36,10 @@ export default function ResetPassword() {
     }
     const ok = await resetPassword(email, verificationHash, newPassword, repeatPassword)
     setIsSuccess(ok)
-    setMessage(ok ? 'Password reset successfully. Redirecting to home…' : 'Password reset failed. Please try again.')
+    setMessage(ok
+      ? isCreateMode ? 'Password created successfully. Redirecting to home…' : 'Password reset successfully. Redirecting to home…'
+      : isCreateMode ? 'Password creation failed. Please try again.' : 'Password reset failed. Please try again.'
+    )
     if (ok) {
       setNewPassword('')
       setRepeatPassword('')
@@ -49,8 +54,12 @@ export default function ResetPassword() {
       <div className="auth-card">
         {/* Header */}
         <div className="mb-7">
-          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Reset Password</h1>
-          <p className="text-sm text-slate-500 mt-1">Enter a new password for your account.</p>
+          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
+            {isCreateMode ? 'Create Password' : 'Reset Password'}
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            {isCreateMode ? 'Set a password for your new account.' : 'Enter a new password for your account.'}
+          </p>
         </div>
 
         {missingParams && (
@@ -91,7 +100,7 @@ export default function ResetPassword() {
           </div>
 
           <button type="submit" disabled={missingParams || isSuccess} className="btn-primary mt-1">
-            Reset
+            {isCreateMode ? 'Create' : 'Reset'}
           </button>
         </form>
 
