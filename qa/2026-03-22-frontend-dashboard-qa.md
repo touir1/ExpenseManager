@@ -95,9 +95,9 @@ Here is the full QA report based on thorough testing of the application, includi
 
 ---
 
-### 13. "Settings" nav link goes directly to `/change-password`, not a settings page
-**Detail:** The nav item labeled "Settings" routes to `/change-password`, which is just one sub-action. This is conceptually wrong and will become a problem when more settings are added.
-**Fix:** Either rename the nav link to "Change Password", or create a proper `/settings` page with "Change Password" as a section within it.
+### 13. ~~"Settings" nav link goes directly to `/change-password`, not a settings page~~ ✅ FIXED
+**Detail:** The nav item labeled "Settings" routed directly to `/change-password`, which is just one sub-action.
+**Fix applied:** Created `Settings.tsx` at `/settings` — a proper settings page with a "Password" card linking to `/change-password`. The navbar "Settings" link now points to `/settings`, with active-state highlighting covering both `/settings` and `/change-password`. The Change Password page gained a "← Back to settings" link (also resolves #15).
 
 ---
 
@@ -108,10 +108,10 @@ Here is the full QA report based on thorough testing of the application, includi
 
 ---
 
-### 15. Change Password page has no "Back to dashboard" link
+### 15. ~~Change Password page has no "Back to dashboard" link~~ ✅ FIXED
 **Page:** `/change-password`
-**Detail:** After reaching the page (via the "Change Password" link on the dashboard), there is no navigation link to return. Users must use the navbar or browser back.
-**Fix:** Add a `← Back to dashboard` link.
+**Detail:** After reaching the page, there was no navigation link to return.
+**Fix applied:** Added a "← Back to settings" link at the top of `ChangePassword.tsx`, returning the user to `/settings` (resolved as part of #13).
 
 ---
 
@@ -235,9 +235,9 @@ These warnings clutter the console and will become breaking changes in v7.
 | 10 | ✅ Fixed | UX | ~~Registration success message not readable before redirect~~ |
 | 11 | 🟡 Moderate | Feature | Core "Expenses" feature is "Coming soon…" |
 | 12 | ✅ Fixed | UX | ~~Duplicate logout buttons with inconsistent destinations~~ |
-| 13 | 🟡 Moderate | UX | "Settings" nav leads to change-password, not a settings page |
+| 13 | ✅ Fixed | UX | ~~"Settings" nav leads to change-password, not a settings page~~ |
 | 14 | 🟡 Moderate | UX | No "back" link on Request Password Reset page |
-| 15 | 🟡 Moderate | UX | No "back" link on Change Password page |
+| 15 | ✅ Fixed | UX | ~~No "back" link on Change Password page~~ |
 | 16 | 🔵 UI | Responsive | Hamburger menu not triggering at mobile breakpoint |
 | 17 | 🔵 UI | Layout | Landing page content not vertically centered |
 | 18 | 🔵 UI | Polish | Password placeholders use Unicode bullets |

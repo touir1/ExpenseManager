@@ -135,7 +135,7 @@ describe('NavBar', () => {
       expect(signInLink).toHaveClass('bg-brand-50', 'text-brand-700')
     })
 
-    it('applies inactive class to non-current links', () => {
+    it('applies inactive class to Settings when on /dashboard', () => {
       mockUseAuth.mockReturnValue({ isAuthenticated: true, logout: vi.fn() })
       renderNavBar('/dashboard')
 
@@ -145,6 +145,28 @@ describe('NavBar', () => {
       )
       expect(settingsLink).toHaveClass('text-slate-600')
       expect(settingsLink).not.toHaveClass('bg-brand-50')
+    })
+
+    it('applies active class to Settings when on /settings', () => {
+      mockUseAuth.mockReturnValue({ isAuthenticated: true, logout: vi.fn() })
+      renderNavBar('/settings')
+
+      const nav = screen.getByRole('navigation')
+      const settingsLink = Array.from(nav.querySelectorAll('a')).find(
+        a => a.textContent === 'Settings'
+      )
+      expect(settingsLink).toHaveClass('bg-brand-50', 'text-brand-700')
+    })
+
+    it('applies active class to Settings when on /change-password', () => {
+      mockUseAuth.mockReturnValue({ isAuthenticated: true, logout: vi.fn() })
+      renderNavBar('/change-password')
+
+      const nav = screen.getByRole('navigation')
+      const settingsLink = Array.from(nav.querySelectorAll('a')).find(
+        a => a.textContent === 'Settings'
+      )
+      expect(settingsLink).toHaveClass('bg-brand-50', 'text-brand-700')
     })
   })
 

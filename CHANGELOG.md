@@ -3,6 +3,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.23.0] - 2026-04-15
+### Added
+- `Settings` page (`src/pages/Settings.tsx`) at route `/settings`: a proper settings hub with a "Password" card linking to `/change-password`. The navbar "Settings" link now points to `/settings`; the active state covers both `/settings` and `/change-password` (QA #13).
+### Fixed
+- Change Password page: added "← Back to settings" link at the top, returning users to `/settings` (QA #15).
+
 ## [0.22.0] - 2026-04-15
 ### Fixed
 - Dashboard: removed the redundant "Logout" button from the page body. Sign out is now available exclusively via the navbar "Sign out" link, eliminating the duplicate action and the inconsistent redirect destinations (QA #12).

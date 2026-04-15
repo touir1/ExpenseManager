@@ -1,4 +1,5 @@
 import { FormEvent, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthContext'
 
 export default function ChangePassword() {
@@ -29,6 +30,17 @@ export default function ChangePassword() {
   return (
     <div className="auth-page">
       <div className="auth-card">
+        {/* Back link */}
+        <Link
+          to="/settings"
+          className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-6 transition-colors duration-150"
+        >
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to settings
+        </Link>
+
         {/* Header */}
         <div className="mb-7">
           <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Change Password</h1>

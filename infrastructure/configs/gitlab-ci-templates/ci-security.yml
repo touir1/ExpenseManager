@@ -6,6 +6,7 @@ variables:
   stage: security
   image: 
     name: owasp/dependency-check:latest
+    pull_policy: always
     entrypoint: [""]
   artifacts:
     when: always

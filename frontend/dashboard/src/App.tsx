@@ -10,6 +10,7 @@ import HomePublic from '@/pages/HomePublic'
 import HomeDashboard from '@/pages/HomeDashboard'
 import Login from '@/pages/Login'
 import Register from '@/pages/Register'
+import Settings from '@/pages/Settings'
 import ChangePassword from '@/pages/ChangePassword'
 import ResetPassword from '@/pages/ResetPassword'
 import RequestPasswordReset from '@/pages/RequestPasswordReset'
@@ -38,6 +39,14 @@ export default function App() {
                   element={
                     <ProtectedRoute>
                       <HomeDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <Settings />
                     </ProtectedRoute>
                   }
                 />

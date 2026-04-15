@@ -14,7 +14,10 @@ export default function NavBar() {
     navigate('/')
   }
 
-  const isActive = (path: string) => location.pathname === path
+  const isActive = (path: string) => {
+    if (path === '/settings') return location.pathname === '/settings' || location.pathname === '/change-password'
+    return location.pathname === path
+  }
 
   const linkClass = (path: string) =>
     `text-sm font-medium px-3 py-1.5 rounded-lg transition-colors duration-150 ${
@@ -60,7 +63,7 @@ export default function NavBar() {
               <Link to="/dashboard" className={linkClass('/dashboard')}>
                 Dashboard
               </Link>
-              <Link to="/change-password" className={linkClass('/change-password')}>
+              <Link to="/settings" className={linkClass('/settings')}>
                 Settings
               </Link>
               <button

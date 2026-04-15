@@ -234,6 +234,7 @@ ExpenseManager/
 │               ├── ChangePassword.tsx        — Change password form
 │               ├── RequestPasswordReset.tsx  — Request password reset email
 │               ├── ResetPassword.tsx         — Reset password with token from email
+│               ├── Settings.tsx              — Settings hub page; links to sub-sections (e.g. Change Password)
 │               ├── NotFound.tsx              — 404 page; shown for any unmatched route
 │               └── __tests__/
 │                   ├── HomeDashboard.test.tsx
@@ -241,6 +242,7 @@ ExpenseManager/
 │                   ├── Register.test.tsx
 │                   ├── HomePublic.test.tsx
 │                   ├── ChangePassword.test.tsx
+│                   ├── Settings.test.tsx
 │                   ├── RequestPasswordReset.test.tsx
 │                   ├── ResetPassword.test.tsx
 │                   └── NotFound.test.tsx

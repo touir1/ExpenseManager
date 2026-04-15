@@ -33,6 +33,18 @@ describe('ChangePassword page', () => {
     expect(screen.getByRole('button', { name: /change password/i })).toBeInTheDocument()
   })
 
+  it('renders back to settings link pointing to /settings', () => {
+    render(
+      <MemoryRouter>
+        <ChangePassword />
+      </MemoryRouter>
+    )
+
+    const backLink = screen.getByRole('link', { name: /back to settings/i })
+    expect(backLink).toBeInTheDocument()
+    expect(backLink).toHaveAttribute('href', '/settings')
+  })
+
   it('updates old password field when typing', () => {
     render(
       <MemoryRouter>
