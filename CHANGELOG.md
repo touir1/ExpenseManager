@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.22.0] - 2026-04-15
+### Fixed
+- Dashboard: removed the redundant "Logout" button from the page body. Sign out is now available exclusively via the navbar "Sign out" link, eliminating the duplicate action and the inconsistent redirect destinations (QA #12).
+
 ## [0.21.0] - 2026-04-14
 ### Fixed
 - Register page: replaced auto-redirect after successful registration with a dedicated success state. The form is now replaced by a full-card success message and a manual "Go to login →" link — users control when to proceed and the message is always fully visible (QA #10).

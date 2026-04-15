@@ -88,10 +88,10 @@ Here is the full QA report based on thorough testing of the application, includi
 
 ---
 
-### 12. Duplicate logout mechanisms — inconsistent post-logout destination
-**Pages:** `/home` (dashboard)
-**Detail:** There are two logout actions: "Sign out" in the navbar (redirects to `/`) and "Logout" button on the dashboard page (redirects to `/login`). Having both is redundant and the different redirect destinations are inconsistent.
-**Fix:** Remove the "Logout" button from the dashboard page body (keep only the nav "Sign out"), or make both redirect to the same destination (`/login` is more appropriate as the next logical step).
+### 12. ~~Duplicate logout mechanisms — inconsistent post-logout destination~~ ✅ FIXED
+**Pages:** `/dashboard`
+**Detail:** There were two logout actions: "Sign out" in the navbar and "Logout" button on the dashboard page body, with different redirect destinations.
+**Fix applied:** Removed the "Logout" button from `HomeDashboard.tsx`. Sign out is now available exclusively via the navbar.
 
 ---
 
@@ -234,7 +234,7 @@ These warnings clutter the console and will become breaking changes in v7.
 | 9 | ✅ Fixed | Security/UX | ~~Reset password pages accessible while logged in~~ |
 | 10 | ✅ Fixed | UX | ~~Registration success message not readable before redirect~~ |
 | 11 | 🟡 Moderate | Feature | Core "Expenses" feature is "Coming soon…" |
-| 12 | 🟡 Moderate | UX | Duplicate logout buttons with inconsistent destinations |
+| 12 | ✅ Fixed | UX | ~~Duplicate logout buttons with inconsistent destinations~~ |
 | 13 | 🟡 Moderate | UX | "Settings" nav leads to change-password, not a settings page |
 | 14 | 🟡 Moderate | UX | No "back" link on Request Password Reset page |
 | 15 | 🟡 Moderate | UX | No "back" link on Change Password page |

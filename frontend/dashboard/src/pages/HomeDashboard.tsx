@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthContext'
 
 export default function HomeDashboard() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
 
   return (
     <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-8">
@@ -87,18 +87,6 @@ export default function HomeDashboard() {
         </div>
       </div>
 
-      {/* Logout */}
-      <div className="mt-8">
-        <button
-          onClick={logout}
-          className="btn-secondary"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          Logout
-        </button>
-      </div>
     </div>
   )
 }
