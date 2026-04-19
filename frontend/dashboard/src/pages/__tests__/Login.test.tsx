@@ -29,7 +29,7 @@ describe('Login page', () => {
 
     expect(screen.getByRole('heading', { name: /welcome back/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument()
   })
 
@@ -65,7 +65,7 @@ describe('Login page', () => {
     )
 
     await user.type(screen.getByLabelText(/email/i), 'user@example.com')
-    await user.type(screen.getByLabelText(/password/i), 'secret')
+    await user.type(screen.getByLabelText(/^password$/i), 'secret')
     await user.click(screen.getByRole('button', { name: /login/i }))
 
     await waitFor(() => {
@@ -89,7 +89,7 @@ describe('Login page', () => {
     )
 
     await user.type(screen.getByLabelText(/email/i), 'user@example.com')
-    await user.type(screen.getByLabelText(/password/i), 'bad')
+    await user.type(screen.getByLabelText(/^password$/i), 'bad')
     await user.click(screen.getByRole('button', { name: /login/i }))
 
     await waitFor(() => {
@@ -113,7 +113,7 @@ describe('Login page', () => {
     )
 
     await user.type(screen.getByLabelText(/email/i), 'user@example.com')
-    await user.type(screen.getByLabelText(/password/i), 'wrong')
+    await user.type(screen.getByLabelText(/^password$/i), 'wrong')
     await user.click(screen.getByRole('button', { name: /login/i }))
 
     await waitFor(() => {
@@ -139,7 +139,7 @@ describe('Login page', () => {
     )
 
     await user.type(screen.getByLabelText(/email/i), 'wrong@example.com')
-    await user.type(screen.getByLabelText(/password/i), 'wrongpass')
+    await user.type(screen.getByLabelText(/^password$/i), 'wrongpass')
     await user.click(screen.getByRole('button', { name: /login/i }))
 
     await waitFor(() => {
@@ -163,7 +163,7 @@ describe('Login page', () => {
     )
 
     const emailInput = screen.getByLabelText(/email/i)
-    const passwordInput = screen.getByLabelText(/password/i)
+    const passwordInput = screen.getByLabelText(/^password$/i)
 
     await user.type(emailInput, 'test@test.com')
     await user.type(passwordInput, 'password123')
@@ -185,7 +185,7 @@ describe('Login page', () => {
     )
 
     const emailInput = screen.getByLabelText(/email/i)
-    const passwordInput = screen.getByLabelText(/password/i)
+    const passwordInput = screen.getByLabelText(/^password$/i)
 
     expect(emailInput).toBeRequired()
     expect(passwordInput).toBeRequired()
@@ -203,7 +203,7 @@ describe('Login page', () => {
     )
 
     const emailInput = screen.getByLabelText(/email/i)
-    const passwordInput = screen.getByLabelText(/password/i)
+    const passwordInput = screen.getByLabelText(/^password$/i)
 
     expect(emailInput).toHaveAttribute('type', 'email')
     expect(passwordInput).toHaveAttribute('type', 'password')
@@ -254,7 +254,7 @@ describe('Login page', () => {
       </MemoryRouter>
     )
 
-    const passwordInput = screen.getByLabelText(/password/i) as HTMLInputElement
+    const passwordInput = screen.getByLabelText(/^password$/i) as HTMLInputElement
 
     await user.type(passwordInput, 'mypassword')
     
@@ -276,7 +276,7 @@ describe('Login page', () => {
     )
 
     await user.type(screen.getByLabelText(/email/i), 'test@test.com')
-    await user.type(screen.getByLabelText(/password/i), 'pass{Enter}')
+    await user.type(screen.getByLabelText(/^password$/i), 'pass{Enter}')
 
     await waitFor(() => {
       expect(screen.getByText('Dashboard')).toBeInTheDocument()

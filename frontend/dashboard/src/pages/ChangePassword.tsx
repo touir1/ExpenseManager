@@ -2,6 +2,7 @@ import { FormEvent, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthContext'
 import PasswordStrength from '@/components/PasswordStrength'
+import PasswordInput from '@/components/PasswordInput'
 
 export default function ChangePassword() {
   const [oldPassword, setOldPassword] = useState('')
@@ -56,44 +57,38 @@ export default function ChangePassword() {
         <form onSubmit={onSubmit} className="space-y-4" noValidate>
           <div>
             <label htmlFor="oldPassword" className="field-label">Old password</label>
-            <input
+            <PasswordInput
               id="oldPassword"
-              type="password"
               autoComplete="current-password"
               value={oldPassword}
               onChange={e => setOldPassword(e.target.value)}
               required
               className="field-input"
-              placeholder=""
             />
           </div>
 
           <div>
             <label htmlFor="newPassword" className="field-label">New password</label>
-            <input
+            <PasswordInput
               id="newPassword"
-              type="password"
               autoComplete="new-password"
               value={newPassword}
               onChange={e => setNewPassword(e.target.value)}
               required
               className="field-input"
-              placeholder=""
             />
             <PasswordStrength password={newPassword} />
           </div>
 
           <div>
             <label htmlFor="repeatPassword" className="field-label">Repeat new password</label>
-            <input
+            <PasswordInput
               id="repeatPassword"
-              type="password"
               autoComplete="new-password"
               value={repeatPassword}
               onChange={e => setRepeatPassword(e.target.value)}
               required
               className="field-input"
-              placeholder=""
             />
           </div>
 

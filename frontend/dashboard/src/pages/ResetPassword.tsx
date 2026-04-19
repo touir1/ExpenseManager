@@ -2,6 +2,7 @@ import { FormEvent, useState, useEffect } from 'react'
 import { useAuth } from '@/auth/AuthContext'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import PasswordStrength from '@/components/PasswordStrength'
+import PasswordInput from '@/components/PasswordInput'
 
 export default function ResetPassword() {
   const [email, setEmail] = useState('')
@@ -78,32 +79,28 @@ export default function ResetPassword() {
         <form onSubmit={onSubmit} className="space-y-4" noValidate>
           <div>
             <label htmlFor="newPassword" className="field-label">New password</label>
-            <input
+            <PasswordInput
               id="newPassword"
-              type="password"
               autoComplete="new-password"
               value={newPassword}
               onChange={e => setNewPassword(e.target.value)}
               required
               disabled={missingParams}
               className="field-input"
-              placeholder=""
             />
             <PasswordStrength password={newPassword} />
           </div>
 
           <div>
             <label htmlFor="repeatPassword" className="field-label">Repeat new password</label>
-            <input
+            <PasswordInput
               id="repeatPassword"
-              type="password"
               autoComplete="new-password"
               value={repeatPassword}
               onChange={e => setRepeatPassword(e.target.value)}
               required
               disabled={missingParams}
               className="field-input"
-              placeholder=""
             />
           </div>
 

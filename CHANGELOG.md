@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.29.0] - 2026-04-19
+### Added
+- `PasswordInput` component (`src/components/PasswordInput.tsx`): reusable password field with an eye-icon show/hide toggle. Clicking the button toggles `type` between `"password"` and `"text"` and updates the `aria-label` ("Show password" / "Hide password"). All six password inputs across `Login.tsx`, `ChangePassword.tsx`, and `ResetPassword.tsx` now use this component (QA #19).
+
 ## [0.28.0] - 2026-04-19
 ### Fixed
 - Password inputs: replaced `placeholder="••••••••"` with `placeholder=""` on all six password fields across `Login.tsx`, `ChangePassword.tsx`, and `ResetPassword.tsx`. The Unicode bullet workaround displayed inconsistently across browsers; `type="password"` already handles masking (QA #18).

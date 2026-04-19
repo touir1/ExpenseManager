@@ -137,9 +137,9 @@ Here is the full QA report based on thorough testing of the application, includi
 
 ---
 
-### 19. No "show/hide password" toggle on any password field
-**Detail:** None of the password fields (login, change password, reset password) have an eye icon or toggle to reveal the password. This is now a standard accessibility/UX feature.
-**Fix:** Add a show/hide toggle button to the right of password fields.
+### 19. ~~No "show/hide password" toggle on any password field~~ ✅ FIXED
+**Detail:** None of the password fields (login, change password, reset password) had an eye icon or toggle to reveal the password.
+**Fix applied:** Created a reusable `PasswordInput` component (`src/components/PasswordInput.tsx`) that wraps the input with an absolute-positioned eye-icon toggle button. Clicking it toggles `type` between `"password"` and `"text"` and updates the `aria-label` between "Show password" and "Hide password". All six password fields across `Login.tsx`, `ChangePassword.tsx`, and `ResetPassword.tsx` now use this component. Full unit test suite added in `src/components/__tests__/PasswordInput.test.tsx`.
 
 ---
 
@@ -241,7 +241,7 @@ These warnings clutter the console and will become breaking changes in v7.
 | 16 | ✅ Fixed | Responsive | ~~Hamburger menu not triggering at mobile breakpoint~~ |
 | 17 | ✅ Fixed | Layout | ~~Landing page content not vertically centered~~ |
 | 18 | ✅ Fixed | Polish | ~~Password placeholders use Unicode bullets~~ |
-| 19 | 🔵 UI | Accessibility | No show/hide toggle on password fields |
+| 19 | ✅ Fixed | Accessibility | ~~No show/hide toggle on password fields~~ |
 | 20 | 🔵 UI | UX | No loading spinner on Login button |
 | 21 | 🔵 UI | UX | No loading spinner on Register button |
 | 22 | 🔵 UI | SEO/A11y | Tab title doesn't update per page |
