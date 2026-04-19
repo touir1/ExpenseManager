@@ -4,7 +4,7 @@ const CRITERIA = [
   { key: 'length',    label: 'At least 8 characters',     test: (p: string) => p.length >= 8 },
   { key: 'uppercase', label: 'Uppercase letter (A–Z)',     test: (p: string) => /[A-Z]/.test(p) },
   { key: 'lowercase', label: 'Lowercase letter (a–z)',     test: (p: string) => /[a-z]/.test(p) },
-  { key: 'number',    label: 'Number (0–9)',               test: (p: string) => /[0-9]/.test(p) },
+  { key: 'number',    label: 'Number (0–9)',               test: (p: string) => /\d/.test(p) },
   { key: 'special',   label: 'Special character (!@#…)',   test: (p: string) => /[^A-Za-z0-9]/.test(p) },
 ]
 
