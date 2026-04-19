@@ -170,6 +170,27 @@ describe('ChangePassword page', () => {
     expect(mockChangePassword).not.toHaveBeenCalled()
   })
 
+  it('shows "Password must be at least 8 characters." when new password is too short', async () => {
+    render(
+      <MemoryRouter>
+        <ChangePassword />
+      </MemoryRouter>
+    )
+
+    const oldPasswordInput = screen.getByLabelText(/old password/i)
+    const newPasswordInput = screen.getByLabelText(/^new password$/i)
+    const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
+    const submitButton = screen.getByRole('button', { name: /change password/i })
+
+    fireEvent.change(oldPasswordInput, { target: { value: 'oldpass1' } })
+    fireEvent.change(newPasswordInput, { target: { value: 'short' } })
+    fireEvent.change(repeatPasswordInput, { target: { value: 'short' } })
+    fireEvent.click(submitButton)
+
+    expect(screen.getByText('Password must be at least 8 characters.')).toBeInTheDocument()
+    expect(mockChangePassword).not.toHaveBeenCalled()
+  })
+
   it('shows "New passwords do not match." when new passwords differ', async () => {
     render(
       <MemoryRouter>
@@ -189,6 +210,19 @@ describe('ChangePassword page', () => {
 
     expect(screen.getByText('New passwords do not match.')).toBeInTheDocument()
     expect(mockChangePassword).not.toHaveBeenCalled()
+  })
+
+  it('shows password strength indicator when typing in new password field', () => {
+    render(
+      <MemoryRouter>
+        <ChangePassword />
+      </MemoryRouter>
+    )
+
+    const newPasswordInput = screen.getByLabelText(/^new password$/i)
+    fireEvent.change(newPasswordInput, { target: { value: 'Test1!' } })
+
+    expect(screen.getByRole('list', { name: /password requirements/i })).toBeInTheDocument()
   })
 
   it('does not show message initially', () => {
@@ -225,9 +259,9 @@ describe('ChangePassword page', () => {
     const newPasswordInput = screen.getByLabelText(/^new password$/i)
     const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
 
-    fireEvent.change(oldPasswordInput, { target: { value: 'old' } })
-    fireEvent.change(newPasswordInput, { target: { value: 'new' } })
-    fireEvent.change(repeatPasswordInput, { target: { value: 'new' } })
+    fireEvent.change(oldPasswordInput, { target: { value: 'oldpass1' } })
+    fireEvent.change(newPasswordInput, { target: { value: 'newpass1' } })
+    fireEvent.change(repeatPasswordInput, { target: { value: 'newpass1' } })
     fireEvent.submit(form)
 
     await waitFor(() => {

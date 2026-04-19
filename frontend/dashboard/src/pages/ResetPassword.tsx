@@ -1,6 +1,7 @@
 import { FormEvent, useState, useEffect } from 'react'
 import { useAuth } from '@/auth/AuthContext'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
+import PasswordStrength from '@/components/PasswordStrength'
 
 export default function ResetPassword() {
   const [email, setEmail] = useState('')
@@ -27,6 +28,11 @@ export default function ResetPassword() {
     if (!newPassword || !repeatPassword) {
       setIsSuccess(false)
       setMessage('All fields are required.')
+      return
+    }
+    if (newPassword.length < 8) {
+      setIsSuccess(false)
+      setMessage('Password must be at least 8 characters.')
       return
     }
     if (newPassword !== repeatPassword) {
@@ -83,6 +89,7 @@ export default function ResetPassword() {
               className="field-input"
               placeholder="••••••••"
             />
+            <PasswordStrength password={newPassword} />
           </div>
 
           <div>

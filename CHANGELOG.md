@@ -3,6 +3,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.25.0] - 2026-04-19
+### Added
+- `PasswordStrength` component (`src/components/PasswordStrength.tsx`): live password strength indicator with a 5-segment colour bar (Weak → Fair → Good → Strong) and a checklist of five criteria — at least 8 characters, uppercase letter, lowercase letter, number, and special character. Displayed below the "New password" field on Change Password and Reset Password pages (QA #29).
+### Fixed
+- Change Password and Reset Password pages: added client-side minimum-length validation; passwords shorter than 8 characters are now rejected with "Password must be at least 8 characters." before the API is called (QA #29).
+
 ## [0.24.0] - 2026-04-19
 ### Fixed
 - Request Password Reset page: added "← Back to login" link below the form, giving users a clear navigation path back without relying on the browser back button or the logo (QA #14).

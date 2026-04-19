@@ -207,9 +207,9 @@ These warnings clutter the console and will become breaking changes in v7.
 
 ---
 
-### 29. No password strength indicator or minimum length requirement shown to users
-**Detail:** On the Register page (which creates a new account via passwordless flow), and on the Change Password page, there is no indication of what constitutes a valid password. The `changePassword` function in `AuthContext` performs no length check.
-**Fix:** Add a minimum password length check (e.g., 8 characters) client-side and display a hint below the field.
+### 29. ~~No password strength indicator or minimum length requirement shown to users~~ ✅ FIXED
+**Detail:** On the Change Password and Reset Password pages there was no indication of what constitutes a valid password and no client-side length check.
+**Fix applied:** Added a reusable `PasswordStrength` component (`src/components/PasswordStrength.tsx`) that displays below the "New password" field on both pages. It shows a 5-segment colour bar and a live checklist of five criteria (≥ 8 characters, uppercase, lowercase, number, special character) with a Weak / Fair / Good / Strong label. Client-side validation now rejects passwords shorter than 8 characters with "Password must be at least 8 characters." before calling the API.
 
 ---
 
@@ -251,5 +251,5 @@ These warnings clutter the console and will become breaking changes in v7.
 | 26 | ⚙️ Code | Architecture | `onUnauthorized` set outside `useEffect`, no cleanup |
 | 27 | ⚙️ Code | Performance | Auth functions not memoized with `useCallback` |
 | 28 | ⚙️ Security | Feature | No brute-force/rate-limit protection on login |
-| 29 | ⚙️ Security | Feature | No password strength indicator or minimum length |
+| 29 | ✅ Fixed | Security | ~~No password strength indicator or minimum length~~ |
 | 30 | ✅ Fixed | Architecture | ~~Route `/home` vs. UI label "Dashboard" inconsistency~~ |

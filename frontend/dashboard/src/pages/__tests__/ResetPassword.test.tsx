@@ -247,6 +247,42 @@ describe('ResetPassword page', () => {
     expect(mockResetPassword).not.toHaveBeenCalled()
   })
 
+  it('shows "Password must be at least 8 characters." when new password is too short', async () => {
+    render(
+      <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
+        <Routes>
+          <Route path="/reset-password" element={<ResetPassword />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    const newPasswordInput = screen.getByLabelText(/^new password$/i)
+    const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
+    const form = screen.getByRole('button', { name: /reset/i }).closest('form')!
+
+    fireEvent.change(newPasswordInput, { target: { value: 'short' } })
+    fireEvent.change(repeatPasswordInput, { target: { value: 'short' } })
+    fireEvent.submit(form)
+
+    expect(screen.getByText('Password must be at least 8 characters.')).toBeInTheDocument()
+    expect(mockResetPassword).not.toHaveBeenCalled()
+  })
+
+  it('shows password strength indicator when typing in new password field', () => {
+    render(
+      <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
+        <Routes>
+          <Route path="/reset-password" element={<ResetPassword />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    const newPasswordInput = screen.getByLabelText(/^new password$/i)
+    fireEvent.change(newPasswordInput, { target: { value: 'Test1!' } })
+
+    expect(screen.getByRole('list', { name: /password requirements/i })).toBeInTheDocument()
+  })
+
   it('shows "New passwords do not match." when passwords differ', async () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
@@ -260,8 +296,8 @@ describe('ResetPassword page', () => {
     const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
     const form = screen.getByRole('button', { name: /reset/i }).closest('form')!
 
-    fireEvent.change(newPasswordInput, { target: { value: 'pass1' } })
-    fireEvent.change(repeatPasswordInput, { target: { value: 'pass2' } })
+    fireEvent.change(newPasswordInput, { target: { value: 'Password1' } })
+    fireEvent.change(repeatPasswordInput, { target: { value: 'Password2' } })
     fireEvent.submit(form)
 
     expect(screen.getByText('New passwords do not match.')).toBeInTheDocument()
@@ -283,12 +319,12 @@ describe('ResetPassword page', () => {
     const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
     const form = screen.getByRole('button', { name: /reset/i }).closest('form')!
 
-    fireEvent.change(newPasswordInput, { target: { value: 'test123' } })
-    fireEvent.change(repeatPasswordInput, { target: { value: 'test123' } })
+    fireEvent.change(newPasswordInput, { target: { value: 'testpass1' } })
+    fireEvent.change(repeatPasswordInput, { target: { value: 'testpass1' } })
     fireEvent.submit(form)
 
     await waitFor(() => {
-      expect(mockResetPassword).toHaveBeenCalledWith('user@test.com', 'xyz789', 'test123', 'test123')
+      expect(mockResetPassword).toHaveBeenCalledWith('user@test.com', 'xyz789', 'testpass1', 'testpass1')
     })
   })
 
@@ -307,8 +343,8 @@ describe('ResetPassword page', () => {
     const newPasswordInput = screen.getByLabelText(/^new password$/i)
     const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
 
-    fireEvent.change(newPasswordInput, { target: { value: 'test' } })
-    fireEvent.change(repeatPasswordInput, { target: { value: 'test' } })
+    fireEvent.change(newPasswordInput, { target: { value: 'testpass1' } })
+    fireEvent.change(repeatPasswordInput, { target: { value: 'testpass1' } })
     fireEvent.submit(form)
 
     await waitFor(() => {
