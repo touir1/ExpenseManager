@@ -127,8 +127,8 @@ export default function NavBar() {
                 Dashboard
               </Link>
               <Link
-                to="/change-password"
-                className={linkClass('/change-password')}
+                to="/settings"
+                className={linkClass('/settings')}
                 onClick={() => setMobileOpen(false)}
               >
                 Settings

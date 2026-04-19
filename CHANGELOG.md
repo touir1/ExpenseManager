@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.0] - 2026-04-19
+### Fixed
+- NavBar: corrected the mobile menu Settings link from `/change-password` to `/settings`, fixing a regression introduced during QA #13 where mobile users were routed to the wrong page (QA #16).
+
 ## [0.25.0] - 2026-04-19
 ### Added
 - `PasswordStrength` component (`src/components/PasswordStrength.tsx`): live password strength indicator with a 5-segment colour bar (Weak → Fair → Good → Strong) and a checklist of five criteria — at least 8 characters, uppercase letter, lowercase letter, number, and special character. Displayed below the "New password" field on Change Password and Reset Password pages (QA #29).

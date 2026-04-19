@@ -117,10 +117,10 @@ Here is the full QA report based on thorough testing of the application, includi
 
 ## 🔵 UX / UI ISSUES
 
-### 16. Hamburger menu button is present in DOM but hidden at all tested viewport sizes
+### 16. ~~Hamburger menu button is present in DOM but hidden at all tested viewport sizes~~ ✅ FIXED
 **File:** `NavBar.tsx`
-**Detail:** The toggle button is `sm:hidden` (only shown below 640px CSS pixels). However, in testing at 375–390px viewport width, the browser's actual rendered size stayed above the breakpoint due to `window.innerWidth` vs. CSS viewport differences. The desktop nav (`hidden sm:flex`) was always showing. The mobile menu worked in the source code but was never visually triggered.
-**Fix:** Test the mobile breakpoint in actual device emulation. Verify the `sm:hidden` / `hidden sm:flex` breakpoint is applied consistently with the actual viewport meta tag.
+**Detail:** The breakpoint logic (`sm:hidden` on hamburger, `hidden sm:flex` on desktop nav) and the viewport meta tag (`width=device-width, initial-scale=1.0`) were already correct. The underlying code bug was that the mobile menu's Settings link pointed to `/change-password` instead of `/settings` — a regression from QA #13 — meaning mobile users who opened the menu were sent to the wrong page.
+**Fix applied:** Corrected the mobile Settings link from `to="/change-password"` to `to="/settings"` in `NavBar.tsx`. Added a test asserting the mobile Settings link href is `/settings`.
 
 ---
 
@@ -238,7 +238,7 @@ These warnings clutter the console and will become breaking changes in v7.
 | 13 | ✅ Fixed | UX | ~~"Settings" nav leads to change-password, not a settings page~~ |
 | 14 | ✅ Fixed | UX | ~~No "back" link on Request Password Reset page~~ |
 | 15 | ✅ Fixed | UX | ~~No "back" link on Change Password page~~ |
-| 16 | 🔵 UI | Responsive | Hamburger menu not triggering at mobile breakpoint |
+| 16 | ✅ Fixed | Responsive | ~~Hamburger menu not triggering at mobile breakpoint~~ |
 | 17 | 🔵 UI | Layout | Landing page content not vertically centered |
 | 18 | 🔵 UI | Polish | Password placeholders use Unicode bullets |
 | 19 | 🔵 UI | Accessibility | No show/hide toggle on password fields |

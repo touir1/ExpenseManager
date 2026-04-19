@@ -271,6 +271,18 @@ describe('NavBar', () => {
       expect(screen.getAllByText('Dashboard')).toHaveLength(1)
     })
 
+    it('mobile Settings link points to /settings', async () => {
+      mockUseAuth.mockReturnValue({ isAuthenticated: true, logout: vi.fn() })
+      const user = userEvent.setup()
+      renderNavBar('/dashboard')
+
+      await user.click(screen.getByRole('button', { name: /toggle menu/i }))
+
+      const settingsLinks = screen.getAllByRole('link', { name: /^settings$/i })
+      const mobileSettings = settingsLinks[settingsLinks.length - 1]
+      expect(mobileSettings).toHaveAttribute('href', '/settings')
+    })
+
     it('closes mobile menu when mobile Settings link is clicked', async () => {
       mockUseAuth.mockReturnValue({ isAuthenticated: true, logout: vi.fn() })
       const user = userEvent.setup()
