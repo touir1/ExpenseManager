@@ -2,7 +2,7 @@ import { useState, type InputHTMLAttributes } from 'react'
 
 type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'type'>
 
-export default function PasswordInput({ className = '', ...props }: Props) {
+export default function PasswordInput({ className = '', ...props }: Readonly<Props>) {
   const [visible, setVisible] = useState(false)
 
   return (

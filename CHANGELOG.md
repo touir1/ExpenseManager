@@ -3,6 +3,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.30.0] - 2026-04-19
+### Fixed
+- `AuthProvider`, `ToastProvider`, and `PasswordInput` component props marked as `Readonly<>` (SonarQube: mark component props read-only).
+- `Toast.tsx` `show` function: extracted inner `setToasts` filter callback to a named `removeById` variable, reducing function nesting depth from 5 to 4 (SonarQube: do not nest functions more than 4 levels deep).
+
 ## [0.29.0] - 2026-04-19
 ### Added
 - `PasswordInput` component (`src/components/PasswordInput.tsx`): reusable password field with an eye-icon show/hide toggle. Clicking the button toggles `type` between `"password"` and `"text"` and updates the `aria-label` ("Show password" / "Hide password"). All six password inputs across `Login.tsx`, `ChangePassword.tsx`, and `ResetPassword.tsx` now use this component (QA #19).

@@ -16,7 +16,7 @@ export type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 const AUTH_BASE = '/api/users/auth'
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState<{ email: string; firstName?: string } | null>(null)
