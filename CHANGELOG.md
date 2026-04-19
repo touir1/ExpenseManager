@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.27.0] - 2026-04-19
+### Fixed
+- Landing page (`/`): hero content is now vertically centred in the viewport. `HomePublic` uses the `.auth-page` shared class (`flex-1 flex items-center justify-center`) which centres the content within the full remaining viewport height below the navbar (QA #17).
+
 ## [0.26.0] - 2026-04-19
 ### Fixed
 - NavBar: corrected the mobile menu Settings link from `/change-password` to `/settings`, fixing a regression introduced during QA #13 where mobile users were routed to the wrong page (QA #16).

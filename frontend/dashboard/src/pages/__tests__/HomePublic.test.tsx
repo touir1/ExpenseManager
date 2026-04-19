@@ -38,4 +38,13 @@ describe('HomePublic', () => {
     expect(registerLink).toBeInTheDocument()
     expect(registerLink).toHaveAttribute('href', '/register')
   })
+
+  it('outer container has centering classes for vertical layout', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <HomePublic />
+      </MemoryRouter>
+    )
+    expect(container.firstChild).toHaveClass('auth-page')
+  })
 })

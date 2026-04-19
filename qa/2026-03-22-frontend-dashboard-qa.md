@@ -128,6 +128,7 @@ Here is the full QA report based on thorough testing of the application, includi
 **Page:** `/`
 **Detail:** The hero content (icon, heading, buttons) sits in the lower third of the viewport with large empty space above. The layout uses `flex-1 flex flex-col` but the centering is missing.
 **Fix:** Add `items-center justify-center` to the main container to vertically center the content.
+**Status:** ✅ FIXED — `HomePublic` uses the `.auth-page` shared class (`flex-1 flex items-center justify-center`) which centers the hero content within the full remaining viewport height. Test added to verify the centering container class is applied.
 
 ---
 
