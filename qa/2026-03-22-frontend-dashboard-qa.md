@@ -124,17 +124,16 @@ Here is the full QA report based on thorough testing of the application, includi
 
 ---
 
-### 17. Landing page has a lot of empty whitespace — content is not vertically centered
+### 17. ~~Landing page has a lot of empty whitespace — content is not vertically centered~~ ✅ FIXED
 **Page:** `/`
 **Detail:** The hero content (icon, heading, buttons) sits in the lower third of the viewport with large empty space above. The layout uses `flex-1 flex flex-col` but the centering is missing.
-**Fix:** Add `items-center justify-center` to the main container to vertically center the content.
-**Status:** ✅ FIXED — `HomePublic` uses the `.auth-page` shared class (`flex-1 flex items-center justify-center`) which centers the hero content within the full remaining viewport height. Test added to verify the centering container class is applied.
+**Fix applied:** `HomePublic` uses the `.auth-page` shared class (`flex-1 flex items-center justify-center`) which centers the hero content within the full remaining viewport height below the navbar. Test added to verify the centering container class is applied.
 
 ---
 
-### 18. Password field placeholders use literal bullet characters (`••••••••`) rather than proper placeholder styling
-**Detail:** All password inputs use `placeholder="••••••••"` which is a Unicode workaround. This can display inconsistently across browsers/fonts and looks slightly off.
-**Fix:** Use an empty placeholder or a text-based one like `placeholder="Enter your password"`. The password masking comes from `type="password"` anyway.
+### 18. ~~Password field placeholders use literal bullet characters (`••••••••`) rather than proper placeholder styling~~ ✅ FIXED
+**Detail:** All password inputs used `placeholder="••••••••"` which is a Unicode workaround that can display inconsistently across browsers/fonts.
+**Fix applied:** Replaced `placeholder="••••••••"` with `placeholder=""` on all six password inputs across `Login.tsx`, `ChangePassword.tsx`, and `ResetPassword.tsx`. The `type="password"` attribute provides the masking; no placeholder text is needed.
 
 ---
 
@@ -240,8 +239,8 @@ These warnings clutter the console and will become breaking changes in v7.
 | 14 | ✅ Fixed | UX | ~~No "back" link on Request Password Reset page~~ |
 | 15 | ✅ Fixed | UX | ~~No "back" link on Change Password page~~ |
 | 16 | ✅ Fixed | Responsive | ~~Hamburger menu not triggering at mobile breakpoint~~ |
-| 17 | 🔵 UI | Layout | Landing page content not vertically centered |
-| 18 | 🔵 UI | Polish | Password placeholders use Unicode bullets |
+| 17 | ✅ Fixed | Layout | ~~Landing page content not vertically centered~~ |
+| 18 | ✅ Fixed | Polish | ~~Password placeholders use Unicode bullets~~ |
 | 19 | 🔵 UI | Accessibility | No show/hide toggle on password fields |
 | 20 | 🔵 UI | UX | No loading spinner on Login button |
 | 21 | 🔵 UI | UX | No loading spinner on Register button |

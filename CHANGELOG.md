@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.28.0] - 2026-04-19
+### Fixed
+- Password inputs: replaced `placeholder="••••••••"` with `placeholder=""` on all six password fields across `Login.tsx`, `ChangePassword.tsx`, and `ResetPassword.tsx`. The Unicode bullet workaround displayed inconsistently across browsers; `type="password"` already handles masking (QA #18).
+
 ## [0.27.0] - 2026-04-19
 ### Fixed
 - Landing page (`/`): hero content is now vertically centred in the viewport. `HomePublic` uses the `.auth-page` shared class (`flex-1 flex items-center justify-center`) which centres the content within the full remaining viewport height below the navbar (QA #17).

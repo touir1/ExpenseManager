@@ -64,7 +64,7 @@ export default function ChangePassword() {
               onChange={e => setOldPassword(e.target.value)}
               required
               className="field-input"
-              placeholder="••••••••"
+              placeholder=""
             />
           </div>
 
@@ -78,7 +78,7 @@ export default function ChangePassword() {
               onChange={e => setNewPassword(e.target.value)}
               required
               className="field-input"
-              placeholder="••••••••"
+              placeholder=""
             />
             <PasswordStrength password={newPassword} />
           </div>
@@ -93,7 +93,7 @@ export default function ChangePassword() {
               onChange={e => setRepeatPassword(e.target.value)}
               required
               className="field-input"
-              placeholder="••••••••"
+              placeholder=""
             />
           </div>
 

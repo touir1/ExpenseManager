@@ -50,7 +50,7 @@ export default function Login() {
               onChange={e => setPassword(e.target.value)}
               required
               className="field-input"
-              placeholder="••••••••"
+              placeholder=""
             />
           </div>
 

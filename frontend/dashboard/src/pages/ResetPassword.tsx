@@ -87,7 +87,7 @@ export default function ResetPassword() {
               required
               disabled={missingParams}
               className="field-input"
-              placeholder="••••••••"
+              placeholder=""
             />
             <PasswordStrength password={newPassword} />
           </div>
@@ -103,7 +103,7 @@ export default function ResetPassword() {
               required
               disabled={missingParams}
               className="field-input"
-              placeholder="••••••••"
+              placeholder=""
             />
           </div>
 
