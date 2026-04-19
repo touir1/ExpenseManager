@@ -101,10 +101,10 @@ Here is the full QA report based on thorough testing of the application, includi
 
 ---
 
-### 14. Request Password Reset page has no "Back to login" link
+### 14. ~~Request Password Reset page has no "Back to login" link~~ ✅ FIXED
 **Page:** `/request-password-reset`
-**Detail:** Unlike the Login page (which has "← Back to home"), the Request Password Reset page offers no way to navigate back without using the browser's back button or clicking the logo.
-**Fix:** Add a `← Back to login` link below the form.
+**Detail:** Unlike the Login page (which has "← Back to home"), the Request Password Reset page offered no way to navigate back without using the browser's back button or clicking the logo.
+**Fix applied:** Added a "← Back to login" link below the form in `RequestPasswordReset.tsx`.
 
 ---
 
@@ -236,7 +236,7 @@ These warnings clutter the console and will become breaking changes in v7.
 | 11 | 🟡 Moderate | Feature | Core "Expenses" feature is "Coming soon…" |
 | 12 | ✅ Fixed | UX | ~~Duplicate logout buttons with inconsistent destinations~~ |
 | 13 | ✅ Fixed | UX | ~~"Settings" nav leads to change-password, not a settings page~~ |
-| 14 | 🟡 Moderate | UX | No "back" link on Request Password Reset page |
+| 14 | ✅ Fixed | UX | ~~No "back" link on Request Password Reset page~~ |
 | 15 | ✅ Fixed | UX | ~~No "back" link on Change Password page~~ |
 | 16 | 🔵 UI | Responsive | Hamburger menu not triggering at mobile breakpoint |
 | 17 | 🔵 UI | Layout | Landing page content not vertically centered |

@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.24.0] - 2026-04-19
+### Fixed
+- Request Password Reset page: added "← Back to login" link below the form, giving users a clear navigation path back without relying on the browser back button or the logo (QA #14).
+
 ## [0.23.0] - 2026-04-15
 ### Added
 - `Settings` page (`src/pages/Settings.tsx`) at route `/settings`: a proper settings hub with a "Password" card linking to `/change-password`. The navbar "Settings" link now points to `/settings`; the active state covers both `/settings` and `/change-password` (QA #13).

@@ -182,6 +182,18 @@ describe('RequestPasswordReset page', () => {
     })
   })
 
+  it('renders back to login link pointing to /login', () => {
+    render(
+      <MemoryRouter>
+        <RequestPasswordReset />
+      </MemoryRouter>
+    )
+
+    const backLink = screen.getByRole('link', { name: /back to login/i })
+    expect(backLink).toBeInTheDocument()
+    expect(backLink).toHaveAttribute('href', '/login')
+  })
+
   it('prevents default form submission', async () => {
     mockRequestPasswordReset.mockResolvedValueOnce(true)
 
