@@ -217,12 +217,16 @@ ExpenseManager/
 │           │   └── __tests__/
 │           │       └── AuthContext.test.tsx
 │           ├── components/
-│           │   ├── NavBar.tsx         — Auth-aware nav; desktop + mobile responsive
-│           │   ├── ProtectedRoute.tsx — Redirects unauthenticated users to /login
+│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive
+│           │   ├── PasswordInput.tsx   — Reusable password input with show/hide toggle button
+│           │   ├── PasswordStrength.tsx — Live password strength indicator (5-segment bar + checklist)
+│           │   ├── ProtectedRoute.tsx  — Redirects unauthenticated users to /login
 │           │   ├── PublicOnlyRoute.tsx — Redirects authenticated users to /dashboard
-│           │   ├── Toast.tsx          — Toast notification provider and hook
+│           │   ├── Toast.tsx           — Toast notification provider and hook
 │           │   └── __tests__/
 │           │       ├── NavBar.test.tsx
+│           │       ├── PasswordInput.test.tsx
+│           │       ├── PasswordStrength.test.tsx
 │           │       ├── ProtectedRoute.test.tsx
 │           │       ├── PublicOnlyRoute.test.tsx
 │           │       └── Toast.test.tsx
