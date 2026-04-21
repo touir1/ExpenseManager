@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.31.0] - 2026-04-21
+### Added
+- `index.html`: added SEO and Open Graph meta tags — `<meta name="description">`, `<meta name="robots">`, `og:type`, `og:title`, `og:description`, `og:image`, and Twitter Card equivalents (QA #23).
+
 ## [0.30.0] - 2026-04-19
 ### Fixed
 - `AuthProvider`, `ToastProvider`, and `PasswordInput` component props marked as `Readonly<>` (SonarQube: mark component props read-only).
