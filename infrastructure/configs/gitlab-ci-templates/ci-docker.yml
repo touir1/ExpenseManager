@@ -22,3 +22,5 @@
     - echo "$CI_JOB_TOKEN" | docker login $CI_REGISTRY -u gitlab-ci-token --password-stdin
     - docker build -t $FULL_IMAGE_NAME .
     - docker push $FULL_IMAGE_NAME
+    - docker builder prune -af
+    

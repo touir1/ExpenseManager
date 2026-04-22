@@ -265,7 +265,7 @@ services:
       DOCKER_TLS_CERTDIR: ""
     command:
       - "--host=tcp://0.0.0.0:2375"
-      - "--storage-driver=vfs"
+      - "--storage-driver=overlay2"
     volumes:
       - dind-data:/var/lib/docker
     
