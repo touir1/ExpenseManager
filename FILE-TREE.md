@@ -17,8 +17,16 @@ ExpenseManager/
 ├── FILE-TREE.md                       — Project file tree (this file)
 ├── LICENSE                            — Project license
 ├── README.md                          — Main project README
-├── qa/
-│   └── 2026-03-22-frontend-dashboard-qa.md  — Frontend dashboard QA report (bugs, UX issues, fixes)
+├── docs/
+│   └── issues/
+│       ├── ongoing/
+│       │   ├── fixes-and-suggestions.md          — Open improvement ideas and technical debt backlog
+│       │   └── qa_test_results/
+│       │       └── 2026-03-22-frontend-dashboard-qa.md  — Frontend dashboard QA (open items only)
+│       └── fixed/
+│           ├── fixes-and-suggestions-applied.md  — Applied suggestions (moved here from ongoing once shipped)
+│           └── qa/
+│               └── 2026-03-22-frontend-dashboard-fixes.md  — Resolved issues from the 2026-03-22 QA session
 │
 ├── backend/
 │   ├── dashboard/

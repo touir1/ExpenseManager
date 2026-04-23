@@ -152,7 +152,10 @@ Whenever code is added, removed, or significantly changed, keep the following do
 | [README.md](README.md) | Main project README — update for infrastructure or setup changes |
 | [backend/users/README.md](backend/users/README.md) | Users service API reference |
 | [backend/expenses/README.md](backend/expenses/README.md) | Expenses service API reference |
-| [qa/](qa/) | QA reports — add a dated report file for each testing session |
+| [docs/issues/ongoing/qa_test_results/](docs/issues/ongoing/qa_test_results/) | QA reports (open items only) — add a dated report file for each testing session |
+| [docs/issues/fixed/qa/](docs/issues/fixed/qa/) | Resolved QA issues — one file per QA session, move items here once fixed |
+| [docs/issues/ongoing/fixes-and-suggestions.md](docs/issues/ongoing/fixes-and-suggestions.md) | Open improvement ideas and technical debt — update when items are actioned or new ones arise |
+| [docs/issues/fixed/fixes-and-suggestions-applied.md](docs/issues/fixed/fixes-and-suggestions-applied.md) | Applied suggestions — move items here from the ongoing file once shipped |
 
 ---
 
