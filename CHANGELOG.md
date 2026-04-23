@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.33.0] - 2026-04-23
+### Security
+- Users service: pinned `Microsoft.Bcl.Memory` to `9.0.14` in both the main and test projects to remediate CVE-2026-26127 (HIGH — .NET denial of service via out-of-bounds read). The package was a transitive dependency pulled in at a vulnerable version; the explicit reference overrides it with the patched release.
+
 ## [0.32.0] - 2026-04-22
 ### Fixed
 - CI Docker template (`ci-docker.yml`): added `docker builder prune -af` after each image push to reclaim build cache disk space on the CI runner.
