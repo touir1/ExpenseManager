@@ -261,6 +261,32 @@ describe('Login page', () => {
     expect(passwordInput.value).toBe('mypassword')
   })
 
+  it('disables button and shows spinner while submitting', async () => {
+    const user = userEvent.setup()
+    let resolve: (v: boolean) => void
+    mockLogin.mockReturnValue(new Promise(r => { resolve = r }))
+    mockUseAuth.mockReturnValue({ login: mockLogin })
+
+    render(
+      <MemoryRouter initialEntries={["/login"]}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    await user.type(screen.getByLabelText(/email/i), 'user@example.com')
+    await user.type(screen.getByLabelText(/^password$/i), 'secret')
+    await user.click(screen.getByRole('button', { name: /login/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/signing in/i)).toBeInTheDocument()
+    })
+    expect(screen.getByRole('button', { name: /signing in/i })).toBeDisabled()
+
+    resolve!(true)
+  })
+
   it('handles form submission with enter key', async () => {
     const user = userEvent.setup()
     mockLogin.mockResolvedValue(true)

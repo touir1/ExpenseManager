@@ -7,12 +7,15 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
   const navigate = useNavigate()
   const { login } = useAuth()
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
+    setSubmitting(true)
     const ok = await login(email, password)
+    setSubmitting(false)
     if (!ok) return setError('Invalid credentials. Please try again.')
     navigate('/dashboard')
   }
@@ -36,6 +39,7 @@ export default function Login() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
+              disabled={submitting}
               className="field-input"
               placeholder="you@example.com"
             />
@@ -57,8 +61,18 @@ export default function Login() {
             <p className="msg-error" role="alert">{error}</p>
           )}
 
-          <button type="submit" className="btn-primary mt-1">
-            Login
+          <button type="submit" disabled={submitting} className="btn-primary mt-1">
+            {submitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Signing in…
+              </span>
+            ) : (
+              'Login'
+            )}
           </button>
         </form>
 

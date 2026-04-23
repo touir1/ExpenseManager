@@ -8,6 +8,7 @@ export default function Register() {
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState<string | null>(null)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const { register } = useAuth()
 
   const onSubmit = async (e: FormEvent) => {
@@ -23,7 +24,9 @@ export default function Register() {
       setMessage('Please enter a valid email address.')
       return
     }
+    setSubmitting(true)
     const ok = await register(firstName, lastName, email)
+    setSubmitting(false)
     if (ok) {
       setIsSuccess(true)
       setMessage('Registration successful! Check your inbox for a verification email. Click the link to verify your address and set your password — you will then be able to log in.')
@@ -66,6 +69,7 @@ export default function Register() {
                 value={firstName}
                 onChange={e => setFirstName(e.target.value)}
                 required
+                disabled={submitting}
                 className="field-input"
                 placeholder="Jane"
               />
@@ -77,6 +81,7 @@ export default function Register() {
                 value={lastName}
                 onChange={e => setLastName(e.target.value)}
                 required
+                disabled={submitting}
                 className="field-input"
                 placeholder="Doe"
               />
@@ -92,13 +97,24 @@ export default function Register() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
+              disabled={submitting}
               className="field-input"
               placeholder="you@example.com"
             />
           </div>
 
-          <button type="submit" className="btn-primary mt-1">
-            Register
+          <button type="submit" disabled={submitting} className="btn-primary mt-1">
+            {submitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Submitting…
+              </span>
+            ) : (
+              'Register'
+            )}
           </button>
         </form>
 

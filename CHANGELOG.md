@@ -3,6 +3,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.36.0] - 2026-04-23
+### Fixed
+- `Login.tsx`: added `submitting` state — the Login button is now disabled and shows a spinner with "Signing in…" while the request is in flight, matching the UX pattern already present in `RequestPasswordReset.tsx`. Email and password inputs are also disabled during submission.
+- `Register.tsx`: same fix — the Register button is now disabled and shows a spinner with "Submitting…" during registration. All three inputs are disabled while the request is pending.
+
 ## [0.35.0] - 2026-04-23
 ### Security
 - Expenses service `Dockerfile`: switched runtime base image from `mcr.microsoft.com/dotnet/aspnet:8.0` (Debian 12) to `mcr.microsoft.com/dotnet/aspnet:8.0-noble-chiseled` (Ubuntu 24.04, chiseled), matching the users service. Removes the package surface carrying OS-level HIGH Trivy alerts and eliminates the explicit `USER app` directive (chiseled runs non-root by default).

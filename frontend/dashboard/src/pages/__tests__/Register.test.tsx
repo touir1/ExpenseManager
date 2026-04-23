@@ -201,6 +201,30 @@ describe('Register page', () => {
     expect(mockRegister).not.toHaveBeenCalled()
   })
 
+  it('disables button and shows spinner while submitting', async () => {
+    let resolve: (v: boolean) => void
+    mockRegister.mockReturnValue(new Promise(r => { resolve = r }))
+    mockUseAuth.mockReturnValue({ register: mockRegister })
+
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>
+    )
+
+    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Jane' } })
+    fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'Smith' } })
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'jane@example.com' } })
+    fireEvent.submit(screen.getByRole('button', { name: /register/i }).closest('form')!)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button')).toBeDisabled()
+      expect(screen.getByText(/submitting/i)).toBeInTheDocument()
+    })
+
+    resolve!(false)
+  })
+
   it('shows error message when registration fails', async () => {
     mockRegister.mockResolvedValueOnce(false)
     mockUseAuth.mockReturnValue({ register: mockRegister })
