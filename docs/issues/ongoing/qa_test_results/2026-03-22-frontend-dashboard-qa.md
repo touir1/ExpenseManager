@@ -17,12 +17,6 @@ This file contains only unresolved issues. All fixed items have been moved to
 
 ## 🔵 UX / UI ISSUES
 
-### 22. App title doesn't update per page — always "Expenses Manager"
-**Detail:** Every page has the same browser tab title "Expenses Manager". This makes it hard to distinguish open tabs and is bad for accessibility (screen readers announce the title on page navigation).
-**Fix:** Set per-page titles using React Helmet or `document.title` in each page component, e.g., "Login — Expenses Manager", "Dashboard — Expenses Manager".
-
----
-
 ### 24. Encoding artifacts in source-rendered text (mojibake)
 **Detail:** When reading source files, several strings appeared garbled (e.g., `â€"` instead of `—`, `â€¢` instead of `•`). This is a UTF-8 encoding issue in how the source files are served. While the browser renders them correctly (the JS runtime handles them fine), it indicates the source files may have encoding inconsistencies.
 **Fix:** Ensure all source files are saved as UTF-8 and use proper Unicode escape sequences or copy-paste characters cleanly.

@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthContext'
 import PasswordStrength from '@/components/PasswordStrength'
 import PasswordInput from '@/components/PasswordInput'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export default function ChangePassword() {
+  usePageTitle('Change Password')
   const [oldPassword, setOldPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [repeatPassword, setRepeatPassword] = useState('')

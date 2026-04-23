@@ -149,6 +149,12 @@ All items below were identified in the 2026-03-22 QA session and subsequently re
 
 ---
 
+### 22. ~~App title doesn't update per page — always "Expenses Manager"~~ ✅ FIXED
+**Root cause:** All page components rendered without setting `document.title`, so the browser tab always showed the static value from `index.html`.
+**Fix applied:** Created a `usePageTitle` hook (`src/hooks/usePageTitle.ts`) that calls `document.title` in a `useEffect`. Applied to all 9 page components with per-page titles: "Login — Expenses Manager", "Register — Expenses Manager", "Dashboard — Expenses Manager", "Settings — Expenses Manager", "Change Password — Expenses Manager", "Reset Password — Expenses Manager", "Create Password — Expenses Manager" (when `?mode=create`), "Request Password Reset — Expenses Manager", "Page Not Found — Expenses Manager". The home/landing page retains just "Expenses Manager".
+
+---
+
 ### 23. ~~No `<meta name="description">` or Open Graph tags~~ ✅ FIXED
 **Root cause:** The app had only `charset` and `viewport` meta tags.
 **Fix applied:** Added to `index.html`: `<meta name="description">`, `<meta name="robots">`, Open Graph tags (`og:type`, `og:title`, `og:description`, `og:image`), and Twitter Card tags.
@@ -193,6 +199,7 @@ All items below were identified in the 2026-03-22 QA session and subsequently re
 | 19 | 🔵 UI | Accessibility | ~~No show/hide toggle on password fields~~ |
 | 20 | 🔵 UI | UX | ~~No loading spinner on Login button~~ |
 | 21 | 🔵 UI | UX | ~~No loading spinner on Register button~~ |
+| 22 | 🔵 UI | Accessibility/UX | ~~App title always "Expenses Manager", no per-page title~~ |
 | 23 | 🔵 UI | SEO | ~~No `<meta description>` or Open Graph tags~~ |
 | 29 | ⚙️ Code | Security | ~~No password strength indicator or minimum length~~ |
 | 30 | ⚙️ Code | Architecture | ~~Route `/home` vs. UI label "Dashboard" inconsistency~~ |

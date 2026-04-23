@@ -2,8 +2,10 @@ import { FormEvent, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthContext'
 import PasswordInput from '@/components/PasswordInput'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export default function Login() {
+  usePageTitle('Login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)

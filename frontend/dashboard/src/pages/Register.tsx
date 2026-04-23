@@ -1,8 +1,10 @@
 import { FormEvent, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthContext'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export default function Register() {
+  usePageTitle('Register')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')

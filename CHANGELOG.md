@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.37.0] - 2026-04-23
+### Fixed
+- Per-page browser tab titles: added `usePageTitle` hook (`src/hooks/usePageTitle.ts`) and applied it to all 9 page components. Tab titles now read "Login — Expenses Manager", "Dashboard — Expenses Manager", etc. The landing page keeps "Expenses Manager". The Reset Password page switches between "Reset Password" and "Create Password" based on the `?mode=create` query param. (QA #22)
+
 ## [0.36.0] - 2026-04-23
 ### Fixed
 - `Login.tsx`: added `submitting` state — the Login button is now disabled and shows a spinner with "Signing in…" while the request is in flight, matching the UX pattern already present in `RequestPasswordReset.tsx`. Email and password inputs are also disabled during submission.

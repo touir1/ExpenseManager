@@ -3,6 +3,7 @@ import { useAuth } from '@/auth/AuthContext'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import PasswordStrength from '@/components/PasswordStrength'
 import PasswordInput from '@/components/PasswordInput'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export default function ResetPassword() {
   const [email, setEmail] = useState('')
@@ -16,6 +17,7 @@ export default function ResetPassword() {
   const navigate = useNavigate()
 
   const isCreateMode = params.get('mode') === 'create'
+  usePageTitle(isCreateMode ? 'Create Password' : 'Reset Password')
 
   useEffect(() => {
     const pEmail = params.get('email') || ''

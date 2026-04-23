@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthContext'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export default function HomeDashboard() {
+  usePageTitle('Dashboard')
   const { user } = useAuth()
 
   return (

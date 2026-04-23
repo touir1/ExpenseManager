@@ -2,8 +2,10 @@ import { FormEvent, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthContext'
 import { useToast } from '@/components/Toast'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export default function RequestPasswordReset() {
+  usePageTitle('Request Password Reset')
   const [email, setEmail] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const { requestPasswordReset } = useAuth()
