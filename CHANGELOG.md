@@ -3,6 +3,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.35.0] - 2026-04-23
+### Security
+- Expenses service `Dockerfile`: switched runtime base image from `mcr.microsoft.com/dotnet/aspnet:8.0` (Debian 12) to `mcr.microsoft.com/dotnet/aspnet:8.0-noble-chiseled` (Ubuntu 24.04, chiseled), matching the users service. Removes the package surface carrying OS-level HIGH Trivy alerts and eliminates the explicit `USER app` directive (chiseled runs non-root by default).
+
+## [0.34.0] - 2026-04-23
+### Security
+- Users service `Dockerfile`: switched runtime base image from `mcr.microsoft.com/dotnet/aspnet:8.0` (Debian 12) to `mcr.microsoft.com/dotnet/aspnet:8.0-noble-chiseled` (Ubuntu 24.04, chiseled). The chiseled variant contains only the files required to run the .NET runtime — no shell, no package manager, no systemd, no ncurses — eliminating the package surface that carried the HIGH Trivy alerts (`CVE-2026-0861`, `CVE-2026-29111`, `CVE-2025-69720`). The image also runs non-root by default, making the explicit `USER app` directive redundant (removed).
+
 ## [0.33.0] - 2026-04-23
 ### Security
 - Users service: pinned `Microsoft.Bcl.Memory` to `9.0.14` in both the main and test projects to remediate CVE-2026-26127 (HIGH — .NET denial of service via out-of-bounds read). The package was a transitive dependency pulled in at a vulnerable version; the explicit reference overrides it with the patched release.

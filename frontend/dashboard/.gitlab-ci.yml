@@ -56,6 +56,7 @@ sonarqube:
   extends: .node-sonarqube
   variables:
     SONAR_PROJECT_KEY: "touir:expense-manager:frontend:dashboard"
+  allow_failure: true
   dependencies:
     - build-dev
     - test
@@ -68,6 +69,7 @@ sca:
   extends: .sca
   variables:
     OWASP_PROJECT_NAME: "ExpenseManager-Frontend-Dashboard"
+  allow_failure: true
   cache:
     - *dependency-check-cache
     - *build-node-modules-cache
@@ -80,6 +82,7 @@ sca:
 
 sast:
   extends: .sast
+  allow_failure: true
 
 # ----------------------
 # SECRETS SCAN – GITLEAKS

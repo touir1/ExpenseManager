@@ -17,9 +17,8 @@ COPY . .
 WORKDIR /src/Touir.ExpensesManager.Expenses
 RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 
-# Use the official ASP.NET Core runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+# Use the chiseled (minimal, non-root) ASP.NET Core runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-noble-chiseled AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-USER app
 ENTRYPOINT ["dotnet", "Touir.ExpensesManager.Expenses.dll"]
