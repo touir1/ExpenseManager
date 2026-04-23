@@ -20,7 +20,7 @@ variables:
 # ----------------------
 
 .dependency-check-cache: &dependency-check-cache
-  key: dependency-check-data
+  key: "$PROJECT_KEY-dependency-check-data"
   paths:
     - $BASE_DIR_PATH/dependency-check-data/
 

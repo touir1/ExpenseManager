@@ -3,6 +3,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.32.0] - 2026-04-22
+### Fixed
+- CI Docker template (`ci-docker.yml`): added `docker builder prune -af` after each image push to reclaim build cache disk space on the CI runner.
+- Docker-in-Docker (`docker-compose-tools.yml`): switched the DinD storage driver from `vfs` to `overlay2` for improved build performance and reduced disk usage.
+
 ## [0.31.0] - 2026-04-21
 ### Added
 - `index.html`: added SEO and Open Graph meta tags — `<meta name="description">`, `<meta name="robots">`, `og:type`, `og:title`, `og:description`, `og:image`, and Twitter Card equivalents (QA #23).
