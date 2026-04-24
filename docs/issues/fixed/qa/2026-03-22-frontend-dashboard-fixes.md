@@ -9,8 +9,8 @@ All items below were identified in the 2026-03-22 QA session and subsequently re
 
 ### 1. ~~Login with wrong credentials shows no error and silently redirects to `/login`~~ ✅ FIXED
 **Page:** `/login`
-**Root cause:** When the login API returns `401`, the global `onUnauthorized` handler in `api.ts` immediately calls `window.location.assign('/login')` and clears auth state. This fires *before* the `login()` function in `AuthContext` can return `false`, so the Login component's error state is never reached. The user gets silently redirected to a blank login form with zero feedback.
-**Fix applied:** Added `skipUnauthorized?: boolean` option to `request()` and `post()` in `api.ts`. All auth endpoint calls in `AuthContext` (`login`, `register`, `changePassword`, `resetPassword`, `requestPasswordReset`) now pass `{ skipUnauthorized: true }`, preventing the global redirect handler from firing on expected 401 responses.
+**Root cause:** When the login API returns `401`, the global `onUnauthorized` handler in `src/services/api.ts` immediately calls `window.location.assign('/login')` and clears auth state. This fires *before* the `login()` function in `AuthContext` can return `false`, so the Login component's error state is never reached. The user gets silently redirected to a blank login form with zero feedback.
+**Fix applied:** Added `skipUnauthorized?: boolean` option to `request()` and `post()` in `src/services/api.ts`. All auth endpoint calls in `AuthContext` (`login`, `register`, `changePassword`, `resetPassword`, `requestPasswordReset`) now pass `{ skipUnauthorized: true }`, preventing the global redirect handler from firing on expected 401 responses.
 
 ---
 
@@ -22,18 +22,18 @@ All items below were identified in the 2026-03-22 QA session and subsequently re
 ---
 
 ### 3. ~~JWT token stored in `localStorage` — XSS vulnerability~~ ✅ FIXED
-**File:** `AuthContext.tsx`
+**File:** `src/features/auth/AuthContext.tsx`
 **Root cause:** `localStorage.setItem('auth:token', token)` stores the JWT in localStorage, accessible to any JavaScript on the page.
-**Fix applied:** Migrated to HttpOnly cookie-based authentication. The backend (`AuthenticationController`) now sets an `auth_token` cookie with `HttpOnly`, `SameSite=Strict`, and `Secure` flags on login, and clears it on logout. A new `GET /auth/session` endpoint validates the cookie for session restore. The frontend no longer stores or reads any token — `api.ts` uses `credentials: 'include'` on all requests. `AuthContext` retains only user info (name/email) in localStorage for UI display; session validity is always verified via the cookie.
+**Fix applied:** Migrated to HttpOnly cookie-based authentication. The backend (`AuthenticationController`) now sets an `auth_token` cookie with `HttpOnly`, `SameSite=Strict`, and `Secure` flags on login, and clears it on logout. A new `GET /auth/session` endpoint validates the cookie for session restore. The frontend no longer stores or reads any token — `src/services/api.ts` uses `credentials: 'include'` on all requests. `AuthContext` retains only user info (name/email) in localStorage for UI display; session validity is always verified via the cookie.
 
 ---
 
 ## 🟠 MAJOR BUGS
 
 ### 4. ~~`onUnauthorized` handler fires for all 401 responses, including intentional login failures~~ ✅ FIXED
-**File:** `api.ts`
+**File:** `src/services/api.ts`
 **Root cause:** The handler calls `window.location.assign('/login')` globally on every 401, breaking auth-related flows where a 401 is expected and meaningful.
-**Fix applied:** See #1 — the `skipUnauthorized` option in `api.ts` resolves this. Auth functions now opt out of the global handler.
+**Fix applied:** See #1 — the `skipUnauthorized` option in `src/services/api.ts` resolves this. Auth functions now opt out of the global handler.
 
 ---
 
@@ -110,9 +110,9 @@ All items below were identified in the 2026-03-22 QA session and subsequently re
 ## 🔵 UX / UI ISSUES
 
 ### 16. ~~Hamburger menu button present in DOM but mobile Settings link went to wrong page~~ ✅ FIXED
-**File:** `NavBar.tsx`
+**File:** `src/layouts/NavBar.tsx`
 **Root cause:** The mobile menu's Settings link pointed to `/change-password` instead of `/settings` — a regression from #13.
-**Fix applied:** Corrected the mobile Settings link from `to="/change-password"` to `to="/settings"` in `NavBar.tsx`. Added a test asserting the mobile Settings link href is `/settings`.
+**Fix applied:** Corrected the mobile Settings link from `to="/change-password"` to `to="/settings"` in `src/layouts/NavBar.tsx`. Added a test asserting the mobile Settings link href is `/settings`.
 
 ---
 

@@ -94,12 +94,23 @@ RabbitMQ is used for async messaging between services. The `IRabbitMQService` (r
 ### Frontend
 
 React 18 + TypeScript + Vite SPA, styled with **Tailwind CSS v3**. Key files:
-- `src/api.ts` — Centralized API client; uses `credentials: 'include'` for cookie auth; supports `skipUnauthorized` option
-- `src/auth/AuthContext.tsx` — Cookie-based auth state and context; session restored via `GET /auth/session` on load
-- `src/components/ProtectedRoute.tsx` — Route guard
-- `src/components/NavBar.tsx` — Auth-aware responsive navigation bar
-- `src/index.css` — Tailwind directives + `@layer components` for shared UI primitives (`.field-label`, `.field-input`, `.btn-primary`, `.btn-secondary`, `.auth-page`, `.auth-card`, `.msg-error`, `.msg-success`, `.msg-info`)
+- `src/services/api.ts` — Centralized API client; uses `credentials: 'include'` for cookie auth; supports `skipUnauthorized` option
+- `src/features/auth/AuthContext.tsx` — Cookie-based auth state and context; session restored via `GET /auth/session` on load
+- `src/features/auth/ProtectedRoute.tsx` — Route guard (redirects unauthenticated to `/login`)
+- `src/features/auth/PublicOnlyRoute.tsx` — Route guard (redirects authenticated to `/dashboard`)
+- `src/layouts/NavBar.tsx` — Auth-aware responsive navigation bar
+- `src/router.tsx` — All `<Routes>` definitions; imported by `App.tsx`
+- `src/styles/index.css` — Tailwind directives + `@layer components` for shared UI primitives (`.field-label`, `.field-input`, `.btn-primary`, `.btn-secondary`, `.auth-page`, `.auth-card`, `.msg-error`, `.msg-success`, `.msg-info`)
 - `tailwind.config.ts` — Custom design system: `brand` color scale (indigo), `surface` tokens, custom shadows; Inter font via Google Fonts
+
+Folder layout under `src/`:
+- `components/` — Shared reusable UI (PasswordInput, PasswordStrength, Toast)
+- `features/auth/` — Auth context, route guards, and their tests
+- `hooks/` — Custom React hooks (usePageTitle)
+- `layouts/` — Layout-level components (NavBar)
+- `pages/` — Page-level route components
+- `services/` — API client
+- `styles/` — Global CSS
 
 Path alias `@` maps to `src/`. The SPA is served through nginx, which rewrites all non-asset paths to `/index.html`.
 
@@ -136,7 +147,7 @@ SonarQube exclusions from coverage only (`sonar.coverage.exclusions`): `Models/`
 ## Testing Conventions
 
 - **Backend:** xUnit + Moq. Use `TestExpensesDbContextWrapper` (in-memory DB) for repository tests; avoid mocking the DbContext directly.
-- **Frontend:** Vitest + React Testing Library. Tests live in `__tests__/` subdirectories next to the code they test. Use `userEvent` (from `@testing-library/user-event`) for interactions; `fireEvent` only when needed. Mock `useAuth` via `vi.mock('@/auth/AuthContext')`. Wrap renders in `<MemoryRouter>` (or `<MemoryRouter initialEntries={[...]}>` + `<Routes>` when testing navigation). Assert Tailwind styling with `toHaveClass()`, not `toHaveStyle()`.
+- **Frontend:** Vitest + React Testing Library. Tests live in `__tests__/` subdirectories next to the code they test. Use `userEvent` (from `@testing-library/user-event`) for interactions; `fireEvent` only when needed. Mock `useAuth` via `vi.mock('@/features/auth/AuthContext')`. Wrap renders in `<MemoryRouter>` (or `<MemoryRouter initialEntries={[...]}>` + `<Routes>` when testing navigation). Assert Tailwind styling with `toHaveClass()`, not `toHaveStyle()`.
 
 ---
 

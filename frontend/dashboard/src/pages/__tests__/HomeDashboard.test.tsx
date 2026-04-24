@@ -5,7 +5,7 @@ import HomeDashboard from '@/pages/HomeDashboard'
 
 const mockUseAuth = vi.fn()
 
-vi.mock('@/auth/AuthContext', () => ({
+vi.mock('@/features/auth/AuthContext', () => ({
   useAuth: () => mockUseAuth()
 }))
 

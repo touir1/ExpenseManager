@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { act } from 'react'
 import { render, renderHook, waitFor } from '@testing-library/react'
-import { AuthProvider, useAuth } from '@/auth/AuthContext'
-import * as api from '@/api'
+import { AuthProvider, useAuth } from '@/features/auth/AuthContext'
+import * as api from '@/services/api'
 
-vi.mock('@/api', () => ({
+vi.mock('@/services/api', () => ({
   post: vi.fn(),
   get: vi.fn(),
   onUnauthorized: vi.fn()

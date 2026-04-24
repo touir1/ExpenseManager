@@ -8,7 +8,7 @@ const mockUseAuth = vi.fn()
 const mockShow = vi.fn()
 const mockUseToast = vi.fn()
 
-vi.mock('@/auth/AuthContext', () => ({
+vi.mock('@/features/auth/AuthContext', () => ({
   useAuth: () => mockUseAuth()
 }))
 

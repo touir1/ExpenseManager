@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { request, get, post, put, del, onUnauthorized, onError } from '@/api'
+import { request, get, post, put, del, onUnauthorized, onError } from '@/services/api'
 
 // Mock fetch globally
 const mockFetch = vi.fn()

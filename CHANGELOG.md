@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.38.0] - 2026-04-24
+### Refactor
+- Frontend dashboard: reorganized `src/` folder structure to align with React 2025 conventions. Moved `auth/AuthContext.tsx` + route guards (`ProtectedRoute`, `PublicOnlyRoute`) into `features/auth/`; `NavBar` into `layouts/`; `api.ts` into `services/`; `index.css` into `styles/`. Extracted all `<Routes>` from `App.tsx` into a new `router.tsx`. `components/` now holds only shared reusable UI (PasswordInput, PasswordStrength, Toast). All imports updated; 205 tests continue to pass.
+
 ## [0.37.0] - 2026-04-23
 ### Fixed
 - Per-page browser tab titles: added `usePageTitle` hook (`src/hooks/usePageTitle.ts`) and applied it to all 9 page components. Tab titles now read "Login — Expenses Manager", "Dashboard — Expenses Manager", etc. The landing page keeps "Expenses Manager". The Reset Password page switches between "Reset Password" and "Create Password" based on the `?mode=create` query param. (QA #22)

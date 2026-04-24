@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useAuth } from '@/auth/AuthContext'
+import { useAuth } from '@/features/auth/AuthContext'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
 export default function HomeDashboard() {

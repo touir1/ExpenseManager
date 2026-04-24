@@ -37,11 +37,12 @@ VITE_API_BASE="https://api.example.com"
 | `/register` | Public | Register — first name, last name, email |
 | `/request-password-reset` | Public | RequestPasswordReset |
 | `/reset-password` | Public | ResetPassword — prefilled from `?email` and `?h` query params |
-| `/home` | Private | HomeDashboard |
+| `/dashboard` | Private | HomeDashboard |
+| `/settings` | Private | Settings |
 | `/change-password` | Private | ChangePassword — old + new + repeat |
-| `*` | Public | Redirects to HomePublic |
+| `*` | Any | NotFound — 404 page |
 
-Private routes are guarded by `ProtectedRoute`, which checks JWT auth state from `AuthContext`. Public routes (`/`, `/login`, `/register`) are wrapped with `PublicOnlyRoute`, which redirects already-authenticated users to `/home`.
+Private routes are guarded by `ProtectedRoute` (`src/features/auth/ProtectedRoute.tsx`), which checks cookie-based auth state from `AuthContext`. Public routes are wrapped with `PublicOnlyRoute` (`src/features/auth/PublicOnlyRoute.tsx`), which redirects already-authenticated users to `/dashboard`.
 
 ## Commands
 
@@ -60,7 +61,7 @@ Tailwind CSS v3 with a custom design system defined in `tailwind.config.ts`:
 
 - **Brand color:** indigo (`brand-600` = `#4f46e5`)
 - **Font:** Inter (loaded via Google Fonts in `index.html`)
-- **Reusable UI primitives** are defined in `@layer components` in `src/index.css`:
+- **Reusable UI primitives** are defined in `@layer components` in `src/styles/index.css`:
   - `.field-label`, `.field-input` — form controls
   - `.btn-primary`, `.btn-secondary` — buttons
   - `.auth-page`, `.auth-card` — centered card layout for auth pages
@@ -70,17 +71,24 @@ Tailwind CSS v3 with a custom design system defined in `tailwind.config.ts`:
 
 ```
 src/
-  api.ts                  # Centralized API client
-  App.tsx                 # Root component, router, providers
-  index.css               # Tailwind directives + component layer
+  App.tsx                 # Provider composition (BrowserRouter, Toast, Auth, NavBar)
+  router.tsx              # All <Routes> definitions
   env.d.ts                # Vite env type declarations
-  auth/
-    AuthContext.tsx        # JWT auth state and context
-  components/
-    NavBar.tsx             # Auth-aware responsive navigation
-    ProtectedRoute.tsx     # Route guard (redirects to /login when unauthenticated)
-    PublicOnlyRoute.tsx    # Route guard (redirects to /home when authenticated)
-    Toast.tsx              # Notification toasts
+  components/             # Shared reusable UI components
+    PasswordInput.tsx
+    PasswordStrength.tsx
+    Toast.tsx             # Toast notification provider and hook
+    __tests__/
+  features/
+    auth/                 # Authentication feature
+      AuthContext.tsx     # Cookie-based auth state and context
+      ProtectedRoute.tsx  # Redirects unauthenticated users to /login
+      PublicOnlyRoute.tsx # Redirects authenticated users to /dashboard
+      __tests__/
+  hooks/
+    usePageTitle.ts       # Sets document.title per page
+  layouts/                # Layout-level components
+    NavBar.tsx            # Auth-aware responsive navigation
     __tests__/
   pages/
     HomePublic.tsx
@@ -90,7 +98,14 @@ src/
     ChangePassword.tsx
     ResetPassword.tsx
     RequestPasswordReset.tsx
+    Settings.tsx
+    NotFound.tsx
     __tests__/
-tailwind.config.ts         # Design system tokens and font config
-postcss.config.cjs         # PostCSS pipeline for Tailwind
+  services/               # API layer
+    api.ts                # Centralized API client (credentials: include, skipUnauthorized)
+    __tests__/
+  styles/
+    index.css             # Tailwind directives + component layer
+tailwind.config.ts        # Design system tokens and font config
+postcss.config.cjs        # PostCSS pipeline for Tailwind
 ```

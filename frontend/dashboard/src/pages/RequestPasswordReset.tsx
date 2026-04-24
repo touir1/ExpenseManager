@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth } from '@/auth/AuthContext'
+import { useAuth } from '@/features/auth/AuthContext'
 import { useToast } from '@/components/Toast'
 import { usePageTitle } from '@/hooks/usePageTitle'
 

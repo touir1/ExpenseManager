@@ -216,48 +216,59 @@ ExpenseManager/
 │       └── vitest.config.ts           — Vitest test runner config
 │       └── src/
 │           ├── main.tsx               — React app mount point
-│           ├── App.tsx                — Root component: router, providers, routes
-│           ├── index.css              — Tailwind directives + @layer components
+│           ├── App.tsx                — Root component: providers composition
+│           ├── router.tsx             — All <Routes> definitions
 │           ├── env.d.ts               — Vite env type declarations
-│           ├── api.ts                 — API client; uses credentials: include for cookie auth; supports skipUnauthorized option
-│           ├── auth/
-│           │   ├── AuthContext.tsx    — Cookie-based auth state; session restored via GET /auth/session on load
-│           │   └── __tests__/
-│           │       └── AuthContext.test.tsx
-│           ├── components/
-│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive
+│           ├── vitest.d.ts            — Vitest type declarations
+│           ├── components/            — Shared reusable UI components
 │           │   ├── PasswordInput.tsx   — Reusable password input with show/hide toggle button
 │           │   ├── PasswordStrength.tsx — Live password strength indicator (5-segment bar + checklist)
-│           │   ├── ProtectedRoute.tsx  — Redirects unauthenticated users to /login
-│           │   ├── PublicOnlyRoute.tsx — Redirects authenticated users to /dashboard
 │           │   ├── Toast.tsx           — Toast notification provider and hook
 │           │   └── __tests__/
-│           │       ├── NavBar.test.tsx
 │           │       ├── PasswordInput.test.tsx
 │           │       ├── PasswordStrength.test.tsx
-│           │       ├── ProtectedRoute.test.tsx
-│           │       ├── PublicOnlyRoute.test.tsx
 │           │       └── Toast.test.tsx
-│           └── pages/
-│               ├── HomePublic.tsx            — Public landing page
-│               ├── Login.tsx                 — Login form; redirects to /home on success
-│               ├── Register.tsx              — Registration form
-│               ├── HomeDashboard.tsx         — Authenticated dashboard; shows firstName
-│               ├── ChangePassword.tsx        — Change password form
-│               ├── RequestPasswordReset.tsx  — Request password reset email
-│               ├── ResetPassword.tsx         — Reset password with token from email
-│               ├── Settings.tsx              — Settings hub page; links to sub-sections (e.g. Change Password)
-│               ├── NotFound.tsx              — 404 page; shown for any unmatched route
-│               └── __tests__/
-│                   ├── HomeDashboard.test.tsx
-│                   ├── Login.test.tsx
-│                   ├── Register.test.tsx
-│                   ├── HomePublic.test.tsx
-│                   ├── ChangePassword.test.tsx
-│                   ├── Settings.test.tsx
-│                   ├── RequestPasswordReset.test.tsx
-│                   ├── ResetPassword.test.tsx
-│                   └── NotFound.test.tsx
+│           ├── features/
+│           │   └── auth/              — Authentication feature (context + route guards)
+│           │       ├── AuthContext.tsx    — Cookie-based auth state; session restored via GET /auth/session on load
+│           │       ├── ProtectedRoute.tsx  — Redirects unauthenticated users to /login
+│           │       ├── PublicOnlyRoute.tsx — Redirects authenticated users to /dashboard
+│           │       └── __tests__/
+│           │           ├── AuthContext.test.tsx
+│           │           ├── ProtectedRoute.test.tsx
+│           │           └── PublicOnlyRoute.test.tsx
+│           ├── hooks/
+│           │   └── usePageTitle.ts    — Sets document.title per page
+│           ├── layouts/               — Layout-level components
+│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive
+│           │   └── __tests__/
+│           │       └── NavBar.test.tsx
+│           ├── pages/
+│           │   ├── HomePublic.tsx            — Public landing page
+│           │   ├── Login.tsx                 — Login form; redirects to /dashboard on success
+│           │   ├── Register.tsx              — Registration form
+│           │   ├── HomeDashboard.tsx         — Authenticated dashboard; shows firstName
+│           │   ├── ChangePassword.tsx        — Change password form
+│           │   ├── RequestPasswordReset.tsx  — Request password reset email
+│           │   ├── ResetPassword.tsx         — Reset password with token from email
+│           │   ├── Settings.tsx              — Settings hub page; links to sub-sections
+│           │   ├── NotFound.tsx              — 404 page; shown for any unmatched route
+│           │   └── __tests__/
+│           │       ├── HomeDashboard.test.tsx
+│           │       ├── Login.test.tsx
+│           │       ├── Register.test.tsx
+│           │       ├── HomePublic.test.tsx
+│           │       ├── ChangePassword.test.tsx
+│           │       ├── Settings.test.tsx
+│           │       ├── RequestPasswordReset.test.tsx
+│           │       ├── ResetPassword.test.tsx
+│           │       └── NotFound.test.tsx
+│           ├── services/              — API layer
+│           │   ├── api.ts             — API client; uses credentials: include for cookie auth; supports skipUnauthorized option
+│           │   └── __tests__/
+│           │       └── api.test.ts
+│           └── styles/
+│               └── index.css          — Tailwind directives + @layer components
 │
 ├── infrastructure/
 │   ├── .env                           — Local infrastructure env vars (gitignored)

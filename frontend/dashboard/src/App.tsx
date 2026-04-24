@@ -1,20 +1,10 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { AuthProvider } from '@/auth/AuthContext'
+import { BrowserRouter } from 'react-router-dom'
+import { AuthProvider } from '@/features/auth/AuthContext'
 import { ToastProvider, useToast } from '@/components/Toast'
-import { onError } from '@/api'
-import ProtectedRoute from '@/components/ProtectedRoute'
-import PublicOnlyRoute from '@/components/PublicOnlyRoute'
-import NavBar from '@/components/NavBar'
-import HomePublic from '@/pages/HomePublic'
-import HomeDashboard from '@/pages/HomeDashboard'
-import Login from '@/pages/Login'
-import Register from '@/pages/Register'
-import Settings from '@/pages/Settings'
-import ChangePassword from '@/pages/ChangePassword'
-import ResetPassword from '@/pages/ResetPassword'
-import RequestPasswordReset from '@/pages/RequestPasswordReset'
-import NotFound from '@/pages/NotFound'
+import { onError } from '@/services/api'
+import NavBar from '@/layouts/NavBar'
+import AppRoutes from '@/router'
 
 export default function App() {
   return (
@@ -25,43 +15,7 @@ export default function App() {
           <AuthProvider>
             <NavBar />
             <main className="flex-1 flex flex-col">
-              <Routes>
-                {/* Public */}
-                <Route path="/" element={<PublicOnlyRoute><HomePublic /></PublicOnlyRoute>} />
-                <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
-                <Route path="/register" element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
-                <Route path="/reset-password" element={<PublicOnlyRoute><ResetPassword /></PublicOnlyRoute>} />
-                <Route path="/request-password-reset" element={<PublicOnlyRoute><RequestPasswordReset /></PublicOnlyRoute>} />
-
-                {/* Private */}
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <HomeDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings"
-                  element={
-                    <ProtectedRoute>
-                      <Settings />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/change-password"
-                  element={
-                    <ProtectedRoute>
-                      <ChangePassword />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* Fallback */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <AppRoutes />
             </main>
           </AuthProvider>
         </ToastProvider>

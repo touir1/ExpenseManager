@@ -36,14 +36,14 @@ These warnings clutter the console and will become breaking changes in v7.
 ---
 
 ### 26. `onUnauthorized` handler is registered inside the component render cycle without cleanup
-**File:** `AuthContext.tsx`
+**File:** `src/features/auth/AuthContext.tsx`
 **Detail:** `onUnauthorized(() => {...})` is called directly in the component body (not in a `useEffect`), meaning it's called on every render. The handler is set as a module-level variable and not cleaned up.
 **Fix:** Call `onUnauthorized(...)` inside a `useEffect` with appropriate cleanup: `useEffect(() => { onUnauthorized(handler); return () => onUnauthorized(null); }, [...])`.
 
 ---
 
 ### 27. `value` memoization in AuthContext includes function references that recreate on every render
-**File:** `AuthContext.tsx`
+**File:** `src/features/auth/AuthContext.tsx`
 **Detail:** The `useMemo` for `value` includes `login`, `logout`, `register` etc. in its dependency array, but those functions are recreated on every render (they're not wrapped in `useCallback`). This causes the memoized value to update unnecessarily.
 **Fix:** Wrap the auth functions (`login`, `logout`, `register`, `changePassword`, etc.) in `useCallback`.
 
@@ -60,7 +60,6 @@ These warnings clutter the console and will become breaking changes in v7.
 | # | Severity | Category | Issue |
 |---|----------|----------|-------|
 | 11 | 🟡 Moderate | Feature | Core "Expenses" feature is "Coming soon…" |
-| 22 | 🔵 UI | SEO/A11y | Tab title doesn't update per page |
 | 24 | 🔵 Code | Quality | Encoding artifacts in source strings |
 | 25 | ⚙️ Code | Warning | React Router v6 future flag console warnings |
 | 26 | ⚙️ Code | Architecture | `onUnauthorized` set outside `useEffect`, no cleanup |

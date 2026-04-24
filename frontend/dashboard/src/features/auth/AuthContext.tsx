@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react'
-import { post, get, onUnauthorized } from '@/api'
+import { post, get, onUnauthorized } from '@/services/api'
 
 export type AuthContextValue = {
   isAuthenticated: boolean

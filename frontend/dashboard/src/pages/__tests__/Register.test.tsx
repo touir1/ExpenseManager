@@ -6,7 +6,7 @@ import Register from '@/pages/Register'
 const mockRegister = vi.fn()
 const mockUseAuth = vi.fn()
 
-vi.mock('@/auth/AuthContext', () => ({
+vi.mock('@/features/auth/AuthContext', () => ({
   useAuth: () => mockUseAuth()
 }))
 

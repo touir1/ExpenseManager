@@ -7,7 +7,7 @@ import ChangePassword from '../ChangePassword'
 const mockChangePassword = vi.fn()
 const mockUseAuth = vi.fn()
 
-vi.mock('@/auth/AuthContext', () => ({
+vi.mock('@/features/auth/AuthContext', () => ({
   useAuth: () => mockUseAuth()
 }))
 

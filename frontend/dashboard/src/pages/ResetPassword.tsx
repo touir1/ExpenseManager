@@ -1,5 +1,5 @@
 import { FormEvent, useState, useEffect } from 'react'
-import { useAuth } from '@/auth/AuthContext'
+import { useAuth } from '@/features/auth/AuthContext'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import PasswordStrength from '@/components/PasswordStrength'
 import PasswordInput from '@/components/PasswordInput'

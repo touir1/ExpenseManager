@@ -6,7 +6,7 @@ import ResetPassword from '../ResetPassword'
 const mockResetPassword = vi.fn()
 const mockUseAuth = vi.fn()
 
-vi.mock('@/auth/AuthContext', () => ({
+vi.mock('@/features/auth/AuthContext', () => ({
   useAuth: () => mockUseAuth()
 }))
 

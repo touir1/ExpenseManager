@@ -11,7 +11,6 @@ These are the remaining unfixed issues from the [2026-03-22 QA report](qa_test_r
 | # | Priority | Area | Item |
 |---|----------|------|------|
 | QA-11 | 🟡 Moderate | Feature | Core "Expenses" feature is "Coming soon…" — the app's primary purpose is unimplemented |
-| QA-22 | 🔵 Low | SEO / A11y | Browser tab title is always "Expenses Manager" — no per-page `document.title` update |
 | QA-24 | 🔵 Low | Code quality | Encoding artifacts in source strings (mojibake) — ensure all files are saved as UTF-8 |
 | QA-25 | 🔵 Low | DX | React Router v6 future flags (`v7_startTransition`, `v7_relativeSplatPath`) not set — console warnings on every page load |
 | QA-26 | 🔵 Low | Architecture | `onUnauthorized` handler registered in component body instead of `useEffect` — no cleanup, fires on every render |
@@ -34,9 +33,9 @@ These are the remaining unfixed issues from the [2026-03-22 QA report](qa_test_r
 - **Error message `aria-describedby`**: Link inline error messages to their corresponding input fields via `aria-describedby` so screen readers announce the error when the field is focused.
 
 ### Code quality
-- **`api.ts` — typed error responses**: The current error handling extracts a generic message; model the error shape and return typed results instead of `boolean` from auth functions so callers can distinguish error types.
-- **`AuthContext.tsx` — `useCallback` on auth functions**: See QA-27. Wrap `login`, `logout`, `register`, `changePassword`, `resetPassword`, and `requestPasswordReset` in `useCallback` to stabilize the memoized context value.
-- **`AuthContext.tsx` — `onUnauthorized` in `useEffect`**: See QA-26. Register the global unauthorized handler inside a `useEffect` with proper cleanup to avoid re-registration on every render.
+- **`src/services/api.ts` — typed error responses**: The current error handling extracts a generic message; model the error shape and return typed results instead of `boolean` from auth functions so callers can distinguish error types.
+- **`src/features/auth/AuthContext.tsx` — `useCallback` on auth functions**: See QA-27. Wrap `login`, `logout`, `register`, `changePassword`, `resetPassword`, and `requestPasswordReset` in `useCallback` to stabilize the memoized context value.
+- **`src/features/auth/AuthContext.tsx` — `onUnauthorized` in `useEffect`**: See QA-26. Register the global unauthorized handler inside a `useEffect` with proper cleanup to avoid re-registration on every render.
 - **Test coverage on edge-cases**: Several async flows (token expiry mid-session, network timeout) have no test coverage. Add tests that simulate failed fetch responses.
 
 ### DevX
