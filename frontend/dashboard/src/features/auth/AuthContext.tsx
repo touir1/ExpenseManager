@@ -11,8 +11,6 @@ import {
 } from '@/services/authApi'
 import type { AuthContextValue, User } from '@/types/auth'
 
-export type { AuthContextValue }
-
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
