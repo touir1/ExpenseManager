@@ -25,16 +25,6 @@ This file contains only unresolved issues. All fixed items have been moved to
 
 ## ⚙️ CODE / ARCHITECTURE ISSUES
 
-### 25. React Router v6 future flag warnings (console)
-**Detail:** Two React Router warnings appear on every page load:
-- `v7_startTransition` flag not set
-- `v7_relativeSplatPath` flag not set
-
-These warnings clutter the console and will become breaking changes in v7.
-**Fix:** Add the flags to the `BrowserRouter`: `<BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>`.
-
----
-
 ### 26. `onUnauthorized` handler is registered inside the component render cycle without cleanup
 **File:** `src/features/auth/AuthContext.tsx`
 **Detail:** `onUnauthorized(() => {...})` is called directly in the component body (not in a `useEffect`), meaning it's called on every render. The handler is set as a module-level variable and not cleaned up.
@@ -61,7 +51,6 @@ These warnings clutter the console and will become breaking changes in v7.
 |---|----------|----------|-------|
 | 11 | 🟡 Moderate | Feature | Core "Expenses" feature is "Coming soon…" |
 | 24 | 🔵 Code | Quality | Encoding artifacts in source strings |
-| 25 | ⚙️ Code | Warning | React Router v6 future flag console warnings |
 | 26 | ⚙️ Code | Architecture | `onUnauthorized` set outside `useEffect`, no cleanup |
 | 27 | ⚙️ Code | Performance | Auth functions not memoized with `useCallback` |
 | 28 | ⚙️ Security | Feature | No brute-force/rate-limit protection on login |

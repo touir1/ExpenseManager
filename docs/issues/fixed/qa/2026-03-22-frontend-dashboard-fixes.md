@@ -163,6 +163,12 @@ All items below were identified in the 2026-03-22 QA session and subsequently re
 
 ## ⚙️ CODE / ARCHITECTURE ISSUES
 
+### 25. ~~React Router v6 future flag warnings (console)~~ ✅ FIXED
+**Detail:** Two React Router warnings appeared on every page load: `v7_startTransition` flag not set and `v7_relativeSplatPath` flag not set. These cluttered the console and would become breaking changes in v7.
+**Fix applied:** Added `future={{ v7_startTransition: true, v7_relativeSplatPath: true }}` to `<BrowserRouter>` in `src/App.tsx`.
+
+---
+
 ### 29. ~~No password strength indicator or minimum length requirement shown to users~~ ✅ FIXED
 **Root cause:** No indication of what constitutes a valid password and no client-side length check on Change Password and Reset Password pages.
 **Fix applied:** Added a reusable `PasswordStrength` component (`src/components/PasswordStrength.tsx`) that displays below the "New password" field on both pages. It shows a 5-segment colour bar and a live checklist of five criteria (≥ 8 characters, uppercase, lowercase, number, special character) with a Weak / Fair / Good / Strong label. Client-side validation now rejects passwords shorter than 8 characters before calling the API.
@@ -201,5 +207,6 @@ All items below were identified in the 2026-03-22 QA session and subsequently re
 | 21 | 🔵 UI | UX | ~~No loading spinner on Register button~~ |
 | 22 | 🔵 UI | Accessibility/UX | ~~App title always "Expenses Manager", no per-page title~~ |
 | 23 | 🔵 UI | SEO | ~~No `<meta description>` or Open Graph tags~~ |
+| 25 | ⚙️ Code | Warning | ~~React Router v6 future flag console warnings~~ |
 | 29 | ⚙️ Code | Security | ~~No password strength indicator or minimum length~~ |
 | 30 | ⚙️ Code | Architecture | ~~Route `/home` vs. UI label "Dashboard" inconsistency~~ |
