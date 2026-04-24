@@ -3,6 +3,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.39.0] - 2026-04-24
+### Refactor
+- Frontend dashboard: extracted auth HTTP calls out of `AuthContext` into a dedicated `src/services/authApi.ts` module — `AuthContext` is now pure state management with no direct `fetch` calls.
+- Frontend dashboard: created `src/types/auth.ts` (`User`, `AuthContextValue`) and `src/types/api.ts` (`ApiResponse<T>`) to centralize shared TypeScript types; types are imported from these files rather than defined inline.
+- Frontend dashboard: extracted all hardcoded HTTP error strings from `api.ts` into `src/constants/apiErrors.ts` as the `API_ERRORS` typed constant object.
+- Frontend dashboard: replaced `Link` + manual `useLocation` active-state logic in `NavBar` with `NavLink` from react-router-dom; `navLinkClass` helper drives active styling declaratively; Settings retains custom path matching for `/change-password`.
+
 ## [0.38.0] - 2026-04-24
 ### Refactor
 - Frontend dashboard: reorganized `src/` folder structure to align with React 2025 conventions. Moved `auth/AuthContext.tsx` + route guards (`ProtectedRoute`, `PublicOnlyRoute`) into `features/auth/`; `NavBar` into `layouts/`; `api.ts` into `services/`; `index.css` into `styles/`. Extracted all `<Routes>` from `App.tsx` into a new `router.tsx`. `components/` now holds only shared reusable UI (PasswordInput, PasswordStrength, Toast). All imports updated; 205 tests continue to pass.

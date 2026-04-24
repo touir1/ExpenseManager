@@ -94,23 +94,29 @@ RabbitMQ is used for async messaging between services. The `IRabbitMQService` (r
 ### Frontend
 
 React 18 + TypeScript + Vite SPA, styled with **Tailwind CSS v3**. Key files:
-- `src/services/api.ts` — Centralized API client; uses `credentials: 'include'` for cookie auth; supports `skipUnauthorized` option
-- `src/features/auth/AuthContext.tsx` — Cookie-based auth state and context; session restored via `GET /auth/session` on load
+- `src/services/api.ts` — Centralized API client; uses `credentials: 'include'` for cookie auth; supports `skipUnauthorized` option; imports error strings from `src/constants/apiErrors.ts`
+- `src/services/authApi.ts` — Auth-specific HTTP functions (login, logout, register, change-password, reset-password); called by `AuthContext`; separated from state management
+- `src/features/auth/AuthContext.tsx` — Cookie-based auth state and context; session restored via `GET /auth/session` on load; delegates all HTTP to `authApi.ts`
 - `src/features/auth/ProtectedRoute.tsx` — Route guard (redirects unauthenticated to `/login`)
 - `src/features/auth/PublicOnlyRoute.tsx` — Route guard (redirects authenticated to `/dashboard`)
-- `src/layouts/NavBar.tsx` — Auth-aware responsive navigation bar
+- `src/layouts/NavBar.tsx` — Auth-aware responsive navigation bar; uses `NavLink` for active-link highlighting
 - `src/router.tsx` — All `<Routes>` definitions; imported by `App.tsx`
 - `src/styles/index.css` — Tailwind directives + `@layer components` for shared UI primitives (`.field-label`, `.field-input`, `.btn-primary`, `.btn-secondary`, `.auth-page`, `.auth-card`, `.msg-error`, `.msg-success`, `.msg-info`)
+- `src/types/auth.ts` — Shared auth types: `User`, `AuthContextValue`
+- `src/types/api.ts` — Shared API type: `ApiResponse<T>`
+- `src/constants/apiErrors.ts` — `API_ERRORS` typed constant object; all HTTP error message strings
 - `tailwind.config.ts` — Custom design system: `brand` color scale (indigo), `surface` tokens, custom shadows; Inter font via Google Fonts
 
 Folder layout under `src/`:
 - `components/` — Shared reusable UI (PasswordInput, PasswordStrength, Toast)
+- `constants/` — App-wide typed constants (`API_ERRORS`)
 - `features/auth/` — Auth context, route guards, and their tests
 - `hooks/` — Custom React hooks (usePageTitle)
 - `layouts/` — Layout-level components (NavBar)
 - `pages/` — Page-level route components
-- `services/` — API client
+- `services/` — API client (`api.ts`) and auth HTTP layer (`authApi.ts`)
 - `styles/` — Global CSS
+- `types/` — Shared TypeScript type definitions (`auth.ts`, `api.ts`)
 
 Path alias `@` maps to `src/`. The SPA is served through nginx, which rewrites all non-asset paths to `/index.html`.
 

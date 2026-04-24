@@ -1,11 +1,18 @@
 import { useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthContext'
+
+const baseNavClass = 'text-sm font-medium px-3 py-1.5 rounded-lg transition-colors duration-150'
+const activeNavClass = `${baseNavClass} bg-brand-50 text-brand-700`
+const inactiveNavClass = `${baseNavClass} text-slate-600 hover:text-slate-900 hover:bg-slate-100`
+
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  isActive ? activeNavClass : inactiveNavClass
 
 export default function NavBar() {
   const { isAuthenticated, logout } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
+  const { pathname } = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const handleLogout = () => {
@@ -14,17 +21,10 @@ export default function NavBar() {
     navigate('/')
   }
 
-  const isActive = (path: string) => {
-    if (path === '/settings') return location.pathname === '/settings' || location.pathname === '/change-password'
-    return location.pathname === path
-  }
-
-  const linkClass = (path: string) =>
-    `text-sm font-medium px-3 py-1.5 rounded-lg transition-colors duration-150 ${
-      isActive(path)
-        ? 'bg-brand-50 text-brand-700'
-        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-    }`
+  // Settings is active on both /settings and /change-password
+  const settingsClass = pathname === '/settings' || pathname === '/change-password'
+    ? activeNavClass
+    : inactiveNavClass
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
@@ -34,7 +34,6 @@ export default function NavBar() {
           to={isAuthenticated ? '/dashboard' : '/'}
           className="flex items-center gap-1.5 shrink-0"
         >
-          {/* Minimal icon mark */}
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600">
             <svg
               className="h-4 w-4 text-white"
@@ -60,12 +59,12 @@ export default function NavBar() {
         <nav className="hidden sm:flex items-center gap-1">
           {isAuthenticated ? (
             <>
-              <Link to="/dashboard" className={linkClass('/dashboard')}>
+              <NavLink to="/dashboard" className={navLinkClass}>
                 Dashboard
-              </Link>
-              <Link to="/settings" className={linkClass('/settings')}>
+              </NavLink>
+              <NavLink to="/settings" className={() => settingsClass}>
                 Settings
-              </Link>
+              </NavLink>
               <button
                 onClick={handleLogout}
                 className="ml-2 text-sm font-medium px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors duration-150 cursor-pointer"
@@ -75,12 +74,12 @@ export default function NavBar() {
             </>
           ) : (
             <>
-              <Link to="/" className={linkClass('/')}>
+              <NavLink to="/" end className={navLinkClass}>
                 Home
-              </Link>
-              <Link to="/login" className={linkClass('/login')}>
+              </NavLink>
+              <NavLink to="/login" className={navLinkClass}>
                 Sign in
-              </Link>
+              </NavLink>
               <Link
                 to="/register"
                 className="ml-2 text-sm font-medium px-3.5 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white transition-colors duration-150"
@@ -119,20 +118,20 @@ export default function NavBar() {
         <div className="sm:hidden border-t border-slate-200 bg-white px-4 py-3 flex flex-col gap-1">
           {isAuthenticated ? (
             <>
-              <Link
+              <NavLink
                 to="/dashboard"
-                className={linkClass('/dashboard')}
+                className={navLinkClass}
                 onClick={() => setMobileOpen(false)}
               >
                 Dashboard
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/settings"
-                className={linkClass('/settings')}
+                className={() => settingsClass}
                 onClick={() => setMobileOpen(false)}
               >
                 Settings
-              </Link>
+              </NavLink>
               <button
                 onClick={handleLogout}
                 className="text-left text-sm font-medium px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors duration-150 cursor-pointer"
@@ -142,20 +141,21 @@ export default function NavBar() {
             </>
           ) : (
             <>
-              <Link
+              <NavLink
                 to="/"
-                className={linkClass('/')}
+                end
+                className={navLinkClass}
                 onClick={() => setMobileOpen(false)}
               >
                 Home
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/login"
-                className={linkClass('/login')}
+                className={navLinkClass}
                 onClick={() => setMobileOpen(false)}
               >
                 Sign in
-              </Link>
+              </NavLink>
               <Link
                 to="/register"
                 className="text-sm font-medium px-3 py-1.5 rounded-lg text-brand-600 hover:bg-brand-50 transition-colors duration-150"

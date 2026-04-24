@@ -1,4 +1,7 @@
-type ApiResponse<T> = { ok: boolean; data?: T; status: number; error?: string }
+import { API_ERRORS } from '@/constants/apiErrors'
+import type { ApiResponse } from '@/types/api'
+
+export type { ApiResponse }
 
 const API_BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
 
@@ -18,11 +21,11 @@ async function parseJsonSafe(res: Response) {
 }
 
 function getErrorMessage(status: number, data: any, statusText: string): string {
-  if (status >= 500) return 'Server error, please retry later.'
-  if (status === 429) return 'Too many requests. Please wait and try again.'
-  if (status === 404) return 'Resource not found.'
-  if (status === 403) return 'Access denied. You might not have permission.'
-  if (status === 400) return 'Invalid request. Please check your input.'
+  if (status >= 500) return API_ERRORS.SERVER
+  if (status === 429) return API_ERRORS.RATE_LIMIT
+  if (status === 404) return API_ERRORS.NOT_FOUND
+  if (status === 403) return API_ERRORS.FORBIDDEN
+  if (status === 400) return API_ERRORS.BAD_REQUEST
   return (data?.error || data?.message) || statusText || 'Request failed'
 }
 
@@ -39,7 +42,7 @@ export async function request<T>(path: string, init: RequestInit = {}, opts: { s
     if (status === 401 && !opts.skipUnauthorized) {
       if (unauthorizedHandler) unauthorizedHandler()
       else globalThis.location.assign('/login')
-      return { ok: false, status, error: 'Unauthorized' }
+      return { ok: false, status, error: API_ERRORS.UNAUTHORIZED }
     }
 
     if (!res.ok) {
@@ -50,7 +53,7 @@ export async function request<T>(path: string, init: RequestInit = {}, opts: { s
 
     return { ok: true, status, data }
   } catch {
-    const msg = 'Network error. Please check your connection and try again.'
+    const msg = API_ERRORS.NETWORK
     if (errorHandler) errorHandler(msg)
     return { ok: false, status: 0, error: msg }
   }

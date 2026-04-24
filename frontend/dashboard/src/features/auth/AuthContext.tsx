@@ -1,36 +1,34 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react'
-import { post, get, onUnauthorized } from '@/services/api'
+import { onUnauthorized } from '@/services/api'
+import {
+  sessionCheck,
+  loginRequest,
+  logoutRequest,
+  registerRequest,
+  changePasswordRequest,
+  resetPasswordRequest,
+  requestPasswordResetRequest,
+} from '@/services/authApi'
+import type { AuthContextValue, User } from '@/types/auth'
 
-export type AuthContextValue = {
-  isAuthenticated: boolean
-  isLoading: boolean
-  user: { email: string; firstName?: string } | null
-  login: (email: string, password: string) => Promise<boolean>
-  logout: () => void
-  register: (firstName: string, lastName: string, email: string) => Promise<boolean>
-  changePassword: (oldPassword: string, newPassword: string, repeatPassword: string) => Promise<boolean>
-  resetPassword: (email: string, verificationHash: string, newPassword: string, repeatPassword: string) => Promise<boolean>
-  requestPasswordReset?: (email: string) => Promise<boolean>
-}
+export type { AuthContextValue }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
-const AUTH_BASE = '/api/users/auth'
 
 export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [user, setUser] = useState<{ email: string; firstName?: string } | null>(null)
+  const [user, setUser] = useState<User | null>(null)
 
   const APPLICATION_CODE = import.meta.env.VITE_APPLICATION_CODE ?? 'EXPENSES_MANAGER'
 
-  // On mount: restore session from HttpOnly cookie, using stored user info for display
   useEffect(() => {
     const storedUser = localStorage.getItem('auth:user')
     if (!storedUser) {
       setIsLoading(false)
       return
     }
-    get<void>(`${AUTH_BASE}/session`).then(({ ok }) => {
+    sessionCheck().then(({ ok }) => {
       if (ok) {
         try {
           setUser(JSON.parse(storedUser))
@@ -45,7 +43,6 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     })
   }, [])
 
-  // Handle session expiry (401 on authenticated endpoints)
   onUnauthorized(() => {
     setUser(null)
     setIsAuthenticated(false)
@@ -54,11 +51,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   })
 
   const login: AuthContextValue['login'] = async (email, password) => {
-    const { ok, data } = await post<{ user?: { email: string; firstName?: string } }>(
-      `${AUTH_BASE}/login`,
-      { email, password, applicationCode: APPLICATION_CODE },
-      { skipUnauthorized: true }
-    )
+    const { ok, data } = await loginRequest(email, password, APPLICATION_CODE)
     if (ok) {
       const userData = data?.user ?? { email }
       setUser(userData)
@@ -70,37 +63,32 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   }
 
   const logout = () => {
-    post<unknown>(`${AUTH_BASE}/logout`, {}, { skipUnauthorized: true }).catch(() => {})
+    logoutRequest().catch(() => {})
     setUser(null)
     setIsAuthenticated(false)
     localStorage.removeItem('auth:user')
   }
 
   const register: AuthContextValue['register'] = async (firstName, lastName, email) => {
-    const { ok } = await post<unknown>(`${AUTH_BASE}/register`, {
-      firstName,
-      lastName,
-      email,
-      applicationCode: APPLICATION_CODE,
-    }, { skipUnauthorized: true })
+    const { ok } = await registerRequest(firstName, lastName, email, APPLICATION_CODE)
     return ok
   }
 
   const changePassword: AuthContextValue['changePassword'] = async (oldPassword, newPassword, repeatPassword) => {
     if (!oldPassword || !newPassword || newPassword !== repeatPassword) return false
-    const { ok } = await post<unknown>(`${AUTH_BASE}/change-password`, { email: user?.email, oldPassword, newPassword, confirmPassword: repeatPassword }, { skipUnauthorized: true })
+    const { ok } = await changePasswordRequest(user?.email, oldPassword, newPassword, repeatPassword)
     return ok
   }
 
   const resetPassword: AuthContextValue['resetPassword'] = async (email, verificationHash, newPassword, repeatPassword) => {
     if (!email || !verificationHash || !newPassword || newPassword !== repeatPassword) return false
-    const { ok } = await post<unknown>(`${AUTH_BASE}/change-password-reset`, { email, verificationHash, newPassword, confirmPassword: repeatPassword }, { skipUnauthorized: true })
+    const { ok } = await resetPasswordRequest(email, verificationHash, newPassword, repeatPassword)
     return ok
   }
 
-  const requestPasswordReset: NonNullable<AuthContextValue['requestPasswordReset']> = async (email: string) => {
+  const requestPasswordReset: NonNullable<AuthContextValue['requestPasswordReset']> = async (email) => {
     if (!email) return false
-    const { ok } = await post<unknown>(`${AUTH_BASE}/request-password-reset`, { email }, { skipUnauthorized: true })
+    const { ok } = await requestPasswordResetRequest(email)
     return ok
   }
 

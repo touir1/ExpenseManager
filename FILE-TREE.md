@@ -228,9 +228,11 @@ ExpenseManager/
 │           │       ├── PasswordInput.test.tsx
 │           │       ├── PasswordStrength.test.tsx
 │           │       └── Toast.test.tsx
+│           ├── constants/             — App-wide typed constants
+│           │   └── apiErrors.ts        — API_ERRORS: typed HTTP error message strings
 │           ├── features/
 │           │   └── auth/              — Authentication feature (context + route guards)
-│           │       ├── AuthContext.tsx    — Cookie-based auth state; session restored via GET /auth/session on load
+│           │       ├── AuthContext.tsx    — Cookie-based auth state; delegates HTTP to authApi.ts; session restored via GET /auth/session on load
 │           │       ├── ProtectedRoute.tsx  — Redirects unauthenticated users to /login
 │           │       ├── PublicOnlyRoute.tsx — Redirects authenticated users to /dashboard
 │           │       └── __tests__/
@@ -240,7 +242,7 @@ ExpenseManager/
 │           ├── hooks/
 │           │   └── usePageTitle.ts    — Sets document.title per page
 │           ├── layouts/               — Layout-level components
-│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive
+│           │   ├── NavBar.tsx          — Auth-aware nav; uses NavLink for active-link highlighting; desktop + mobile responsive
 │           │   └── __tests__/
 │           │       └── NavBar.test.tsx
 │           ├── pages/
@@ -264,11 +266,15 @@ ExpenseManager/
 │           │       ├── ResetPassword.test.tsx
 │           │       └── NotFound.test.tsx
 │           ├── services/              — API layer
-│           │   ├── api.ts             — API client; uses credentials: include for cookie auth; supports skipUnauthorized option
+│           │   ├── api.ts             — Base API client; fetch wrapper with cookie auth, error handling, and skipUnauthorized option
+│           │   ├── authApi.ts         — Auth HTTP functions (login, logout, register, change/reset password); used by AuthContext
 │           │   └── __tests__/
 │           │       └── api.test.ts
-│           └── styles/
-│               └── index.css          — Tailwind directives + @layer components
+│           ├── styles/
+│           │   └── index.css          — Tailwind directives + @layer components
+│           └── types/                 — Shared TypeScript type definitions
+│               ├── auth.ts             — User, AuthContextValue
+│               └── api.ts              — ApiResponse<T>
 │
 ├── infrastructure/
 │   ├── .env                           — Local infrastructure env vars (gitignored)

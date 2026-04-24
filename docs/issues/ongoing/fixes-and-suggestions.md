@@ -42,6 +42,32 @@ These are the remaining unfixed issues from the [2026-03-22 QA report](qa_test_r
 - **Storybook**: Add Storybook for `PasswordInput`, `PasswordStrength`, `Toast`, and `NavBar` so components can be developed and reviewed in isolation.
 - **Husky + lint-staged**: Add pre-commit hooks to run `typecheck` and `eslint --fix` on staged files, catching issues before they reach CI.
 
+### Library Adoption Roadmap
+
+The dashboard currently uses vanilla `fetch`, manual `useState` forms, inline validation, Context API for state, Tailwind for styling, and no charts, i18n, file upload, or animation library. The following adoption plan is recommended as the project grows:
+
+#### Phase 1 — Auth refactor (do now)
+
+- **React Hook Form** (`react-hook-form`): Every auth form page duplicates the same `useState`-per-field + manual `setError` + `setSubmitting` pattern. React Hook Form eliminates this boilerplate with `useForm<T>()`, `register()`, and automatic `isSubmitting` management. Affects `Login.tsx`, `Register.tsx`, `ChangePassword.tsx`, `ResetPassword.tsx`, `RequestPasswordReset.tsx`.
+- **Zod** (`zod` + `@hookform/resolvers`): Validation logic is currently scattered inline per form. Zod schemas centralize rules, provide TypeScript inference via `z.infer<>`, and integrate directly with React Hook Form via `zodResolver()`. Replaces all manual email-regex, length, and password-match checks.
+
+#### Phase 2 — Expenses feature (when expenses is built)
+
+- **TanStack Query** (`@tanstack/react-query`): The expenses feature will need paginated lists, filters, background refetch, and cache invalidation. TanStack Query handles all of this and eliminates per-component `[loading, setLoading]` / `[data, setData]` patterns. `api.ts` stays as the low-level fetch layer; TanStack Query calls it. Auth mutations in `AuthContext` can remain as-is.
+- **Recharts** (`recharts`): An expense manager without charts is incomplete. Expected visualizations: spending over time (line), by category (pie/donut), monthly comparison (bar). Recharts is composable, TypeScript-friendly, and lightweight (~200 KB). New components go in `src/components/charts/`.
+
+#### Phase 3 — Conditional (only if needed)
+
+- **react-i18next** (`react-i18next`): All text is currently hardcoded in English. Add only if multi-language support is an actual requirement. Prefer `react-i18next` over FormatJS for its simpler API; FormatJS adds value only if rich locale-aware number/date/plural formatting is needed (which can be layered on top via `i18next-icu`). Do not add both.
+- **react-dropzone** (`react-dropzone`): Add only when receipt or attachment upload is being implemented.
+- **Motion** (`motion` / Framer Motion): Current CSS transitions via Tailwind are sufficient. Add only after the expense feature's UX design calls for page transitions, drag-and-drop reordering, or complex entrance/exit animations.
+
+#### Existing code refactors (independent of new libraries)
+
+| Priority | Issue | Note |
+|---|---|---|
+| Medium | `HomeDashboard.tsx` is a placeholder with no real content | Needs design before implementing |
+
 ---
 
 ## Backend — Suggestions
