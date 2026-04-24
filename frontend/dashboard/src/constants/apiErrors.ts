@@ -11,7 +11,7 @@ export const API_ERRORS = {
 export const BACKEND_ERROR_CODES: Record<string, string> = {
   MISSING_PARAMETERS: 'Please fill in all required fields.',
   SERVER_ERROR: 'Server error, please retry later.',
-  INVALID_USERNAME_OR_PASSWORD: 'Invalid email or password.',
+  INVALID_USERNAME_OR_PASSWORD: 'Invalid email or password.', // NOSONAR
   NO_ASSIGNED_ROLE: 'Your account has no assigned role. Please contact support.',
   EMAIL_VERIFICATION_FAILED: 'Email verification failed. Please check the link and try again.',
   NOT_MATCHING_CONFIRM_PASSWORD: 'Passwords do not match.',
