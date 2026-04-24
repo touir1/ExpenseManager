@@ -1,4 +1,4 @@
-import { API_ERRORS } from '@/constants/apiErrors'
+import { API_ERRORS, BACKEND_ERROR_CODES } from '@/constants/apiErrors'
 import type { ApiResponse } from '@/types/api'
 
 const API_BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
@@ -23,8 +23,10 @@ function getErrorMessage(status: number, data: any, statusText: string): string 
   if (status === 429) return API_ERRORS.RATE_LIMIT
   if (status === 404) return API_ERRORS.NOT_FOUND
   if (status === 403) return API_ERRORS.FORBIDDEN
+  const backendCode: string | undefined = data?.message ?? data?.Message ?? data?.error
+  if (backendCode && BACKEND_ERROR_CODES[backendCode]) return BACKEND_ERROR_CODES[backendCode]
   if (status === 400) return API_ERRORS.BAD_REQUEST
-  return (data?.error || data?.message) || statusText || 'Request failed'
+  return backendCode || statusText || 'Request failed'
 }
 
 export async function request<T>(path: string, init: RequestInit = {}, opts: { skipUnauthorized?: boolean } = {}): Promise<ApiResponse<T>> {

@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.40.0] - 2026-04-24
+### Fixed
+- Frontend dashboard: backend error codes (e.g. `INVALID_USERNAME_OR_PASSWORD`) are now translated to human-readable messages before being displayed in toasts. Added `BACKEND_ERROR_CODES` lookup map to `src/constants/apiErrors.ts` covering all codes returned by the users service. `getErrorMessage` in `api.ts` now checks both `message` and `Message` JSON fields and resolves any known code before falling back to generic status-based messages; 400 responses no longer swallow the backend's specific error detail.
+
 ## [0.39.0] - 2026-04-24
 ### Refactor
 - Frontend dashboard: extracted auth HTTP calls out of `AuthContext` into a dedicated `src/services/authApi.ts` module — `AuthContext` is now pure state management with no direct `fetch` calls.
