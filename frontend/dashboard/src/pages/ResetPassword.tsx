@@ -89,6 +89,7 @@ export default function ResetPassword() {
               required
               disabled={missingParams}
               className="field-input"
+              aria-describedby={message ? 'reset-password-msg' : undefined}
             />
             <PasswordStrength password={newPassword} />
           </div>
@@ -103,6 +104,7 @@ export default function ResetPassword() {
               required
               disabled={missingParams}
               className="field-input"
+              aria-describedby={message ? 'reset-password-msg' : undefined}
             />
           </div>
 
@@ -112,7 +114,7 @@ export default function ResetPassword() {
         </form>
 
         {message && (
-          <p className={`mt-4 ${isSuccess ? 'msg-success' : 'msg-error'}`} role="alert">
+          <p id="reset-password-msg" className={`mt-4 ${isSuccess ? 'msg-success' : 'msg-error'}`} role="alert">
             {message}
           </p>
         )}

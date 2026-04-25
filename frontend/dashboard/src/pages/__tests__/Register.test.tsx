@@ -248,4 +248,27 @@ describe('Register page', () => {
       expect(screen.getByText('Registration failed. Please try again.')).toBeInTheDocument()
     })
   })
+
+  it('inputs have no aria-describedby initially', () => {
+    mockUseAuth.mockReturnValue({ register: mockRegister })
+    render(<MemoryRouter><Register /></MemoryRouter>)
+    expect(screen.getByLabelText(/first name/i)).not.toHaveAttribute('aria-describedby')
+    expect(screen.getByLabelText(/last name/i)).not.toHaveAttribute('aria-describedby')
+    expect(screen.getByLabelText(/email/i)).not.toHaveAttribute('aria-describedby')
+  })
+
+  it('inputs link to error message via aria-describedby when validation fails', async () => {
+    mockUseAuth.mockReturnValue({ register: mockRegister })
+    render(<MemoryRouter><Register /></MemoryRouter>)
+
+    fireEvent.submit(screen.getByRole('button', { name: /register/i }).closest('form')!)
+
+    await waitFor(() => {
+      const errorEl = screen.getByText('All fields are required.')
+      expect(errorEl).toHaveAttribute('id', 'register-msg')
+      expect(screen.getByLabelText(/first name/i)).toHaveAttribute('aria-describedby', 'register-msg')
+      expect(screen.getByLabelText(/last name/i)).toHaveAttribute('aria-describedby', 'register-msg')
+      expect(screen.getByLabelText(/email/i)).toHaveAttribute('aria-describedby', 'register-msg')
+    })
+  })
 })

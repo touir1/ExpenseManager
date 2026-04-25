@@ -321,5 +321,43 @@ describe('NavBar', () => {
       await user.click(mobileGetStarted)
       expect(screen.getAllByText('Get started')).toHaveLength(1)
     })
+
+    it('hamburger button has aria-expanded=false when menu is closed', () => {
+      mockUseAuth.mockReturnValue({ isAuthenticated: false, logout: vi.fn() })
+      renderNavBar('/')
+      expect(screen.getByRole('button', { name: /toggle menu/i })).toHaveAttribute('aria-expanded', 'false')
+    })
+
+    it('hamburger button has aria-expanded=true when menu is open', async () => {
+      mockUseAuth.mockReturnValue({ isAuthenticated: false, logout: vi.fn() })
+      const user = userEvent.setup()
+      renderNavBar('/')
+      await user.click(screen.getByRole('button', { name: /toggle menu/i }))
+      expect(screen.getByRole('button', { name: /toggle menu/i })).toHaveAttribute('aria-expanded', 'true')
+    })
+
+    it('hamburger button has aria-controls pointing to mobile-menu', () => {
+      mockUseAuth.mockReturnValue({ isAuthenticated: false, logout: vi.fn() })
+      renderNavBar('/')
+      expect(screen.getByRole('button', { name: /toggle menu/i })).toHaveAttribute('aria-controls', 'mobile-menu')
+    })
+
+    it('mobile menu panel has role=navigation and aria-label', async () => {
+      mockUseAuth.mockReturnValue({ isAuthenticated: false, logout: vi.fn() })
+      const user = userEvent.setup()
+      renderNavBar('/')
+      await user.click(screen.getByRole('button', { name: /toggle menu/i }))
+      expect(screen.getByRole('navigation', { name: /mobile navigation/i })).toBeInTheDocument()
+    })
+
+    it('closes mobile menu when Escape is pressed', async () => {
+      mockUseAuth.mockReturnValue({ isAuthenticated: false, logout: vi.fn() })
+      const user = userEvent.setup()
+      renderNavBar('/')
+      await user.click(screen.getByRole('button', { name: /toggle menu/i }))
+      expect(screen.getAllByText('Home')).toHaveLength(2)
+      await user.keyboard('{Escape}')
+      expect(screen.getAllByText('Home')).toHaveLength(1)
+    })
   })
 })

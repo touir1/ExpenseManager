@@ -420,4 +420,33 @@ describe('ResetPassword page', () => {
       expect(screen.getByRole('button', { name: /^reset$/i })).toBeInTheDocument()
     })
   })
+
+  it('inputs have no aria-describedby initially', () => {
+    render(
+      <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
+        <Routes>
+          <Route path="/reset-password" element={<ResetPassword />} />
+        </Routes>
+      </MemoryRouter>
+    )
+    expect(screen.getByLabelText(/^new password$/i)).not.toHaveAttribute('aria-describedby')
+    expect(screen.getByLabelText(/repeat new password/i)).not.toHaveAttribute('aria-describedby')
+  })
+
+  it('inputs link to error message via aria-describedby when validation fails', () => {
+    render(
+      <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
+        <Routes>
+          <Route path="/reset-password" element={<ResetPassword />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    fireEvent.submit(screen.getByRole('button', { name: /reset/i }).closest('form')!)
+
+    const errorEl = screen.getByText('All fields are required.')
+    expect(errorEl).toHaveAttribute('id', 'reset-password-msg')
+    expect(screen.getByLabelText(/^new password$/i)).toHaveAttribute('aria-describedby', 'reset-password-msg')
+    expect(screen.getByLabelText(/repeat new password/i)).toHaveAttribute('aria-describedby', 'reset-password-msg')
+  })
 })

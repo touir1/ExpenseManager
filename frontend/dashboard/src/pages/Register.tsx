@@ -75,6 +75,7 @@ export default function Register() {
                 disabled={submitting}
                 className="field-input"
                 placeholder="Jane"
+                aria-describedby={message && !isSuccess ? 'register-msg' : undefined}
               />
             </div>
             <div>
@@ -87,6 +88,7 @@ export default function Register() {
                 disabled={submitting}
                 className="field-input"
                 placeholder="Doe"
+                aria-describedby={message && !isSuccess ? 'register-msg' : undefined}
               />
             </div>
           </div>
@@ -103,6 +105,7 @@ export default function Register() {
               disabled={submitting}
               className="field-input"
               placeholder="you@example.com"
+              aria-describedby={message && !isSuccess ? 'register-msg' : undefined}
             />
           </div>
 
@@ -122,7 +125,7 @@ export default function Register() {
         </form>
 
         {message && (
-          <p className="mt-4 msg-error" role="alert">
+          <p id="register-msg" className="mt-4 msg-error" role="alert">
             {message}
           </p>
         )}

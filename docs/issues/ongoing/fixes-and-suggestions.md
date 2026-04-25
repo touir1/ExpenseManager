@@ -22,9 +22,8 @@ These are the remaining unfixed issues from the [2026-03-22 QA report](qa_test_r
 *All four items resolved — see [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
 
 ### Accessibility
-- **Landmark roles**: Wrap page content in `<main>` elements so screen readers can navigate directly to the main content area.
-- **Focus trap on mobile menu**: When the hamburger menu is open, keyboard focus should be trapped within the menu overlay.
-- **Error message `aria-describedby`**: Link inline error messages to their corresponding input fields via `aria-describedby` so screen readers announce the error when the field is focused.
+
+*All three items resolved — see [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
 
 ### Code quality
 - **`src/services/api.ts` — typed error responses**: The current error handling extracts a generic message; model the error shape and return typed results instead of `boolean` from auth functions so callers can distinguish error types.

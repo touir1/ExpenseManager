@@ -66,6 +66,7 @@ export default function ChangePassword() {
               onChange={e => setOldPassword(e.target.value)}
               required
               className="field-input"
+              aria-describedby={message ? 'change-password-msg' : undefined}
             />
           </div>
 
@@ -78,6 +79,7 @@ export default function ChangePassword() {
               onChange={e => setNewPassword(e.target.value)}
               required
               className="field-input"
+              aria-describedby={message ? 'change-password-msg' : undefined}
             />
             <PasswordStrength password={newPassword} />
           </div>
@@ -91,6 +93,7 @@ export default function ChangePassword() {
               onChange={e => setRepeatPassword(e.target.value)}
               required
               className="field-input"
+              aria-describedby={message ? 'change-password-msg' : undefined}
             />
           </div>
 
@@ -100,7 +103,7 @@ export default function ChangePassword() {
         </form>
 
         {message && (
-          <p className={`mt-4 ${isSuccess ? 'msg-success' : 'msg-error'}`} role="alert">
+          <p id="change-password-msg" className={`mt-4 ${isSuccess ? 'msg-success' : 'msg-error'}`} role="alert">
             {message}
           </p>
         )}

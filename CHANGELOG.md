@@ -3,6 +3,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.44.0] - 2026-04-25
+### Changed
+- Frontend dashboard: accessibility pass across the navigation and form components.
+  - `NavBar.tsx`: hamburger button now carries `aria-expanded` (reflects open/close state) and `aria-controls="mobile-menu"`. Mobile menu panel has `id="mobile-menu"`, `role="navigation"`, and `aria-label="Mobile navigation"`. A `useEffect` implements a full focus trap — first focusable item receives focus on open, Tab/Shift-Tab cycle within the panel, Escape closes it, and focus returns to the hamburger button on close.
+  - `Register.tsx`, `ChangePassword.tsx`, `ResetPassword.tsx`: inline error message elements given stable IDs; all form inputs link to the active error via `aria-describedby` so screen readers announce the error when an input is focused.
+  - Landmark structure confirmed correct: `App.tsx` wraps all routes in `<main>` and `NavBar` renders as `<header>`.
+
 ## [0.43.0] - 2026-04-25
 ### Added
 - Frontend dashboard: "Remember me" checkbox on the Login page. Unchecked (default) stores the session in `sessionStorage` so it clears when the tab closes; checked stores in `localStorage` for cross-session persistence. `AuthProvider` login, logout, session-restore, and the `onUnauthorized` handler all updated to clear both storages consistently. `login` type in `AuthContextValue` updated to accept an optional `rememberMe` boolean.

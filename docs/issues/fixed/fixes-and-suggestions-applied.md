@@ -6,6 +6,14 @@ A record of improvement ideas from [fixes-and-suggestions.md](../ongoing/fixes-a
 
 ## Frontend
 
+### Accessibility — 2026-04-25 (v0.44.0)
+
+| Item | Resolution |
+|------|------------|
+| Landmark roles | `App.tsx` already wraps all page routes in `<main className="flex-1 flex flex-col">` and `NavBar` returns a `<header>` — the correct landmark structure was already in place |
+| Focus trap on mobile menu | `NavBar.tsx`: hamburger button gains `aria-expanded` + `aria-controls="mobile-menu"`. Menu div gains `id`, `role="navigation"`, and `aria-label`. A `useEffect` on `mobileOpen` moves focus to the first menu item on open, traps Tab/Shift-Tab within the menu, closes on Escape, and restores focus to the hamburger button on close |
+| Error message `aria-describedby` | Error `<p>` elements in `Register.tsx`, `ChangePassword.tsx`, and `ResetPassword.tsx` given stable IDs (`register-msg`, `change-password-msg`, `reset-password-msg`). All inputs in each form link to the error via `aria-describedby` when a message is present, so screen readers announce the error when an input is focused |
+
 ### UX / Interaction improvements — 2026-04-25 (v0.43.0)
 
 | Item | Resolution |

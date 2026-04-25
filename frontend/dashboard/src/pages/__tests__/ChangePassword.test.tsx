@@ -249,7 +249,7 @@ describe('ChangePassword page', () => {
 
     const form = screen.getByRole('button', { name: /change password/i }).closest('form')!
     const preventDefaultSpy = vi.fn()
-    
+
     form.addEventListener('submit', () => {
       preventDefaultSpy()
       // The component already calls e.preventDefault(), so we just track it
@@ -267,5 +267,24 @@ describe('ChangePassword page', () => {
     await waitFor(() => {
       expect(mockChangePassword).toHaveBeenCalled()
     })
+  })
+
+  it('inputs have no aria-describedby initially', () => {
+    render(<MemoryRouter><ChangePassword /></MemoryRouter>)
+    expect(screen.getByLabelText(/old password/i)).not.toHaveAttribute('aria-describedby')
+    expect(screen.getByLabelText(/^new password$/i)).not.toHaveAttribute('aria-describedby')
+    expect(screen.getByLabelText(/repeat new password/i)).not.toHaveAttribute('aria-describedby')
+  })
+
+  it('inputs link to error message via aria-describedby when validation fails', () => {
+    render(<MemoryRouter><ChangePassword /></MemoryRouter>)
+
+    fireEvent.click(screen.getByRole('button', { name: /change password/i }))
+
+    const errorEl = screen.getByText('All fields are required.')
+    expect(errorEl).toHaveAttribute('id', 'change-password-msg')
+    expect(screen.getByLabelText(/old password/i)).toHaveAttribute('aria-describedby', 'change-password-msg')
+    expect(screen.getByLabelText(/^new password$/i)).toHaveAttribute('aria-describedby', 'change-password-msg')
+    expect(screen.getByLabelText(/repeat new password/i)).toHaveAttribute('aria-describedby', 'change-password-msg')
   })
 })
