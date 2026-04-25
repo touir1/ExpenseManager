@@ -111,7 +111,7 @@ describe('Register page', () => {
   })
 
   it('shows success message after successful registration', async () => {
-    mockRegister.mockResolvedValueOnce(true)
+    mockRegister.mockResolvedValueOnce({ ok: true })
     mockUseAuth.mockReturnValue({ register: mockRegister })
 
     render(
@@ -140,7 +140,7 @@ describe('Register page', () => {
   })
 
   it('shows go-to-login link and hides form after successful registration', async () => {
-    mockRegister.mockResolvedValueOnce(true)
+    mockRegister.mockResolvedValueOnce({ ok: true })
     mockUseAuth.mockReturnValue({ register: mockRegister })
 
     render(
@@ -202,7 +202,7 @@ describe('Register page', () => {
   })
 
   it('disables button and shows spinner while submitting', async () => {
-    let resolve: (v: boolean) => void
+    let resolve: (v: { ok: boolean }) => void
     mockRegister.mockReturnValue(new Promise(r => { resolve = r }))
     mockUseAuth.mockReturnValue({ register: mockRegister })
 
@@ -222,11 +222,11 @@ describe('Register page', () => {
       expect(screen.getByText(/submitting/i)).toBeInTheDocument()
     })
 
-    resolve!(false)
+    resolve!({ ok: false })
   })
 
   it('shows error message when registration fails', async () => {
-    mockRegister.mockResolvedValueOnce(false)
+    mockRegister.mockResolvedValueOnce({ ok: false })
     mockUseAuth.mockReturnValue({ register: mockRegister })
 
     render(

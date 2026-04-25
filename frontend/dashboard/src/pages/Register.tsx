@@ -27,7 +27,7 @@ export default function Register() {
       return
     }
     setSubmitting(true)
-    const ok = await register(firstName, lastName, email)
+    const { ok } = await register(firstName, lastName, email)
     setSubmitting(false)
     if (ok) {
       setIsSuccess(true)

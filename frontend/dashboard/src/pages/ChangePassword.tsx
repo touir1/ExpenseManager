@@ -31,9 +31,9 @@ export default function ChangePassword() {
       setMessage('New passwords do not match.')
       return
     }
-    const ok = await changePassword(oldPassword, newPassword, repeatPassword)
+    const { ok, error } = await changePassword(oldPassword, newPassword, repeatPassword)
     setIsSuccess(ok)
-    setMessage(ok ? 'Password changed.' : 'Incorrect current password.')
+    setMessage(ok ? 'Password changed.' : error ?? 'Incorrect current password.')
   }
 
   return (

@@ -6,6 +6,13 @@ A record of improvement ideas from [fixes-and-suggestions.md](../ongoing/fixes-a
 
 ## Frontend
 
+### Code quality — 2026-04-25 (v0.45.0)
+
+| Item | Resolution |
+|------|------------|
+| Typed error responses | Auth context functions return `AuthResult` (`{ ok: boolean; error?: string }`) instead of `boolean`. Callers can now inspect `.error` to distinguish network errors, backend validation errors, and other failure types. `AuthResult` exported from `src/types/auth.ts` |
+| Edge-case test coverage | Added tests for: network error during session restore (status 0), network error during login with error propagation, sessionStorage token-expiry flow (unauthorised handler clears sessionStorage + redirects), and session restore from sessionStorage without localStorage |
+
 ### Accessibility — 2026-04-25 (v0.44.0)
 
 | Item | Resolution |

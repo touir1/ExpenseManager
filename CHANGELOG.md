@@ -3,6 +3,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.45.0] - 2026-04-25
+### Changed
+- Frontend dashboard: auth context functions (`login`, `register`, `changePassword`, `resetPassword`, `requestPasswordReset`) now return `AuthResult` (`{ ok: boolean; error?: string }`) instead of plain `boolean`, giving callers access to the specific error message from the API. `AuthResult` type exported from `src/types/auth.ts`. All pages and tests updated accordingly.
+
+### Added
+- Frontend dashboard: edge-case test coverage in `AuthContext.test.tsx` — network-error path during session restore (status 0), network-error path during login (error message propagated through `AuthResult`), sessionStorage token-expiry scenario (unauthorized handler clears sessionStorage and redirects). Session restore from `sessionStorage` (no localStorage entry) also now covered. `AuthContext.test.tsx` grows from 27 to 32 tests.
+
 ## [0.44.0] - 2026-04-25
 ### Changed
 - Frontend dashboard: accessibility pass across the navigation and form components.

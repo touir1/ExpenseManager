@@ -57,7 +57,7 @@ describe('Login page', () => {
 
   it('navigates to /dashboard on successful login', async () => {
     const user = userEvent.setup()
-    mockLogin.mockResolvedValue(true)
+    mockLogin.mockResolvedValue({ ok: true })
     mockUseAuth.mockReturnValue({ login: mockLogin })
 
     render(
@@ -82,7 +82,7 @@ describe('Login page', () => {
 
   it('shows toast error on invalid credentials', async () => {
     const user = userEvent.setup()
-    mockLogin.mockResolvedValue(false)
+    mockLogin.mockResolvedValue({ ok: false })
     mockUseAuth.mockReturnValue({ login: mockLogin })
 
     render(
@@ -106,7 +106,7 @@ describe('Login page', () => {
 
   it('does not navigate on failed login', async () => {
     const user = userEvent.setup()
-    mockLogin.mockResolvedValue(false)
+    mockLogin.mockResolvedValue({ ok: false })
     mockUseAuth.mockReturnValue({ login: mockLogin })
 
     render(
@@ -131,7 +131,7 @@ describe('Login page', () => {
 
   it('calls login with correct credentials', async () => {
     const user = userEvent.setup()
-    mockLogin.mockResolvedValue(true)
+    mockLogin.mockResolvedValue({ ok: true })
     mockUseAuth.mockReturnValue({ login: mockLogin })
 
     render(
@@ -244,7 +244,7 @@ describe('Login page', () => {
 
   it('disables button and shows spinner while submitting', async () => {
     const user = userEvent.setup()
-    let resolve: (v: boolean) => void
+    let resolve: (v: { ok: boolean }) => void
     mockLogin.mockReturnValue(new Promise(r => { resolve = r }))
     mockUseAuth.mockReturnValue({ login: mockLogin })
 
@@ -265,12 +265,12 @@ describe('Login page', () => {
     })
     expect(screen.getByRole('button', { name: /signing in/i })).toBeDisabled()
 
-    resolve!(true)
+    resolve!({ ok: true })
   })
 
   it('handles form submission with enter key', async () => {
     const user = userEvent.setup()
-    mockLogin.mockResolvedValue(true)
+    mockLogin.mockResolvedValue({ ok: true })
     mockUseAuth.mockReturnValue({ login: mockLogin })
 
     render(
@@ -308,7 +308,7 @@ describe('Login page', () => {
 
   it('passes rememberMe=true to login when checkbox is checked', async () => {
     const user = userEvent.setup()
-    mockLogin.mockResolvedValue(true)
+    mockLogin.mockResolvedValue({ ok: true })
     mockUseAuth.mockReturnValue({ login: mockLogin })
 
     render(

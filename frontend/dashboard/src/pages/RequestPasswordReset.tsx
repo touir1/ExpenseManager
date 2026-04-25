@@ -18,7 +18,7 @@ export default function RequestPasswordReset() {
       return
     }
     setSubmitting(true)
-    const ok = await requestPasswordReset(email)
+    const { ok } = await requestPasswordReset(email)
     setSubmitting(false)
     if (ok) {
       show('If the email exists, a reset link has been sent.', 'success')

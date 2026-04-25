@@ -18,7 +18,7 @@ export default function Login() {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
-    const ok = await login(email, password, rememberMe)
+    const { ok } = await login(email, password, rememberMe)
     setSubmitting(false)
     if (!ok) {
       show('Invalid credentials. Please try again.', 'error')

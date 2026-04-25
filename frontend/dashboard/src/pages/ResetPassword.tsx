@@ -43,7 +43,7 @@ export default function ResetPassword() {
       setMessage('New passwords do not match.')
       return
     }
-    const ok = await resetPassword(email, verificationHash, newPassword, repeatPassword)
+    const { ok } = await resetPassword(email, verificationHash, newPassword, repeatPassword)
     setIsSuccess(ok)
     if (ok) {
       setMessage(isCreateMode ? 'Password created successfully. Redirecting to home…' : 'Password reset successfully. Redirecting to home…')

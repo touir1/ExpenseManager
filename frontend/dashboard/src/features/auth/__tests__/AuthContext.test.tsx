@@ -3,6 +3,7 @@ import { act } from 'react'
 import { render, renderHook, waitFor } from '@testing-library/react'
 import { AuthProvider, useAuth } from '@/features/auth/AuthContext'
 import * as api from '@/services/api'
+import { API_ERRORS } from '@/constants/apiErrors'
 
 vi.mock('@/services/api', () => ({
   post: vi.fn(),
@@ -79,6 +80,30 @@ describe('AuthContext', () => {
       expect(result.current.isAuthenticated).toBe(false)
       expect(localStorage.getItem('auth:user')).toBeNull()
     })
+
+    it('clears user and sets isLoading=false when session check fails with network error', async () => {
+      localStorage.setItem('auth:user', JSON.stringify({ email: 'test@test.com' }))
+      vi.mocked(api.get).mockResolvedValueOnce({ ok: false, status: 0, error: API_ERRORS.NETWORK })
+
+      const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+      expect(result.current.isAuthenticated).toBe(false)
+      expect(result.current.user).toBeNull()
+      expect(localStorage.getItem('auth:user')).toBeNull()
+    })
+
+    it('restores session from sessionStorage when user is not in localStorage', async () => {
+      const storedUser = { email: 'session@test.com' }
+      sessionStorage.setItem('auth:user', JSON.stringify(storedUser))
+      vi.mocked(api.get).mockResolvedValueOnce({ ok: true, status: 200 })
+
+      const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+      expect(result.current.isAuthenticated).toBe(true)
+      expect(result.current.user).toEqual(storedUser)
+    })
   })
 
   describe('login', () => {
@@ -92,7 +117,8 @@ describe('AuthContext', () => {
       const loginResult = await result.current.login('user@example.com', 'password')
 
       await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
-      expect(loginResult).toBe(true)
+      expect(loginResult.ok).toBe(true)
+      expect(loginResult.error).toBeUndefined()
       expect(result.current.user).toEqual(mockUser)
       expect(sessionStorage.getItem('auth:user')).toBe(JSON.stringify(mockUser))
       expect(localStorage.getItem('auth:user')).toBeNull()
@@ -123,17 +149,31 @@ describe('AuthContext', () => {
       await waitFor(() => expect(result.current.user).toEqual({ email: 'fallback@example.com' }))
     })
 
-    it('returns false on failed login and does not set authenticated', async () => {
-      vi.mocked(api.post).mockResolvedValueOnce({ ok: false, status: 401 })
+    it('returns ok=false with error on failed login and does not set authenticated', async () => {
+      vi.mocked(api.post).mockResolvedValueOnce({ ok: false, status: 401, error: 'Invalid email or password.' })
 
       const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
       await waitFor(() => expect(result.current.isLoading).toBe(false))
 
       const loginResult = await result.current.login('wrong@example.com', 'wrong')
 
-      expect(loginResult).toBe(false)
+      expect(loginResult.ok).toBe(false)
+      expect(loginResult.error).toBe('Invalid email or password.')
       expect(result.current.isAuthenticated).toBe(false)
       expect(result.current.user).toBeNull()
+    })
+
+    it('returns ok=false with network error when login request fails due to network error', async () => {
+      vi.mocked(api.post).mockResolvedValueOnce({ ok: false, status: 0, error: API_ERRORS.NETWORK })
+
+      const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      const loginResult = await result.current.login('user@test.com', 'pass')
+
+      expect(loginResult.ok).toBe(false)
+      expect(loginResult.error).toBe(API_ERRORS.NETWORK)
+      expect(result.current.isAuthenticated).toBe(false)
     })
 
     it('includes application code and skipUnauthorized in login request', async () => {
@@ -180,7 +220,7 @@ describe('AuthContext', () => {
 
       const registerResult = await result.current.register('John', 'Doe', 'john@example.com')
 
-      expect(registerResult).toBe(true)
+      expect(registerResult.ok).toBe(true)
       expect(api.post).toHaveBeenCalledWith(
         `${AUTH_BASE}/register`,
         expect.objectContaining({ firstName: 'John', lastName: 'Doe', email: 'john@example.com', applicationCode: expect.any(String) }),
@@ -188,7 +228,7 @@ describe('AuthContext', () => {
       )
     })
 
-    it('returns false on failed registration', async () => {
+    it('returns ok=false on failed registration', async () => {
       vi.mocked(api.post).mockResolvedValueOnce({ ok: false, status: 400 })
 
       const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
@@ -196,7 +236,7 @@ describe('AuthContext', () => {
 
       const registerResult = await result.current.register('John', 'Doe', 'existing@example.com')
 
-      expect(registerResult).toBe(false)
+      expect(registerResult.ok).toBe(false)
     })
   })
 
@@ -209,7 +249,7 @@ describe('AuthContext', () => {
 
       const changeResult = await result.current.changePassword('oldpass', 'newpass', 'newpass')
 
-      expect(changeResult).toBe(true)
+      expect(changeResult.ok).toBe(true)
       expect(api.post).toHaveBeenCalledWith(
         `${AUTH_BASE}/change-password`,
         { email: undefined, oldPassword: 'oldpass', newPassword: 'newpass', confirmPassword: 'newpass' },
@@ -217,23 +257,35 @@ describe('AuthContext', () => {
       )
     })
 
-    it('returns false when passwords do not match', async () => {
+    it('returns ok=false when passwords do not match', async () => {
       const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
       await waitFor(() => expect(result.current.isLoading).toBe(false))
 
       const changeResult = await result.current.changePassword('oldpass', 'newpass1', 'newpass2')
 
-      expect(changeResult).toBe(false)
+      expect(changeResult.ok).toBe(false)
       expect(api.post).not.toHaveBeenCalled()
     })
 
-    it('returns false when old password is empty', async () => {
+    it('returns ok=false when old password is empty', async () => {
       const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
       await waitFor(() => expect(result.current.isLoading).toBe(false))
 
       const changeResult = await result.current.changePassword('', 'newpass', 'newpass')
 
-      expect(changeResult).toBe(false)
+      expect(changeResult.ok).toBe(false)
+    })
+
+    it('returns ok=false with error when API rejects the password change', async () => {
+      vi.mocked(api.post).mockResolvedValueOnce({ ok: false, status: 400, error: 'Invalid email or password.' })
+
+      const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      const changeResult = await result.current.changePassword('wrongpass', 'newpass12', 'newpass12')
+
+      expect(changeResult.ok).toBe(false)
+      expect(changeResult.error).toBe('Invalid email or password.')
     })
   })
 
@@ -246,7 +298,7 @@ describe('AuthContext', () => {
 
       const resetResult = await result.current.resetPassword('user@test.com', 'verification-hash', 'newpass', 'newpass')
 
-      expect(resetResult).toBe(true)
+      expect(resetResult.ok).toBe(true)
       expect(api.post).toHaveBeenCalledWith(
         `${AUTH_BASE}/change-password-reset`,
         { email: 'user@test.com', verificationHash: 'verification-hash', newPassword: 'newpass', confirmPassword: 'newpass' },
@@ -254,23 +306,23 @@ describe('AuthContext', () => {
       )
     })
 
-    it('returns false when passwords do not match', async () => {
+    it('returns ok=false when passwords do not match', async () => {
       const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
       await waitFor(() => expect(result.current.isLoading).toBe(false))
 
       const resetResult = await result.current.resetPassword('user@test.com', 'hash', 'pass1', 'pass2')
 
-      expect(resetResult).toBe(false)
+      expect(resetResult.ok).toBe(false)
       expect(api.post).not.toHaveBeenCalled()
     })
 
-    it('returns false when required fields are missing', async () => {
+    it('returns ok=false when required fields are missing', async () => {
       const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
       await waitFor(() => expect(result.current.isLoading).toBe(false))
 
       const resetResult = await result.current.resetPassword('', 'hash', 'pass', 'pass')
 
-      expect(resetResult).toBe(false)
+      expect(resetResult.ok).toBe(false)
     })
   })
 
@@ -283,7 +335,7 @@ describe('AuthContext', () => {
 
       const requestResult = await result.current.requestPasswordReset!('user@test.com')
 
-      expect(requestResult).toBe(true)
+      expect(requestResult.ok).toBe(true)
       expect(api.post).toHaveBeenCalledWith(
         `${AUTH_BASE}/request-password-reset`,
         { email: 'user@test.com' },
@@ -291,13 +343,13 @@ describe('AuthContext', () => {
       )
     })
 
-    it('returns false when email is empty', async () => {
+    it('returns ok=false when email is empty', async () => {
       const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
       await waitFor(() => expect(result.current.isLoading).toBe(false))
 
       const requestResult = await result.current.requestPasswordReset!('')
 
-      expect(requestResult).toBe(false)
+      expect(requestResult.ok).toBe(false)
       expect(api.post).not.toHaveBeenCalled()
     })
   })
@@ -315,7 +367,7 @@ describe('AuthContext', () => {
       expect(api.onUnauthorized).toHaveBeenCalled()
     })
 
-    it('clears auth state and redirects when unauthorized handler is invoked', async () => {
+    it('clears auth state and redirects when unauthorized handler is invoked (token expiry mid-session)', async () => {
       vi.mocked(api.post).mockResolvedValueOnce({ ok: true, status: 200, data: { user: { email: 'test@example.com' } } })
 
       const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
@@ -330,6 +382,24 @@ describe('AuthContext', () => {
       await waitFor(() => expect(result.current.isAuthenticated).toBe(false))
       expect(result.current.user).toBeNull()
       expect(localStorage.getItem('auth:user')).toBeNull()
+      expect(mockLocationAssign).toHaveBeenCalledWith('/login')
+    })
+
+    it('clears sessionStorage auth on token expiry and redirects to login', async () => {
+      vi.mocked(api.post).mockResolvedValueOnce({ ok: true, status: 200, data: { user: { email: 'session@test.com' } } })
+
+      const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      await result.current.login('session@test.com', 'pass')
+      await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
+      expect(sessionStorage.getItem('auth:user')).not.toBeNull()
+
+      const unauthorizedCallback = (api.onUnauthorized as ReturnType<typeof vi.fn>).mock.calls[0][0]
+      act(() => { unauthorizedCallback() })
+
+      await waitFor(() => expect(result.current.isAuthenticated).toBe(false))
+      expect(sessionStorage.getItem('auth:user')).toBeNull()
       expect(mockLocationAssign).toHaveBeenCalledWith('/login')
     })
   })

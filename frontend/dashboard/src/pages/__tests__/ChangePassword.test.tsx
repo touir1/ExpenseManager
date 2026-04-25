@@ -85,7 +85,7 @@ describe('ChangePassword page', () => {
   })
 
   it('calls changePassword with correct data on form submit', async () => {
-    mockChangePassword.mockResolvedValueOnce(true)
+    mockChangePassword.mockResolvedValueOnce({ ok: true })
 
     render(
       <MemoryRouter>
@@ -109,7 +109,7 @@ describe('ChangePassword page', () => {
   })
 
   it('shows success message when password change succeeds', async () => {
-    mockChangePassword.mockResolvedValueOnce(true)
+    mockChangePassword.mockResolvedValueOnce({ ok: true })
 
     render(
       <MemoryRouter>
@@ -133,7 +133,7 @@ describe('ChangePassword page', () => {
   })
 
   it('shows error message when password change fails due to incorrect current password', async () => {
-    mockChangePassword.mockResolvedValueOnce(false)
+    mockChangePassword.mockResolvedValueOnce({ ok: false })
 
     render(
       <MemoryRouter>
@@ -239,7 +239,7 @@ describe('ChangePassword page', () => {
   })
 
   it('prevents default form submission', async () => {
-    mockChangePassword.mockResolvedValueOnce(true)
+    mockChangePassword.mockResolvedValueOnce({ ok: true })
 
     render(
       <MemoryRouter>

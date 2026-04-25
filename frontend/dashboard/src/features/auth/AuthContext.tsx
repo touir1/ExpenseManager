@@ -55,16 +55,16 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   }, [])
 
   const login = useCallback<AuthContextValue['login']>(async (email, password, rememberMe = false) => {
-    const { ok, data } = await loginRequest(email, password, APPLICATION_CODE)
-    if (ok) {
-      const userData = data?.user ?? { email }
+    const res = await loginRequest(email, password, APPLICATION_CODE)
+    if (res.ok) {
+      const userData = res.data?.user ?? { email }
       setUser(userData)
       setIsAuthenticated(true)
       const storage = rememberMe ? localStorage : sessionStorage
       storage.setItem('auth:user', JSON.stringify(userData))
-      return true
+      return { ok: true }
     }
-    return false
+    return { ok: false, error: res.error }
   }, [])
 
   const logout = useCallback(() => {
@@ -76,26 +76,26 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   }, [])
 
   const register = useCallback<AuthContextValue['register']>(async (firstName, lastName, email) => {
-    const { ok } = await registerRequest(firstName, lastName, email, APPLICATION_CODE)
-    return ok
+    const { ok, error } = await registerRequest(firstName, lastName, email, APPLICATION_CODE)
+    return { ok, error }
   }, [])
 
   const changePassword = useCallback<AuthContextValue['changePassword']>(async (oldPassword, newPassword, repeatPassword) => {
-    if (!oldPassword || !newPassword || newPassword !== repeatPassword) return false
-    const { ok } = await changePasswordRequest(user?.email, oldPassword, newPassword, repeatPassword)
-    return ok
+    if (!oldPassword || !newPassword || newPassword !== repeatPassword) return { ok: false }
+    const { ok, error } = await changePasswordRequest(user?.email, oldPassword, newPassword, repeatPassword)
+    return { ok, error }
   }, [user])
 
   const resetPassword = useCallback<AuthContextValue['resetPassword']>(async (email, verificationHash, newPassword, repeatPassword) => {
-    if (!email || !verificationHash || !newPassword || newPassword !== repeatPassword) return false
-    const { ok } = await resetPasswordRequest(email, verificationHash, newPassword, repeatPassword)
-    return ok
+    if (!email || !verificationHash || !newPassword || newPassword !== repeatPassword) return { ok: false }
+    const { ok, error } = await resetPasswordRequest(email, verificationHash, newPassword, repeatPassword)
+    return { ok, error }
   }, [])
 
   const requestPasswordReset = useCallback<NonNullable<AuthContextValue['requestPasswordReset']>>(async (email) => {
-    if (!email) return false
-    const { ok } = await requestPasswordResetRequest(email)
-    return ok
+    if (!email) return { ok: false }
+    const { ok, error } = await requestPasswordResetRequest(email)
+    return { ok, error }
   }, [])
 
   const value = useMemo<AuthContextValue>(() => ({

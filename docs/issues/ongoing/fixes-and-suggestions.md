@@ -26,8 +26,8 @@ These are the remaining unfixed issues from the [2026-03-22 QA report](qa_test_r
 *All three items resolved — see [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
 
 ### Code quality
-- **`src/services/api.ts` — typed error responses**: The current error handling extracts a generic message; model the error shape and return typed results instead of `boolean` from auth functions so callers can distinguish error types.
-- **Test coverage on edge-cases**: Several async flows (token expiry mid-session, network timeout) have no test coverage. Add tests that simulate failed fetch responses.
+
+*Both items resolved — see [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
 
 ### DevX
 - **Storybook**: Add Storybook for `PasswordInput`, `PasswordStrength`, `Toast`, and `NavBar` so components can be developed and reviewed in isolation.

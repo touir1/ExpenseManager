@@ -176,7 +176,7 @@ describe('ResetPassword page', () => {
   })
 
   it('shows success message when password reset succeeds', async () => {
-    mockResetPassword.mockResolvedValueOnce(true)
+    mockResetPassword.mockResolvedValueOnce({ ok: true })
 
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
@@ -204,7 +204,7 @@ describe('ResetPassword page', () => {
   })
 
   it('shows error message when password reset fails', async () => {
-    mockResetPassword.mockResolvedValueOnce(false)
+    mockResetPassword.mockResolvedValueOnce({ ok: false })
 
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
@@ -305,7 +305,7 @@ describe('ResetPassword page', () => {
   })
 
   it('calls resetPassword with verificationHash parameter', async () => {
-    mockResetPassword.mockResolvedValueOnce(true)
+    mockResetPassword.mockResolvedValueOnce({ ok: true })
 
     render(
       <MemoryRouter initialEntries={['/reset-password?email=user@test.com&verificationHash=xyz789']}>
@@ -329,7 +329,7 @@ describe('ResetPassword page', () => {
   })
 
   it('prevents default form submission', async () => {
-    mockResetPassword.mockResolvedValueOnce(true)
+    mockResetPassword.mockResolvedValueOnce({ ok: true })
 
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
@@ -368,7 +368,7 @@ describe('ResetPassword page', () => {
     })
 
     it('shows success message for create mode', async () => {
-      mockResetPassword.mockResolvedValueOnce(true)
+      mockResetPassword.mockResolvedValueOnce({ ok: true })
 
       render(
         <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123&mode=create']}>
@@ -388,7 +388,7 @@ describe('ResetPassword page', () => {
     })
 
     it('shows error message for create mode on failure', async () => {
-      mockResetPassword.mockResolvedValueOnce(false)
+      mockResetPassword.mockResolvedValueOnce({ ok: false })
 
       render(
         <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123&mode=create']}>

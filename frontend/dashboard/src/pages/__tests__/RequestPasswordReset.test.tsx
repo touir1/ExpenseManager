@@ -99,7 +99,7 @@ describe('RequestPasswordReset page', () => {
   })
 
   it('shows success toast when password reset request succeeds', async () => {
-    mockRequestPasswordReset.mockResolvedValueOnce(true)
+    mockRequestPasswordReset.mockResolvedValueOnce({ ok: true })
 
     render(
       <MemoryRouter>
@@ -123,7 +123,7 @@ describe('RequestPasswordReset page', () => {
   })
 
   it('shows error toast when password reset request fails', async () => {
-    mockRequestPasswordReset.mockResolvedValueOnce(false)
+    mockRequestPasswordReset.mockResolvedValueOnce({ ok: false })
 
     render(
       <MemoryRouter>
@@ -147,8 +147,8 @@ describe('RequestPasswordReset page', () => {
   })
 
   it('disables button and changes text while submitting', async () => {
-    let resolveRequest: (value: boolean) => void
-    const requestPromise = new Promise<boolean>((resolve) => {
+    let resolveRequest: (value: { ok: boolean }) => void
+    const requestPromise = new Promise<{ ok: boolean }>((resolve) => {
       resolveRequest = resolve
     })
     mockRequestPasswordReset.mockReturnValueOnce(requestPromise)
@@ -173,7 +173,7 @@ describe('RequestPasswordReset page', () => {
     })
 
     // Resolve the promise
-    resolveRequest!(true)
+    resolveRequest!({ ok: true })
 
     // Check button is re-enabled after submission
     await waitFor(() => {
@@ -195,7 +195,7 @@ describe('RequestPasswordReset page', () => {
   })
 
   it('prevents default form submission', async () => {
-    mockRequestPasswordReset.mockResolvedValueOnce(true)
+    mockRequestPasswordReset.mockResolvedValueOnce({ ok: true })
 
     render(
       <MemoryRouter>
