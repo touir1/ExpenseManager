@@ -68,6 +68,7 @@ export default function Register() {
               <label htmlFor="firstName" className="field-label">First name</label>
               <input
                 id="firstName"
+                autoFocus
                 value={firstName}
                 onChange={e => setFirstName(e.target.value)}
                 required

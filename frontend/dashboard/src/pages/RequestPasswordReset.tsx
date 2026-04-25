@@ -45,6 +45,7 @@ export default function RequestPasswordReset() {
               id="email"
               type="email"
               autoComplete="email"
+              autoFocus
               value={email}
               onChange={e => setEmail(e.target.value)}
               required

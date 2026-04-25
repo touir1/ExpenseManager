@@ -3,6 +3,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.43.0] - 2026-04-25
+### Added
+- Frontend dashboard: "Remember me" checkbox on the Login page. Unchecked (default) stores the session in `sessionStorage` so it clears when the tab closes; checked stores in `localStorage` for cross-session persistence. `AuthProvider` login, logout, session-restore, and the `onUnauthorized` handler all updated to clear both storages consistently. `login` type in `AuthContextValue` updated to accept an optional `rememberMe` boolean.
+- Frontend dashboard: Loading skeleton in `HomeDashboard.tsx` — animated placeholder cards are shown while `isLoading` is `true` (session restore in progress), preventing layout shift.
+
+### Changed
+- Frontend dashboard: Login error now shown as a toast notification (via `useToast`) instead of an inline `msg-error` paragraph, making it consistent with `RequestPasswordReset.tsx` and `ChangePassword.tsx`.
+- Frontend dashboard: First focusable input on `Login.tsx` (email), `Register.tsx` (first name), and `RequestPasswordReset.tsx` (email) now receives `autoFocus` on page load so users can start typing without clicking.
+
 ## [0.42.0] - 2026-04-25
 ### Fixed
 - Frontend dashboard: `onUnauthorized` handler in `AuthProvider` moved into a `useEffect` with an empty dependency array and a cleanup that calls `onUnauthorized(null)` on unmount. Previously the handler was re-registered on every render with no cleanup. (QA #26)

@@ -2,9 +2,34 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthContext'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
+function DashboardSkeleton() {
+  return (
+    <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-8" aria-busy="true" aria-label="Loading dashboard">
+      <div className="mb-8 animate-pulse">
+        <div className="h-7 bg-slate-200 rounded-lg w-32 mb-2" />
+        <div className="h-4 bg-slate-100 rounded w-64" />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {[0, 1, 2].map(i => (
+          <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-card p-6 animate-pulse">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-9 w-9 rounded-xl bg-slate-100 shrink-0" />
+              <div className="h-4 bg-slate-200 rounded w-20" />
+            </div>
+            <div className="h-3 bg-slate-100 rounded w-full mb-2" />
+            <div className="h-4 bg-slate-200 rounded w-32" />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function HomeDashboard() {
   usePageTitle('Dashboard')
-  const { user } = useAuth()
+  const { user, isLoading } = useAuth()
+
+  if (isLoading) return <DashboardSkeleton />
 
   return (
     <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-8">

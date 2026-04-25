@@ -22,6 +22,7 @@ describe('AuthContext', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorage.clear()
+    sessionStorage.clear()
     vi.mocked(api.get).mockResolvedValue({ ok: false, status: 401 })
     vi.mocked(api.post).mockResolvedValue({ ok: true, status: 200 })
     mockLocationAssign.mockClear()
@@ -81,7 +82,7 @@ describe('AuthContext', () => {
   })
 
   describe('login', () => {
-    it('successfully logs in and stores user info', async () => {
+    it('successfully logs in and stores user info in sessionStorage by default', async () => {
       const mockUser = { email: 'user@example.com', firstName: 'User' }
       vi.mocked(api.post).mockResolvedValueOnce({ ok: true, status: 200, data: { user: mockUser } })
 
@@ -93,7 +94,22 @@ describe('AuthContext', () => {
       await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
       expect(loginResult).toBe(true)
       expect(result.current.user).toEqual(mockUser)
+      expect(sessionStorage.getItem('auth:user')).toBe(JSON.stringify(mockUser))
+      expect(localStorage.getItem('auth:user')).toBeNull()
+    })
+
+    it('stores user in localStorage when rememberMe=true', async () => {
+      const mockUser = { email: 'user@example.com', firstName: 'User' }
+      vi.mocked(api.post).mockResolvedValueOnce({ ok: true, status: 200, data: { user: mockUser } })
+
+      const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      await result.current.login('user@example.com', 'password', true)
+
+      await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
       expect(localStorage.getItem('auth:user')).toBe(JSON.stringify(mockUser))
+      expect(sessionStorage.getItem('auth:user')).toBeNull()
     })
 
     it('uses email as fallback user when API response has no user object', async () => {
@@ -137,13 +153,13 @@ describe('AuthContext', () => {
   })
 
   describe('logout', () => {
-    it('clears user state, localStorage, and calls logout endpoint', async () => {
+    it('clears user state, both storages, and calls logout endpoint', async () => {
       vi.mocked(api.post).mockResolvedValueOnce({ ok: true, status: 200, data: { user: { email: 'test@test.com' } } })
 
       const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
       await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-      await result.current.login('test@test.com', 'password')
+      await result.current.login('test@test.com', 'password', true)
       await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
 
       act(() => { result.current.logout() })
@@ -151,6 +167,7 @@ describe('AuthContext', () => {
       await waitFor(() => expect(result.current.isAuthenticated).toBe(false))
       expect(result.current.user).toBeNull()
       expect(localStorage.getItem('auth:user')).toBeNull()
+      expect(sessionStorage.getItem('auth:user')).toBeNull()
     })
   })
 

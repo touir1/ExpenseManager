@@ -76,4 +76,30 @@ describe('HomeDashboard', () => {
     expect(changePasswordLink).toHaveAttribute('href', '/change-password')
   })
 
+  it('shows loading skeleton when session is restoring', () => {
+    mockUseAuth.mockReturnValue({ user: null, isLoading: true })
+
+    render(
+      <MemoryRouter>
+        <HomeDashboard />
+      </MemoryRouter>
+    )
+
+    expect(screen.getByLabelText(/loading dashboard/i)).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /dashboard/i })).not.toBeInTheDocument()
+  })
+
+  it('does not show skeleton when loaded', () => {
+    mockUseAuth.mockReturnValue({ user: { email: 'test@test.com' }, isLoading: false })
+
+    render(
+      <MemoryRouter>
+        <HomeDashboard />
+      </MemoryRouter>
+    )
+
+    expect(screen.queryByLabelText(/loading dashboard/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /dashboard/i })).toBeInTheDocument()
+  })
+
 })

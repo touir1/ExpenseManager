@@ -21,7 +21,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('auth:user')
+    const storedUser = localStorage.getItem('auth:user') ?? sessionStorage.getItem('auth:user')
     if (!storedUser) {
       setIsLoading(false)
       return
@@ -33,9 +33,11 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
           setIsAuthenticated(true)
         } catch {
           localStorage.removeItem('auth:user')
+          sessionStorage.removeItem('auth:user')
         }
       } else {
         localStorage.removeItem('auth:user')
+        sessionStorage.removeItem('auth:user')
       }
       setIsLoading(false)
     })
@@ -46,18 +48,20 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
       setUser(null)
       setIsAuthenticated(false)
       localStorage.removeItem('auth:user')
+      sessionStorage.removeItem('auth:user')
       window.location.assign('/login')
     })
     return () => onUnauthorized(null)
   }, [])
 
-  const login = useCallback<AuthContextValue['login']>(async (email, password) => {
+  const login = useCallback<AuthContextValue['login']>(async (email, password, rememberMe = false) => {
     const { ok, data } = await loginRequest(email, password, APPLICATION_CODE)
     if (ok) {
       const userData = data?.user ?? { email }
       setUser(userData)
       setIsAuthenticated(true)
-      localStorage.setItem('auth:user', JSON.stringify(userData))
+      const storage = rememberMe ? localStorage : sessionStorage
+      storage.setItem('auth:user', JSON.stringify(userData))
       return true
     }
     return false
@@ -68,6 +72,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     setUser(null)
     setIsAuthenticated(false)
     localStorage.removeItem('auth:user')
+    sessionStorage.removeItem('auth:user')
   }, [])
 
   const register = useCallback<AuthContextValue['register']>(async (firstName, lastName, email) => {

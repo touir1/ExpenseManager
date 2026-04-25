@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthContext'
+import { useToast } from '@/components/Toast'
 import PasswordInput from '@/components/PasswordInput'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
@@ -8,17 +9,21 @@ export default function Login() {
   usePageTitle('Login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [rememberMe, setRememberMe] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const navigate = useNavigate()
   const { login } = useAuth()
+  const { show } = useToast()
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
-    const ok = await login(email, password)
+    const ok = await login(email, password, rememberMe)
     setSubmitting(false)
-    if (!ok) return setError('Invalid credentials. Please try again.')
+    if (!ok) {
+      show('Invalid credentials. Please try again.', 'error')
+      return
+    }
     navigate('/dashboard')
   }
 
@@ -38,6 +43,7 @@ export default function Login() {
               id="email"
               type="email"
               autoComplete="email"
+              autoFocus
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
@@ -59,9 +65,19 @@ export default function Login() {
             />
           </div>
 
-          {error && (
-            <p className="msg-error" role="alert">{error}</p>
-          )}
+          <div className="flex items-center gap-2">
+            <input
+              id="rememberMe"
+              type="checkbox"
+              checked={rememberMe}
+              onChange={e => setRememberMe(e.target.checked)}
+              disabled={submitting}
+              className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+            />
+            <label htmlFor="rememberMe" className="text-sm text-slate-600 cursor-pointer select-none">
+              Remember me
+            </label>
+          </div>
 
           <button type="submit" disabled={submitting} className="btn-primary mt-1">
             {submitting ? (

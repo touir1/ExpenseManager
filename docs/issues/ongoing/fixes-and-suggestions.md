@@ -11,10 +11,6 @@ These are the remaining unfixed issues from the [2026-03-22 QA report](qa_test_r
 | # | Priority | Area | Item |
 |---|----------|------|------|
 | QA-11 | 🟡 Moderate | Feature | Core "Expenses" feature is "Coming soon…" — the app's primary purpose is unimplemented |
-| QA-24 | 🔵 Low | Code quality | Encoding artifacts in source strings (mojibake) — ensure all files are saved as UTF-8 |
-| QA-25 | 🔵 Low | DX | React Router v6 future flags (`v7_startTransition`, `v7_relativeSplatPath`) not set — console warnings on every page load |
-| QA-26 | 🔵 Low | Architecture | `onUnauthorized` handler registered in component body instead of `useEffect` — no cleanup, fires on every render |
-| QA-27 | 🔵 Low | Performance | Auth functions (`login`, `logout`, `register`, etc.) not wrapped in `useCallback` — memoized context value updates unnecessarily |
 | QA-28 | ⚙️ Security | Feature | No brute-force / rate-limit protection on the Login form — no lockout, CAPTCHA, or progressive delay |
 
 ---
@@ -22,10 +18,8 @@ These are the remaining unfixed issues from the [2026-03-22 QA report](qa_test_r
 ## Frontend — Additional Suggestions
 
 ### UX / Interaction
-- **Toast on login error**: Replace the inline `msg-error` paragraph on `Login.tsx` with a toast notification, consistent with `RequestPasswordReset.tsx` and `ChangePassword.tsx`.
-- **Form autofocus**: Auto-focus the first input on page load for Login, Register, and RequestPasswordReset so users can start typing immediately without clicking.
-- **Remember me**: Add an optional "Remember me" checkbox on the Login page to control session persistence (currently all sessions behave the same).
-- **Loading skeleton on Dashboard**: `HomeDashboard.tsx` shows nothing meaningful while the auth session is restoring. A skeleton or placeholder avoids layout shift.
+
+*All four items resolved — see [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
 
 ### Accessibility
 - **Landmark roles**: Wrap page content in `<main>` elements so screen readers can navigate directly to the main content area.
@@ -34,8 +28,6 @@ These are the remaining unfixed issues from the [2026-03-22 QA report](qa_test_r
 
 ### Code quality
 - **`src/services/api.ts` — typed error responses**: The current error handling extracts a generic message; model the error shape and return typed results instead of `boolean` from auth functions so callers can distinguish error types.
-- **`src/features/auth/AuthContext.tsx` — `useCallback` on auth functions**: See QA-27. Wrap `login`, `logout`, `register`, `changePassword`, `resetPassword`, and `requestPasswordReset` in `useCallback` to stabilize the memoized context value.
-- **`src/features/auth/AuthContext.tsx` — `onUnauthorized` in `useEffect`**: See QA-26. Register the global unauthorized handler inside a `useEffect` with proper cleanup to avoid re-registration on every render.
 - **Test coverage on edge-cases**: Several async flows (token expiry mid-session, network timeout) have no test coverage. Add tests that simulate failed fetch responses.
 
 ### DevX
