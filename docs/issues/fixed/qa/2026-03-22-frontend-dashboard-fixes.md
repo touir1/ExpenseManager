@@ -161,11 +161,33 @@ All items below were identified in the 2026-03-22 QA session and subsequently re
 
 ---
 
+## 🔵 UX / UI ISSUES
+
+### 24. ~~Encoding artifacts in source-rendered text (mojibake)~~ ✅ FIXED
+**Detail:** QA tooling reported garbled strings (e.g., `â€"` instead of `—`) when reading source files; the browser rendered them correctly.
+**Fix applied:** Verified that all source files under `frontend/dashboard/src/` contain only 7-bit ASCII — no non-ASCII code points present. Files are clean UTF-8 with no embedded multi-byte literals that could be misread by Latin-1 tools.
+
+---
+
 ## ⚙️ CODE / ARCHITECTURE ISSUES
 
 ### 25. ~~React Router v6 future flag warnings (console)~~ ✅ FIXED
 **Detail:** Two React Router warnings appeared on every page load: `v7_startTransition` flag not set and `v7_relativeSplatPath` flag not set. These cluttered the console and would become breaking changes in v7.
 **Fix applied:** Added `future={{ v7_startTransition: true, v7_relativeSplatPath: true }}` to `<BrowserRouter>` in `src/App.tsx`.
+
+---
+
+### 26. ~~`onUnauthorized` handler registered in render body without cleanup~~ ✅ FIXED
+**File:** `src/features/auth/AuthContext.tsx`
+**Root cause:** `onUnauthorized(() => {...})` was called directly in the component body, re-registering the handler on every render. The module-level variable was never cleared on unmount.
+**Fix applied:** Moved the `onUnauthorized(...)` call inside a `useEffect` with an empty dependency array and a cleanup function (`return () => onUnauthorized(null)`). The handler is registered once on mount and cleared on unmount.
+
+---
+
+### 27. ~~`useMemo` for `value` broke on every render because auth functions were not stable~~ ✅ FIXED
+**File:** `src/features/auth/AuthContext.tsx`
+**Root cause:** `login`, `logout`, `register`, `changePassword`, `resetPassword`, and `requestPasswordReset` were plain functions recreated on every render. The `useMemo` for the context value listed them implicitly as dependencies (they were in the dep array), so the memoized value was always stale — every render produced a new context object, invalidating all consumers.
+**Fix applied:** Wrapped all six auth functions in `useCallback` with appropriate deps (`[]` for pure-setter functions; `[user]` for `changePassword` which reads `user.email`). Moved `APPLICATION_CODE` to module scope (it reads a static env var). The `useMemo` dependency array now explicitly lists all callbacks, and the memoized value is stable across renders where state does not change.
 
 ---
 
@@ -207,6 +229,9 @@ All items below were identified in the 2026-03-22 QA session and subsequently re
 | 21 | 🔵 UI | UX | ~~No loading spinner on Register button~~ |
 | 22 | 🔵 UI | Accessibility/UX | ~~App title always "Expenses Manager", no per-page title~~ |
 | 23 | 🔵 UI | SEO | ~~No `<meta description>` or Open Graph tags~~ |
+| 24 | 🔵 Code | Quality | ~~Encoding artifacts in source strings (mojibake)~~ |
 | 25 | ⚙️ Code | Warning | ~~React Router v6 future flag console warnings~~ |
+| 26 | ⚙️ Code | Architecture | ~~`onUnauthorized` set outside `useEffect`, no cleanup~~ |
+| 27 | ⚙️ Code | Performance | ~~Auth functions not memoized with `useCallback`~~ |
 | 29 | ⚙️ Code | Security | ~~No password strength indicator or minimum length~~ |
 | 30 | ⚙️ Code | Architecture | ~~Route `/home` vs. UI label "Dashboard" inconsistency~~ |

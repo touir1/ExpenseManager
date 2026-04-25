@@ -3,6 +3,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.42.0] - 2026-04-25
+### Fixed
+- Frontend dashboard: `onUnauthorized` handler in `AuthProvider` moved into a `useEffect` with an empty dependency array and a cleanup that calls `onUnauthorized(null)` on unmount. Previously the handler was re-registered on every render with no cleanup. (QA #26)
+- Frontend dashboard: all six auth functions in `AuthProvider` (`login`, `logout`, `register`, `changePassword`, `resetPassword`, `requestPasswordReset`) wrapped in `useCallback` with appropriate dependency arrays. `APPLICATION_CODE` moved to module scope. The `useMemo` dep array for the context value now explicitly lists all callbacks, preventing unnecessary consumer re-renders. (QA #27)
+- Frontend dashboard: verified all source files under `src/` are clean 7-bit ASCII — no embedded non-ASCII literals that could produce mojibake when read by Latin-1 tools. (QA #24)
+
 ## [0.41.0] - 2026-04-24
 ### Fixed
 - Frontend dashboard: suppressed React Router v6 console warnings by adding `future={{ v7_startTransition: true, v7_relativeSplatPath: true }}` to `<BrowserRouter>` in `src/App.tsx`. Eliminates the `v7_startTransition` and `v7_relativeSplatPath` deprecation warnings that appeared on every page load and prepares the app for a future v7 upgrade. (QA #25)

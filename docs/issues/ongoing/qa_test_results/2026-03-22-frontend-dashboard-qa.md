@@ -15,29 +15,7 @@ This file contains only unresolved issues. All fixed items have been moved to
 
 ---
 
-## 🔵 UX / UI ISSUES
-
-### 24. Encoding artifacts in source-rendered text (mojibake)
-**Detail:** When reading source files, several strings appeared garbled (e.g., `â€"` instead of `—`, `â€¢` instead of `•`). This is a UTF-8 encoding issue in how the source files are served. While the browser renders them correctly (the JS runtime handles them fine), it indicates the source files may have encoding inconsistencies.
-**Fix:** Ensure all source files are saved as UTF-8 and use proper Unicode escape sequences or copy-paste characters cleanly.
-
----
-
 ## ⚙️ CODE / ARCHITECTURE ISSUES
-
-### 26. `onUnauthorized` handler is registered inside the component render cycle without cleanup
-**File:** `src/features/auth/AuthContext.tsx`
-**Detail:** `onUnauthorized(() => {...})` is called directly in the component body (not in a `useEffect`), meaning it's called on every render. The handler is set as a module-level variable and not cleaned up.
-**Fix:** Call `onUnauthorized(...)` inside a `useEffect` with appropriate cleanup: `useEffect(() => { onUnauthorized(handler); return () => onUnauthorized(null); }, [...])`.
-
----
-
-### 27. `value` memoization in AuthContext includes function references that recreate on every render
-**File:** `src/features/auth/AuthContext.tsx`
-**Detail:** The `useMemo` for `value` includes `login`, `logout`, `register` etc. in its dependency array, but those functions are recreated on every render (they're not wrapped in `useCallback`). This causes the memoized value to update unnecessarily.
-**Fix:** Wrap the auth functions (`login`, `logout`, `register`, `changePassword`, etc.) in `useCallback`.
-
----
 
 ### 28. No rate limiting or brute-force protection visible in the frontend
 **Detail:** The login form has no lockout, CAPTCHA, or delay after repeated failed attempts. There is also no client-side attempt counter.
@@ -50,7 +28,4 @@ This file contains only unresolved issues. All fixed items have been moved to
 | # | Severity | Category | Issue |
 |---|----------|----------|-------|
 | 11 | 🟡 Moderate | Feature | Core "Expenses" feature is "Coming soon…" |
-| 24 | 🔵 Code | Quality | Encoding artifacts in source strings |
-| 26 | ⚙️ Code | Architecture | `onUnauthorized` set outside `useEffect`, no cleanup |
-| 27 | ⚙️ Code | Performance | Auth functions not memoized with `useCallback` |
 | 28 | ⚙️ Security | Feature | No brute-force/rate-limit protection on login |
