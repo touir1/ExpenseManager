@@ -153,10 +153,9 @@ export default function NavBar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div
+        <nav
           id="mobile-menu"
           ref={menuRef}
-          role="navigation"
           aria-label="Mobile navigation"
           className="sm:hidden border-t border-slate-200 bg-white px-4 py-3 flex flex-col gap-1"
         >
@@ -209,7 +208,7 @@ export default function NavBar() {
               </Link>
             </>
           )}
-        </div>
+        </nav>
       )}
     </header>
   )

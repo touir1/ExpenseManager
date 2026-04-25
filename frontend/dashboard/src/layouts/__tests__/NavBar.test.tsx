@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import NavBar from '@/layouts/NavBar'
@@ -358,6 +358,87 @@ describe('NavBar', () => {
       expect(screen.getAllByText('Home')).toHaveLength(2)
       await user.keyboard('{Escape}')
       expect(screen.getAllByText('Home')).toHaveLength(1)
+    })
+
+    it('restores focus to hamburger button after menu closes', async () => {
+      mockUseAuth.mockReturnValue({ isAuthenticated: false, logout: vi.fn() })
+      const user = userEvent.setup()
+      renderNavBar('/')
+      const hamburger = screen.getByRole('button', { name: /toggle menu/i })
+      await user.click(hamburger)
+      await user.keyboard('{Escape}')
+      expect(document.activeElement).toBe(hamburger)
+    })
+
+    it('Tab on last menu item cycles focus to first item', async () => {
+      mockUseAuth.mockReturnValue({ isAuthenticated: false, logout: vi.fn() })
+      const user = userEvent.setup()
+      renderNavBar('/')
+      await user.click(screen.getByRole('button', { name: /toggle menu/i }))
+
+      const mobileNav = screen.getByRole('navigation', { name: /mobile navigation/i })
+      const focusables = Array.from(
+        mobileNav.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')
+      )
+      focusables[focusables.length - 1].focus()
+
+      fireEvent.keyDown(mobileNav, { key: 'Tab', shiftKey: false })
+
+      expect(document.activeElement).toBe(focusables[0])
+    })
+
+    it('Shift+Tab on first menu item cycles focus to last item', async () => {
+      mockUseAuth.mockReturnValue({ isAuthenticated: false, logout: vi.fn() })
+      const user = userEvent.setup()
+      renderNavBar('/')
+      await user.click(screen.getByRole('button', { name: /toggle menu/i }))
+
+      const mobileNav = screen.getByRole('navigation', { name: /mobile navigation/i })
+      const focusables = Array.from(
+        mobileNav.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')
+      )
+      focusables[0].focus()
+
+      fireEvent.keyDown(mobileNav, { key: 'Tab', shiftKey: true })
+
+      expect(document.activeElement).toBe(focusables[focusables.length - 1])
+    })
+
+    it('non-Tab/Escape key in menu does not close menu or move focus', async () => {
+      mockUseAuth.mockReturnValue({ isAuthenticated: false, logout: vi.fn() })
+      const user = userEvent.setup()
+      renderNavBar('/')
+      await user.click(screen.getByRole('button', { name: /toggle menu/i }))
+
+      const mobileNav = screen.getByRole('navigation', { name: /mobile navigation/i })
+      const focusables = Array.from(
+        mobileNav.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')
+      )
+      focusables[0].focus()
+
+      fireEvent.keyDown(mobileNav, { key: 'ArrowDown' })
+
+      expect(screen.getAllByText('Home')).toHaveLength(2)
+      expect(document.activeElement).toBe(focusables[0])
+    })
+
+    it('Tab on a middle menu item does not wrap focus', async () => {
+      mockUseAuth.mockReturnValue({ isAuthenticated: false, logout: vi.fn() })
+      const user = userEvent.setup()
+      renderNavBar('/')
+      await user.click(screen.getByRole('button', { name: /toggle menu/i }))
+
+      const mobileNav = screen.getByRole('navigation', { name: /mobile navigation/i })
+      const focusables = Array.from(
+        mobileNav.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')
+      )
+      // Unauthenticated menu has 3 items (Home, Sign in, Get started)
+      // Focus the middle one so neither wrap condition fires
+      focusables[1].focus()
+
+      fireEvent.keyDown(mobileNav, { key: 'Tab', shiftKey: false })
+
+      expect(document.activeElement).toBe(focusables[1])
     })
   })
 })
