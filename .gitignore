@@ -40,4 +40,4 @@ infrastructure/configs/nginx/sites-enabled/
 !.vscode/extensions.json
 
 # Claude
-.claude/
+.claude/settings.local.json

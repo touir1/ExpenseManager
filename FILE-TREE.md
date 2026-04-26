@@ -5,7 +5,15 @@ Excludes: `node_modules/`, `bin/`, `obj/`, `.git/`, `coverage/`, `dist/`, genera
 ```
 ExpenseManager/
 ├── .claude/
-│   └── settings.local.json            — Claude Code local settings
+│   ├── commands/
+│   │   ├── cicd.md                    — `/cicd` skill definition
+│   │   ├── done.md                    — `/done` skill definition
+│   │   └── test.md                    — `/test` skill definition
+│   ├── cicd.md                        — CI/CD skill reference
+│   ├── commands.md                    — All shell commands (imported by CLAUDE.md)
+│   ├── constraints.md                 — Non-obvious architectural constraints (imported by CLAUDE.md)
+│   ├── maintenance.md                 — Doc update table (imported by CLAUDE.md)
+│   └── settings.local.json            — Claude Code local settings (git-ignored)
 ├── .vscode/
 │   ├── extensions.json                — Recommended VS Code extensions
 │   └── settings.json                  — VS Code workspace settings

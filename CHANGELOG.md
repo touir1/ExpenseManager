@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.47.0] - 2026-04-26
+### Changed
+- **CLAUDE.md** refactored from a single monolithic file into a slim root file that `@`-imports three sub-files housed in `.claude/`: `commands.md` (all shell commands), `constraints.md` (non-obvious architectural constraints), and `maintenance.md` (doc update table). Claude Code skill definitions placed in `.claude/commands/` (`cicd.md`, `done.md`, `test.md`). `.gitignore` updated to track the `.claude/` directory while excluding `settings.local.json`.
+
 ## [0.46.0] - 2026-04-26
 ### Refactor
 - Frontend dashboard: applied consistent file naming conventions across `src/`.
