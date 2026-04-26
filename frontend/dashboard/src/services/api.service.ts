@@ -1,5 +1,5 @@
-import { API_ERRORS, BACKEND_ERROR_CODES } from '@/constants/apiErrors'
-import type { ApiResponse } from '@/types/api'
+import { API_ERRORS, BACKEND_ERROR_CODES } from '@/constants/apiErrors.constant'
+import type { ApiResponse } from '@/types/api.type'
 
 const API_BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
 

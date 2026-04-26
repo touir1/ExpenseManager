@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
-export default function HomePublic() {
+export default function HomePublicPage() {
   usePageTitle()
   return (
     <div className="auth-page">

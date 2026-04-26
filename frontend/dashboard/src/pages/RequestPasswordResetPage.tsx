@@ -4,7 +4,7 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { useToast } from '@/components/Toast'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
-export default function RequestPasswordReset() {
+export default function RequestPasswordResetPage() {
   usePageTitle('Request Password Reset')
   const [email, setEmail] = useState('')
   const [submitting, setSubmitting] = useState(false)

@@ -10,7 +10,7 @@ A record of improvement ideas from [fixes-and-suggestions.md](../ongoing/fixes-a
 
 | Item | Resolution |
 |------|------------|
-| Typed error responses | Auth context functions return `AuthResult` (`{ ok: boolean; error?: string }`) instead of `boolean`. Callers can now inspect `.error` to distinguish network errors, backend validation errors, and other failure types. `AuthResult` exported from `src/types/auth.ts` |
+| Typed error responses | Auth context functions return `AuthResult` (`{ ok: boolean; error?: string }`) instead of `boolean`. Callers can now inspect `.error` to distinguish network errors, backend validation errors, and other failure types. `AuthResult` exported from `src/types/auth.type.ts` |
 | Edge-case test coverage | Added tests for: network error during session restore (status 0), network error during login with error propagation, sessionStorage token-expiry flow (unauthorised handler clears sessionStorage + redirects), and session restore from sessionStorage without localStorage |
 
 ### Accessibility — 2026-04-25 (v0.44.0)
@@ -50,10 +50,10 @@ These four refactors were applied to `frontend/dashboard` as part of the dashboa
 
 | Priority | Item | Resolution |
 |---|---|---|
-| High | No dedicated `types/` directory — types scattered inline across files | Created `src/types/auth.ts` (`User`, `AuthContextValue`) and `src/types/api.ts` (`ApiResponse<T>`) |
-| Medium | `AuthContext` makes HTTP calls directly — mixes concerns | All HTTP auth calls extracted to `src/services/authApi.ts`; `AuthContext` now handles state only |
+| High | No dedicated `types/` directory — types scattered inline across files | Created `src/types/auth.type.ts` (`User`, `AuthContextValue`) and `src/types/api.type.ts` (`ApiResponse<T>`) |
+| Medium | `AuthContext` makes HTTP calls directly — mixes concerns | All HTTP auth calls extracted to `src/services/authApi.service.ts`; `AuthContext` now handles state only |
 | Low | `NavBar.tsx` had no active-link highlighting via proper API | Replaced `Link` with `NavLink` from react-router-dom; shared `navLinkClass` helper; Settings keeps custom active logic for `/change-password` match |
-| Low | `api.ts` error messages were hardcoded strings | Extracted to `src/constants/apiErrors.ts` as `API_ERRORS` typed constants |
+| Low | `api.ts` error messages were hardcoded strings | Extracted to `src/constants/apiErrors.constant.ts` as `API_ERRORS` typed constants |
 
 All 205 existing tests continued to pass after these changes.
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import { render, screen } from '@testing-library/react'
-import HomeDashboard from '@/pages/HomeDashboard'
+import HomeDashboardPage from '@/pages/HomeDashboardPage'
 
 const mockUseAuth = vi.fn()
 
@@ -9,7 +9,7 @@ vi.mock('@/features/auth/AuthContext', () => ({
   useAuth: () => mockUseAuth()
 }))
 
-describe('HomeDashboard', () => {
+describe('HomeDashboardPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -19,7 +19,7 @@ describe('HomeDashboard', () => {
 
     render(
       <MemoryRouter>
-        <HomeDashboard />
+        <HomeDashboardPage />
       </MemoryRouter>
     )
 
@@ -31,7 +31,7 @@ describe('HomeDashboard', () => {
 
     render(
       <MemoryRouter>
-        <HomeDashboard />
+        <HomeDashboardPage />
       </MemoryRouter>
     )
 
@@ -43,7 +43,7 @@ describe('HomeDashboard', () => {
 
     render(
       <MemoryRouter>
-        <HomeDashboard />
+        <HomeDashboardPage />
       </MemoryRouter>
     )
 
@@ -55,7 +55,7 @@ describe('HomeDashboard', () => {
 
     render(
       <MemoryRouter>
-        <HomeDashboard />
+        <HomeDashboardPage />
       </MemoryRouter>
     )
 
@@ -67,7 +67,7 @@ describe('HomeDashboard', () => {
 
     render(
       <MemoryRouter>
-        <HomeDashboard />
+        <HomeDashboardPage />
       </MemoryRouter>
     )
 
@@ -81,7 +81,7 @@ describe('HomeDashboard', () => {
 
     render(
       <MemoryRouter>
-        <HomeDashboard />
+        <HomeDashboardPage />
       </MemoryRouter>
     )
 
@@ -94,7 +94,7 @@ describe('HomeDashboard', () => {
 
     render(
       <MemoryRouter>
-        <HomeDashboard />
+        <HomeDashboardPage />
       </MemoryRouter>
     )
 

@@ -5,7 +5,7 @@ import PasswordStrength from '@/components/PasswordStrength'
 import PasswordInput from '@/components/PasswordInput'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
-export default function ResetPassword() {
+export default function ResetPasswordPage() {
   const [email, setEmail] = useState('')
   const [verificationHash, setVerificationHash] = useState('')
   const [newPassword, setNewPassword] = useState('')

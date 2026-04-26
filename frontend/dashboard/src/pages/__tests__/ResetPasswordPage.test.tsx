@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import ResetPassword from '../ResetPassword'
+import ResetPasswordPage from '../ResetPasswordPage'
 
 const mockResetPassword = vi.fn()
 const mockUseAuth = vi.fn()
@@ -22,7 +22,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -37,7 +37,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -51,7 +51,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&verificationHash=xyz789']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -64,7 +64,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?h=abc123']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -77,7 +77,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -90,7 +90,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -104,7 +104,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -116,7 +116,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -134,7 +134,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -149,7 +149,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -164,7 +164,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -181,7 +181,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -209,7 +209,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -235,7 +235,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -251,7 +251,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -272,7 +272,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -287,7 +287,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -310,7 +310,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=user@test.com&verificationHash=xyz789']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -334,7 +334,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -357,7 +357,7 @@ describe('ResetPassword page', () => {
       render(
         <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123&mode=create']}>
           <Routes>
-            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
           </Routes>
         </MemoryRouter>
       )
@@ -373,7 +373,7 @@ describe('ResetPassword page', () => {
       render(
         <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123&mode=create']}>
           <Routes>
-            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
           </Routes>
         </MemoryRouter>
       )
@@ -393,7 +393,7 @@ describe('ResetPassword page', () => {
       render(
         <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123&mode=create']}>
           <Routes>
-            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
           </Routes>
         </MemoryRouter>
       )
@@ -411,7 +411,7 @@ describe('ResetPassword page', () => {
       render(
         <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
           <Routes>
-            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
           </Routes>
         </MemoryRouter>
       )
@@ -425,7 +425,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )
@@ -437,7 +437,7 @@ describe('ResetPassword page', () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
         <Routes>
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </MemoryRouter>
     )

@@ -25,7 +25,7 @@ function DashboardSkeleton() {
   )
 }
 
-export default function HomeDashboard() {
+export default function HomeDashboardPage() {
   usePageTitle('Dashboard')
   const { user, isLoading } = useAuth()
 

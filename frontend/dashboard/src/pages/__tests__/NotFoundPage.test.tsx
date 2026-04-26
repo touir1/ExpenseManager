@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import { render, screen } from '@testing-library/react'
-import NotFound from '@/pages/NotFound'
+import NotFoundPage from '@/pages/NotFoundPage'
 
-describe('NotFound', () => {
+describe('NotFoundPage', () => {
   it('renders 404 heading', () => {
     render(
       <MemoryRouter>
-        <NotFound />
+        <NotFoundPage />
       </MemoryRouter>
     )
 
@@ -17,7 +17,7 @@ describe('NotFound', () => {
   it('renders descriptive message', () => {
     render(
       <MemoryRouter>
-        <NotFound />
+        <NotFoundPage />
       </MemoryRouter>
     )
 
@@ -27,7 +27,7 @@ describe('NotFound', () => {
   it('renders a link back to home', () => {
     render(
       <MemoryRouter>
-        <NotFound />
+        <NotFoundPage />
       </MemoryRouter>
     )
 

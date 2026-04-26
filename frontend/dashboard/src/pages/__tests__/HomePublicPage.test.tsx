@@ -1,13 +1,14 @@
 import { describe, it, expect } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import { render, screen } from '@testing-library/react'
-import HomePublic from '@/pages/HomePublic'
+import HomePublic from '@/pages/HomePublicPage'
+import HomePublicPage from '@/pages/HomePublicPage'
 
-describe('HomePublic', () => {
+describe('HomePublicPage', () => {
   it('renders welcome message', () => {
     render(
       <MemoryRouter>
-        <HomePublic />
+        <HomePublicPage />
       </MemoryRouter>
     )
 
@@ -18,7 +19,7 @@ describe('HomePublic', () => {
   it('renders login link', () => {
     render(
       <MemoryRouter>
-        <HomePublic />
+        <HomePublicPage />
       </MemoryRouter>
     )
 
@@ -30,7 +31,7 @@ describe('HomePublic', () => {
   it('renders register link', () => {
     render(
       <MemoryRouter>
-        <HomePublic />
+        <HomePublicPage />
       </MemoryRouter>
     )
 
@@ -42,7 +43,7 @@ describe('HomePublic', () => {
   it('outer container has centering classes for vertical layout', () => {
     const { container } = render(
       <MemoryRouter>
-        <HomePublic />
+        <HomePublicPage />
       </MemoryRouter>
     )
     expect(container.firstChild).toHaveClass('auth-page')

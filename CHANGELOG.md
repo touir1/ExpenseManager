@@ -3,6 +3,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.46.0] - 2026-04-26
+### Refactor
+- Frontend dashboard: applied consistent file naming conventions across `src/`.
+  - Pages renamed with `Page` suffix: `Login.tsx` → `LoginPage.tsx`, `Register.tsx` → `RegisterPage.tsx`, `HomeDashboard.tsx` → `HomeDashboardPage.tsx`, `HomePublic.tsx` → `HomePublicPage.tsx`, `ChangePassword.tsx` → `ChangePasswordPage.tsx`, `RequestPasswordReset.tsx` → `RequestPasswordResetPage.tsx`, `ResetPassword.tsx` → `ResetPasswordPage.tsx`, `Settings.tsx` → `SettingsPage.tsx`, `NotFound.tsx` → `NotFoundPage.tsx`.
+  - Services renamed with `.service` suffix: `api.ts` → `api.service.ts`, `authApi.ts` → `authApi.service.ts`.
+  - Types renamed with `.type` suffix: `auth.ts` → `auth.type.ts`, `api.ts` → `api.type.ts`.
+  - Constants renamed with `.constant` suffix: `apiErrors.ts` → `apiErrors.constant.ts`.
+  - All imports, test files, and references updated accordingly.
+
 ## [0.45.0] - 2026-04-25
 ### Changed
 - Frontend dashboard: auth context functions (`login`, `register`, `changePassword`, `resetPassword`, `requestPasswordReset`) now return `AuthResult` (`{ ok: boolean; error?: string }`) instead of plain `boolean`, giving callers access to the specific error message from the API. `AuthResult` type exported from `src/types/auth.ts`. All pages and tests updated accordingly.

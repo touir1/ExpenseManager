@@ -1,6 +1,6 @@
-import { get, post } from '@/services/api'
-import type { ApiResponse } from '@/types/api'
-import type { User } from '@/types/auth'
+import { get, post } from '@/services/api.service'
+import type { ApiResponse } from '@/types/api.type'
+import type { User } from '@/types/auth.type'
 
 const AUTH_BASE = '/api/users/auth'
 

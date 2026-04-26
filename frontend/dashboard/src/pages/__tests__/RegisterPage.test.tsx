@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
-import Register from '@/pages/Register'
+import RegisterPage from '@/pages/RegisterPage'
 
 const mockRegister = vi.fn()
 const mockUseAuth = vi.fn()
@@ -24,7 +24,7 @@ describe('Register page', () => {
 
     render(
       <MemoryRouter>
-        <Register />
+        <RegisterPage />
       </MemoryRouter>
     )
 
@@ -40,7 +40,7 @@ describe('Register page', () => {
 
     render(
       <MemoryRouter>
-        <Register />
+        <RegisterPage />
       </MemoryRouter>
     )
 
@@ -54,7 +54,7 @@ describe('Register page', () => {
 
     render(
       <MemoryRouter>
-        <Register />
+        <RegisterPage />
       </MemoryRouter>
     )
 
@@ -68,7 +68,7 @@ describe('Register page', () => {
 
     render(
       <MemoryRouter>
-        <Register />
+        <RegisterPage />
       </MemoryRouter>
     )
 
@@ -80,7 +80,7 @@ describe('Register page', () => {
 
     render(
       <MemoryRouter>
-        <Register />
+        <RegisterPage />
       </MemoryRouter>
     )
 
@@ -102,7 +102,7 @@ describe('Register page', () => {
 
     render(
       <MemoryRouter>
-        <Register />
+        <RegisterPage />
       </MemoryRouter>
     )
 
@@ -116,7 +116,7 @@ describe('Register page', () => {
 
     render(
       <MemoryRouter>
-        <Register />
+        <RegisterPage />
       </MemoryRouter>
     )
 
@@ -145,7 +145,7 @@ describe('Register page', () => {
 
     render(
       <MemoryRouter>
-        <Register />
+        <RegisterPage />
       </MemoryRouter>
     )
 
@@ -169,7 +169,7 @@ describe('Register page', () => {
 
     render(
       <MemoryRouter>
-        <Register />
+        <RegisterPage />
       </MemoryRouter>
     )
 
@@ -189,7 +189,7 @@ describe('Register page', () => {
 
     render(
       <MemoryRouter>
-        <Register />
+        <RegisterPage />
       </MemoryRouter>
     )
 
@@ -208,7 +208,7 @@ describe('Register page', () => {
 
     render(
       <MemoryRouter>
-        <Register />
+        <RegisterPage />
       </MemoryRouter>
     )
 
@@ -231,7 +231,7 @@ describe('Register page', () => {
 
     render(
       <MemoryRouter>
-        <Register />
+        <RegisterPage />
       </MemoryRouter>
     )
 
@@ -251,7 +251,7 @@ describe('Register page', () => {
 
   it('inputs have no aria-describedby initially', () => {
     mockUseAuth.mockReturnValue({ register: mockRegister })
-    render(<MemoryRouter><Register /></MemoryRouter>)
+    render(<MemoryRouter><RegisterPage /></MemoryRouter>)
     expect(screen.getByLabelText(/first name/i)).not.toHaveAttribute('aria-describedby')
     expect(screen.getByLabelText(/last name/i)).not.toHaveAttribute('aria-describedby')
     expect(screen.getByLabelText(/email/i)).not.toHaveAttribute('aria-describedby')
@@ -259,7 +259,7 @@ describe('Register page', () => {
 
   it('inputs link to error message via aria-describedby when validation fails', async () => {
     mockUseAuth.mockReturnValue({ register: mockRegister })
-    render(<MemoryRouter><Register /></MemoryRouter>)
+    render(<MemoryRouter><RegisterPage /></MemoryRouter>)
 
     fireEvent.submit(screen.getByRole('button', { name: /register/i }).closest('form')!)
 

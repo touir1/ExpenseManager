@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import { render, screen } from '@testing-library/react'
-import Settings from '@/pages/Settings'
+import SettingsPage from '@/pages/SettingsPage'
 
 function renderSettings() {
   return render(
     <MemoryRouter>
-      <Settings />
+      <SettingsPage />
     </MemoryRouter>
   )
 }

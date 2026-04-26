@@ -1,15 +1,15 @@
 import { Routes, Route } from 'react-router-dom'
 import ProtectedRoute from '@/features/auth/ProtectedRoute'
 import PublicOnlyRoute from '@/features/auth/PublicOnlyRoute'
-import HomePublic from '@/pages/HomePublic'
-import HomeDashboard from '@/pages/HomeDashboard'
-import Login from '@/pages/Login'
-import Register from '@/pages/Register'
-import Settings from '@/pages/Settings'
-import ChangePassword from '@/pages/ChangePassword'
-import ResetPassword from '@/pages/ResetPassword'
-import RequestPasswordReset from '@/pages/RequestPasswordReset'
-import NotFound from '@/pages/NotFound'
+import HomePublic from '@/pages/HomePublicPage'
+import HomeDashboardPage from '@/pages/HomeDashboardPage'
+import Login from '@/pages/LoginPage'
+import Register from '@/pages/RegisterPage'
+import Settings from '@/pages/SettingsPage'
+import ChangePasswordPage from '@/pages/ChangePasswordPage'
+import ResetPassword from '@/pages/ResetPasswordPage'
+import RequestPasswordReset from '@/pages/RequestPasswordResetPage'
+import NotFound from '@/pages/NotFoundPage'
 
 export default function AppRoutes() {
   return (
@@ -22,9 +22,9 @@ export default function AppRoutes() {
       <Route path="/request-password-reset" element={<PublicOnlyRoute><RequestPasswordReset /></PublicOnlyRoute>} />
 
       {/* Private */}
-      <Route path="/dashboard" element={<ProtectedRoute><HomeDashboard /></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute><HomeDashboardPage /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-      <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
+      <Route path="/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
 
       {/* Fallback */}
       <Route path="*" element={<NotFound />} />

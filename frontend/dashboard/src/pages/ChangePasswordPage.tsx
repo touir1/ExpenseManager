@@ -5,7 +5,7 @@ import PasswordStrength from '@/components/PasswordStrength'
 import PasswordInput from '@/components/PasswordInput'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
-export default function ChangePassword() {
+export default function ChangePasswordPage() {
   usePageTitle('Change Password')
   const [oldPassword, setOldPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import RequestPasswordReset from '../RequestPasswordReset'
+import RequestPasswordResetPage from '../RequestPasswordResetPage'
 
 const mockRequestPasswordReset = vi.fn()
 const mockUseAuth = vi.fn()
@@ -30,7 +30,7 @@ describe('RequestPasswordReset page', () => {
   it('renders request password reset form with email field', () => {
     render(
       <MemoryRouter>
-        <RequestPasswordReset />
+        <RequestPasswordResetPage />
       </MemoryRouter>
     )
 
@@ -42,7 +42,7 @@ describe('RequestPasswordReset page', () => {
   it('renders info message', () => {
     render(
       <MemoryRouter>
-        <RequestPasswordReset />
+        <RequestPasswordResetPage />
       </MemoryRouter>
     )
 
@@ -52,7 +52,7 @@ describe('RequestPasswordReset page', () => {
   it('email input has email type and is required', () => {
     render(
       <MemoryRouter>
-        <RequestPasswordReset />
+        <RequestPasswordResetPage />
       </MemoryRouter>
     )
 
@@ -64,7 +64,7 @@ describe('RequestPasswordReset page', () => {
   it('updates email field when typing', () => {
     render(
       <MemoryRouter>
-        <RequestPasswordReset />
+        <RequestPasswordResetPage />
       </MemoryRouter>
     )
 
@@ -81,7 +81,7 @@ describe('RequestPasswordReset page', () => {
 
     render(
       <MemoryRouter>
-        <RequestPasswordReset />
+        <RequestPasswordResetPage />
       </MemoryRouter>
     )
 
@@ -103,7 +103,7 @@ describe('RequestPasswordReset page', () => {
 
     render(
       <MemoryRouter>
-        <RequestPasswordReset />
+        <RequestPasswordResetPage />
       </MemoryRouter>
     )
 
@@ -127,7 +127,7 @@ describe('RequestPasswordReset page', () => {
 
     render(
       <MemoryRouter>
-        <RequestPasswordReset />
+        <RequestPasswordResetPage />
       </MemoryRouter>
     )
 
@@ -155,7 +155,7 @@ describe('RequestPasswordReset page', () => {
 
     render(
       <MemoryRouter>
-        <RequestPasswordReset />
+        <RequestPasswordResetPage />
       </MemoryRouter>
     )
 
@@ -185,7 +185,7 @@ describe('RequestPasswordReset page', () => {
   it('renders back to login link pointing to /login', () => {
     render(
       <MemoryRouter>
-        <RequestPasswordReset />
+        <RequestPasswordResetPage />
       </MemoryRouter>
     )
 
@@ -199,7 +199,7 @@ describe('RequestPasswordReset page', () => {
 
     render(
       <MemoryRouter>
-        <RequestPasswordReset />
+        <RequestPasswordResetPage />
       </MemoryRouter>
     )
 

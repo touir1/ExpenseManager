@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
-export default function NotFound() {
+export default function NotFoundPage() {
   usePageTitle('Page Not Found')
   return (
     <div className="auth-page">

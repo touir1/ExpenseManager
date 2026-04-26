@@ -229,7 +229,7 @@ ExpenseManager/
 │           │       ├── PasswordStrength.test.tsx
 │           │       └── Toast.test.tsx
 │           ├── constants/             — App-wide typed constants
-│           │   └── apiErrors.ts        — API_ERRORS: typed HTTP error message strings
+│           │   └── apiErrors.constant.ts — API_ERRORS: typed HTTP error message strings
 │           ├── features/
 │           │   └── auth/              — Authentication feature (context + route guards)
 │           │       ├── AuthContext.tsx    — Cookie-based auth state; delegates HTTP to authApi.ts; session restored via GET /auth/session on load
@@ -246,35 +246,35 @@ ExpenseManager/
 │           │   └── __tests__/
 │           │       └── NavBar.test.tsx
 │           ├── pages/
-│           │   ├── HomePublic.tsx            — Public landing page
-│           │   ├── Login.tsx                 — Login form; redirects to /dashboard on success
-│           │   ├── Register.tsx              — Registration form
-│           │   ├── HomeDashboard.tsx         — Authenticated dashboard; shows firstName
-│           │   ├── ChangePassword.tsx        — Change password form
-│           │   ├── RequestPasswordReset.tsx  — Request password reset email
-│           │   ├── ResetPassword.tsx         — Reset password with token from email
-│           │   ├── Settings.tsx              — Settings hub page; links to sub-sections
-│           │   ├── NotFound.tsx              — 404 page; shown for any unmatched route
+│           │   ├── HomePublicPage.tsx            — Public landing page
+│           │   ├── LoginPage.tsx                 — Login form; redirects to /dashboard on success
+│           │   ├── RegisterPage.tsx              — Registration form
+│           │   ├── HomeDashboardPage.tsx         — Authenticated dashboard; shows firstName
+│           │   ├── ChangePasswordPage.tsx        — Change password form
+│           │   ├── RequestPasswordResetPage.tsx  — Request password reset email
+│           │   ├── ResetPasswordPage.tsx         — Reset password with token from email
+│           │   ├── SettingsPage.tsx              — Settings hub page; links to sub-sections
+│           │   ├── NotFoundPage.tsx              — 404 page; shown for any unmatched route
 │           │   └── __tests__/
-│           │       ├── HomeDashboard.test.tsx
-│           │       ├── Login.test.tsx
-│           │       ├── Register.test.tsx
-│           │       ├── HomePublic.test.tsx
-│           │       ├── ChangePassword.test.tsx
-│           │       ├── Settings.test.tsx
-│           │       ├── RequestPasswordReset.test.tsx
-│           │       ├── ResetPassword.test.tsx
-│           │       └── NotFound.test.tsx
+│           │       ├── HomeDashboardPage.test.tsx
+│           │       ├── LoginPage.test.tsx
+│           │       ├── RegisterPage.test.tsx
+│           │       ├── HomePublicPage.test.tsx
+│           │       ├── ChangePasswordPage.test.tsx
+│           │       ├── SettingsPage.test.tsx
+│           │       ├── RequestPasswordResetPage.test.tsx
+│           │       ├── ResetPasswordPage.test.tsx
+│           │       └── NotFoundPage.test.tsx
 │           ├── services/              — API layer
-│           │   ├── api.ts             — Base API client; fetch wrapper with cookie auth, error handling, and skipUnauthorized option
-│           │   ├── authApi.ts         — Auth HTTP functions (login, logout, register, change/reset password); used by AuthContext
+│           │   ├── api.service.ts     — Base API client; fetch wrapper with cookie auth, error handling, and skipUnauthorized option
+│           │   ├── authApi.service.ts — Auth HTTP functions (login, logout, register, change/reset password); used by AuthContext
 │           │   └── __tests__/
 │           │       └── api.test.ts
 │           ├── styles/
 │           │   └── index.css          — Tailwind directives + @layer components
 │           └── types/                 — Shared TypeScript type definitions
-│               ├── auth.ts             — User, AuthContextValue
-│               └── api.ts              — ApiResponse<T>
+│               ├── auth.type.ts        — User, AuthContextValue
+│               └── api.type.ts         — ApiResponse<T>
 │
 ├── infrastructure/
 │   ├── .env                           — Local infrastructure env vars (gitignored)

@@ -5,7 +5,7 @@ import { useToast } from '@/components/Toast'
 import PasswordInput from '@/components/PasswordInput'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
-export default function Login() {
+export default function LoginPage() {
   usePageTitle('Login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

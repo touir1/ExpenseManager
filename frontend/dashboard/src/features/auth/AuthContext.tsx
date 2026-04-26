@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, ReactNode } from 'react'
-import { onUnauthorized } from '@/services/api'
+import { onUnauthorized } from '@/services/api.service'
 import {
   sessionCheck,
   loginRequest,
@@ -8,8 +8,8 @@ import {
   changePasswordRequest,
   resetPasswordRequest,
   requestPasswordResetRequest,
-} from '@/services/authApi'
-import type { AuthContextValue, User } from '@/types/auth'
+} from '@/services/authApi.service'
+import type { AuthContextValue, User } from '@/types/auth.type'
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 

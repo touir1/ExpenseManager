@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import ChangePassword from '../ChangePassword'
+import ChangePasswordPage from '../ChangePasswordPage'
 
 // Mock useAuth
 const mockChangePassword = vi.fn()
@@ -11,7 +11,7 @@ vi.mock('@/features/auth/AuthContext', () => ({
   useAuth: () => mockUseAuth()
 }))
 
-describe('ChangePassword page', () => {
+describe('ChangePasswordPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockUseAuth.mockReturnValue({
@@ -22,7 +22,7 @@ describe('ChangePassword page', () => {
   it('renders change password form with all fields', () => {
     render(
       <MemoryRouter>
-        <ChangePassword />
+        <ChangePasswordPage />
       </MemoryRouter>
     )
 
@@ -36,7 +36,7 @@ describe('ChangePassword page', () => {
   it('renders back to settings link pointing to /settings', () => {
     render(
       <MemoryRouter>
-        <ChangePassword />
+        <ChangePasswordPage />
       </MemoryRouter>
     )
 
@@ -48,7 +48,7 @@ describe('ChangePassword page', () => {
   it('updates old password field when typing', () => {
     render(
       <MemoryRouter>
-        <ChangePassword />
+        <ChangePasswordPage />
       </MemoryRouter>
     )
 
@@ -61,7 +61,7 @@ describe('ChangePassword page', () => {
   it('updates new password field when typing', () => {
     render(
       <MemoryRouter>
-        <ChangePassword />
+        <ChangePasswordPage />
       </MemoryRouter>
     )
 
@@ -74,7 +74,7 @@ describe('ChangePassword page', () => {
   it('updates repeat password field when typing', () => {
     render(
       <MemoryRouter>
-        <ChangePassword />
+        <ChangePasswordPage />
       </MemoryRouter>
     )
 
@@ -89,7 +89,7 @@ describe('ChangePassword page', () => {
 
     render(
       <MemoryRouter>
-        <ChangePassword />
+        <ChangePasswordPage />
       </MemoryRouter>
     )
 
@@ -113,7 +113,7 @@ describe('ChangePassword page', () => {
 
     render(
       <MemoryRouter>
-        <ChangePassword />
+        <ChangePasswordPage />
       </MemoryRouter>
     )
 
@@ -137,7 +137,7 @@ describe('ChangePassword page', () => {
 
     render(
       <MemoryRouter>
-        <ChangePassword />
+        <ChangePasswordPage />
       </MemoryRouter>
     )
 
@@ -159,7 +159,7 @@ describe('ChangePassword page', () => {
   it('shows "All fields are required." when any field is empty', async () => {
     render(
       <MemoryRouter>
-        <ChangePassword />
+        <ChangePasswordPage />
       </MemoryRouter>
     )
 
@@ -173,7 +173,7 @@ describe('ChangePassword page', () => {
   it('shows "Password must be at least 8 characters." when new password is too short', async () => {
     render(
       <MemoryRouter>
-        <ChangePassword />
+        <ChangePasswordPage />
       </MemoryRouter>
     )
 
@@ -194,7 +194,7 @@ describe('ChangePassword page', () => {
   it('shows "New passwords do not match." when new passwords differ', async () => {
     render(
       <MemoryRouter>
-        <ChangePassword />
+        <ChangePasswordPage />
       </MemoryRouter>
     )
 
@@ -215,7 +215,7 @@ describe('ChangePassword page', () => {
   it('shows password strength indicator when typing in new password field', () => {
     render(
       <MemoryRouter>
-        <ChangePassword />
+        <ChangePasswordPage />
       </MemoryRouter>
     )
 
@@ -228,7 +228,7 @@ describe('ChangePassword page', () => {
   it('does not show message initially', () => {
     render(
       <MemoryRouter>
-        <ChangePassword />
+        <ChangePasswordPage />
       </MemoryRouter>
     )
 
@@ -243,7 +243,7 @@ describe('ChangePassword page', () => {
 
     render(
       <MemoryRouter>
-        <ChangePassword />
+        <ChangePasswordPage />
       </MemoryRouter>
     )
 
@@ -270,14 +270,14 @@ describe('ChangePassword page', () => {
   })
 
   it('inputs have no aria-describedby initially', () => {
-    render(<MemoryRouter><ChangePassword /></MemoryRouter>)
+    render(<MemoryRouter><ChangePasswordPage /></MemoryRouter>)
     expect(screen.getByLabelText(/old password/i)).not.toHaveAttribute('aria-describedby')
     expect(screen.getByLabelText(/^new password$/i)).not.toHaveAttribute('aria-describedby')
     expect(screen.getByLabelText(/repeat new password/i)).not.toHaveAttribute('aria-describedby')
   })
 
   it('inputs link to error message via aria-describedby when validation fails', () => {
-    render(<MemoryRouter><ChangePassword /></MemoryRouter>)
+    render(<MemoryRouter><ChangePasswordPage /></MemoryRouter>)
 
     fireEvent.click(screen.getByRole('button', { name: /change password/i }))
 

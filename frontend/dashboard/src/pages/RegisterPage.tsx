@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthContext'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
-export default function Register() {
+export default function RegisterPage() {
   usePageTitle('Register')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')

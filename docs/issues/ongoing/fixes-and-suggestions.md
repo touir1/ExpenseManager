@@ -39,12 +39,12 @@ The dashboard currently uses vanilla `fetch`, manual `useState` forms, inline va
 
 #### Phase 1 — Auth refactor (do now)
 
-- **React Hook Form** (`react-hook-form`): Every auth form page duplicates the same `useState`-per-field + manual `setError` + `setSubmitting` pattern. React Hook Form eliminates this boilerplate with `useForm<T>()`, `register()`, and automatic `isSubmitting` management. Affects `Login.tsx`, `Register.tsx`, `ChangePassword.tsx`, `ResetPassword.tsx`, `RequestPasswordReset.tsx`.
+- **React Hook Form** (`react-hook-form`): Every auth form page duplicates the same `useState`-per-field + manual `setError` + `setSubmitting` pattern. React Hook Form eliminates this boilerplate with `useForm<T>()`, `register()`, and automatic `isSubmitting` management. Affects `LoginPage.tsx`, `RegisterPage.tsx`, `ChangePasswordPage.tsx`, `ResetPasswordPage.tsx`, `RequestPasswordResetPage.tsx`.
 - **Zod** (`zod` + `@hookform/resolvers`): Validation logic is currently scattered inline per form. Zod schemas centralize rules, provide TypeScript inference via `z.infer<>`, and integrate directly with React Hook Form via `zodResolver()`. Replaces all manual email-regex, length, and password-match checks.
 
 #### Phase 2 — Expenses feature (when expenses is built)
 
-- **TanStack Query** (`@tanstack/react-query`): The expenses feature will need paginated lists, filters, background refetch, and cache invalidation. TanStack Query handles all of this and eliminates per-component `[loading, setLoading]` / `[data, setData]` patterns. `api.ts` stays as the low-level fetch layer; TanStack Query calls it. Auth mutations in `AuthContext` can remain as-is.
+- **TanStack Query** (`@tanstack/react-query`): The expenses feature will need paginated lists, filters, background refetch, and cache invalidation. TanStack Query handles all of this and eliminates per-component `[loading, setLoading]` / `[data, setData]` patterns. `api.service.ts` stays as the low-level fetch layer; TanStack Query calls it. Auth mutations in `AuthContext` can remain as-is.
 - **Recharts** (`recharts`): An expense manager without charts is incomplete. Expected visualizations: spending over time (line), by category (pie/donut), monthly comparison (bar). Recharts is composable, TypeScript-friendly, and lightweight (~200 KB). New components go in `src/components/charts/`.
 
 #### Phase 3 — Conditional (only if needed)
@@ -57,7 +57,7 @@ The dashboard currently uses vanilla `fetch`, manual `useState` forms, inline va
 
 | Priority | Issue | Note |
 |---|---|---|
-| Medium | `HomeDashboard.tsx` is a placeholder with no real content | Needs design before implementing |
+| Medium | `HomeDashboardPage.tsx` is a placeholder with no real content | Needs design before implementing |
 
 ---
 
@@ -70,7 +70,7 @@ The dashboard currently uses vanilla `fetch`, manual `useState` forms, inline va
 - **`GET /auth/session` performance**: The session-check endpoint is called on every SPA load. Ensure the JWT validation path is lightweight (no DB hit on happy-path).
 
 ### Expenses service
-- **Implement expenses CRUD**: `HomeDashboard.tsx` already shows a "Coming soon…" placeholder. The expenses service has models and migrations but no working controllers or services — these need to be implemented.
+- **Implement expenses CRUD**: `HomeDashboardPage.tsx` already shows a "Coming soon…" placeholder. The expenses service has models and migrations but no working controllers or services — these need to be implemented.
 - **Pagination**: When expenses are implemented, the list endpoint should support cursor- or offset-based pagination from day one rather than returning all records.
 - **Input sanitisation**: Validate and sanitise string fields (`description`, category name, etc.) at the controller layer before they reach the database.
 

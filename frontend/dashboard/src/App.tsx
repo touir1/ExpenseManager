@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from '@/features/auth/AuthContext'
 import { ToastProvider, useToast } from '@/components/Toast'
-import { onError } from '@/services/api'
+import { onError } from '@/services/api.service'
 import NavBar from '@/layouts/NavBar'
 import AppRoutes from '@/router'
 
