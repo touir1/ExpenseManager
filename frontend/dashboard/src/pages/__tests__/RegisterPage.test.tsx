@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
-import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import RegisterPage from '@/pages/RegisterPage'
 
 const mockRegister = vi.fn()
@@ -107,7 +107,7 @@ describe('Register page', () => {
     )
 
     expect(screen.queryByText(/registered successfully/i)).not.toBeInTheDocument()
-    expect(screen.queryByText(/all fields are required/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/first name is required/i)).not.toBeInTheDocument()
   })
 
   it('shows success message after successful registration', async () => {
@@ -153,12 +153,12 @@ describe('Register page', () => {
     fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'Smith' } })
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'jane@example.com' } })
 
-    await act(async () => {
-      fireEvent.submit(screen.getByRole('button', { name: /register/i }).closest('form')!)
-    })
+    fireEvent.submit(screen.getByRole('button', { name: /register/i }).closest('form')!)
 
-    expect(screen.getByText('Registration successful! Check your inbox for a verification email. Click the link to verify your address and set your password — you will then be able to log in.')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /register/i })).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Registration successful! Check your inbox for a verification email. Click the link to verify your address and set your password — you will then be able to log in.')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /register/i })).not.toBeInTheDocument()
+    })
 
     const loginLink = screen.getByRole('link', { name: /go to login/i })
     expect(loginLink).toHaveAttribute('href', '/login')
@@ -184,7 +184,7 @@ describe('Register page', () => {
     expect(mockRegister).not.toHaveBeenCalled()
   })
 
-  it('shows error when fields are empty', async () => {
+  it('shows per-field errors when fields are empty', async () => {
     mockUseAuth.mockReturnValue({ register: mockRegister })
 
     render(
@@ -196,7 +196,9 @@ describe('Register page', () => {
     fireEvent.submit(screen.getByRole('button', { name: /register/i }).closest('form')!)
 
     await waitFor(() => {
-      expect(screen.getByText('All fields are required.')).toBeInTheDocument()
+      expect(screen.getByText('First name is required.')).toBeInTheDocument()
+      expect(screen.getByText('Last name is required.')).toBeInTheDocument()
+      expect(screen.getByText('Email is required.')).toBeInTheDocument()
     })
     expect(mockRegister).not.toHaveBeenCalled()
   })
@@ -257,18 +259,16 @@ describe('Register page', () => {
     expect(screen.getByLabelText(/email/i)).not.toHaveAttribute('aria-describedby')
   })
 
-  it('inputs link to error message via aria-describedby when validation fails', async () => {
+  it('inputs link to per-field error via aria-describedby when validation fails', async () => {
     mockUseAuth.mockReturnValue({ register: mockRegister })
     render(<MemoryRouter><RegisterPage /></MemoryRouter>)
 
     fireEvent.submit(screen.getByRole('button', { name: /register/i }).closest('form')!)
 
     await waitFor(() => {
-      const errorEl = screen.getByText('All fields are required.')
-      expect(errorEl).toHaveAttribute('id', 'register-msg')
-      expect(screen.getByLabelText(/first name/i)).toHaveAttribute('aria-describedby', 'register-msg')
-      expect(screen.getByLabelText(/last name/i)).toHaveAttribute('aria-describedby', 'register-msg')
-      expect(screen.getByLabelText(/email/i)).toHaveAttribute('aria-describedby', 'register-msg')
+      expect(screen.getByLabelText(/first name/i)).toHaveAttribute('aria-describedby', 'firstName-error')
+      expect(screen.getByLabelText(/last name/i)).toHaveAttribute('aria-describedby', 'lastName-error')
+      expect(screen.getByLabelText(/email/i)).toHaveAttribute('aria-describedby', 'email-error')
     })
   })
 })

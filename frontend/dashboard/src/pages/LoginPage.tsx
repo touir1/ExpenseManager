@@ -1,25 +1,25 @@
-import { FormEvent, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useToast } from '@/components/Toast'
 import PasswordInput from '@/components/PasswordInput'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { loginSchema, type LoginFormData } from '@/features/auth/auth.schemas'
 
 export default function LoginPage() {
   usePageTitle('Login')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [rememberMe, setRememberMe] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
   const navigate = useNavigate()
   const { login } = useAuth()
   const { show } = useToast()
 
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    setSubmitting(true)
-    const { ok } = await login(email, password, rememberMe)
-    setSubmitting(false)
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '', rememberMe: false },
+  })
+
+  const onSubmit = async (data: LoginFormData) => {
+    const { ok } = await login(data.email, data.password, data.rememberMe ?? false)
     if (!ok) {
       show('Invalid credentials. Please try again.', 'error')
       return
@@ -36,7 +36,7 @@ export default function LoginPage() {
           <p className="text-sm text-slate-500 mt-1">Sign in to your account to continue.</p>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
           <div>
             <label htmlFor="email" className="field-label">Email address</label>
             <input
@@ -44,13 +44,19 @@ export default function LoginPage() {
               type="email"
               autoComplete="email"
               autoFocus
-              value={email}
-              onChange={e => setEmail(e.target.value)}
+              {...register('email')}
               required
-              disabled={submitting}
+              disabled={isSubmitting}
               className="field-input"
               placeholder="you@example.com"
+              aria-describedby={errors.email ? 'email-error' : undefined}
+              aria-invalid={!!errors.email}
             />
+            {errors.email && (
+              <p id="email-error" className="field-error" role="alert">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
           <div>
@@ -58,20 +64,26 @@ export default function LoginPage() {
             <PasswordInput
               id="password"
               autoComplete="current-password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
+              {...register('password')}
               required
+              disabled={isSubmitting}
               className="field-input"
+              aria-describedby={errors.password ? 'password-error' : undefined}
+              aria-invalid={!!errors.password}
             />
+            {errors.password && (
+              <p id="password-error" className="field-error" role="alert">
+                {errors.password.message}
+              </p>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
             <input
               id="rememberMe"
               type="checkbox"
-              checked={rememberMe}
-              onChange={e => setRememberMe(e.target.checked)}
-              disabled={submitting}
+              {...register('rememberMe')}
+              disabled={isSubmitting}
               className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
             />
             <label htmlFor="rememberMe" className="text-sm text-slate-600 cursor-pointer select-none">
@@ -79,8 +91,8 @@ export default function LoginPage() {
             </label>
           </div>
 
-          <button type="submit" disabled={submitting} className="btn-primary mt-1">
-            {submitting ? (
+          <button type="submit" disabled={isSubmitting} className="btn-primary mt-1">
+            {isSubmitting ? (
               <span className="flex items-center justify-center gap-2">
                 <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

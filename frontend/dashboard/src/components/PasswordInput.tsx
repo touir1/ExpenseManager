@@ -1,14 +1,18 @@
-import { useState, type InputHTMLAttributes } from 'react'
+import { useState, forwardRef, type InputHTMLAttributes } from 'react'
 
 type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'type'>
 
-export default function PasswordInput({ className = '', ...props }: Readonly<Props>) {
+const PasswordInput = forwardRef<HTMLInputElement, Props>(function PasswordInput(
+  { className = '', ...props }: Readonly<Props>,
+  ref
+) {
   const [visible, setVisible] = useState(false)
 
   return (
     <div className="relative">
       <input
         {...props}
+        ref={ref}
         type={visible ? 'text' : 'password'}
         className={`${className} pr-10`}
       />
@@ -31,4 +35,6 @@ export default function PasswordInput({ className = '', ...props }: Readonly<Pro
       </button>
     </div>
   )
-}
+})
+
+export default PasswordInput

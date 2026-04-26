@@ -65,6 +65,11 @@
     @apply bg-white w-full max-w-md rounded-2xl shadow-card border border-slate-200 p-8;
   }
 
+  /* ── Per-field validation error (under inputs) ──────────────── */
+  .field-error {
+    @apply text-sm text-rose-600 mt-1;
+  }
+
   /* ── Inline feedback messages ────────────────────────────────── */
   .msg-error {
     @apply text-sm text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-3.5 py-2.5;

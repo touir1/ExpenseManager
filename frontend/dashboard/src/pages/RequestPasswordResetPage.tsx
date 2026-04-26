@@ -1,25 +1,26 @@
-import { FormEvent, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useToast } from '@/components/Toast'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { requestPasswordResetSchema, type RequestPasswordResetFormData } from '@/features/auth/auth.schemas'
 
 export default function RequestPasswordResetPage() {
   usePageTitle('Request Password Reset')
-  const [email, setEmail] = useState('')
-  const [submitting, setSubmitting] = useState(false)
   const { requestPasswordReset } = useAuth()
   const { show } = useToast()
 
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RequestPasswordResetFormData>({
+    resolver: zodResolver(requestPasswordResetSchema),
+  })
+
+  const onSubmit = async (data: RequestPasswordResetFormData) => {
     if (!requestPasswordReset) {
       show('Reset request not available', 'error')
       return
     }
-    setSubmitting(true)
-    const { ok } = await requestPasswordReset(email)
-    setSubmitting(false)
+    const { ok } = await requestPasswordReset(data.email)
     if (ok) {
       show('If the email exists, a reset link has been sent.', 'success')
     } else {
@@ -38,7 +39,7 @@ export default function RequestPasswordResetPage() {
           </p>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
           <div>
             <label htmlFor="email" className="field-label">Email address</label>
             <input
@@ -46,17 +47,23 @@ export default function RequestPasswordResetPage() {
               type="email"
               autoComplete="email"
               autoFocus
-              value={email}
-              onChange={e => setEmail(e.target.value)}
+              {...register('email')}
               required
-              disabled={submitting}
+              disabled={isSubmitting}
               className="field-input"
               placeholder="you@example.com"
+              aria-describedby={errors.email ? 'email-error' : undefined}
+              aria-invalid={!!errors.email}
             />
+            {errors.email && (
+              <p id="email-error" className="field-error" role="alert">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
-          <button type="submit" disabled={submitting} className="btn-primary mt-1">
-            {submitting ? (
+          <button type="submit" disabled={isSubmitting} className="btn-primary mt-1">
+            {isSubmitting ? (
               <span className="flex items-center justify-center gap-2">
                 <svg
                   className="h-4 w-4 animate-spin"

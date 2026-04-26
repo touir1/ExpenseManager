@@ -1,39 +1,28 @@
-import { FormEvent, useState } from 'react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthContext'
 import PasswordStrength from '@/components/PasswordStrength'
 import PasswordInput from '@/components/PasswordInput'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { changePasswordSchema, type ChangePasswordFormData } from '@/features/auth/auth.schemas'
 
 export default function ChangePasswordPage() {
   usePageTitle('Change Password')
-  const [oldPassword, setOldPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [repeatPassword, setRepeatPassword] = useState('')
-  const [message, setMessage] = useState<string | null>(null)
-  const [isSuccess, setIsSuccess] = useState(false)
+  const [serverMsg, setServerMsg] = useState<{ text: string; ok: boolean } | null>(null)
   const { changePassword } = useAuth()
 
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!oldPassword || !newPassword || !repeatPassword) {
-      setIsSuccess(false)
-      setMessage('All fields are required.')
-      return
-    }
-    if (newPassword.length < 8) {
-      setIsSuccess(false)
-      setMessage('Password must be at least 8 characters.')
-      return
-    }
-    if (newPassword !== repeatPassword) {
-      setIsSuccess(false)
-      setMessage('New passwords do not match.')
-      return
-    }
-    const { ok, error } = await changePassword(oldPassword, newPassword, repeatPassword)
-    setIsSuccess(ok)
-    setMessage(ok ? 'Password changed.' : error ?? 'Incorrect current password.')
+  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<ChangePasswordFormData>({
+    resolver: zodResolver(changePasswordSchema),
+  })
+
+  const newPassword = watch('newPassword', '')
+
+  const onSubmit = async (data: ChangePasswordFormData) => {
+    setServerMsg(null)
+    const { ok, error } = await changePassword(data.oldPassword, data.newPassword, data.repeatPassword)
+    setServerMsg({ text: ok ? 'Password changed.' : error ?? 'Incorrect current password.', ok })
   }
 
   return (
@@ -56,18 +45,24 @@ export default function ChangePasswordPage() {
           <p className="text-sm text-slate-500 mt-1">Update your account password below.</p>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
           <div>
             <label htmlFor="oldPassword" className="field-label">Old password</label>
             <PasswordInput
               id="oldPassword"
               autoComplete="current-password"
-              value={oldPassword}
-              onChange={e => setOldPassword(e.target.value)}
+              {...register('oldPassword')}
               required
+              disabled={isSubmitting}
               className="field-input"
-              aria-describedby={message ? 'change-password-msg' : undefined}
+              aria-describedby={errors.oldPassword ? 'oldPassword-error' : undefined}
+              aria-invalid={!!errors.oldPassword}
             />
+            {errors.oldPassword && (
+              <p id="oldPassword-error" className="field-error" role="alert">
+                {errors.oldPassword.message}
+              </p>
+            )}
           </div>
 
           <div>
@@ -75,13 +70,19 @@ export default function ChangePasswordPage() {
             <PasswordInput
               id="newPassword"
               autoComplete="new-password"
-              value={newPassword}
-              onChange={e => setNewPassword(e.target.value)}
+              {...register('newPassword')}
               required
+              disabled={isSubmitting}
               className="field-input"
-              aria-describedby={message ? 'change-password-msg' : undefined}
+              aria-describedby={errors.newPassword ? 'newPassword-error' : undefined}
+              aria-invalid={!!errors.newPassword}
             />
             <PasswordStrength password={newPassword} />
+            {errors.newPassword && (
+              <p id="newPassword-error" className="field-error" role="alert">
+                {errors.newPassword.message}
+              </p>
+            )}
           </div>
 
           <div>
@@ -89,22 +90,28 @@ export default function ChangePasswordPage() {
             <PasswordInput
               id="repeatPassword"
               autoComplete="new-password"
-              value={repeatPassword}
-              onChange={e => setRepeatPassword(e.target.value)}
+              {...register('repeatPassword')}
               required
+              disabled={isSubmitting}
               className="field-input"
-              aria-describedby={message ? 'change-password-msg' : undefined}
+              aria-describedby={errors.repeatPassword ? 'repeatPassword-error' : undefined}
+              aria-invalid={!!errors.repeatPassword}
             />
+            {errors.repeatPassword && (
+              <p id="repeatPassword-error" className="field-error" role="alert">
+                {errors.repeatPassword.message}
+              </p>
+            )}
           </div>
 
-          <button type="submit" className="btn-primary mt-1">
+          <button type="submit" disabled={isSubmitting} className="btn-primary mt-1">
             Change password
           </button>
         </form>
 
-        {message && (
-          <p id="change-password-msg" className={`mt-4 ${isSuccess ? 'msg-success' : 'msg-error'}`} role="alert">
-            {message}
+        {serverMsg && (
+          <p className={`mt-4 ${serverMsg.ok ? 'msg-success' : 'msg-error'}`} role="alert">
+            {serverMsg.text}
           </p>
         )}
       </div>

@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { act } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import ResetPasswordPage from '../ResetPasswordPage'
 
@@ -16,6 +17,10 @@ describe('ResetPassword page', () => {
     mockUseAuth.mockReturnValue({
       resetPassword: mockResetPassword
     })
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('renders reset password form with password fields', () => {
@@ -141,7 +146,7 @@ describe('ResetPassword page', () => {
 
     const newPasswordInput = screen.getByLabelText(/^new password$/i) as HTMLInputElement
     fireEvent.change(newPasswordInput, { target: { value: 'newpass123' } })
-    
+
     expect(newPasswordInput.value).toBe('newpass123')
   })
 
@@ -156,7 +161,7 @@ describe('ResetPassword page', () => {
 
     const repeatPasswordInput = screen.getByLabelText(/repeat new password/i) as HTMLInputElement
     fireEvent.change(repeatPasswordInput, { target: { value: 'newpass123' } })
-    
+
     expect(repeatPasswordInput.value).toBe('newpass123')
   })
 
@@ -170,7 +175,7 @@ describe('ResetPassword page', () => {
     )
 
     expect(screen.queryByText(/password reset\./i)).not.toBeInTheDocument()
-    expect(screen.queryByText(/all fields are required/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/new password is required/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/new passwords do not match/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/password reset failed/i)).not.toBeInTheDocument()
   })
@@ -199,7 +204,7 @@ describe('ResetPassword page', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText('Password reset successfully. Redirecting to home\u2026')).toBeInTheDocument()
+      expect(screen.getByText('Password reset successfully. Redirecting to home…')).toBeInTheDocument()
     })
   })
 
@@ -231,7 +236,7 @@ describe('ResetPassword page', () => {
     })
   })
 
-  it('shows "All fields are required." when any field is empty', async () => {
+  it('shows per-field errors when fields are empty', async () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
         <Routes>
@@ -243,7 +248,10 @@ describe('ResetPassword page', () => {
     const form = screen.getByRole('button', { name: /reset/i }).closest('form')!
     fireEvent.submit(form)
 
-    expect(screen.getByText('All fields are required.')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('New password is required.')).toBeInTheDocument()
+      expect(screen.getByText('Please repeat your new password.')).toBeInTheDocument()
+    })
     expect(mockResetPassword).not.toHaveBeenCalled()
   })
 
@@ -264,7 +272,9 @@ describe('ResetPassword page', () => {
     fireEvent.change(repeatPasswordInput, { target: { value: 'short' } })
     fireEvent.submit(form)
 
-    expect(screen.getByText('Password must be at least 8 characters.')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Password must be at least 8 characters.')).toBeInTheDocument()
+    })
     expect(mockResetPassword).not.toHaveBeenCalled()
   })
 
@@ -296,11 +306,13 @@ describe('ResetPassword page', () => {
     const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
     const form = screen.getByRole('button', { name: /reset/i }).closest('form')!
 
-    fireEvent.change(newPasswordInput, { target: { value: 'Password1' } })
-    fireEvent.change(repeatPasswordInput, { target: { value: 'Password2' } })
+    fireEvent.change(newPasswordInput, { target: { value: 'Password1!' } })
+    fireEvent.change(repeatPasswordInput, { target: { value: 'Password2!' } })
     fireEvent.submit(form)
 
-    expect(screen.getByText('New passwords do not match.')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('New passwords do not match.')).toBeInTheDocument()
+    })
     expect(mockResetPassword).not.toHaveBeenCalled()
   })
 
@@ -319,12 +331,12 @@ describe('ResetPassword page', () => {
     const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
     const form = screen.getByRole('button', { name: /reset/i }).closest('form')!
 
-    fireEvent.change(newPasswordInput, { target: { value: 'testpass1' } })
-    fireEvent.change(repeatPasswordInput, { target: { value: 'testpass1' } })
+    fireEvent.change(newPasswordInput, { target: { value: 'testpass1!' } })
+    fireEvent.change(repeatPasswordInput, { target: { value: 'testpass1!' } })
     fireEvent.submit(form)
 
     await waitFor(() => {
-      expect(mockResetPassword).toHaveBeenCalledWith('user@test.com', 'xyz789', 'testpass1', 'testpass1')
+      expect(mockResetPassword).toHaveBeenCalledWith('user@test.com', 'xyz789', 'testpass1!', 'testpass1!')
     })
   })
 
@@ -343,8 +355,8 @@ describe('ResetPassword page', () => {
     const newPasswordInput = screen.getByLabelText(/^new password$/i)
     const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
 
-    fireEvent.change(newPasswordInput, { target: { value: 'testpass1' } })
-    fireEvent.change(repeatPasswordInput, { target: { value: 'testpass1' } })
+    fireEvent.change(newPasswordInput, { target: { value: 'testpass1!' } })
+    fireEvent.change(repeatPasswordInput, { target: { value: 'testpass1!' } })
     fireEvent.submit(form)
 
     await waitFor(() => {
@@ -383,7 +395,7 @@ describe('ResetPassword page', () => {
       fireEvent.submit(screen.getByRole('button', { name: /^create$/i }).closest('form')!)
 
       await waitFor(() => {
-        expect(screen.getByText('Password created successfully. Redirecting to home\u2026')).toBeInTheDocument()
+        expect(screen.getByText('Password created successfully. Redirecting to home…')).toBeInTheDocument()
       })
     })
 
@@ -433,7 +445,7 @@ describe('ResetPassword page', () => {
     expect(screen.getByLabelText(/repeat new password/i)).not.toHaveAttribute('aria-describedby')
   })
 
-  it('inputs link to error message via aria-describedby when validation fails', () => {
+  it('inputs link to per-field error via aria-describedby when validation fails', async () => {
     render(
       <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
         <Routes>
@@ -444,9 +456,35 @@ describe('ResetPassword page', () => {
 
     fireEvent.submit(screen.getByRole('button', { name: /reset/i }).closest('form')!)
 
-    const errorEl = screen.getByText('All fields are required.')
-    expect(errorEl).toHaveAttribute('id', 'reset-password-msg')
-    expect(screen.getByLabelText(/^new password$/i)).toHaveAttribute('aria-describedby', 'reset-password-msg')
-    expect(screen.getByLabelText(/repeat new password/i)).toHaveAttribute('aria-describedby', 'reset-password-msg')
+    await waitFor(() => {
+      expect(screen.getByLabelText(/^new password$/i)).toHaveAttribute('aria-describedby', 'newPassword-error')
+      expect(screen.getByLabelText(/repeat new password/i)).toHaveAttribute('aria-describedby', 'repeatPassword-error')
+    })
+  })
+
+  it('navigates to home after 3-second delay on success', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    mockResetPassword.mockResolvedValueOnce({ ok: true })
+
+    render(
+      <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123']}>
+        <Routes>
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/" element={<div>Home</div>} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    fireEvent.change(screen.getByLabelText(/^new password$/i), { target: { value: 'newpass123' } })
+    fireEvent.change(screen.getByLabelText(/repeat new password/i), { target: { value: 'newpass123' } })
+    fireEvent.submit(screen.getByRole('button', { name: /reset/i }).closest('form')!)
+
+    await waitFor(() => {
+      expect(screen.getByText('Password reset successfully. Redirecting to home…')).toBeInTheDocument()
+    })
+
+    await act(async () => { vi.advanceTimersByTime(3000) })
+
+    expect(screen.getByText('Home')).toBeInTheDocument()
   })
 })

@@ -3,7 +3,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import ChangePasswordPage from '../ChangePasswordPage'
 
-// Mock useAuth
 const mockChangePassword = vi.fn()
 const mockUseAuth = vi.fn()
 
@@ -54,7 +53,7 @@ describe('ChangePasswordPage', () => {
 
     const oldPasswordInput = screen.getByLabelText(/old password/i)
     fireEvent.change(oldPasswordInput, { target: { value: 'oldpass123' } })
-    
+
     expect(oldPasswordInput).toHaveValue('oldpass123')
   })
 
@@ -67,7 +66,7 @@ describe('ChangePasswordPage', () => {
 
     const newPasswordInput = screen.getByLabelText(/^new password$/i)
     fireEvent.change(newPasswordInput, { target: { value: 'newpass456' } })
-    
+
     expect(newPasswordInput).toHaveValue('newpass456')
   })
 
@@ -80,7 +79,7 @@ describe('ChangePasswordPage', () => {
 
     const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
     fireEvent.change(repeatPasswordInput, { target: { value: 'newpass456' } })
-    
+
     expect(repeatPasswordInput).toHaveValue('newpass456')
   })
 
@@ -93,15 +92,10 @@ describe('ChangePasswordPage', () => {
       </MemoryRouter>
     )
 
-    const oldPasswordInput = screen.getByLabelText(/old password/i)
-    const newPasswordInput = screen.getByLabelText(/^new password$/i)
-    const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
-    const submitButton = screen.getByRole('button', { name: /change password/i })
-
-    fireEvent.change(oldPasswordInput, { target: { value: 'oldpass123' } })
-    fireEvent.change(newPasswordInput, { target: { value: 'newpass456' } })
-    fireEvent.change(repeatPasswordInput, { target: { value: 'newpass456' } })
-    fireEvent.click(submitButton)
+    fireEvent.change(screen.getByLabelText(/old password/i), { target: { value: 'oldpass123' } })
+    fireEvent.change(screen.getByLabelText(/^new password$/i), { target: { value: 'newpass456' } })
+    fireEvent.change(screen.getByLabelText(/repeat new password/i), { target: { value: 'newpass456' } })
+    fireEvent.click(screen.getByRole('button', { name: /change password/i }))
 
     await waitFor(() => {
       expect(mockChangePassword).toHaveBeenCalledWith('oldpass123', 'newpass456', 'newpass456')
@@ -117,15 +111,10 @@ describe('ChangePasswordPage', () => {
       </MemoryRouter>
     )
 
-    const oldPasswordInput = screen.getByLabelText(/old password/i)
-    const newPasswordInput = screen.getByLabelText(/^new password$/i)
-    const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
-    const submitButton = screen.getByRole('button', { name: /change password/i })
-
-    fireEvent.change(oldPasswordInput, { target: { value: 'oldpass123' } })
-    fireEvent.change(newPasswordInput, { target: { value: 'newpass456' } })
-    fireEvent.change(repeatPasswordInput, { target: { value: 'newpass456' } })
-    fireEvent.click(submitButton)
+    fireEvent.change(screen.getByLabelText(/old password/i), { target: { value: 'oldpass123' } })
+    fireEvent.change(screen.getByLabelText(/^new password$/i), { target: { value: 'newpass456' } })
+    fireEvent.change(screen.getByLabelText(/repeat new password/i), { target: { value: 'newpass456' } })
+    fireEvent.click(screen.getByRole('button', { name: /change password/i }))
 
     await waitFor(() => {
       expect(screen.getByText('Password changed.')).toBeInTheDocument()
@@ -141,32 +130,30 @@ describe('ChangePasswordPage', () => {
       </MemoryRouter>
     )
 
-    const oldPasswordInput = screen.getByLabelText(/old password/i)
-    const newPasswordInput = screen.getByLabelText(/^new password$/i)
-    const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
-    const submitButton = screen.getByRole('button', { name: /change password/i })
-
-    fireEvent.change(oldPasswordInput, { target: { value: 'wrongpass' } })
-    fireEvent.change(newPasswordInput, { target: { value: 'newpass456' } })
-    fireEvent.change(repeatPasswordInput, { target: { value: 'newpass456' } })
-    fireEvent.click(submitButton)
+    fireEvent.change(screen.getByLabelText(/old password/i), { target: { value: 'wrongpass' } })
+    fireEvent.change(screen.getByLabelText(/^new password$/i), { target: { value: 'newpass456' } })
+    fireEvent.change(screen.getByLabelText(/repeat new password/i), { target: { value: 'newpass456' } })
+    fireEvent.click(screen.getByRole('button', { name: /change password/i }))
 
     await waitFor(() => {
       expect(screen.getByText('Incorrect current password.')).toBeInTheDocument()
     })
   })
 
-  it('shows "All fields are required." when any field is empty', async () => {
+  it('shows per-field errors when any field is empty', async () => {
     render(
       <MemoryRouter>
         <ChangePasswordPage />
       </MemoryRouter>
     )
 
-    const submitButton = screen.getByRole('button', { name: /change password/i })
-    fireEvent.click(submitButton)
+    fireEvent.click(screen.getByRole('button', { name: /change password/i }))
 
-    expect(screen.getByText('All fields are required.')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Current password is required.')).toBeInTheDocument()
+      expect(screen.getByText('New password is required.')).toBeInTheDocument()
+      expect(screen.getByText('Please repeat your new password.')).toBeInTheDocument()
+    })
     expect(mockChangePassword).not.toHaveBeenCalled()
   })
 
@@ -177,17 +164,14 @@ describe('ChangePasswordPage', () => {
       </MemoryRouter>
     )
 
-    const oldPasswordInput = screen.getByLabelText(/old password/i)
-    const newPasswordInput = screen.getByLabelText(/^new password$/i)
-    const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
-    const submitButton = screen.getByRole('button', { name: /change password/i })
+    fireEvent.change(screen.getByLabelText(/old password/i), { target: { value: 'oldpass1' } })
+    fireEvent.change(screen.getByLabelText(/^new password$/i), { target: { value: 'short' } })
+    fireEvent.change(screen.getByLabelText(/repeat new password/i), { target: { value: 'short' } })
+    fireEvent.click(screen.getByRole('button', { name: /change password/i }))
 
-    fireEvent.change(oldPasswordInput, { target: { value: 'oldpass1' } })
-    fireEvent.change(newPasswordInput, { target: { value: 'short' } })
-    fireEvent.change(repeatPasswordInput, { target: { value: 'short' } })
-    fireEvent.click(submitButton)
-
-    expect(screen.getByText('Password must be at least 8 characters.')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Password must be at least 8 characters.')).toBeInTheDocument()
+    })
     expect(mockChangePassword).not.toHaveBeenCalled()
   })
 
@@ -198,17 +182,14 @@ describe('ChangePasswordPage', () => {
       </MemoryRouter>
     )
 
-    const oldPasswordInput = screen.getByLabelText(/old password/i)
-    const newPasswordInput = screen.getByLabelText(/^new password$/i)
-    const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
-    const submitButton = screen.getByRole('button', { name: /change password/i })
+    fireEvent.change(screen.getByLabelText(/old password/i), { target: { value: 'oldpass123' } })
+    fireEvent.change(screen.getByLabelText(/^new password$/i), { target: { value: 'newpass1!' } })
+    fireEvent.change(screen.getByLabelText(/repeat new password/i), { target: { value: 'newpass2!' } })
+    fireEvent.click(screen.getByRole('button', { name: /change password/i }))
 
-    fireEvent.change(oldPasswordInput, { target: { value: 'oldpass123' } })
-    fireEvent.change(newPasswordInput, { target: { value: 'newpass1' } })
-    fireEvent.change(repeatPasswordInput, { target: { value: 'newpass2' } })
-    fireEvent.click(submitButton)
-
-    expect(screen.getByText('New passwords do not match.')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('New passwords do not match.')).toBeInTheDocument()
+    })
     expect(mockChangePassword).not.toHaveBeenCalled()
   })
 
@@ -233,7 +214,7 @@ describe('ChangePasswordPage', () => {
     )
 
     expect(screen.queryByText('Password changed.')).not.toBeInTheDocument()
-    expect(screen.queryByText('All fields are required.')).not.toBeInTheDocument()
+    expect(screen.queryByText('Current password is required.')).not.toBeInTheDocument()
     expect(screen.queryByText('New passwords do not match.')).not.toBeInTheDocument()
     expect(screen.queryByText('Incorrect current password.')).not.toBeInTheDocument()
   })
@@ -252,16 +233,11 @@ describe('ChangePasswordPage', () => {
 
     form.addEventListener('submit', () => {
       preventDefaultSpy()
-      // The component already calls e.preventDefault(), so we just track it
     })
 
-    const oldPasswordInput = screen.getByLabelText(/old password/i)
-    const newPasswordInput = screen.getByLabelText(/^new password$/i)
-    const repeatPasswordInput = screen.getByLabelText(/repeat new password/i)
-
-    fireEvent.change(oldPasswordInput, { target: { value: 'oldpass1' } })
-    fireEvent.change(newPasswordInput, { target: { value: 'newpass1' } })
-    fireEvent.change(repeatPasswordInput, { target: { value: 'newpass1' } })
+    fireEvent.change(screen.getByLabelText(/old password/i), { target: { value: 'oldpass1!' } })
+    fireEvent.change(screen.getByLabelText(/^new password$/i), { target: { value: 'newpass1!' } })
+    fireEvent.change(screen.getByLabelText(/repeat new password/i), { target: { value: 'newpass1!' } })
     fireEvent.submit(form)
 
     await waitFor(() => {
@@ -276,15 +252,15 @@ describe('ChangePasswordPage', () => {
     expect(screen.getByLabelText(/repeat new password/i)).not.toHaveAttribute('aria-describedby')
   })
 
-  it('inputs link to error message via aria-describedby when validation fails', () => {
+  it('inputs link to per-field error via aria-describedby when validation fails', async () => {
     render(<MemoryRouter><ChangePasswordPage /></MemoryRouter>)
 
     fireEvent.click(screen.getByRole('button', { name: /change password/i }))
 
-    const errorEl = screen.getByText('All fields are required.')
-    expect(errorEl).toHaveAttribute('id', 'change-password-msg')
-    expect(screen.getByLabelText(/old password/i)).toHaveAttribute('aria-describedby', 'change-password-msg')
-    expect(screen.getByLabelText(/^new password$/i)).toHaveAttribute('aria-describedby', 'change-password-msg')
-    expect(screen.getByLabelText(/repeat new password/i)).toHaveAttribute('aria-describedby', 'change-password-msg')
+    await waitFor(() => {
+      expect(screen.getByLabelText(/old password/i)).toHaveAttribute('aria-describedby', 'oldPassword-error')
+      expect(screen.getByLabelText(/^new password$/i)).toHaveAttribute('aria-describedby', 'newPassword-error')
+      expect(screen.getByLabelText(/repeat new password/i)).toHaveAttribute('aria-describedby', 'repeatPassword-error')
+    })
   })
 })

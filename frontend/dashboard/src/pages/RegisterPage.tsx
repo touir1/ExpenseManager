@@ -1,40 +1,28 @@
-import { FormEvent, useState } from 'react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthContext'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { registerSchema, type RegisterFormData } from '@/features/auth/auth.schemas'
 
 export default function RegisterPage() {
   usePageTitle('Register')
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [email, setEmail] = useState('')
-  const [message, setMessage] = useState<string | null>(null)
   const [isSuccess, setIsSuccess] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const { register } = useAuth()
+  const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  const { register: registerUser } = useAuth()
 
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
-      setIsSuccess(false)
-      setMessage('All fields are required.')
-      return
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email.trim())) {
-      setIsSuccess(false)
-      setMessage('Please enter a valid email address.')
-      return
-    }
-    setSubmitting(true)
-    const { ok } = await register(firstName, lastName, email)
-    setSubmitting(false)
+  const { register, handleSubmit, formState: { errors, isSubmitting }, setError } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+  })
+
+  const onSubmit = async (data: RegisterFormData) => {
+    const { ok } = await registerUser(data.firstName, data.lastName, data.email)
     if (ok) {
       setIsSuccess(true)
-      setMessage('Registration successful! Check your inbox for a verification email. Click the link to verify your address and set your password — you will then be able to log in.')
+      setSuccessMsg('Registration successful! Check your inbox for a verification email. Click the link to verify your address and set your password — you will then be able to log in.')
     } else {
-      setIsSuccess(false)
-      setMessage('Registration failed. Please try again.')
+      setError('root', { message: 'Registration failed. Please try again.' })
     }
   }
 
@@ -42,7 +30,7 @@ export default function RegisterPage() {
     return (
       <div className="auth-page">
         <div className="auth-card">
-          <p className="msg-success" role="alert">{message}</p>
+          <p className="msg-success" role="alert">{successMsg}</p>
           <div className="mt-6 pt-5 border-t border-slate-100 text-center">
             <Link to="/login" className="text-sm text-brand-600 hover:text-brand-700 transition-colors duration-150 font-medium">
               Go to login →
@@ -62,34 +50,44 @@ export default function RegisterPage() {
           <p className="text-sm text-slate-500 mt-1">Get started — it only takes a moment.</p>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label htmlFor="firstName" className="field-label">First name</label>
               <input
                 id="firstName"
                 autoFocus
-                value={firstName}
-                onChange={e => setFirstName(e.target.value)}
+                {...register('firstName')}
                 required
-                disabled={submitting}
+                disabled={isSubmitting}
                 className="field-input"
                 placeholder="Jane"
-                aria-describedby={message && !isSuccess ? 'register-msg' : undefined}
+                aria-describedby={errors.firstName ? 'firstName-error' : undefined}
+                aria-invalid={!!errors.firstName}
               />
+              {errors.firstName && (
+                <p id="firstName-error" className="field-error" role="alert">
+                  {errors.firstName.message}
+                </p>
+              )}
             </div>
             <div>
               <label htmlFor="lastName" className="field-label">Last name</label>
               <input
                 id="lastName"
-                value={lastName}
-                onChange={e => setLastName(e.target.value)}
+                {...register('lastName')}
                 required
-                disabled={submitting}
+                disabled={isSubmitting}
                 className="field-input"
                 placeholder="Doe"
-                aria-describedby={message && !isSuccess ? 'register-msg' : undefined}
+                aria-describedby={errors.lastName ? 'lastName-error' : undefined}
+                aria-invalid={!!errors.lastName}
               />
+              {errors.lastName && (
+                <p id="lastName-error" className="field-error" role="alert">
+                  {errors.lastName.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -99,18 +97,23 @@ export default function RegisterPage() {
               id="email"
               type="email"
               autoComplete="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
+              {...register('email')}
               required
-              disabled={submitting}
+              disabled={isSubmitting}
               className="field-input"
               placeholder="you@example.com"
-              aria-describedby={message && !isSuccess ? 'register-msg' : undefined}
+              aria-describedby={errors.email ? 'email-error' : undefined}
+              aria-invalid={!!errors.email}
             />
+            {errors.email && (
+              <p id="email-error" className="field-error" role="alert">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
-          <button type="submit" disabled={submitting} className="btn-primary mt-1">
-            {submitting ? (
+          <button type="submit" disabled={isSubmitting} className="btn-primary mt-1">
+            {isSubmitting ? (
               <span className="flex items-center justify-center gap-2">
                 <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -124,9 +127,9 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        {message && (
-          <p id="register-msg" className="mt-4 msg-error" role="alert">
-            {message}
+        {errors.root && (
+          <p className="mt-4 msg-error" role="alert">
+            {errors.root.message}
           </p>
         )}
 

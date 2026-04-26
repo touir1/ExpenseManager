@@ -35,12 +35,11 @@ These are the remaining unfixed issues from the [2026-03-22 QA report](qa_test_r
 
 ### Library Adoption Roadmap
 
-The dashboard currently uses vanilla `fetch`, manual `useState` forms, inline validation, Context API for state, Tailwind for styling, and no charts, i18n, file upload, or animation library. The following adoption plan is recommended as the project grows:
+The dashboard currently uses vanilla `fetch`, React Hook Form + Zod for auth forms, Context API for state, Tailwind for styling, and no charts, i18n, file upload, or animation library. The following adoption plan is recommended as the project grows:
 
-#### Phase 1 — Auth refactor (do now)
+#### Phase 1 — Auth refactor ✅ done ([v0.48.0](../../CHANGELOG.md))
 
-- **React Hook Form** (`react-hook-form`): Every auth form page duplicates the same `useState`-per-field + manual `setError` + `setSubmitting` pattern. React Hook Form eliminates this boilerplate with `useForm<T>()`, `register()`, and automatic `isSubmitting` management. Affects `LoginPage.tsx`, `RegisterPage.tsx`, `ChangePasswordPage.tsx`, `ResetPasswordPage.tsx`, `RequestPasswordResetPage.tsx`.
-- **Zod** (`zod` + `@hookform/resolvers`): Validation logic is currently scattered inline per form. Zod schemas centralize rules, provide TypeScript inference via `z.infer<>`, and integrate directly with React Hook Form via `zodResolver()`. Replaces all manual email-regex, length, and password-match checks.
+*Moved to [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
 
 #### Phase 2 — Expenses feature (when expenses is built)
 

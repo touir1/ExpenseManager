@@ -6,6 +6,16 @@ A record of improvement ideas from [fixes-and-suggestions.md](../ongoing/fixes-a
 
 ## Frontend
 
+### Library adoption: Phase 1 (React Hook Form + Zod) — 2026-04-26 (v0.48.0)
+
+| Item | Resolution |
+|------|------------|
+| React Hook Form | All five auth pages (`LoginPage`, `RegisterPage`, `ChangePasswordPage`, `ResetPasswordPage`, `RequestPasswordResetPage`) refactored from per-field `useState` + manual `setSubmitting` to `useForm<T>({ resolver: zodResolver(...) })`. `isSubmitting` from `formState` drives loading/disabled state automatically |
+| Zod schemas | `src/features/auth/auth.schemas.ts` centralises all five form schemas and exports inferred TypeScript types. `zodResolver()` wires schemas into React Hook Form, replacing scattered inline validation logic |
+| Per-field errors | Each form input now shows its own error message immediately below it. Error elements carry stable IDs (`{field}-error`); inputs link via `aria-describedby`. Server-level errors via `setError('root', ...)` or local `serverMsg` state |
+| `PasswordInput` `forwardRef` | Component updated to `forwardRef<HTMLInputElement, Props>` so React Hook Form's `ref` callback reaches the underlying `<input>` |
+| `.field-error` CSS class | Added to `@layer components` in `index.css` for per-field error text styling |
+
 ### Code quality — 2026-04-25 (v0.45.0)
 
 | Item | Resolution |

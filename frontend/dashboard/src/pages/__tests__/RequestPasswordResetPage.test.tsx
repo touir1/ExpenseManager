@@ -134,11 +134,11 @@ describe('RequestPasswordReset page', () => {
     const emailInput = screen.getByLabelText(/email/i)
     const form = screen.getByRole('button', { name: /send reset link/i }).closest('form')!
 
-    fireEvent.change(emailInput, { target: { value: 'invalid' } })
+    fireEvent.change(emailInput, { target: { value: 'unknown@example.com' } })
     fireEvent.submit(form)
 
     await waitFor(() => {
-      expect(mockRequestPasswordReset).toHaveBeenCalledWith('invalid')
+      expect(mockRequestPasswordReset).toHaveBeenCalledWith('unknown@example.com')
     })
 
     await waitFor(() => {
@@ -211,6 +211,61 @@ describe('RequestPasswordReset page', () => {
 
     await waitFor(() => {
       expect(mockRequestPasswordReset).toHaveBeenCalled()
+    })
+  })
+
+  it('input has no aria-describedby initially', () => {
+    render(
+      <MemoryRouter>
+        <RequestPasswordResetPage />
+      </MemoryRouter>
+    )
+
+    expect(screen.getByLabelText(/email/i)).not.toHaveAttribute('aria-describedby')
+  })
+
+  it('shows per-field error when email is empty', async () => {
+    render(
+      <MemoryRouter>
+        <RequestPasswordResetPage />
+      </MemoryRouter>
+    )
+
+    fireEvent.submit(screen.getByRole('button', { name: /send reset link/i }).closest('form')!)
+
+    await waitFor(() => {
+      expect(screen.getByText('Email is required.')).toBeInTheDocument()
+    })
+    expect(mockRequestPasswordReset).not.toHaveBeenCalled()
+  })
+
+  it('shows per-field error when email format is invalid', async () => {
+    render(
+      <MemoryRouter>
+        <RequestPasswordResetPage />
+      </MemoryRouter>
+    )
+
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'notanemail' } })
+    fireEvent.submit(screen.getByRole('button', { name: /send reset link/i }).closest('form')!)
+
+    await waitFor(() => {
+      expect(screen.getByText('Please enter a valid email address.')).toBeInTheDocument()
+    })
+    expect(mockRequestPasswordReset).not.toHaveBeenCalled()
+  })
+
+  it('input links to per-field error via aria-describedby when validation fails', async () => {
+    render(
+      <MemoryRouter>
+        <RequestPasswordResetPage />
+      </MemoryRouter>
+    )
+
+    fireEvent.submit(screen.getByRole('button', { name: /send reset link/i }).closest('form')!)
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/email/i)).toHaveAttribute('aria-describedby', 'email-error')
     })
   })
 })

@@ -241,6 +241,7 @@ ExpenseManager/
 │           ├── features/
 │           │   └── auth/              — Authentication feature (context + route guards)
 │           │       ├── AuthContext.tsx    — Cookie-based auth state; delegates HTTP to authApi.ts; session restored via GET /auth/session on load
+│           │       ├── auth.schemas.ts   — Zod schemas and inferred types for all five auth forms (login, register, changePassword, resetPassword, requestPasswordReset)
 │           │       ├── ProtectedRoute.tsx  — Redirects unauthenticated users to /login
 │           │       ├── PublicOnlyRoute.tsx — Redirects authenticated users to /dashboard
 │           │       └── __tests__/

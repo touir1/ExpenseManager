@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import LoginPage from '@/pages/LoginPage'
 
@@ -327,6 +327,81 @@ describe('Login page', () => {
 
     await waitFor(() => {
       expect(mockLogin).toHaveBeenCalledWith('user@example.com', 'secret', true)
+    })
+  })
+
+  it('inputs have no aria-describedby initially', () => {
+    mockUseAuth.mockReturnValue({ login: mockLogin })
+
+    render(
+      <MemoryRouter initialEntries={['/login']}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    expect(screen.getByLabelText(/email address/i)).not.toHaveAttribute('aria-describedby')
+    expect(screen.getByLabelText(/^password$/i)).not.toHaveAttribute('aria-describedby')
+  })
+
+  it('shows per-field errors when fields are empty', async () => {
+    mockUseAuth.mockReturnValue({ login: mockLogin })
+
+    render(
+      <MemoryRouter initialEntries={['/login']}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    fireEvent.submit(screen.getByRole('button', { name: /login/i }).closest('form')!)
+
+    await waitFor(() => {
+      expect(screen.getByText('Email is required.')).toBeInTheDocument()
+      expect(screen.getByText('Password is required.')).toBeInTheDocument()
+    })
+    expect(mockLogin).not.toHaveBeenCalled()
+  })
+
+  it('shows error when email format is invalid', async () => {
+    mockUseAuth.mockReturnValue({ login: mockLogin })
+
+    render(
+      <MemoryRouter initialEntries={['/login']}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    fireEvent.change(screen.getByLabelText(/email address/i), { target: { value: 'notanemail' } })
+    fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: 'password123' } })
+    fireEvent.submit(screen.getByRole('button', { name: /login/i }).closest('form')!)
+
+    await waitFor(() => {
+      expect(screen.getByText('Please enter a valid email address.')).toBeInTheDocument()
+    })
+    expect(mockLogin).not.toHaveBeenCalled()
+  })
+
+  it('inputs link to per-field error via aria-describedby when validation fails', async () => {
+    mockUseAuth.mockReturnValue({ login: mockLogin })
+
+    render(
+      <MemoryRouter initialEntries={['/login']}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    fireEvent.submit(screen.getByRole('button', { name: /login/i }).closest('form')!)
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/email address/i)).toHaveAttribute('aria-describedby', 'email-error')
+      expect(screen.getByLabelText(/^password$/i)).toHaveAttribute('aria-describedby', 'password-error')
     })
   })
 })

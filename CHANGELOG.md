@@ -3,6 +3,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.48.0] - 2026-04-26
+### Changed
+- Frontend dashboard: Phase 1 library adoption — React Hook Form + Zod across all five auth pages.
+  - Installed `react-hook-form`, `zod`, and `@hookform/resolvers`.
+  - Added `src/features/auth/auth.schemas.ts` with typed Zod schemas (`loginSchema`, `registerSchema`, `changePasswordSchema`, `resetPasswordSchema`, `requestPasswordResetSchema`) and exported inferred types.
+  - Refactored `LoginPage`, `RegisterPage`, `ChangePasswordPage`, `ResetPasswordPage`, `RequestPasswordResetPage`: replaced per-field `useState` + manual `setSubmitting` + inline validation with `useForm<T>({ resolver: zodResolver(...) })`. `isSubmitting` from `formState` drives loading/disabled state automatically.
+  - Per-field inline validation errors shown under each input (with `id` + `aria-describedby` linkage). Server-level errors continue via `setError('root', ...)` or local `serverMsg` state.
+  - `PasswordInput` updated to use `forwardRef` so React Hook Form's `ref` callback reaches the underlying `<input>`.
+  - Added `.field-error` CSS primitive in `index.css` for per-field error text.
+  - All affected tests updated: per-field error message text, `aria-describedby` IDs updated to field-scoped values, sync assertions after async submit wrapped in `waitFor`.
+
 ## [0.47.0] - 2026-04-26
 ### Changed
 - **CLAUDE.md** refactored from a single monolithic file into a slim root file that `@`-imports three sub-files housed in `.claude/`: `commands.md` (all shell commands), `constraints.md` (non-obvious architectural constraints), and `maintenance.md` (doc update table). Claude Code skill definitions placed in `.claude/commands/` (`cicd.md`, `done.md`, `test.md`). `.gitignore` updated to track the `.claude/` directory while excluding `settings.local.json`.
