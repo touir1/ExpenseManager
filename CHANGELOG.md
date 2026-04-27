@@ -3,6 +3,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.50.0] - 2026-04-27
+### Refactor
+- Frontend dashboard: reorganized `src/` into a feature-first structure.
+  - **Common** (unchanged paths): `components/`, `hooks/`, `layouts/`, `services/api.service.ts`, `types/api.type.ts`, `constants/`, `styles/`.
+  - **`features/auth/`** expanded: `components/` (AuthCard, AuthPageHeader, ProtectedRoute, PublicOnlyRoute), `pages/` (LoginPage, RegisterPage, ChangePasswordPage, ResetPasswordPage, RequestPasswordResetPage + their tests), `services/authApi.service.ts`, `types/auth.type.ts`.
+  - **`features/dashboard/pages/`** (new): HomeDashboardPage, SettingsPage + their tests.
+  - **`features/public/pages/`** (new): HomePublicPage, NotFoundPage + their tests.
+  - All imports and test paths updated; 239 tests remain green.
+
 ## [0.49.0] - 2026-04-27
 ### Refactor
 - Frontend dashboard: extracted five shared components to eliminate SonarQube duplicate-code findings across the five auth pages.

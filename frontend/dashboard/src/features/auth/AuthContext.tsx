@@ -8,8 +8,8 @@ import {
   changePasswordRequest,
   resetPasswordRequest,
   requestPasswordResetRequest,
-} from '@/services/authApi.service'
-import type { AuthContextValue, User } from '@/types/auth.type'
+} from '@/features/auth/services/authApi.service'
+import type { AuthContextValue, User } from '@/features/auth/types/auth.type'
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 

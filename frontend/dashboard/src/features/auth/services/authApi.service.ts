@@ -1,6 +1,6 @@
 import { get, post } from '@/services/api.service'
 import type { ApiResponse } from '@/types/api.type'
-import type { User } from '@/types/auth.type'
+import type { User } from '@/features/auth/types/auth.type'
 
 const AUTH_BASE = '/api/users/auth'
 

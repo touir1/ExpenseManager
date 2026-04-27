@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import { render, screen } from '@testing-library/react'
-import HomeDashboardPage from '@/pages/HomeDashboardPage'
+import HomeDashboardPage from '@/features/dashboard/pages/HomeDashboardPage'
 
 const mockUseAuth = vi.fn()
 

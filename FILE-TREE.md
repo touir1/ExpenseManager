@@ -228,12 +228,10 @@ ExpenseManager/
 │           ├── router.tsx             — All <Routes> definitions
 │           ├── env.d.ts               — Vite env type declarations
 │           ├── vitest.d.ts            — Vitest type declarations
-│           ├── components/            — Shared reusable UI components
-│           │   ├── AuthCard.tsx        — Wraps auth pages in the auth-page/auth-card div structure
-│           │   ├── AuthPageHeader.tsx  — Page title + subtitle header used by all auth pages
+│           ├── components/            — Shared UI primitives (generic, cross-feature)
 │           │   ├── BackLink.tsx        — Back-arrow link with chevron SVG
 │           │   ├── FieldError.tsx      — Per-field error paragraph with role="alert"
-│           │   ├── PasswordInput.tsx   — Reusable password input with show/hide toggle button
+│           │   ├── PasswordInput.tsx   — Password input with show/hide toggle
 │           │   ├── PasswordStrength.tsx — Live password strength indicator (5-segment bar + checklist)
 │           │   ├── SubmitButton.tsx    — Submit button with spinner SVG and configurable labels
 │           │   ├── Toast.tsx           — Toast notification provider and hook
@@ -241,53 +239,64 @@ ExpenseManager/
 │           │       ├── PasswordInput.test.tsx
 │           │       ├── PasswordStrength.test.tsx
 │           │       └── Toast.test.tsx
-│           ├── constants/             — App-wide typed constants
-│           │   └── apiErrors.constant.ts — API_ERRORS: typed HTTP error message strings
+│           ├── constants/             — App-wide typed constants (used by shared services)
+│           │   └── apiErrors.constant.ts — API_ERRORS + BACKEND_ERROR_CODES
 │           ├── features/
-│           │   └── auth/              — Authentication feature (context + route guards)
-│           │       ├── AuthContext.tsx    — Cookie-based auth state; delegates HTTP to authApi.ts; session restored via GET /auth/session on load
-│           │       ├── auth.schemas.ts   — Zod schemas and inferred types for all five auth forms (login, register, changePassword, resetPassword, requestPasswordReset)
-│           │       ├── ProtectedRoute.tsx  — Redirects unauthenticated users to /login
-│           │       ├── PublicOnlyRoute.tsx — Redirects authenticated users to /dashboard
-│           │       └── __tests__/
-│           │           ├── AuthContext.test.tsx
-│           │           ├── ProtectedRoute.test.tsx
-│           │           └── PublicOnlyRoute.test.tsx
-│           ├── hooks/
+│           │   ├── auth/              — Authentication feature
+│           │   │   ├── components/
+│           │   │   │   ├── AuthCard.tsx         — Wraps auth pages in auth-page/auth-card divs
+│           │   │   │   ├── AuthPageHeader.tsx   — Page title + subtitle header
+│           │   │   │   ├── ProtectedRoute.tsx   — Redirects unauthenticated users to /login
+│           │   │   │   └── PublicOnlyRoute.tsx  — Redirects authenticated users to /dashboard
+│           │   │   ├── pages/
+│           │   │   │   ├── LoginPage.tsx
+│           │   │   │   ├── RegisterPage.tsx
+│           │   │   │   ├── ChangePasswordPage.tsx
+│           │   │   │   ├── ResetPasswordPage.tsx
+│           │   │   │   ├── RequestPasswordResetPage.tsx
+│           │   │   │   └── __tests__/
+│           │   │   │       ├── LoginPage.test.tsx
+│           │   │   │       ├── RegisterPage.test.tsx
+│           │   │   │       ├── ChangePasswordPage.test.tsx
+│           │   │   │       ├── ResetPasswordPage.test.tsx
+│           │   │   │       └── RequestPasswordResetPage.test.tsx
+│           │   │   ├── services/
+│           │   │   │   └── authApi.service.ts   — Auth HTTP functions (login, logout, register, change/reset password)
+│           │   │   ├── types/
+│           │   │   │   └── auth.type.ts         — User, AuthResult, AuthContextValue
+│           │   │   ├── AuthContext.tsx           — Cookie-based auth state; session restored via GET /auth/session on load
+│           │   │   ├── auth.schemas.ts           — Zod schemas and inferred types for all five auth forms
+│           │   │   └── __tests__/
+│           │   │       ├── AuthContext.test.tsx
+│           │   │       ├── ProtectedRoute.test.tsx
+│           │   │       └── PublicOnlyRoute.test.tsx
+│           │   ├── dashboard/         — Authenticated dashboard feature
+│           │   │   └── pages/
+│           │   │       ├── HomeDashboardPage.tsx — Dashboard home; shows user greeting and cards
+│           │   │       ├── SettingsPage.tsx       — Settings hub; links to sub-sections
+│           │   │       └── __tests__/
+│           │   │           ├── HomeDashboardPage.test.tsx
+│           │   │           └── SettingsPage.test.tsx
+│           │   └── public/            — Public (unauthenticated) pages
+│           │       └── pages/
+│           │           ├── HomePublicPage.tsx    — Public landing page
+│           │           ├── NotFoundPage.tsx      — 404 page; shown for any unmatched route
+│           │           └── __tests__/
+│           │               ├── HomePublicPage.test.tsx
+│           │               └── NotFoundPage.test.tsx
+│           ├── hooks/                 — Shared hooks
 │           │   └── usePageTitle.ts    — Sets document.title per page
-│           ├── layouts/               — Layout-level components
-│           │   ├── NavBar.tsx          — Auth-aware nav; uses NavLink for active-link highlighting; desktop + mobile responsive
+│           ├── layouts/               — App-wide layout components
+│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive
 │           │   └── __tests__/
 │           │       └── NavBar.test.tsx
-│           ├── pages/
-│           │   ├── HomePublicPage.tsx            — Public landing page
-│           │   ├── LoginPage.tsx                 — Login form; redirects to /dashboard on success
-│           │   ├── RegisterPage.tsx              — Registration form
-│           │   ├── HomeDashboardPage.tsx         — Authenticated dashboard; shows firstName
-│           │   ├── ChangePasswordPage.tsx        — Change password form
-│           │   ├── RequestPasswordResetPage.tsx  — Request password reset email
-│           │   ├── ResetPasswordPage.tsx         — Reset password with token from email
-│           │   ├── SettingsPage.tsx              — Settings hub page; links to sub-sections
-│           │   ├── NotFoundPage.tsx              — 404 page; shown for any unmatched route
-│           │   └── __tests__/
-│           │       ├── HomeDashboardPage.test.tsx
-│           │       ├── LoginPage.test.tsx
-│           │       ├── RegisterPage.test.tsx
-│           │       ├── HomePublicPage.test.tsx
-│           │       ├── ChangePasswordPage.test.tsx
-│           │       ├── SettingsPage.test.tsx
-│           │       ├── RequestPasswordResetPage.test.tsx
-│           │       ├── ResetPasswordPage.test.tsx
-│           │       └── NotFoundPage.test.tsx
-│           ├── services/              — API layer
-│           │   ├── api.service.ts     — Base API client; fetch wrapper with cookie auth, error handling, and skipUnauthorized option
-│           │   ├── authApi.service.ts — Auth HTTP functions (login, logout, register, change/reset password); used by AuthContext
+│           ├── services/              — Shared base services
+│           │   ├── api.service.ts     — Base fetch wrapper with cookie auth, error handling, and skipUnauthorized option
 │           │   └── __tests__/
 │           │       └── api.test.ts
 │           ├── styles/
 │           │   └── index.css          — Tailwind directives + @layer components
 │           └── types/                 — Shared TypeScript type definitions
-│               ├── auth.type.ts        — User, AuthContextValue
 │               └── api.type.ts         — ApiResponse<T>
 │
 ├── infrastructure/

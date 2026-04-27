@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { render, screen } from '@testing-library/react'
-import PublicOnlyRoute from '@/features/auth/PublicOnlyRoute'
+import PublicOnlyRoute from '@/features/auth/components/PublicOnlyRoute'
 
 const mockUseAuth = vi.fn()
 
