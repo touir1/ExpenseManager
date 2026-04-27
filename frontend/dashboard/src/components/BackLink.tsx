@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-export default function BackLink({ to, children }: { to: string; children: React.ReactNode }) {
+export default function BackLink({ to, children }: Readonly<{ to: string; children: React.ReactNode }>) {
   return (
     <Link
       to={to}

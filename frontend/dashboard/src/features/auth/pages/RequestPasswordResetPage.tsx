@@ -5,7 +5,7 @@ import { useToast } from '@/components/Toast'
 import AuthCard from '@/features/auth/components/AuthCard'
 import AuthPageHeader from '@/features/auth/components/AuthPageHeader'
 import SubmitButton from '@/components/SubmitButton'
-import FieldError from '@/components/FieldError'
+import EmailField from '@/features/auth/components/EmailField'
 import BackLink from '@/components/BackLink'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { requestPasswordResetSchema, type RequestPasswordResetFormData } from '@/features/auth/auth.schemas'
@@ -40,23 +40,12 @@ export default function RequestPasswordResetPage() {
       />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-        <div>
-          <label htmlFor="email" className="field-label">Email address</label>
-          <input
-            id="email"
-            type="email"
-            autoComplete="email"
-            autoFocus
-            {...register('email')}
-            required
-            disabled={isSubmitting}
-            className="field-input"
-            placeholder="you@example.com"
-            aria-describedby={errors.email ? 'email-error' : undefined}
-            aria-invalid={!!errors.email}
-          />
-          <FieldError id="email-error" message={errors.email?.message} />
-        </div>
+        <EmailField
+          registration={register('email')}
+          error={errors.email?.message}
+          isSubmitting={isSubmitting}
+          autoFocus
+        />
 
         <SubmitButton isSubmitting={isSubmitting} label="Send reset link" loadingLabel="Sending…" />
       </form>

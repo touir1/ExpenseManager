@@ -1,4 +1,4 @@
-export default function AuthPageHeader({ title, subtitle }: { title: string; subtitle: string }) {
+export default function AuthPageHeader({ title, subtitle }: Readonly<{ title: string; subtitle: string }>) {
   return (
     <div className="mb-7">
       <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">{title}</h1>

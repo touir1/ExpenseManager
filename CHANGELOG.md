@@ -3,6 +3,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.51.0] - 2026-04-27
+### Refactor
+- Frontend dashboard: resolved SonarQube quality-gate findings.
+  - Extracted shared `EmailField` component (`features/auth/components/EmailField.tsx`) to eliminate duplicated email-field JSX block between `LoginPage` and `RequestPasswordResetPage`.
+  - Marked props as read-only (`Readonly<>` / `readonly`) in `BackLink`, `FieldError`, `SubmitButton`, `AuthCard`, and `AuthPageHeader`.
+
 ## [0.50.0] - 2026-04-27
 ### Refactor
 - Frontend dashboard: reorganized `src/` into a feature-first structure.

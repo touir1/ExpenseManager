@@ -1,8 +1,8 @@
 interface SubmitButtonProps {
-  isSubmitting: boolean
-  label: string
-  loadingLabel?: string
-  disabled?: boolean
+  readonly isSubmitting: boolean
+  readonly label: string
+  readonly loadingLabel?: string
+  readonly disabled?: boolean
 }
 
 export default function SubmitButton({ isSubmitting, label, loadingLabel = 'Loading…', disabled }: SubmitButtonProps) {

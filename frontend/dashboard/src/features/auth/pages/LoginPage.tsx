@@ -6,6 +6,7 @@ import { useToast } from '@/components/Toast'
 import PasswordInput from '@/components/PasswordInput'
 import AuthCard from '@/features/auth/components/AuthCard'
 import AuthPageHeader from '@/features/auth/components/AuthPageHeader'
+import EmailField from '@/features/auth/components/EmailField'
 import SubmitButton from '@/components/SubmitButton'
 import FieldError from '@/components/FieldError'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -36,23 +37,12 @@ export default function LoginPage() {
       <AuthPageHeader title="Welcome back" subtitle="Sign in to your account to continue." />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-        <div>
-          <label htmlFor="email" className="field-label">Email address</label>
-          <input
-            id="email"
-            type="email"
-            autoComplete="email"
-            autoFocus
-            {...register('email')}
-            required
-            disabled={isSubmitting}
-            className="field-input"
-            placeholder="you@example.com"
-            aria-describedby={errors.email ? 'email-error' : undefined}
-            aria-invalid={!!errors.email}
-          />
-          <FieldError id="email-error" message={errors.email?.message} />
-        </div>
+        <EmailField
+          registration={register('email')}
+          error={errors.email?.message}
+          isSubmitting={isSubmitting}
+          autoFocus
+        />
 
         <div>
           <label htmlFor="password" className="field-label">Password</label>

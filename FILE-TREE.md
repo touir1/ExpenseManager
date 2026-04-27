@@ -246,6 +246,7 @@ ExpenseManager/
 │           │   │   ├── components/
 │           │   │   │   ├── AuthCard.tsx         — Wraps auth pages in auth-page/auth-card divs
 │           │   │   │   ├── AuthPageHeader.tsx   — Page title + subtitle header
+│           │   │   │   ├── EmailField.tsx       — Shared email input field for auth forms
 │           │   │   │   ├── ProtectedRoute.tsx   — Redirects unauthenticated users to /login
 │           │   │   │   └── PublicOnlyRoute.tsx  — Redirects authenticated users to /dashboard
 │           │   │   ├── pages/
