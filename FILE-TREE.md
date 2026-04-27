@@ -229,8 +229,13 @@ ExpenseManager/
 │           ├── env.d.ts               — Vite env type declarations
 │           ├── vitest.d.ts            — Vitest type declarations
 │           ├── components/            — Shared reusable UI components
+│           │   ├── AuthCard.tsx        — Wraps auth pages in the auth-page/auth-card div structure
+│           │   ├── AuthPageHeader.tsx  — Page title + subtitle header used by all auth pages
+│           │   ├── BackLink.tsx        — Back-arrow link with chevron SVG
+│           │   ├── FieldError.tsx      — Per-field error paragraph with role="alert"
 │           │   ├── PasswordInput.tsx   — Reusable password input with show/hide toggle button
 │           │   ├── PasswordStrength.tsx — Live password strength indicator (5-segment bar + checklist)
+│           │   ├── SubmitButton.tsx    — Submit button with spinner SVG and configurable labels
 │           │   ├── Toast.tsx           — Toast notification provider and hook
 │           │   └── __tests__/
 │           │       ├── PasswordInput.test.tsx

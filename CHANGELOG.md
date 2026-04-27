@@ -3,6 +3,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.49.0] - 2026-04-27
+### Refactor
+- Frontend dashboard: extracted five shared components to eliminate SonarQube duplicate-code findings across the five auth pages.
+  - `AuthCard` — wraps the `auth-page` / `auth-card` div structure.
+  - `AuthPageHeader` — renders the `<h1>` + subtitle paragraph.
+  - `SubmitButton` — submit button with built-in spinner SVG and configurable labels.
+  - `FieldError` — per-field error `<p>` with `role="alert"` and scoped `id`.
+  - `BackLink` — back-arrow `<Link>` with inline SVG chevron.
+  - All five pages (`LoginPage`, `RegisterPage`, `RequestPasswordResetPage`, `ResetPasswordPage`, `ChangePasswordPage`) updated to use these components.
+
 ## [0.48.0] - 2026-04-26
 ### Changed
 - Frontend dashboard: Phase 1 library adoption — React Hook Form + Zod across all five auth pages.
