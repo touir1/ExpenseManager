@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, R
 import { onUnauthorized } from '@/services/api.service'
 import {
   sessionCheck,
+  refreshRequest,
   loginRequest,
   logoutRequest,
   registerRequest,
@@ -21,47 +22,43 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('auth:user') ?? sessionStorage.getItem('auth:user')
-    if (!storedUser) {
-      setIsLoading(false)
-      return
-    }
-    sessionCheck().then(({ ok }) => {
-      if (ok) {
-        try {
-          setUser(JSON.parse(storedUser))
+    async function restore() {
+      const res = await sessionCheck()
+      if (res.ok && res.data) {
+        setUser(res.data)
+        setIsAuthenticated(true)
+        setIsLoading(false)
+        return
+      }
+      // Access token may be expired — try refresh token
+      const refreshed = await refreshRequest()
+      if (refreshed.ok) {
+        const retry = await sessionCheck()
+        if (retry.ok && retry.data) {
+          setUser(retry.data)
           setIsAuthenticated(true)
-        } catch {
-          localStorage.removeItem('auth:user')
-          sessionStorage.removeItem('auth:user')
         }
-      } else {
-        localStorage.removeItem('auth:user')
-        sessionStorage.removeItem('auth:user')
       }
       setIsLoading(false)
-    })
+    }
+    restore()
   }, [])
 
   useEffect(() => {
     onUnauthorized(() => {
       setUser(null)
       setIsAuthenticated(false)
-      localStorage.removeItem('auth:user')
-      sessionStorage.removeItem('auth:user')
       window.location.assign('/login')
     })
     return () => onUnauthorized(null)
   }, [])
 
   const login = useCallback<AuthContextValue['login']>(async (email, password, rememberMe = false) => {
-    const res = await loginRequest(email, password, APPLICATION_CODE)
+    const res = await loginRequest(email, password, APPLICATION_CODE, rememberMe)
     if (res.ok) {
       const userData = res.data?.user ?? { email }
       setUser(userData)
       setIsAuthenticated(true)
-      const storage = rememberMe ? localStorage : sessionStorage
-      storage.setItem('auth:user', JSON.stringify(userData))
       return { ok: true }
     }
     return { ok: false, error: res.error }
@@ -71,8 +68,6 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     logoutRequest().catch(() => {})
     setUser(null)
     setIsAuthenticated(false)
-    localStorage.removeItem('auth:user')
-    sessionStorage.removeItem('auth:user')
   }, [])
 
   const register = useCallback<AuthContextValue['register']>(async (firstName, lastName, email) => {

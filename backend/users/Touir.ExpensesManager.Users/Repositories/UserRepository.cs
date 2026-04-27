@@ -18,6 +18,11 @@ namespace Touir.ExpensesManager.Users.Repositories
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == lowerEmail);
         }
 
+        public async Task<User?> GetUserByIdAsync(int id)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+        }
+
         public async Task<User?> CreateUserAsync(User user)
         {
             user.Email = user.Email?.ToLowerInvariant();

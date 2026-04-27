@@ -135,13 +135,14 @@ ExpenseManager/
 │       │   │   ├── AllowedOrigin.cs
 │       │   │   ├── Application.cs
 │       │   │   ├── Authentication.cs
+│       │   │   ├── RefreshToken.cs              — Opaque refresh token entity (RTK_RefreshTokens)
 │       │   │   ├── RequestAccess.cs
 │       │   │   ├── Role.cs
 │       │   │   ├── RoleRequestAccess.cs
 │       │   │   ├── User.cs
 │       │   │   └── UserRole.cs
 │       │   ├── Controllers/
-│       │   │   ├── AuthenticationController.cs  — Login (sets HttpOnly cookie), logout, session check, register, change/reset password, auth check
+│       │   │   ├── AuthenticationController.cs  — Login (sets auth_token + refresh_token cookies), logout, session (returns user data), refresh, register, change/reset password, auth check
 │       │   │   ├── EO/
 │       │   │   │   ├── ApplicationEo.cs
 │       │   │   │   ├── RoleEo.cs
@@ -149,30 +150,35 @@ ExpenseManager/
 │       │   │   ├── Requests/
 │       │   │   │   ├── ChangePasswordRequest.cs        — Requires Email, OldPassword, NewPassword, ConfirmPassword
 │       │   │   │   ├── ChangePasswordResetRequest.cs
-│       │   │   │   ├── LoginRequest.cs
+│       │   │   │   ├── LoginRequest.cs          — Email, Password, ApplicationCode, RememberMe
 │       │   │   │   ├── RegisterRequest.cs
 │       │   │   │   └── RequestPasswordResetRequest.cs
 │       │   │   └── Responses/
 │       │   │       ├── ErrorResponse.cs
-│       │   │       ├── LoginResponse.cs        — Returns Token, User (UserEo), Roles
+│       │   │       ├── LoginResponse.cs        — Returns User (UserEo) and Roles (token is cookie-only)
+│       │   │       ├── SessionResponse.cs      — Returns Email, FirstName, LastName from JWT claims
 │       │   │       └── RegisterResponse.cs
 │       │   ├── Repositories/
 │       │   │   ├── ApplicationRepository.cs
 │       │   │   ├── AuthenticationRepository.cs
+│       │   │   ├── RefreshTokenRepository.cs    — CRUD for RTK_RefreshTokens
 │       │   │   ├── RoleRepository.cs
 │       │   │   ├── UserRepository.cs
 │       │   │   └── Contracts/
 │       │   │       ├── IApplicationRepository.cs
 │       │   │       ├── IAuthenticationRepository.cs
+│       │   │       ├── IRefreshTokenRepository.cs
 │       │   │       ├── IRoleRepository.cs
 │       │   │       └── IUserRepository.cs
 │       │   ├── Services/
 │       │   │   ├── ApplicationService.cs
-│       │   │   ├── AuthenticationService.cs    — JWT generation and validation (claims: sub, email, jti); token is delivered as HttpOnly cookie by the controller
+│       │   │   ├── AuthenticationService.cs    — JWT generation (claims: sub, email, givenName, surname, jti) and validation; token delivered as HttpOnly cookie by controller
+│       │   │   ├── RefreshTokenService.cs       — Generates and validates opaque refresh tokens (DB-backed)
 │       │   │   ├── RoleService.cs
 │       │   │   └── Contracts/
 │       │   │       ├── IApplicationService.cs
 │       │   │       ├── IAuthenticationService.cs
+│       │   │       ├── IRefreshTokenService.cs
 │       │   │       └── IRoleService.cs
 │       │   └── Migrations/
 │       │       ├── 20251227165426_InitialCreate.cs
@@ -183,6 +189,7 @@ ExpenseManager/
 │       │       ├── 20260101174904_SetResetPasswordUrlApplication.cs
 │       │       ├── 20260323120000_UpdateApplicationUrls.cs — Updates APP_UrlPath and APP_ResetPasswordUrlPath from localhost:5173 to localhost (nginx)
 │       │       ├── 20260412165435_FixResetPasswordUrl.cs — Sets APP_ResetPasswordUrlPath to host-agnostic relative path /reset-password
+│       │       ├── AddRefreshTokens.cs          — Creates RTK_RefreshTokens table
 │       │       └── UsersAppDbContextModelSnapshot.cs
 │       └── Touir.ExpensesManager.Users.Tests/
 │           ├── Touir.ExpensesManager.Users.Tests.csproj
@@ -265,7 +272,7 @@ ExpenseManager/
 │           │   │   │   └── authApi.service.ts   — Auth HTTP functions (login, logout, register, change/reset password)
 │           │   │   ├── types/
 │           │   │   │   └── auth.type.ts         — User, AuthResult, AuthContextValue
-│           │   │   ├── AuthContext.tsx           — Cookie-based auth state; session restored via GET /auth/session on load
+│           │   │   ├── AuthContext.tsx           — Cookie-based auth state; session restored via GET /auth/session (falls back to POST /auth/refresh); no localStorage/sessionStorage
 │           │   │   ├── auth.schemas.ts           — Zod schemas and inferred types for all five auth forms
 │           │   │   └── __tests__/
 │           │   │       ├── AuthContext.test.tsx
@@ -292,7 +299,7 @@ ExpenseManager/
 │           │   └── __tests__/
 │           │       └── NavBar.test.tsx
 │           ├── services/              — Shared base services
-│           │   ├── api.service.ts     — Base fetch wrapper with cookie auth, error handling, and skipUnauthorized option
+│           │   ├── api.service.ts     — Base fetch wrapper with cookie auth, transparent refresh-and-retry on 401, and skipUnauthorized option
 │           │   └── __tests__/
 │           │       └── api.test.ts
 │           ├── styles/

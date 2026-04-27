@@ -63,7 +63,7 @@ The dashboard currently uses vanilla `fetch`, React Hook Form + Zod for auth for
 ## Backend — Suggestions
 
 ### Users service
-- **Refresh token**: The current design issues a single JWT with no refresh token. Long-lived sessions become stale; add a refresh-token flow (`POST /auth/refresh`) to extend sessions without re-authentication.
+- ✅ **Refresh token**: Implemented in v0.52.0 — `POST /auth/refresh` endpoint with DB-backed opaque tokens, cookie rotation, and transparent frontend retry on 401.
 - **Account lockout**: After N consecutive failed login attempts for a given email, lock the account for a time window and notify the user by email.
 - **Email change**: There is no endpoint to update an account's email address. Add a `PUT /users/email` flow with re-verification.
 - **`GET /auth/session` performance**: The session-check endpoint is called on every SPA load. Ensure the JWT validation path is lightweight (no DB hit on happy-path).

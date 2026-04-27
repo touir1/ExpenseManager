@@ -21,9 +21,10 @@ Service runs on port **9100** by default. Configuration via `appsettings.json` a
 ## Key Endpoints
 
 Public (no auth required, accessible via `/api/users/auth/` through nginx):
-- `POST /auth/login` — Authenticate user; sets `auth_token` as an `HttpOnly; Secure; SameSite=Strict` cookie and returns user info
-- `POST /auth/logout` — Clear the `auth_token` cookie
-- `GET  /auth/session` — Validate the `auth_token` cookie; returns 200 if valid, 401 otherwise (used for session restore on page load)
+- `POST /auth/login` — Authenticate user; sets `auth_token` + `refresh_token` as `HttpOnly; Secure; SameSite=Strict` cookies; `RememberMe=true` → persistent cookies with `Expires`, `false` → session cookies
+- `POST /auth/logout` — Revoke refresh token and delete both `auth_token` + `refresh_token` cookies
+- `GET  /auth/session` — Validate `auth_token` cookie; returns `{ email, firstName, lastName }` from JWT claims if valid, 401 otherwise (used for session restore on page load)
+- `POST /auth/refresh` — Validate `refresh_token` cookie, issue new `auth_token`, rotate `refresh_token` (used transparently by the frontend on 401)
 - `POST /auth/register` — User registration
 - `GET  /auth/validate-email` — Verify email from link
 - `POST /auth/request-password-reset` — Send reset email
@@ -51,7 +52,7 @@ For local development, [Mailpit](https://mailpit.axllent.org/) is included in th
 
 ## Database Schema
 
-Manages tables: `USR_Users`, `ATH_Authentications`, `RLE_Roles`, `APP_Applications`, `RQA_RequestAccesses`, `RRA_RoleRequestAccesses`, `URR_UserRoles`, `ALW_AllowedOrigins`
+Manages tables: `USR_Users`, `ATH_Authentications`, `RLE_Roles`, `APP_Applications`, `RQA_RequestAccesses`, `RRA_RoleRequestAccesses`, `URR_UserRoles`, `ALW_AllowedOrigins`, `RTK_RefreshTokens`
 
 Migrations are applied automatically at startup via `db.Database.MigrateAsync()`.
 

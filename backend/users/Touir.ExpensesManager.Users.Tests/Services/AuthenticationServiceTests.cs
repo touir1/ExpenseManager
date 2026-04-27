@@ -143,7 +143,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         public void GenerateJwtToken_ReturnsValidToken()
         {
             var service = CreateService();
-            var token = service.GenerateJwtToken(1, "test@test.com");
+            var token = service.GenerateJwtToken(1, "test@test.com", "John", "Doe");
 
             Assert.False(string.IsNullOrWhiteSpace(token));
         }
@@ -152,7 +152,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         public void ValidateToken_ReturnsValid_ForValidToken()
         {
             var service = CreateService();
-            var token = service.GenerateJwtToken(1, "test@test.com");
+            var token = service.GenerateJwtToken(1, "test@test.com", "John", "Doe");
             var result = service.ValidateToken(token);
 
             Assert.True(result.IsValid);

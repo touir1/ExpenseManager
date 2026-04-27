@@ -3,6 +3,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.52.0] - 2026-04-28
+### Added
+- **Backend (users):** Refresh token flow — `POST /auth/refresh` issues a new `auth_token` cookie and rotates the `refresh_token` cookie using a DB-backed opaque token (`RTK_RefreshTokens` table).
+  - `RefreshToken` model, `IRefreshTokenRepository` / `RefreshTokenRepository`, `IRefreshTokenService` / `RefreshTokenService`.
+  - `JwtAuthOptions` extended with `RefreshExpiryInDays` (default 7).
+  - Migration `AddRefreshTokens` adds `RTK_RefreshTokens` table.
+  - `LoginRequest` gains `RememberMe` bool: `true` → persistent cookies with `Expires`; `false` → session cookies (cleared on browser close).
+  - Both `auth_token` and `refresh_token` cookies set on login / rotated on refresh / deleted on logout.
+  - `GET /auth/session` now returns `{ email, firstName, lastName }` extracted from JWT claims (no DB hit).
+  - `GenerateJwtToken` extended with `GivenName` and `Surname` claims.
+  - `LoginResponse.Token` removed — token is cookie-only; `IUserRepository.GetUserByIdAsync` added.
+- **Frontend (dashboard):** Pure cookie-based auth state — no more `localStorage` / `sessionStorage` for user data.
+  - `AuthContext.tsx`: on mount calls `GET /auth/session`; falls back to `POST /auth/refresh` then retries session check if access token is expired; no storage reads/writes anywhere.
+  - `api.service.ts`: transparent refresh-and-retry on 401 for all non-`skipUnauthorized` requests (deduplicates concurrent refreshes).
+  - `authApi.service.ts`: `sessionCheck` returns `User` data; new `refreshRequest`; `loginRequest` accepts `rememberMe`.
+  - `auth.type.ts`: `User` type now includes `lastName`.
+
 ## [0.51.0] - 2026-04-27
 ### Refactor
 - Frontend dashboard: resolved SonarQube quality-gate findings.

@@ -6,18 +6,23 @@ const AUTH_BASE = '/api/users/auth'
 
 export type LoginResponse = { user?: User }
 
-export function sessionCheck(): Promise<ApiResponse<void>> {
-  return get<void>(`${AUTH_BASE}/session`)
+export function sessionCheck(): Promise<ApiResponse<User>> {
+  return get<User>(`${AUTH_BASE}/session`, { skipUnauthorized: true })
+}
+
+export function refreshRequest(): Promise<ApiResponse<void>> {
+  return post<void>(`${AUTH_BASE}/refresh`, {}, { skipUnauthorized: true })
 }
 
 export function loginRequest(
   email: string,
   password: string,
-  applicationCode: string
+  applicationCode: string,
+  rememberMe: boolean
 ): Promise<ApiResponse<LoginResponse>> {
   return post<LoginResponse>(
     `${AUTH_BASE}/login`,
-    { email, password, applicationCode },
+    { email, password, applicationCode, rememberMe },
     { skipUnauthorized: true }
   )
 }

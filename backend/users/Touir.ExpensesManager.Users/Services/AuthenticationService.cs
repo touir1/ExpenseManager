@@ -77,7 +77,7 @@ namespace Touir.ExpensesManager.Users.Services
             };
         }
 
-        public string GenerateJwtToken(int userId, string userEmail)
+        public string GenerateJwtToken(int userId, string userEmail, string? userFirstName, string? userLastName)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -86,6 +86,8 @@ namespace Touir.ExpensesManager.Users.Services
             {
                 new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
                 new Claim(ClaimTypes.Email, userEmail),
+                new Claim(ClaimTypes.GivenName, userFirstName ?? string.Empty),
+                new Claim(ClaimTypes.Surname, userLastName ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 

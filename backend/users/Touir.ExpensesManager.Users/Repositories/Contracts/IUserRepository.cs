@@ -5,6 +5,7 @@ namespace Touir.ExpensesManager.Users.Repositories.Contracts
     public interface IUserRepository
     {
         Task<User?> GetUserByEmailAsync(string email);
+        Task<User?> GetUserByIdAsync(int id);
         Task<User?> CreateUserAsync(User user);
         Task<bool?> DeleteUserAsync(User user);
         Task<IList<string>> GetUsedEmailValidationHashesAsync();

@@ -6,5 +6,6 @@
         public string Issuer { get; set; }
         public string Audience { get; set; }
         public int ExpiryInMinutes { get; set; }
+        public int RefreshExpiryInDays { get; set; } = 7;
     }
 }

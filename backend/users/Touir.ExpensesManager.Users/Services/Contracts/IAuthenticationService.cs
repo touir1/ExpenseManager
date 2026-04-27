@@ -6,7 +6,7 @@ namespace Touir.ExpensesManager.Users.Services.Contracts
     public interface IAuthenticationService
     {
         Task<UserEo?> AuthenticateAsync(string email, string password);
-        string GenerateJwtToken(int userId, string userEmail);
+        string GenerateJwtToken(int userId, string userEmail, string? userFirstName, string? userLastName);
         TokenValidationResult ValidateToken(string token);
         Task<IEnumerable<string>> RegisterNewUserAsync(string firstname, string lastname, string email, string? applicationCode);
         Task<bool> ValidateEmailAsync(string emailVerificationHash, string email);

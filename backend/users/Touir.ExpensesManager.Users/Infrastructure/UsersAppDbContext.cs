@@ -14,6 +14,7 @@ namespace Touir.ExpensesManager.Users.Infrastructure
         public DbSet<RequestAccess> RequestAccesses { get; set; }
         public DbSet<RoleRequestAccess> RoleRequestAccesses { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -165,6 +166,28 @@ namespace Touir.ExpensesManager.Users.Infrastructure
                     .WithMany(r => r.UserRoles)
                     .HasForeignKey(x => x.RoleId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<RefreshToken>(entity =>
+            {
+                entity.ToTable("RTK_RefreshTokens");
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Id).HasColumnName("RTK_Id").UseIdentityAlwaysColumn();
+                entity.Property(x => x.Token).HasColumnName("RTK_Token").IsRequired();
+                entity.Property(x => x.UserId).HasColumnName("RTK_UserId");
+                entity.Property(x => x.ExpiresAt).HasColumnName("RTK_ExpiresAt");
+                entity.Property(x => x.CreatedAt).HasColumnName("RTK_CreatedAt");
+                entity.Property(x => x.RevokedAt).HasColumnName("RTK_RevokedAt");
+
+                entity.Ignore(x => x.IsActive);
+
+                entity.HasIndex(x => x.Token).IsUnique();
+
+                entity.HasOne(x => x.User)
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<AllowedOrigin>(entity =>
