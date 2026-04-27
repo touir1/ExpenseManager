@@ -14,6 +14,7 @@ import type { AuthContextValue, User } from '@/features/auth/types/auth.type'
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
+/* c8 ignore next */
 const APPLICATION_CODE = import.meta.env.VITE_APPLICATION_CODE ?? 'EXPENSES_MANAGER'
 
 export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {

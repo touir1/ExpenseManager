@@ -24,7 +24,7 @@ export default function LoginPage() {
   })
 
   const onSubmit = async (data: LoginFormData) => {
-    const { ok } = await login(data.email, data.password, data.rememberMe ?? false)
+    const { ok } = await login(data.email, data.password, Boolean(data.rememberMe))
     if (!ok) {
       show('Invalid credentials. Please try again.', 'error')
       return

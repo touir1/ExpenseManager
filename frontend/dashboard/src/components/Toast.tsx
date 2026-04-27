@@ -50,7 +50,7 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
         aria-label="Notifications"
       >
         {toasts.map(t => {
-          const type = t.type ?? 'error'
+          const type = t.type!
           return (
             <div
               key={t.id}

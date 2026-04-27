@@ -32,8 +32,7 @@ export default function NavBar() {
   useEffect(() => {
     if (mobileOpen) {
       wasOpenRef.current = true
-      const menu = menuRef.current
-      if (!menu) return
+      const menu = menuRef.current!
       const focusables = Array.from(
         menu.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')
       )

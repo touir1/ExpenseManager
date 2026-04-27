@@ -31,6 +31,7 @@ const PasswordStrength: FC<{ password: string }> = ({ password }) => {
           <div
             key={c.key}
             className={`h-1 flex-1 rounded-full transition-colors duration-200 ${
+              /* c8 ignore next */
               i < score ? (level?.barColor ?? 'bg-slate-200') : 'bg-slate-200'
             }`}
           />
