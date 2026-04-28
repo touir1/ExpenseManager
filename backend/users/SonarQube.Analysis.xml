@@ -6,10 +6,10 @@
   <Property Name="sonar.projectName">Expense Manager - Backend - Users</Property>
 
   <!-- Exclusions for analysis -->
-  <Property Name="sonar.exclusions">**/obj/**,**/bin/**,**/*.Designer.cs,**/*.g.cs,**/Migrations/**</Property>
+  <Property Name="sonar.exclusions">**/obj/**,**/bin/**,**/*.Designer.cs,**/*.g.cs,**/Migrations/**,**/Assets/**</Property>
 
   <!-- Exclusions for coverage -->
-  <Property Name="sonar.coverage.exclusions">**/Program.cs,**/Startup.cs,Infrastructure/EmailHTMLTemplate.cs,**/Migrations/**,**/EO/**,**/Requests/**,**/Responses/**,**/Options/**,**/Models/**,**/*.Designer.cs,**/*.g.cs</Property>
+  <Property Name="sonar.coverage.exclusions">**/Program.cs,**/Startup.cs,Infrastructure/EmailHTMLTemplate.cs,**/Migrations/**,**/EO/**,**/Requests/**,**/Responses/**,**/Options/**,**/Models/**,**/*.Designer.cs,**/*.g.cs,**/Assets/**</Property>
 
   <!-- Coverage report path -->
   <Property Name="sonar.cs.opencover.reportsPaths">coverage/**/*.opencover.xml</Property>

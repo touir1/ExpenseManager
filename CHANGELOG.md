@@ -3,6 +3,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.61.0] - 2026-04-29
+### Fixed
+- **CI (users):** SonarQube job was crashing with an OOM error in the JS/HTML bridge server while parsing email template files.
+  - Added `**/Assets/**` to `sonar.exclusions` and `sonar.coverage.exclusions` in `backend/users/SonarQube.Analysis.xml`.
+  - Email templates contain no analyzable source code; excluding them is correct and prevents the bridge from exhausting memory on large inline HTML/CSS.
+
+### Changed
+- **Backend (users) — Email templates:** Aligned `EMAIL_VERIFICATION_TEMPLATE.html` to match the style of `PASSWORD_RESET_TEMPLATE.html`.
+  - Unified body background (`#eef2f7`), wrapper/card layout, banner padding (`24px 20px`), heading size (`22px`), body padding (`32px 28px`), paragraph colors/line-height, CTA button style, `hr.divider`, and footer (`#f8fafc` background).
+  - Removed box-shadow and boilerplate Privacy Policy/Terms links from the verification template; corrected copyright to "Expenses Manager".
+
 ## [0.60.0] - 2026-04-28
 ### Refactored
 - **Backend (users):** Applied SRP to the authentication layer — split the monolithic `AuthenticationService` and `AuthenticationController` into focused, single-responsibility units.
