@@ -21,63 +21,37 @@ namespace Touir.ExpensesManager.Users.Controllers
         private const string ServerError = "SERVER_ERROR";
 
         private readonly IAuthenticationService _authenticationService;
+        private readonly IJwtTokenService _jwtTokenService;
         private readonly IRefreshTokenService _refreshTokenService;
         private readonly IUserRepository _userRepository;
         private readonly IRoleService _roleService;
-        private readonly IApplicationService _applicationService;
         private readonly JwtAuthOptions _jwtAuthOptions;
 
         public AuthenticationController(
             IAuthenticationService authenticationService,
+            IJwtTokenService jwtTokenService,
             IRefreshTokenService refreshTokenService,
             IUserRepository userRepository,
             IRoleService roleService,
-            IApplicationService applicationService,
             IOptions<JwtAuthOptions> jwtAuthOptions)
         {
             _authenticationService = authenticationService;
+            _jwtTokenService = jwtTokenService;
             _refreshTokenService = refreshTokenService;
             _userRepository = userRepository;
             _roleService = roleService;
-            _applicationService = applicationService;
             _jwtAuthOptions = jwtAuthOptions.Value;
-        }
-
-        [Route("register")]
-        [HttpPost]
-        public async Task<IActionResult> RegisterAsync(RegisterRequest request)
-        {
-            if (request == null)
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            if(string.IsNullOrWhiteSpace(request.FirstName) || string.IsNullOrWhiteSpace(request.LastName) || string.IsNullOrWhiteSpace(request.Email))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            try
-            {
-                var email = request.Email.ToLowerInvariant();
-                var errors = await _authenticationService.RegisterNewUserAsync(request.FirstName, request.LastName, email, request.ApplicationCode);
-                return Ok(new RegisterResponse
-                {
-                    Errors = errors,
-                    HasError = errors != null && errors.Any()
-                });
-            }
-            catch(Exception)
-            {
-                return BadRequest(new ErrorResponse { Message = ServerError });
-            }
         }
 
         [Route("login")]
         [HttpPost]
         public async Task<IActionResult> LoginAsync(LoginRequest request)
         {
-            if(request == null)
+            if (request == null)
                 return Unauthorized(new ErrorResponse { Message = MissingParameters });
 
             if (string.IsNullOrWhiteSpace(request.ApplicationCode) || string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
-                return Unauthorized(new ErrorResponse{ Message = MissingParameters });
+                return Unauthorized(new ErrorResponse { Message = MissingParameters });
 
             try
             {
@@ -90,7 +64,7 @@ namespace Touir.ExpensesManager.Users.Controllers
                 if (roles == null || !roles.Any())
                     return Unauthorized(new ErrorResponse { Message = "NO_ASSIGNED_ROLE" });
 
-                var accessToken = _authenticationService.GenerateJwtToken(user.Id!.Value, user.Email, user.FirstName, user.LastName);
+                var accessToken = _jwtTokenService.GenerateJwtToken(user.Id!.Value, user.Email, user.FirstName, user.LastName);
                 var rememberMe = request.RememberMe ?? false;
                 var refreshTokenValue = await _refreshTokenService.GenerateAsync(user.Id!.Value, rememberMe);
 
@@ -116,133 +90,6 @@ namespace Touir.ExpensesManager.Users.Controllers
                     })
                 });
             }
-            catch(Exception)
-            {
-                return BadRequest(new ErrorResponse { Message = ServerError });
-            }
-        }
-
-        /// <summary>
-        /// Verify email after registration
-        /// </summary>
-        /// <param name="emailVerificationHash">verification hash</param>
-        /// <param name="email">email source</param>
-        /// <param name="appCode">application code</param>
-        /// <returns></returns>
-        [Route("validate-email")]
-        [HttpGet]
-        public async Task<IActionResult> ValidateEmail(
-            [FromQuery(Name ="h")] string emailVerificationHash,
-            [FromQuery(Name = "s")] string email,
-            [FromQuery(Name = "app_code")] string appCode)
-        {
-            if(string.IsNullOrWhiteSpace(emailVerificationHash) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(appCode))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            try
-            {
-                ApplicationEo? app = await _applicationService.GetApplicationByCodeAsync(appCode);
-                if (app == null)
-                    return Unauthorized(new ErrorResponse { Message = "EMAIL_VERIFICATION_FAILED" });
-
-                var emailLower = email.ToLowerInvariant();
-                bool result = await _authenticationService.ValidateEmailAsync(emailVerificationHash, emailLower);
-                if (!result)
-                    return Unauthorized(new ErrorResponse { Message = "EMAIL_VERIFICATION_FAILED" });
-                return Redirect($"{app.ResetPasswordUrlPath}?email={Uri.EscapeDataString(emailLower)}&h={emailVerificationHash}&mode=create");
-            }
-            catch(Exception)
-            {
-                return BadRequest(new ErrorResponse { Message = ServerError });
-            }
-        }
-
-        [Route("change-password")]
-        [HttpPost]
-        public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
-        {
-            if (request == null)
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            // email is always mandatory for validation
-            if (string.IsNullOrWhiteSpace(request.Email))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            if (string.IsNullOrWhiteSpace(request.OldPassword))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            // New password and confirm password are always needed
-            if(string.IsNullOrWhiteSpace(request.NewPassword) || string.IsNullOrWhiteSpace(request.ConfirmPassword))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            if(!request.NewPassword.Equals(request.ConfirmPassword))
-                return Unauthorized(new ErrorResponse { Message = "NOT_MATCHING_CONFIRM_PASSWORD" });
-
-            try
-            {
-                var email = request.Email.ToLowerInvariant();
-                if(!(await _authenticationService.ChangePasswordAsync(email, request.OldPassword, request.NewPassword)))
-                    return Unauthorized(new ErrorResponse { Message = "SET_NEW_PASSWORD_FAILED" });
-
-                return Ok();
-            }
-            catch(Exception)
-            {
-                return BadRequest(new ErrorResponse { Message = ServerError });
-            }
-        }
-
-        [Route("request-password-reset")]
-        [HttpPost]
-        public async Task<IActionResult> RequestPasswordReset(RequestPasswordResetRequest request)
-        {
-            if (request == null)
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-            // email is always mandatory for validation
-            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.AppCode))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-            try
-            {
-                var email = request.Email.ToLowerInvariant();
-                if (!(await _authenticationService.RequestPasswordResetAsync(email, request.AppCode)))
-                    return Unauthorized(new ErrorResponse { Message = "REQUEST_PASSWORD_RESET_FAILED" });
-                return Ok();
-            }
-            catch (Exception)
-            {
-                return BadRequest(new ErrorResponse { Message = ServerError });
-            }
-        }
-
-        [Route("change-password-reset")]
-        [HttpPost]
-        public async Task<IActionResult> ChangePasswordReset(ChangePasswordResetRequest request)
-        {
-            if (request == null)
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            // email is always mandatory for validation
-            if (string.IsNullOrWhiteSpace(request.Email))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            if (string.IsNullOrWhiteSpace(request.VerificationHash))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            // New password and confirm password are always needed
-            if (string.IsNullOrWhiteSpace(request.NewPassword) || string.IsNullOrWhiteSpace(request.ConfirmPassword))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            if (!request.NewPassword.Equals(request.ConfirmPassword))
-                return Unauthorized(new ErrorResponse { Message = "NOT_MATCHING_CONFIRM_PASSWORD" });
-
-            try
-            {
-                var email = request.Email.ToLowerInvariant();
-                if (!(await _authenticationService.ResetPasswordAsync(email, request.VerificationHash, request.NewPassword)))
-                    return Unauthorized(new ErrorResponse { Message = "RESET_PASSWORD_FAILED" });
-
-                return Ok();
-            }
             catch (Exception)
             {
                 return BadRequest(new ErrorResponse { Message = ServerError });
@@ -266,7 +113,7 @@ namespace Touir.ExpensesManager.Users.Controllers
                 if (string.IsNullOrWhiteSpace(token))
                     return Unauthorized(new ErrorResponse { Message = "MISSING_TOKEN" });
 
-                var validationResult = _authenticationService.ValidateToken(token);
+                var validationResult = _jwtTokenService.ValidateToken(token);
 
                 if (!validationResult.IsValid)
                     return Unauthorized(new ErrorResponse { Message = "INVALID_TOKEN" });
@@ -289,7 +136,7 @@ namespace Touir.ExpensesManager.Users.Controllers
                 if (!Request.Cookies.TryGetValue(AuthTokenCookie, out var token) || string.IsNullOrWhiteSpace(token))
                     return Unauthorized(new ErrorResponse { Message = "MISSING_TOKEN" });
 
-                var validationResult = _authenticationService.ValidateToken(token);
+                var validationResult = _jwtTokenService.ValidateToken(token);
 
                 if (!validationResult.IsValid)
                     return Unauthorized(new ErrorResponse { Message = "INVALID_TOKEN" });
@@ -327,7 +174,7 @@ namespace Touir.ExpensesManager.Users.Controllers
                 // Rotate refresh token
                 await _refreshTokenService.RevokeAsync(refreshToken);
                 var newRefreshToken = await _refreshTokenService.GenerateAsync(userId, rememberMe: true);
-                var newAccessToken = _authenticationService.GenerateJwtToken(user.Id, user.Email, user.FirstName, user.LastName);
+                var newAccessToken = _jwtTokenService.GenerateJwtToken(user.Id, user.Email, user.FirstName, user.LastName);
 
                 var cookieOptions = BuildCookieOptions(rememberMe: true, _jwtAuthOptions.ExpiryInMinutes);
                 var refreshCookieOptions = BuildCookieOptions(rememberMe: true, _jwtAuthOptions.RefreshExpiryInDays * 24 * 60);

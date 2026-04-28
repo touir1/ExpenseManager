@@ -143,7 +143,9 @@ ExpenseManager/
 │       │   │   ├── User.cs
 │       │   │   └── UserRole.cs
 │       │   ├── Controllers/
-│       │   │   ├── AuthenticationController.cs  — Login (sets auth_token + refresh_token cookies), logout, session (returns user data), refresh, register, change/reset password, auth check
+│       │   │   ├── AuthenticationController.cs  — Login, logout, session, refresh, auth check (token ops via IJwtTokenService)
+│       │   │   ├── RegistrationController.cs    — Register, validate-email
+│       │   │   ├── PasswordController.cs        — Change-password, request-password-reset, change-password-reset
 │       │   │   ├── EO/
 │       │   │   │   ├── ApplicationEo.cs
 │       │   │   │   ├── RoleEo.cs
@@ -173,14 +175,20 @@ ExpenseManager/
 │       │   │       └── IUserRepository.cs
 │       │   ├── Services/
 │       │   │   ├── ApplicationService.cs
-│       │   │   ├── AuthenticationService.cs    — JWT generation (claims: sub, email, givenName, surname, jti) and validation; token delivered as HttpOnly cookie by controller
-│       │   │   ├── RefreshTokenService.cs       — Generates and validates opaque refresh tokens (DB-backed)
+│       │   │   ├── AuthenticationService.cs        — Credential verification only (AuthenticateAsync)
+│       │   │   ├── JwtTokenService.cs              — JWT generation (claims: sub, email, givenName, surname, jti) and validation
+│       │   │   ├── RegistrationService.cs          — User registration and email validation
+│       │   │   ├── PasswordManagementService.cs    — Change password, reset password, request password reset
+│       │   │   ├── RefreshTokenService.cs          — Generates and validates opaque refresh tokens (DB-backed)
 │       │   │   ├── RoleService.cs
-│       │   │   ├── UserRoleAssignmentService.cs — Assigns default application role to a newly registered user
+│       │   │   ├── UserRoleAssignmentService.cs    — Assigns default application role to a newly registered user
 │       │   │   └── Contracts/
 │       │   │       ├── IApplicationService.cs
 │       │   │       ├── IAuthenticationService.cs
+│       │   │       ├── IJwtTokenService.cs
+│       │   │       ├── IPasswordManagementService.cs
 │       │   │       ├── IRefreshTokenService.cs
+│       │   │       ├── IRegistrationService.cs
 │       │   │       ├── IRoleService.cs
 │       │   │       └── IUserRoleAssignmentService.cs
 │       │   └── Migrations/
@@ -199,7 +207,9 @@ ExpenseManager/
 │           ├── TestHelpers/
 │           │   └── TestDbContextWrapper.cs     — In-memory DB wrapper for tests
 │           ├── Controllers/
-│           │   └── AuthenticationControllerTests.cs
+│           │   ├── AuthenticationControllerTests.cs
+│           │   ├── PasswordControllerTests.cs
+│           │   └── RegistrationControllerTests.cs
 │           ├── Infrastructure/
 │           │   ├── CryptographyHelperTests.cs
 │           │   └── EmailHelperTests.cs
@@ -212,7 +222,10 @@ ExpenseManager/
 │           └── Services/
 │               ├── ApplicationServiceTests.cs
 │               ├── AuthenticationServiceTests.cs
+│               ├── JwtTokenServiceTests.cs
+│               ├── PasswordManagementServiceTests.cs
 │               ├── RefreshTokenServiceTests.cs
+│               ├── RegistrationServiceTests.cs
 │               ├── RoleServiceTests.cs
 │               └── UserRoleAssignmentServiceTests.cs
 │

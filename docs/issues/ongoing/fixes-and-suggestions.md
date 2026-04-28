@@ -60,6 +60,50 @@ The dashboard currently uses vanilla `fetch`, React Hook Form + Zod for auth for
 
 ---
 
+## Backend — SOLID / Architecture Refactors
+
+### SRP — Split `AuthenticationService` ✅ done
+
+`AuthenticationService` has been split into four focused classes. `AuthenticationController` has been split into three controllers.
+
+| Priority | Refactor | Status |
+|---|---|---|
+| High | Extract `RegistrationService` + `IRegistrationService` | ✅ done |
+| High | Extract `JwtTokenService` + `IJwtTokenService` | ✅ done |
+| High | Extract `PasswordManagementService` + `IPasswordManagementService` | ✅ done |
+| Medium | Split `AuthenticationController` into `AuthenticationController`, `RegistrationController`, `PasswordController` | ✅ done |
+
+### OCP — Abstract email dispatch
+
+Email sending logic is embedded directly in `AuthenticationService`. Adding a new email provider requires modifying the service.
+
+| Priority | Refactor | Files |
+|---|---|---|
+| Medium | Introduce `IEmailService` abstraction; move SMTP logic behind it | `Services/AuthenticationService.cs`, `Helpers/EmailHelper.cs` |
+
+### LSP — Fix nullable contract mismatches
+
+| Priority | Issue | File |
+|---|---|---|
+| Medium | `CreateUserAsync` returns `Task<User?>` — creation should return the entity or throw, not silently return null | `Repositories/Contracts/IUserRepository.cs` |
+| Low | `GetUserRolesByApplicationCodeAsync` returns null on null input without the contract reflecting this | `Services/RoleService.cs` |
+
+### ISP — Split fat interfaces
+
+| Priority | Refactor | Files |
+|---|---|---|
+| High | Split `IAuthenticationService` (7 mixed methods) into focused interfaces per concern | `Services/Contracts/IAuthenticationService.cs` |
+| Medium | Split `IEmailHelper` into `IEmailSender`, `IEmailValidator`, `IEmailTemplateProvider` | `Helpers/Contracts/IEmailHelper.cs` |
+
+### DIP — Replace concrete dependencies with abstractions
+
+| Priority | Refactor | Files |
+|---|---|---|
+| Medium | Inject `ITokenValidator` instead of building JWT validation logic inline | `Services/AuthenticationService.cs` |
+| Low | Depend on `IAuthOptions` abstraction instead of concrete `JwtAuthOptions` | `Controllers/AuthenticationController.cs` |
+
+---
+
 ## Backend — Suggestions
 
 ### Users service

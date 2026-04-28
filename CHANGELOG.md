@@ -3,6 +3,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.60.0] - 2026-04-28
+### Refactored
+- **Backend (users):** Applied SRP to the authentication layer — split the monolithic `AuthenticationService` and `AuthenticationController` into focused, single-responsibility units.
+  - `AuthenticationService` / `IAuthenticationService`: now contains only `AuthenticateAsync` (credential verification).
+  - `JwtTokenService` / `IJwtTokenService` (new): `GenerateJwtToken` + `ValidateToken`.
+  - `RegistrationService` / `IRegistrationService` (new): `RegisterNewUserAsync` + `ValidateEmailAsync` (+ private hash/email helpers).
+  - `PasswordManagementService` / `IPasswordManagementService` (new): `ChangePasswordAsync` + `ResetPasswordAsync` + `RequestPasswordResetAsync`.
+  - `AuthenticationController`: retains login, logout, check, session, refresh; now injects `IJwtTokenService` for token operations.
+  - `RegistrationController` (new): register + validate-email endpoints; injects `IRegistrationService`.
+  - `PasswordController` (new): change-password, request-password-reset, change-password-reset endpoints; injects `IPasswordManagementService`.
+  - `Program.cs`: registers the three new service types.
+  - Test files split accordingly: `AuthenticationServiceTests`, `JwtTokenServiceTests`, `RegistrationServiceTests`, `PasswordManagementServiceTests`, `AuthenticationControllerTests`, `RegistrationControllerTests`, `PasswordControllerTests`. Total test count unchanged: 208.
+
 ## [0.59.0] - 2026-04-28
 ### Fixed
 - **Backend (users) + Frontend:** Password reset email link was missing the `app_code` query parameter, causing a 400 validation error when clicking the link.
