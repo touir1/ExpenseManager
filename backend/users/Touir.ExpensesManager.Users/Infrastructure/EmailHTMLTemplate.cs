@@ -1,6 +1,6 @@
 ﻿namespace Touir.ExpensesManager.Users.Infrastructure
 {
-    public static class EmailHTMLTemplate
+    public static class EmailHtmlTemplate
     {
         public static class EmailVerification
         {

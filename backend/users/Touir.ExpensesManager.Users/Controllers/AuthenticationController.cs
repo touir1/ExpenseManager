@@ -17,6 +17,8 @@ namespace Touir.ExpensesManager.Users.Controllers
     {
         private const string AuthTokenCookie = "auth_token";
         private const string RefreshTokenCookie = "refresh_token";
+        private const string MissingParameters = "MISSING_PARAMETERS";
+        private const string ServerError = "SERVER_ERROR";
 
         private readonly IAuthenticationService _authenticationService;
         private readonly IRefreshTokenService _refreshTokenService;
@@ -46,10 +48,10 @@ namespace Touir.ExpensesManager.Users.Controllers
         public async Task<IActionResult> RegisterAsync(RegisterRequest request)
         {
             if (request == null)
-                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+                return Unauthorized(new ErrorResponse { Message = MissingParameters });
 
             if(string.IsNullOrWhiteSpace(request.FirstName) || string.IsNullOrWhiteSpace(request.LastName) || string.IsNullOrWhiteSpace(request.Email))
-                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+                return Unauthorized(new ErrorResponse { Message = MissingParameters });
 
             try
             {
@@ -63,7 +65,7 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
             catch(Exception)
             {
-                return BadRequest(new ErrorResponse { Message = "SERVER_ERROR" });
+                return BadRequest(new ErrorResponse { Message = ServerError });
             }
         }
 
@@ -72,10 +74,10 @@ namespace Touir.ExpensesManager.Users.Controllers
         public async Task<IActionResult> LoginAsync(LoginRequest request)
         {
             if(request == null)
-                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+                return Unauthorized(new ErrorResponse { Message = MissingParameters });
 
             if (string.IsNullOrWhiteSpace(request.ApplicationCode) || string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
-                return Unauthorized(new ErrorResponse{ Message = "MISSING_PARAMETERS" });
+                return Unauthorized(new ErrorResponse{ Message = MissingParameters });
 
             try
             {
@@ -116,7 +118,7 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
             catch(Exception)
             {
-                return BadRequest(new ErrorResponse { Message = "SERVER_ERROR" });
+                return BadRequest(new ErrorResponse { Message = ServerError });
             }
         }
 
@@ -135,11 +137,11 @@ namespace Touir.ExpensesManager.Users.Controllers
             [FromQuery(Name = "app_code")] string appCode)
         {
             if(string.IsNullOrWhiteSpace(emailVerificationHash) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(appCode))
-                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+                return Unauthorized(new ErrorResponse { Message = MissingParameters });
 
             try
             {
-                ApplicationEo app = await _applicationService.GetApplicationByCodeAsync(appCode);
+                ApplicationEo? app = await _applicationService.GetApplicationByCodeAsync(appCode);
                 if (app == null)
                     return Unauthorized(new ErrorResponse { Message = "EMAIL_VERIFICATION_FAILED" });
 
@@ -151,7 +153,7 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
             catch(Exception)
             {
-                return BadRequest(new ErrorResponse { Message = "SERVER_ERROR" });
+                return BadRequest(new ErrorResponse { Message = ServerError });
             }
         }
 
@@ -160,18 +162,18 @@ namespace Touir.ExpensesManager.Users.Controllers
         public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
         {
             if (request == null)
-                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+                return Unauthorized(new ErrorResponse { Message = MissingParameters });
 
             // email is always mandatory for validation
             if (string.IsNullOrWhiteSpace(request.Email))
-                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+                return Unauthorized(new ErrorResponse { Message = MissingParameters });
 
             if (string.IsNullOrWhiteSpace(request.OldPassword))
-                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+                return Unauthorized(new ErrorResponse { Message = MissingParameters });
 
             // New password and confirm password are always needed
             if(string.IsNullOrWhiteSpace(request.NewPassword) || string.IsNullOrWhiteSpace(request.ConfirmPassword))
-                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+                return Unauthorized(new ErrorResponse { Message = MissingParameters });
 
             if(!request.NewPassword.Equals(request.ConfirmPassword))
                 return Unauthorized(new ErrorResponse { Message = "NOT_MATCHING_CONFIRM_PASSWORD" });
@@ -186,7 +188,7 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
             catch(Exception)
             {
-                return BadRequest(new ErrorResponse { Message = "SERVER_ERROR" });
+                return BadRequest(new ErrorResponse { Message = ServerError });
             }
         }
 
@@ -195,10 +197,10 @@ namespace Touir.ExpensesManager.Users.Controllers
         public async Task<IActionResult> RequestPasswordReset(RequestPasswordResetRequest request)
         {
             if (request == null)
-                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+                return Unauthorized(new ErrorResponse { Message = MissingParameters });
             // email is always mandatory for validation
             if (string.IsNullOrWhiteSpace(request.Email))
-                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+                return Unauthorized(new ErrorResponse { Message = MissingParameters });
             try
             {
                 var email = request.Email.ToLowerInvariant();
@@ -208,7 +210,7 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = "SERVER_ERROR" });
+                return BadRequest(new ErrorResponse { Message = ServerError });
             }
         }
 
@@ -217,18 +219,18 @@ namespace Touir.ExpensesManager.Users.Controllers
         public async Task<IActionResult> ChangePasswordReset(ChangePasswordResetRequest request)
         {
             if (request == null)
-                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+                return Unauthorized(new ErrorResponse { Message = MissingParameters });
 
             // email is always mandatory for validation
             if (string.IsNullOrWhiteSpace(request.Email))
-                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+                return Unauthorized(new ErrorResponse { Message = MissingParameters });
 
             if (string.IsNullOrWhiteSpace(request.VerificationHash))
-                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+                return Unauthorized(new ErrorResponse { Message = MissingParameters });
 
             // New password and confirm password are always needed
             if (string.IsNullOrWhiteSpace(request.NewPassword) || string.IsNullOrWhiteSpace(request.ConfirmPassword))
-                return Unauthorized(new ErrorResponse { Message = "MISSING_PARAMETERS" });
+                return Unauthorized(new ErrorResponse { Message = MissingParameters });
 
             if (!request.NewPassword.Equals(request.ConfirmPassword))
                 return Unauthorized(new ErrorResponse { Message = "NOT_MATCHING_CONFIRM_PASSWORD" });
@@ -243,7 +245,7 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = "SERVER_ERROR" });
+                return BadRequest(new ErrorResponse { Message = ServerError });
             }
         }
 
@@ -273,7 +275,7 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = "SERVER_ERROR" });
+                return BadRequest(new ErrorResponse { Message = ServerError });
             }
         }
 
@@ -301,7 +303,7 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = "SERVER_ERROR" });
+                return BadRequest(new ErrorResponse { Message = ServerError });
             }
         }
 
@@ -337,7 +339,7 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = "SERVER_ERROR" });
+                return BadRequest(new ErrorResponse { Message = ServerError });
             }
         }
 

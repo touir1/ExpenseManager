@@ -38,7 +38,7 @@ namespace Touir.ExpensesManager.Users.Services
             IUserRepository userRepository,
             IAuthenticationRepository authenticationRepository,
             IApplicationRepository applicationRepository,
-            IRoleRepository roleRepository)
+            IRoleRepository roleRepository) // NOSONAR - S107: all dependencies are required by this service
         {
             _secretKey = jwtAuthOptions.Value.SecretKey;
             _issuer = jwtAuthOptions.Value.Issuer;
@@ -144,75 +144,86 @@ namespace Touir.ExpensesManager.Users.Services
 
         public async Task<IEnumerable<string>> RegisterNewUserAsync(string firstname, string lastname, string email, string? applicationCode)
         {
-            IList<string> errors = new List<string>();
-            
-            if(email != null && !_emailHelper.VerifyEmail(email))
+            List<string> errors = [];
+
+            if (email != null && !_emailHelper.VerifyEmail(email))
                 errors.Add("email format is invalid");
 
-            if (errors.Count() > 0)
+            if (errors.Any())
                 return errors;
 
             User? user = await _userRepository.GetUserByEmailAsync(email);
-            if(user != null)
+            if (user != null)
             {
-                if (user.IsEmailValidated)
-                    errors.Add("email is already used");
-                else
-                    errors.Add("there's already a registration process ongoing, please check you mailbox to validate the email");
+                errors.Add(user.IsEmailValidated
+                    ? "email is already used"
+                    : "there's already a registration process ongoing, please check you mailbox to validate the email");
             }
             else
             {
-                string emailValidationHash;
-                ISet<string> existingEmailValidationHashes = new HashSet<string>(await _userRepository.GetUsedEmailValidationHashesAsync());
-                do
-                {
-                    emailValidationHash = Guid.NewGuid().ToString();
-                }
-                while (existingEmailValidationHashes.Contains(emailValidationHash));
-
-                user = await _userRepository.CreateUserAsync(new User
-                {
-                    FirstName = firstname,
-                    LastName = lastname,
-                    Email = email,
-                    CreatedAt = DateTime.UtcNow,
-                    IsEmailValidated = false,
-                    IsDisabled = false,
-                    LastUpdatedAt = DateTime.UtcNow,
-                    EmailValidationHash = emailValidationHash
-                });
-
-                if(applicationCode != null)
-                {
-                    Application app = await _applicationRepository.GetApplicationByCodeAsync(applicationCode);
-                    if(app != null)
-                    {
-                        var role = await _roleRepository.GetDefaultRoleByApplicationIdAsync(app.Id);
-                        if(role != null && user != null)
-                        {
-                            await _roleRepository.AssignRoleToUserAsync(role.Id, user.Id);
-                        }
-                    }
-                }
-
-                try
-                {
-                    string verificationLink = $"{_verifyEmailUrl.TrimEnd('/')}?h={HttpUtility.UrlEncode(emailValidationHash)}&s={HttpUtility.UrlEncode(email)}&app_code={HttpUtility.UrlEncode(applicationCode)}";
-                    Console.WriteLine($"user: {user?.FirstName} {user?.LastName}, verifLink: {verificationLink}");
-                    string emailVerificationHtml = _emailHelper.GetEmailTemplate(EmailHTMLTemplate.EmailVerification.Key, new Dictionary<string, string> {
-                        { EmailHTMLTemplate.EmailVerification.Variables.VerificationLink, verificationLink },
-                    });
-                    _emailHelper.SendEmail(recipientTo: email, emailSubject: "[Expenses Manager] Email Verification", isHTML: true, emailBody: emailVerificationHtml);
-                }
-                catch (Exception exception)
-                {
-                    await _userRepository.DeleteUserAsync(user);
-                    Console.WriteLine(exception.ToString()); // to change later: logging implementation
-                    throw;
-                }
+                await CreateAndRegisterUserAsync(firstname, lastname, email, applicationCode);
             }
-            
+
             return errors;
+        }
+
+        private async Task<string> GenerateUniqueEmailValidationHashAsync()
+        {
+            HashSet<string> existingHashes = new(await _userRepository.GetUsedEmailValidationHashesAsync());
+            string hash;
+            do
+            {
+                hash = Guid.NewGuid().ToString();
+            }
+            while (existingHashes.Contains(hash));
+            return hash;
+        }
+
+        private async Task TryAssignDefaultRoleAsync(string? applicationCode, User? user)
+        {
+            if (applicationCode == null || user == null)
+                return;
+            Application? app = await _applicationRepository.GetApplicationByCodeAsync(applicationCode);
+            if (app == null)
+                return;
+            var role = await _roleRepository.GetDefaultRoleByApplicationIdAsync(app.Id);
+            if (role != null)
+                await _roleRepository.AssignRoleToUserAsync(role.Id, user.Id);
+        }
+
+        private async Task CreateAndRegisterUserAsync(string firstname, string lastname, string email, string? applicationCode)
+        {
+            var emailValidationHash = await GenerateUniqueEmailValidationHashAsync();
+
+            var user = await _userRepository.CreateUserAsync(new User
+            {
+                FirstName = firstname,
+                LastName = lastname,
+                Email = email,
+                CreatedAt = DateTime.UtcNow,
+                IsEmailValidated = false,
+                IsDisabled = false,
+                LastUpdatedAt = DateTime.UtcNow,
+                EmailValidationHash = emailValidationHash
+            });
+
+            await TryAssignDefaultRoleAsync(applicationCode, user);
+
+            try
+            {
+                string verificationLink = $"{_verifyEmailUrl.TrimEnd('/')}?h={HttpUtility.UrlEncode(emailValidationHash)}&s={HttpUtility.UrlEncode(email)}&app_code={HttpUtility.UrlEncode(applicationCode)}";
+                Console.WriteLine($"user: {user?.FirstName} {user?.LastName}, verifLink: {verificationLink}");
+                string emailVerificationHtml = _emailHelper.GetEmailTemplate(EmailHtmlTemplate.EmailVerification.Key, new Dictionary<string, string> {
+                    { EmailHtmlTemplate.EmailVerification.Variables.VerificationLink, verificationLink },
+                });
+                _emailHelper.SendEmail(recipientTo: email, emailSubject: "[Expenses Manager] Email Verification", isHTML: true, emailBody: emailVerificationHtml);
+            }
+            catch (Exception exception)
+            {
+                await _userRepository.DeleteUserAsync(user);
+                Console.WriteLine(exception.ToString()); // to change later: logging implementation
+                throw;
+            }
         }
 
         public async Task<bool> ValidateEmailAsync(string emailVerificationHash, string email)
@@ -299,8 +310,8 @@ namespace Touir.ExpensesManager.Users.Services
             try
             {
                 string resetLink = $"{_verifyEmailUrl.TrimEnd('/')}?h={HttpUtility.UrlEncode(resetHash)}&s={HttpUtility.UrlEncode(email)}";
-                string emailResetHtml = _emailHelper.GetEmailTemplate(EmailHTMLTemplate.PasswordReset.Key, new Dictionary<string, string> {
-                    { EmailHTMLTemplate.PasswordReset.Variables.ResetLink, resetLink },
+                string emailResetHtml = _emailHelper.GetEmailTemplate(EmailHtmlTemplate.PasswordReset.Key, new Dictionary<string, string> {
+                    { EmailHtmlTemplate.PasswordReset.Variables.ResetLink, resetLink },
                 });
                 _emailHelper.SendEmail(recipientTo: email, emailSubject: "[Expenses Manager] Password Reset", isHTML: true, emailBody: emailResetHtml);
             }

@@ -12,7 +12,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
 {
     public class AuthenticationServiceTests
     {
-        private Mock<IEmailHelper> CreateEmailHelperMock()
+        private static Mock<IEmailHelper> CreateEmailHelperMock()
         {
             var mock = new Mock<IEmailHelper>();
             mock.Setup(e => e.VerifyEmail(It.IsAny<string>())).Returns(true);
@@ -594,9 +594,9 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             await service.RequestPasswordResetAsync("test@test.com");
 
             emailHelper.Verify(e => e.GetEmailTemplate(
-                Touir.ExpensesManager.Users.Infrastructure.EmailHTMLTemplate.PasswordReset.Key,
+                Touir.ExpensesManager.Users.Infrastructure.EmailHtmlTemplate.PasswordReset.Key,
                 It.Is<Dictionary<string, string>>(d =>
-                    d.ContainsKey(Touir.ExpensesManager.Users.Infrastructure.EmailHTMLTemplate.PasswordReset.Variables.ResetLink))),
+                    d.ContainsKey(Touir.ExpensesManager.Users.Infrastructure.EmailHtmlTemplate.PasswordReset.Variables.ResetLink))),
                 Times.Once);
             emailHelper.Verify(e => e.SendEmail(
                 "test@test.com",

@@ -3,6 +3,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.55.0] - 2026-04-28
+### Fixed
+- **Backend (users):** Resolved SonarQube quality-gate findings across multiple files.
+  - `EmailHTMLTemplate` class renamed to `EmailHtmlTemplate` (pascal-case rule S101).
+  - `AuthenticationController`: extracted `MissingParameters` and `ServerError` constants (rule S1192 — repeated literals); `ApplicationEo app` → `ApplicationEo? app` (nullable correctness).
+  - `AuthenticationService`: `IList<string>` → `List<string>`, `ISet<string>` → `HashSet<string>` (performance rules); `errors.Count() > 0` → `errors.Any()` (rule S2971); `Application app` → `Application? app` (nullable correctness); constructor suppressed S107 via `// NOSONAR` (all 8 dependencies are genuinely required); `RegisterNewUserAsync` cognitive complexity reduced from 22 → ~8 by extracting `CreateAndRegisterUserAsync`, `GenerateUniqueEmailValidationHashAsync`, and `TryAssignDefaultRoleAsync` private helpers.
+  - `UserRepository`: `user.Email?.ToLowerInvariant()` → `user.Email!.ToLowerInvariant()` (null-safe assignment); `u.IsEmailValidated == false` → `!u.IsEmailValidated` (rule S1125 — unnecessary boolean literal).
+  - `TestDbContextWrapper.Dispose()`: added `GC.SuppressFinalize(this)` (rule S3881).
+  - `AuthenticationServiceTests.CreateEmailHelperMock()`: marked `static` (rule S2325).
+  - `EMAIL_VERIFICATION_TEMPLATE.html`: `.header` and `.button` colors changed from `#007bff` to `#0056b3` to meet WCAG AA contrast ratio (~7:1).
+
 ## [0.54.0] - 2026-04-28
 ### Added
 - **Backend (users):** Implemented `RequestPasswordResetAsync` email sending — was previously a stub with commented-out code.

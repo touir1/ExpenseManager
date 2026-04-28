@@ -122,7 +122,7 @@ ExpenseManager/
 │       │   │   ├── UsersAppDbContext.cs      — EF Core context for users schema
 │       │   │   ├── CryptographyHelper.cs     — Password hashing and HMAC utilities
 │       │   │   ├── EmailHelper.cs            — SMTP email sending
-│       │   │   ├── EmailHTMLTemplate.cs      — HTML email template builder
+│       │   │   ├── EmailHtmlTemplate.cs      — HTML email template keys and variable name constants
 │       │   │   ├── Contracts/
 │       │   │   │   ├── ICryptographyHelper.cs
 │       │   │   │   └── IEmailHelper.cs

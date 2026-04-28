@@ -25,7 +25,7 @@ namespace Touir.ExpensesManager.Users.Repositories
 
         public async Task<User?> CreateUserAsync(User user)
         {
-            user.Email = user.Email?.ToLowerInvariant();
+            user.Email = user.Email!.ToLowerInvariant();
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
             return user;
@@ -41,7 +41,7 @@ namespace Touir.ExpensesManager.Users.Repositories
         {
             return await _context.Users
                 .AsNoTracking()
-                .Where(u => u.EmailValidationHash != null && u.IsEmailValidated == false)
+                .Where(u => u.EmailValidationHash != null && !u.IsEmailValidated)
                 .Select(s => s.EmailValidationHash!)
                 .ToListAsync();
         }

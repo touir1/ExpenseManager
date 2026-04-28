@@ -24,6 +24,7 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories.Helpers
         {
             Context.Dispose();
             _connection.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }
