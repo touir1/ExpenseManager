@@ -90,7 +90,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
 
   const requestPasswordReset = useCallback<NonNullable<AuthContextValue['requestPasswordReset']>>(async (email) => {
     if (!email) return { ok: false }
-    const { ok, error } = await requestPasswordResetRequest(email)
+    const { ok, error } = await requestPasswordResetRequest(email, APPLICATION_CODE)
     return { ok, error }
   }, [])
 

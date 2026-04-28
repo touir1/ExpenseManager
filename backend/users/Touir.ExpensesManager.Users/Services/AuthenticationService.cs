@@ -268,7 +268,7 @@ namespace Touir.ExpensesManager.Users.Services
             return await _authenticationRepository.UpdateAuthenticationAsync(auth, resetHash: true);
         }
 
-        public async Task<bool> RequestPasswordResetAsync(string email)
+        public async Task<bool> RequestPasswordResetAsync(string email, string appCode)
         {
             User? user = await _userRepository.GetUserByEmailAsync(email);
             if (user == null || !user.IsEmailValidated)
@@ -283,7 +283,7 @@ namespace Touir.ExpensesManager.Users.Services
                 return false;
             try
             {
-                string resetLink = $"{_verifyEmailUrl.TrimEnd('/')}?h={HttpUtility.UrlEncode(resetHash)}&s={HttpUtility.UrlEncode(email)}";
+                string resetLink = $"{_verifyEmailUrl.TrimEnd('/')}?h={HttpUtility.UrlEncode(resetHash)}&s={HttpUtility.UrlEncode(email)}&app_code={HttpUtility.UrlEncode(appCode)}";
                 string emailResetHtml = _emailHelper.GetEmailTemplate(EmailHtmlTemplate.PasswordReset.Key, new Dictionary<string, string> {
                     { EmailHtmlTemplate.PasswordReset.Variables.ResetLink, resetLink },
                 });

@@ -3,6 +3,6 @@
     public class RequestPasswordResetRequest
     {
         public string Email { get; set; }
-
+        public string AppCode { get; set; }
     }
 }

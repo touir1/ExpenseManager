@@ -3,6 +3,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.59.0] - 2026-04-28
+### Fixed
+- **Backend (users) + Frontend:** Password reset email link was missing the `app_code` query parameter, causing a 400 validation error when clicking the link.
+  - `RequestPasswordResetRequest`: added `AppCode` property.
+  - `IAuthenticationService` / `AuthenticationService.RequestPasswordResetAsync`: added `appCode` parameter; reset link now appends `&app_code=...` (mirrors the existing email-verification link at line 196).
+  - `AuthenticationController.RequestPasswordReset`: validates `AppCode` is non-empty; passes it to the service.
+  - `authApi.service.ts` (`requestPasswordResetRequest`): added `applicationCode` parameter, sent as `appCode` in the request body.
+  - `AuthContext.tsx`: passes `APPLICATION_CODE` to `requestPasswordResetRequest`.
+  - All affected controller and service tests updated; total test count: 208 → 209.
+
 ## [0.58.0] - 2026-04-28
 ### Added
 - **Backend (users) tests:** Added repository test coverage for `RefreshTokenRepository` (previously at 0%).

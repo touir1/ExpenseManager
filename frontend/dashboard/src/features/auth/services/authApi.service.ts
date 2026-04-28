@@ -70,6 +70,6 @@ export function resetPasswordRequest(
   )
 }
 
-export function requestPasswordResetRequest(email: string): Promise<ApiResponse<unknown>> {
-  return post<unknown>(`${AUTH_BASE}/request-password-reset`, { email }, { skipUnauthorized: true })
+export function requestPasswordResetRequest(email: string, applicationCode: string): Promise<ApiResponse<unknown>> {
+  return post<unknown>(`${AUTH_BASE}/request-password-reset`, { email, appCode: applicationCode }, { skipUnauthorized: true })
 }

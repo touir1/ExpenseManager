@@ -570,7 +570,19 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         public async Task RequestPasswordReset_ReturnsUnauthorized_WhenEmailIsEmpty()
         {
             var controller = CreateController();
-            var request = new RequestPasswordResetRequest { Email = "" };
+            var request = new RequestPasswordResetRequest { Email = "", AppCode = "EXPENSES_MANAGER" };
+            var result = await controller.RequestPasswordReset(request);
+
+            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
+            var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
+            Assert.Equal("MISSING_PARAMETERS", response.Message);
+        }
+
+        [Fact]
+        public async Task RequestPasswordReset_ReturnsUnauthorized_WhenAppCodeIsEmpty()
+        {
+            var controller = CreateController();
+            var request = new RequestPasswordResetRequest { Email = "john@doe.com", AppCode = "" };
             var result = await controller.RequestPasswordReset(request);
 
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
@@ -582,9 +594,9 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         public async Task RequestPasswordReset_ReturnsUnauthorized_WhenServiceReturnsFalse()
         {
             var mockAuthService = new Mock<IAuthenticationService>();
-            mockAuthService.Setup(s => s.RequestPasswordResetAsync("john@doe.com")).ReturnsAsync(false);
+            mockAuthService.Setup(s => s.RequestPasswordResetAsync("john@doe.com", "EXPENSES_MANAGER")).ReturnsAsync(false);
             var controller = CreateController(authService: mockAuthService.Object);
-            var request = new RequestPasswordResetRequest { Email = "john@doe.com" };
+            var request = new RequestPasswordResetRequest { Email = "john@doe.com", AppCode = "EXPENSES_MANAGER" };
             var result = await controller.RequestPasswordReset(request);
 
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
@@ -596,9 +608,9 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         public async Task RequestPasswordReset_ReturnsOk_WhenValid()
         {
             var mockAuthService = new Mock<IAuthenticationService>();
-            mockAuthService.Setup(s => s.RequestPasswordResetAsync("john@doe.com")).ReturnsAsync(true);
+            mockAuthService.Setup(s => s.RequestPasswordResetAsync("john@doe.com", "EXPENSES_MANAGER")).ReturnsAsync(true);
             var controller = CreateController(authService: mockAuthService.Object);
-            var request = new RequestPasswordResetRequest { Email = "john@doe.com" };
+            var request = new RequestPasswordResetRequest { Email = "john@doe.com", AppCode = "EXPENSES_MANAGER" };
 
             var result = await controller.RequestPasswordReset(request);
 
@@ -609,10 +621,10 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         public async Task RequestPasswordReset_ReturnsBadRequest_WhenExceptionThrown()
         {
             var mockAuthService = new Mock<IAuthenticationService>();
-            mockAuthService.Setup(s => s.RequestPasswordResetAsync(It.IsAny<string>()))
+            mockAuthService.Setup(s => s.RequestPasswordResetAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ThrowsAsync(new Exception("Database error"));
             var controller = CreateController(authService: mockAuthService.Object);
-            var request = new RequestPasswordResetRequest { Email = "john@doe.com" };
+            var request = new RequestPasswordResetRequest { Email = "john@doe.com", AppCode = "EXPENSES_MANAGER" };
             var result = await controller.RequestPasswordReset(request);
 
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);

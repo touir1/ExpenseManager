@@ -199,12 +199,12 @@ namespace Touir.ExpensesManager.Users.Controllers
             if (request == null)
                 return Unauthorized(new ErrorResponse { Message = MissingParameters });
             // email is always mandatory for validation
-            if (string.IsNullOrWhiteSpace(request.Email))
+            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.AppCode))
                 return Unauthorized(new ErrorResponse { Message = MissingParameters });
             try
             {
                 var email = request.Email.ToLowerInvariant();
-                if (!(await _authenticationService.RequestPasswordResetAsync(email)))
+                if (!(await _authenticationService.RequestPasswordResetAsync(email, request.AppCode)))
                     return Unauthorized(new ErrorResponse { Message = "REQUEST_PASSWORD_RESET_FAILED" });
                 return Ok();
             }

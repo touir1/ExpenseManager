@@ -494,7 +494,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             userRepo.Setup(r => r.GetUserByEmailAsync(It.IsAny<string>())).ReturnsAsync((User?)null);
 
             var service = CreateService(userRepo);
-            var result = await service.RequestPasswordResetAsync("test@test.com");
+            var result = await service.RequestPasswordResetAsync("test@test.com", "EXPENSES_MANAGER");
 
             Assert.False(result);
         }
@@ -507,7 +507,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             userRepo.Setup(r => r.GetUserByEmailAsync("test@test.com")).ReturnsAsync(user);
 
             var service = CreateService(userRepo);
-            var result = await service.RequestPasswordResetAsync("test@test.com");
+            var result = await service.RequestPasswordResetAsync("test@test.com", "EXPENSES_MANAGER");
 
             Assert.False(result);
         }
@@ -524,7 +524,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             authRepo.Setup(r => r.GetAuthenticationByUserIdAsync(1)).ReturnsAsync((Authentication?)null);
 
             var service = CreateService(userRepo, authRepo);
-            var result = await service.RequestPasswordResetAsync("test@test.com");
+            var result = await service.RequestPasswordResetAsync("test@test.com", "EXPENSES_MANAGER");
 
             Assert.False(result);
         }
@@ -543,7 +543,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             authRepo.Setup(r => r.UpdateAuthenticationAsync(auth, false)).ReturnsAsync(false);
 
             var service = CreateService(userRepo, authRepo);
-            var result = await service.RequestPasswordResetAsync("test@test.com");
+            var result = await service.RequestPasswordResetAsync("test@test.com", "EXPENSES_MANAGER");
 
             Assert.False(result);
         }
@@ -562,7 +562,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             authRepo.Setup(r => r.UpdateAuthenticationAsync(auth, false)).ReturnsAsync(true);
 
             var service = CreateService(userRepo, authRepo);
-            var result = await service.RequestPasswordResetAsync("test@test.com");
+            var result = await service.RequestPasswordResetAsync("test@test.com", "EXPENSES_MANAGER");
 
             Assert.True(result);
             Assert.NotNull(auth.PasswordResetHash);
@@ -591,7 +591,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
                 It.IsAny<ICollection<string>>())).Returns(true);
 
             var service = CreateService(userRepo, authRepo, emailHelper: emailHelper);
-            await service.RequestPasswordResetAsync("test@test.com");
+            await service.RequestPasswordResetAsync("test@test.com", "EXPENSES_MANAGER");
 
             emailHelper.Verify(e => e.GetEmailTemplate(
                 Touir.ExpensesManager.Users.Infrastructure.EmailHtmlTemplate.PasswordReset.Key,
@@ -626,7 +626,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
                 .Throws(new Exception("Email template failed"));
 
             var service = CreateService(userRepo, authRepo, emailHelper: emailHelper);
-            var result = await service.RequestPasswordResetAsync("test@test.com");
+            var result = await service.RequestPasswordResetAsync("test@test.com", "EXPENSES_MANAGER");
 
             Assert.False(result);
         }
