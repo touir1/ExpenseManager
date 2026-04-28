@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <None Remove="Assets\EmailTemplates\EMAIL_VERIFICATION_TEMPLATE.html" />
+    <None Remove="Assets\EmailTemplates\PASSWORD_RESET_TEMPLATE.html" />
   </ItemGroup>
 
   <ItemGroup>
@@ -51,6 +52,9 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Assets\EmailTemplates\EMAIL_VERIFICATION_TEMPLATE.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\EmailTemplates\PASSWORD_RESET_TEMPLATE.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>

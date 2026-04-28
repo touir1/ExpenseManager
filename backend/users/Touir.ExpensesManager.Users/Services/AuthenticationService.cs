@@ -299,10 +299,10 @@ namespace Touir.ExpensesManager.Users.Services
             try
             {
                 string resetLink = $"{_verifyEmailUrl.TrimEnd('/')}?h={HttpUtility.UrlEncode(resetHash)}&s={HttpUtility.UrlEncode(email)}";
-                //string emailResetHtml = _emailHelper.GetEmailTemplate(EmailHTMLTemplate.PasswordReset.Key, new Dictionary<string, string> {
-                //    { EmailHTMLTemplate.PasswordReset.Variables.ResetLink, resetLink },
-                //});
-                //_emailHelper.SendEmail(recipientTo: email, emailSubject: "[Expenses Manager] Password Reset", isHTML: true, emailBody: emailResetHtml);
+                string emailResetHtml = _emailHelper.GetEmailTemplate(EmailHTMLTemplate.PasswordReset.Key, new Dictionary<string, string> {
+                    { EmailHTMLTemplate.PasswordReset.Variables.ResetLink, resetLink },
+                });
+                _emailHelper.SendEmail(recipientTo: email, emailSubject: "[Expenses Manager] Password Reset", isHTML: true, emailBody: emailResetHtml);
             }
             catch (Exception exception)
             {

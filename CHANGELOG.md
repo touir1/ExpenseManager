@@ -3,6 +3,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.54.0] - 2026-04-28
+### Added
+- **Backend (users):** Implemented `RequestPasswordResetAsync` email sending — was previously a stub with commented-out code.
+  - Added `EmailHTMLTemplate.PasswordReset` class (key: `PASSWORD_RESET_TEMPLATE`, variable: `RESET_LINK`).
+  - Created `Assets/EmailTemplates/PASSWORD_RESET_TEMPLATE.html` email template, matching the style of the existing email verification template.
+  - Registered the template in `.csproj` (`EmbeddedResource` + `CopyToOutputDirectory=Always`).
+  - `POST /auth/request-password-reset` now sends a `[Expenses Manager] Password Reset` email to the user with a reset link.
+
 ## [0.53.2] - 2026-04-28
 ### Fixed
 - **Backend (users):** Resolved two SonarQube quality-gate findings in `AuthenticationController` / `LoginRequest`.

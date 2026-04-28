@@ -569,6 +569,68 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             Assert.NotNull(auth.PasswordResetRequestedAt);
         }
 
+        [Fact]
+        public async Task RequestPasswordResetAsync_SendsEmailWithPasswordResetTemplate()
+        {
+            var user = new User { Id = 1, Email = "test@test.com", IsEmailValidated = true, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            var auth = new Authentication { UserId = 1, HashPassword = "hash", HashSalt = "salt" };
+
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("test@test.com")).ReturnsAsync(user);
+
+            var authRepo = new Mock<IAuthenticationRepository>();
+            authRepo.Setup(r => r.GetAuthenticationByUserIdAsync(1)).ReturnsAsync(auth);
+            authRepo.Setup(r => r.UpdateAuthenticationAsync(auth, false)).ReturnsAsync(true);
+
+            var emailHelper = new Mock<IEmailHelper>();
+            emailHelper.Setup(e => e.VerifyEmail(It.IsAny<string>())).Returns(true);
+            emailHelper.Setup(e => e.GetEmailTemplate(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>())).Returns("<html></html>");
+            emailHelper.Setup(e => e.SendEmail(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(),
+                It.IsAny<ICollection<string>>())).Returns(true);
+
+            var service = CreateService(userRepo, authRepo, emailHelper: emailHelper);
+            await service.RequestPasswordResetAsync("test@test.com");
+
+            emailHelper.Verify(e => e.GetEmailTemplate(
+                Touir.ExpensesManager.Users.Infrastructure.EmailHTMLTemplate.PasswordReset.Key,
+                It.Is<Dictionary<string, string>>(d =>
+                    d.ContainsKey(Touir.ExpensesManager.Users.Infrastructure.EmailHTMLTemplate.PasswordReset.Variables.ResetLink))),
+                Times.Once);
+            emailHelper.Verify(e => e.SendEmail(
+                "test@test.com",
+                It.IsAny<string>(), It.IsAny<string>(),
+                "[Expenses Manager] Password Reset",
+                It.IsAny<string>(), true,
+                It.IsAny<ICollection<string>>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task RequestPasswordResetAsync_ReturnsFalse_WhenEmailSendThrows()
+        {
+            var user = new User { Id = 1, Email = "test@test.com", IsEmailValidated = true, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            var auth = new Authentication { UserId = 1, HashPassword = "hash", HashSalt = "salt" };
+
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("test@test.com")).ReturnsAsync(user);
+
+            var authRepo = new Mock<IAuthenticationRepository>();
+            authRepo.Setup(r => r.GetAuthenticationByUserIdAsync(1)).ReturnsAsync(auth);
+            authRepo.Setup(r => r.UpdateAuthenticationAsync(auth, false)).ReturnsAsync(true);
+
+            var emailHelper = new Mock<IEmailHelper>();
+            emailHelper.Setup(e => e.VerifyEmail(It.IsAny<string>())).Returns(true);
+            emailHelper.Setup(e => e.GetEmailTemplate(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
+                .Throws(new Exception("Email template failed"));
+
+            var service = CreateService(userRepo, authRepo, emailHelper: emailHelper);
+            var result = await service.RequestPasswordResetAsync("test@test.com");
+
+            Assert.False(result);
+        }
+
         #endregion
     }
 }

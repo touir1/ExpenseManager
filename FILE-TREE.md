@@ -116,7 +116,8 @@ ExpenseManager/
 │       │   ├── Properties/
 │       │   │   └── launchSettings.json
 │       │   ├── Assets/EmailTemplates/
-│       │   │   └── EMAIL_VERIFICATION_TEMPLATE.html
+│       │   │   ├── EMAIL_VERIFICATION_TEMPLATE.html
+│       │   │   └── PASSWORD_RESET_TEMPLATE.html
 │       │   ├── Infrastructure/
 │       │   │   ├── UsersAppDbContext.cs      — EF Core context for users schema
 │       │   │   ├── CryptographyHelper.cs     — Password hashing and HMAC utilities
