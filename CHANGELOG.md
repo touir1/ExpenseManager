@@ -3,6 +3,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.58.0] - 2026-04-28
+### Added
+- **Backend (users) tests:** Added repository test coverage for `RefreshTokenRepository` (previously at 0%).
+  - `RefreshTokenRepositoryTests` (11 tests): `GetActiveByTokenAsync` — returns token when active, null when not found, null when expired, null when revoked; `AddAsync` — persists token to DB; `RevokeAsync` — sets `RevokedAt`, makes `IsActive` false; `RevokeAllByUserIdAsync` — revokes all active tokens for user, leaves already-revoked tokens unchanged, skips expired tokens, does not affect other users.
+  - Total test count: 196 → 207.
+
 ## [0.57.0] - 2026-04-28
 ### Added
 - **Backend (users) tests:** Added unit test coverage for two previously untested services.
