@@ -1,5 +1,6 @@
 using Touir.ExpensesManager.Users.Models;
 using Touir.ExpensesManager.Users.Services;
+using Touir.ExpensesManager.Users.Services.Contracts;
 using Touir.ExpensesManager.Users.Repositories.Contracts;
 using Touir.ExpensesManager.Users.Infrastructure.Contracts;
 using Touir.ExpensesManager.Users.Infrastructure.Options;
@@ -12,6 +13,13 @@ namespace Touir.ExpensesManager.Users.Tests.Services
 {
     public class AuthenticationServiceTests
     {
+        private static Mock<IUserRoleAssignmentService> CreateRoleAssignmentMock()
+        {
+            var mock = new Mock<IUserRoleAssignmentService>();
+            mock.Setup(s => s.TryAssignDefaultRoleAsync(It.IsAny<string?>(), It.IsAny<User?>())).Returns(Task.CompletedTask);
+            return mock;
+        }
+
         private static Mock<IEmailHelper> CreateEmailHelperMock()
         {
             var mock = new Mock<IEmailHelper>();
@@ -28,24 +36,23 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             return mock;
         }
 
-        private AuthenticationService CreateService(
+        private static AuthenticationService CreateService(
             Mock<IUserRepository>? userRepo = null,
             Mock<IAuthenticationRepository>? authRepo = null,
-            Mock<IApplicationRepository>? appRepo = null,
-            Mock<IRoleRepository>? roleRepo = null,
+            Mock<IUserRoleAssignmentService>? roleAssignment = null,
             Mock<ICryptographyHelper>? crypto = null,
             Mock<IEmailHelper>? emailHelper = null)
         {
-            var jwtOptions = Options.Create(new JwtAuthOptions 
-            { 
-                SecretKey = "supersecretkey12345678901234567890", 
-                Issuer = "issuer", 
-                Audience = "audience", 
-                ExpiryInMinutes = 60 
+            var jwtOptions = Options.Create(new JwtAuthOptions
+            {
+                SecretKey = "supersecretkey12345678901234567890",
+                Issuer = "issuer",
+                Audience = "audience",
+                ExpiryInMinutes = 60
             });
-            var authServiceOptions = Options.Create(new AuthenticationServiceOptions 
-            { 
-                VerifyEmailBaseUrl = "http://localhost/verify" 
+            var authServiceOptions = Options.Create(new AuthenticationServiceOptions
+            {
+                VerifyEmailBaseUrl = "http://localhost/verify"
             });
 
             return new AuthenticationService(
@@ -55,8 +62,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
                 crypto?.Object ?? new Mock<ICryptographyHelper>().Object,
                 userRepo?.Object ?? new Mock<IUserRepository>().Object,
                 authRepo?.Object ?? new Mock<IAuthenticationRepository>().Object,
-                appRepo?.Object ?? new Mock<IApplicationRepository>().Object,
-                roleRepo?.Object ?? new Mock<IRoleRepository>().Object
+                roleAssignment?.Object ?? CreateRoleAssignmentMock().Object
             );
         }
 
@@ -236,26 +242,20 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         public async Task RegisterNewUserAsync_AssignsDefaultRole_WhenApplicationCodeProvided()
         {
             var user = new User { Id = 1, Email = "test@test.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
-            var app = new Application { Id = 1, Code = "APP1", Name = "App1" };
-            var role = new Role { Id = 1, Code = "USER", Name = "User", ApplicationId = 1, IsDefault = true };
 
             var userRepo = new Mock<IUserRepository>();
             userRepo.Setup(r => r.GetUserByEmailAsync("test@test.com")).ReturnsAsync((User?)null);
             userRepo.Setup(r => r.GetUsedEmailValidationHashesAsync()).ReturnsAsync(new List<string>());
             userRepo.Setup(r => r.CreateUserAsync(It.IsAny<User>())).ReturnsAsync(user);
 
-            var appRepo = new Mock<IApplicationRepository>();
-            appRepo.Setup(r => r.GetApplicationByCodeAsync("APP1")).ReturnsAsync(app);
+            var roleAssignment = new Mock<IUserRoleAssignmentService>();
+            roleAssignment.Setup(s => s.TryAssignDefaultRoleAsync("APP1", user)).Returns(Task.CompletedTask);
 
-            var roleRepo = new Mock<IRoleRepository>();
-            roleRepo.Setup(r => r.GetDefaultRoleByApplicationIdAsync(1)).ReturnsAsync(role);
-            roleRepo.Setup(r => r.AssignRoleToUserAsync(1, 1, null)).ReturnsAsync(true);
-
-            var service = CreateService(userRepo, appRepo: appRepo, roleRepo: roleRepo);
+            var service = CreateService(userRepo, roleAssignment: roleAssignment);
             var errors = await service.RegisterNewUserAsync("John", "Doe", "test@test.com", "APP1");
 
             Assert.Empty(errors);
-            roleRepo.Verify(r => r.AssignRoleToUserAsync(1, 1, null), Times.Once);
+            roleAssignment.Verify(s => s.TryAssignDefaultRoleAsync("APP1", user), Times.Once);
         }
 
         [Fact]

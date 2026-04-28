@@ -176,11 +176,13 @@ ExpenseManager/
 │       │   │   ├── AuthenticationService.cs    — JWT generation (claims: sub, email, givenName, surname, jti) and validation; token delivered as HttpOnly cookie by controller
 │       │   │   ├── RefreshTokenService.cs       — Generates and validates opaque refresh tokens (DB-backed)
 │       │   │   ├── RoleService.cs
+│       │   │   ├── UserRoleAssignmentService.cs — Assigns default application role to a newly registered user
 │       │   │   └── Contracts/
 │       │   │       ├── IApplicationService.cs
 │       │   │       ├── IAuthenticationService.cs
 │       │   │       ├── IRefreshTokenService.cs
-│       │   │       └── IRoleService.cs
+│       │   │       ├── IRoleService.cs
+│       │   │       └── IUserRoleAssignmentService.cs
 │       │   └── Migrations/
 │       │       ├── 20251227165426_InitialCreate.cs
 │       │       ├── 20251231180932_SeedInitialData.cs
@@ -209,7 +211,9 @@ ExpenseManager/
 │           └── Services/
 │               ├── ApplicationServiceTests.cs
 │               ├── AuthenticationServiceTests.cs
-│               └── RoleServiceTests.cs
+│               ├── RefreshTokenServiceTests.cs
+│               ├── RoleServiceTests.cs
+│               └── UserRoleAssignmentServiceTests.cs
 │
 ├── frontend/
 │   └── dashboard/

@@ -1,4 +1,4 @@
-﻿using Touir.ExpensesManager.Users.Controllers.EO;
+using Touir.ExpensesManager.Users.Controllers.EO;
 using Touir.ExpensesManager.Users.Infrastructure;
 using Touir.ExpensesManager.Users.Infrastructure.Contracts;
 using Touir.ExpensesManager.Users.Infrastructure.Options;
@@ -25,8 +25,7 @@ namespace Touir.ExpensesManager.Users.Services
         private readonly ICryptographyHelper _cryptographyHelper;
         private readonly IUserRepository _userRepository;
         private readonly IAuthenticationRepository _authenticationRepository;
-        private readonly IApplicationRepository _applicationRepository;
-        private readonly IRoleRepository _roleRepository;
+        private readonly IUserRoleAssignmentService _userRoleAssignmentService;
 
         private readonly string _verifyEmailUrl;
 
@@ -37,8 +36,7 @@ namespace Touir.ExpensesManager.Users.Services
             ICryptographyHelper cryptographyHelper,
             IUserRepository userRepository,
             IAuthenticationRepository authenticationRepository,
-            IApplicationRepository applicationRepository,
-            IRoleRepository roleRepository) // NOSONAR - S107: all dependencies are required by this service
+            IUserRoleAssignmentService userRoleAssignmentService)
         {
             _secretKey = jwtAuthOptions.Value.SecretKey;
             _issuer = jwtAuthOptions.Value.Issuer;
@@ -49,11 +47,11 @@ namespace Touir.ExpensesManager.Users.Services
             _cryptographyHelper = cryptographyHelper;
             _userRepository = userRepository;
             _authenticationRepository = authenticationRepository;
-            _applicationRepository = applicationRepository;
-            _roleRepository = roleRepository;
+            _userRoleAssignmentService = userRoleAssignmentService;
 
             _verifyEmailUrl = authServiceOptions.Value.VerifyEmailBaseUrl;
         }
+
         public async Task<UserEo?> AuthenticateAsync(string email, string password)
         {
             var user = await _userRepository.GetUserByEmailAsync(email);
@@ -125,16 +123,12 @@ namespace Touir.ExpensesManager.Users.Services
             var validationResult = new TokenValidationResult();
             try
             {
-                // Validate the token
                 tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
-
-                // Token validation succeeded
                 validationResult.IsValid = true;
                 validationResult.SecurityToken = validatedToken;
             }
             catch (SecurityTokenException ex)
             {
-                // Token validation failed
                 validationResult.IsValid = false;
                 validationResult.Exception = ex;
             }
@@ -149,7 +143,7 @@ namespace Touir.ExpensesManager.Users.Services
             if (email != null && !_emailHelper.VerifyEmail(email))
                 errors.Add("email format is invalid");
 
-            if (errors.Any())
+            if (errors.Count > 0)
                 return errors;
 
             User? user = await _userRepository.GetUserByEmailAsync(email);
@@ -179,18 +173,6 @@ namespace Touir.ExpensesManager.Users.Services
             return hash;
         }
 
-        private async Task TryAssignDefaultRoleAsync(string? applicationCode, User? user)
-        {
-            if (applicationCode == null || user == null)
-                return;
-            Application? app = await _applicationRepository.GetApplicationByCodeAsync(applicationCode);
-            if (app == null)
-                return;
-            var role = await _roleRepository.GetDefaultRoleByApplicationIdAsync(app.Id);
-            if (role != null)
-                await _roleRepository.AssignRoleToUserAsync(role.Id, user.Id);
-        }
-
         private async Task CreateAndRegisterUserAsync(string firstname, string lastname, string email, string? applicationCode)
         {
             var emailValidationHash = await GenerateUniqueEmailValidationHashAsync();
@@ -207,7 +189,7 @@ namespace Touir.ExpensesManager.Users.Services
                 EmailValidationHash = emailValidationHash
             });
 
-            await TryAssignDefaultRoleAsync(applicationCode, user);
+            await _userRoleAssignmentService.TryAssignDefaultRoleAsync(applicationCode, user);
 
             try
             {
@@ -228,31 +210,27 @@ namespace Touir.ExpensesManager.Users.Services
 
         public async Task<bool> ValidateEmailAsync(string emailVerificationHash, string email)
         {
-            if(!_emailHelper.VerifyEmail(email))
+            if (!_emailHelper.VerifyEmail(email))
                 return false;
-            if(!Guid.TryParse(emailVerificationHash, out _)) 
+            if (!Guid.TryParse(emailVerificationHash, out _))
                 return false;
-            
+
             return await _userRepository.ValidateEmail(emailVerificationHash, email);
         }
-
-        
 
         public async Task<bool> ChangePasswordAsync(string email, string oldPassword, string newPassword)
         {
             User? user = await _userRepository.GetUserByEmailAsync(email);
             if (user == null)
                 return false;
-            
+
             Authentication? auth = await _authenticationRepository.GetAuthenticationByUserIdAsync(user.Id);
-            if(auth == null) 
+            if (auth == null)
                 return false;
 
-            // verify old password
             if (!_cryptographyHelper.VerifyPasswordHash(oldPassword, auth.HashPasswordBytes, auth.HashSaltBytes))
                 return false;
 
-            // update password
             auth.HashSaltBytes = _cryptographyHelper.GenerateRandomSalt();
             auth.HashPasswordBytes = _cryptographyHelper.GeneratePasswordHash(newPassword, auth.HashSaltBytes);
             return await _authenticationRepository.UpdateAuthenticationAsync(auth);
@@ -260,7 +238,6 @@ namespace Touir.ExpensesManager.Users.Services
 
         public async Task<bool> ResetPasswordAsync(string email, string verificationHash, string newPassword)
         {
-            // verify hash before changing password
             if (!(await ValidateEmailAsync(verificationHash, email)))
                 return false;
 
@@ -270,10 +247,8 @@ namespace Touir.ExpensesManager.Users.Services
 
             Authentication? auth = await _authenticationRepository.GetAuthenticationByUserIdAsync(user.Id);
 
-            // salt for password hash
             byte[] salt = _cryptographyHelper.GenerateRandomSalt();
 
-            // new user so we need to create the authentication
             if (auth == null)
             {
                 auth = new Authentication
@@ -286,7 +261,6 @@ namespace Touir.ExpensesManager.Users.Services
                 return await _authenticationRepository.CreateAuthenticationAsync(auth, resetHash: true);
             }
 
-            // if auth exists just change the password and reset temporary password flag
             auth.IsTemporaryPassword = false;
             auth.HashSaltBytes = salt;
             auth.HashPasswordBytes = _cryptographyHelper.GeneratePasswordHash(newPassword, salt);

@@ -3,6 +3,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.57.0] - 2026-04-28
+### Added
+- **Backend (users) tests:** Added unit test coverage for two previously untested services.
+  - `RefreshTokenServiceTests` (11 tests): `GenerateAsync` — non-empty token, persists to repo, 1-day expiry when `rememberMe=false`, configured-days expiry when `rememberMe=true`, unique token per call; `ValidateAsync` — invalid when not found, invalid when inactive (expired/revoked), valid + userId when active; `RevokeAsync` — no-op when not found, revokes when found; `RevokeAllForUserAsync` — delegates to repo.
+  - `UserRoleAssignmentServiceTests` (5 tests): `TryAssignDefaultRoleAsync` — no-op when applicationCode is null, when user is null, when application not found, when no default role exists; assigns role when both application and default role are present.
+  - Total test count: 180 → 196.
+
+## [0.56.0] - 2026-04-28
+### Fixed
+- **Backend (users):** Resolved remaining SonarQube quality-gate findings.
+  - `AuthenticationService`: constructor parameter count reduced from 8 → 7 by extracting `IUserRoleAssignmentService` / `UserRoleAssignmentService` (wraps `IApplicationRepository` + `IRoleRepository` for role assignment during registration); `errors.Any()` → `errors.Count > 0` (S2971 — prefer Count comparison).
+  - `PASSWORD_RESET_TEMPLATE.html`: `.foot` text color changed from `#9ca3af` to `#4b5563` to meet WCAG AA contrast ratio (~6.3:1 on `#f8fafc` background).
+  - `AuthenticationServiceTests.CreateService()`: marked `static` (rule S2325); factory updated to accept `Mock<IUserRoleAssignmentService>` replacing the former `appRepo`/`roleRepo` params; `AssignsDefaultRole` test updated accordingly.
+
 ## [0.55.0] - 2026-04-28
 ### Fixed
 - **Backend (users):** Resolved SonarQube quality-gate findings across multiple files.

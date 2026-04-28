@@ -131,6 +131,7 @@ builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 #region Services
 
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+builder.Services.AddScoped<IUserRoleAssignmentService, UserRoleAssignmentService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IApplicationService, ApplicationService>();
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
