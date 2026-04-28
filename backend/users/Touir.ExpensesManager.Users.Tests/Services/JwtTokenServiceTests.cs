@@ -46,5 +46,38 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             Assert.False(result.IsValid);
             Assert.NotNull(result.Exception);
         }
+
+        [Fact]
+        public void GenerateJwtToken_ReturnsValidToken_WhenFirstNameIsNull()
+        {
+            var service = CreateService();
+            var token = service.GenerateJwtToken(1, "test@test.com", null, "Doe");
+
+            Assert.False(string.IsNullOrWhiteSpace(token));
+            var result = service.ValidateToken(token);
+            Assert.True(result.IsValid);
+        }
+
+        [Fact]
+        public void GenerateJwtToken_ReturnsValidToken_WhenLastNameIsNull()
+        {
+            var service = CreateService();
+            var token = service.GenerateJwtToken(1, "test@test.com", "John", null);
+
+            Assert.False(string.IsNullOrWhiteSpace(token));
+            var result = service.ValidateToken(token);
+            Assert.True(result.IsValid);
+        }
+
+        [Fact]
+        public void GenerateJwtToken_ReturnsValidToken_WhenBothNamesAreNull()
+        {
+            var service = CreateService();
+            var token = service.GenerateJwtToken(42, "noname@test.com", null, null);
+
+            Assert.False(string.IsNullOrWhiteSpace(token));
+            var result = service.ValidateToken(token);
+            Assert.True(result.IsValid);
+        }
     }
 }

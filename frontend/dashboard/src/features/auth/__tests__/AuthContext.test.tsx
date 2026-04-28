@@ -318,7 +318,7 @@ describe('AuthContext', () => {
       expect(requestResult.ok).toBe(true)
       expect(api.post).toHaveBeenCalledWith(
         `${AUTH_BASE}/request-password-reset`,
-        { email: 'user@test.com' },
+        { email: 'user@test.com', appCode: 'EXPENSES_MANAGER' },
         SKIP
       )
     })

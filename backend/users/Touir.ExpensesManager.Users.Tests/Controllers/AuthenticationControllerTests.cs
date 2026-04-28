@@ -9,7 +9,10 @@ using Touir.ExpensesManager.Users.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Moq;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace Touir.ExpensesManager.Users.Tests.Controllers
 {
@@ -103,6 +106,23 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync(user);
             var mockRoleService = new Mock<IRoleService>();
             mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id!.Value)).ReturnsAsync(new List<RoleEo>());
+            var controller = CreateController(authService: mockAuthService.Object, roleService: mockRoleService.Object);
+            var request = new LoginRequest { Email = "john@doe.com", Password = "password", ApplicationCode = "APP1" };
+            var result = await controller.LoginAsync(request);
+
+            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
+            var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
+            Assert.Equal("NO_ASSIGNED_ROLE", response.Message);
+        }
+
+        [Fact]
+        public async Task LoginAsync_ReturnsUnauthorized_WhenRolesIsNull()
+        {
+            var user = new UserEo { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@doe.com" };
+            var mockAuthService = new Mock<IAuthenticationService>();
+            mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync(user);
+            var mockRoleService = new Mock<IRoleService>();
+            mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id!.Value)).Returns(Task.FromResult<IEnumerable<RoleEo>>(null!));
             var controller = CreateController(authService: mockAuthService.Object, roleService: mockRoleService.Object);
             var request = new LoginRequest { Email = "john@doe.com", Password = "password", ApplicationCode = "APP1" };
             var result = await controller.LoginAsync(request);
@@ -396,7 +416,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         public void Session_ReturnsOkWithUserData_WhenTokenIsValid()
         {
             var mockJwtService = new Mock<IJwtTokenService>();
-            mockJwtService.Setup(s => s.ValidateToken("valid_token")).Returns(new Microsoft.IdentityModel.Tokens.TokenValidationResult { IsValid = true, SecurityToken = null! });
+            mockJwtService.Setup(s => s.ValidateToken("valid_token")).Returns(new TokenValidationResult { IsValid = true, SecurityToken = null! });
             var controller = CreateController(jwtTokenService: mockJwtService.Object);
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Headers.Cookie = "auth_token=valid_token";
@@ -406,6 +426,52 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
 
             var okResult = Assert.IsType<OkObjectResult>(result);
             Assert.IsType<SessionResponse>(okResult.Value);
+        }
+
+        [Fact]
+        public void Session_ReturnsOkWithClaimsData_WhenTokenHasClaims()
+        {
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Email, "john@doe.com"),
+                new Claim(ClaimTypes.GivenName, "John"),
+                new Claim(ClaimTypes.Surname, "Doe")
+            };
+            var jwtToken = new JwtSecurityToken(claims: claims);
+            var mockJwtService = new Mock<IJwtTokenService>();
+            mockJwtService.Setup(s => s.ValidateToken("claims_token")).Returns(new TokenValidationResult { IsValid = true, SecurityToken = jwtToken });
+            var controller = CreateController(jwtTokenService: mockJwtService.Object);
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers.Cookie = "auth_token=claims_token";
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            var result = controller.Session();
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var response = Assert.IsType<SessionResponse>(okResult.Value);
+            Assert.Equal("john@doe.com", response.Email);
+            Assert.Equal("John", response.FirstName);
+            Assert.Equal("Doe", response.LastName);
+        }
+
+        [Fact]
+        public void Session_ReturnsOkWithEmptyData_WhenTokenHasNoClaims()
+        {
+            var jwtToken = new JwtSecurityToken();
+            var mockJwtService = new Mock<IJwtTokenService>();
+            mockJwtService.Setup(s => s.ValidateToken("no_claims_token")).Returns(new TokenValidationResult { IsValid = true, SecurityToken = jwtToken });
+            var controller = CreateController(jwtTokenService: mockJwtService.Object);
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers.Cookie = "auth_token=no_claims_token";
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            var result = controller.Session();
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var response = Assert.IsType<SessionResponse>(okResult.Value);
+            Assert.Equal(string.Empty, response.Email);
+            Assert.Null(response.FirstName);
+            Assert.Null(response.LastName);
         }
 
         [Fact]
@@ -488,6 +554,25 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         }
 
         [Fact]
+        public async Task RefreshAsync_ReturnsUnauthorized_WhenUserNotFound()
+        {
+            var mockRefreshService = new Mock<IRefreshTokenService>();
+            mockRefreshService.Setup(s => s.ValidateAsync("valid_refresh")).ReturnsAsync((true, 99));
+            var mockUserRepo = new Mock<IUserRepository>();
+            mockUserRepo.Setup(r => r.GetUserByIdAsync(99)).ReturnsAsync((User?)null);
+            var controller = CreateController(refreshTokenService: mockRefreshService.Object, userRepository: mockUserRepo.Object);
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers.Cookie = "refresh_token=valid_refresh";
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            var result = await controller.RefreshAsync();
+
+            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
+            var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
+            Assert.Equal("USER_NOT_FOUND", response.Message);
+        }
+
+        [Fact]
         public async Task RefreshAsync_ReturnsBadRequest_WhenExceptionThrown()
         {
             var mockRefreshService = new Mock<IRefreshTokenService>();
@@ -521,6 +606,22 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var cookieHeader = httpContext.Response.Headers.SetCookie.ToString();
             Assert.Contains("auth_token", cookieHeader);
             Assert.Contains("refresh_token", cookieHeader);
+        }
+
+        [Fact]
+        public async Task Logout_RevokesRefreshToken_WhenCookiePresent()
+        {
+            var mockRefreshService = new Mock<IRefreshTokenService>();
+            mockRefreshService.Setup(s => s.RevokeAsync("existing_refresh")).Returns(Task.CompletedTask);
+            var controller = CreateController(refreshTokenService: mockRefreshService.Object);
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers.Cookie = "refresh_token=existing_refresh";
+            controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+            var result = await controller.Logout();
+
+            Assert.IsType<OkResult>(result);
+            mockRefreshService.Verify(s => s.RevokeAsync("existing_refresh"), Times.Once);
         }
 
         #endregion
