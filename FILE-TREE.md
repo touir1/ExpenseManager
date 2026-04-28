@@ -301,6 +301,7 @@ ExpenseManager/
 │           ├── services/              — Shared base services
 │           │   ├── api.service.ts     — Base fetch wrapper with cookie auth, transparent refresh-and-retry on 401, and skipUnauthorized option
 │           │   └── __tests__/
+│           │       ├── api.service.test.ts — Full coverage: normal flows, 401 refresh-and-retry, deduplication, skipUnauthorized, network errors
 │           │       └── api.test.ts
 │           ├── styles/
 │           │   └── index.css          — Tailwind directives + @layer components

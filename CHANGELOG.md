@@ -3,6 +3,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.53.1] - 2026-04-28
+### Fixed
+- **Frontend (dashboard):** Resolved two SonarQube quality-gate findings in `api.service.ts`.
+  - `attemptTokenRefresh`: replaced `if (!refreshInFlight)` guard with nullish coalescing assignment (`??=`).
+  - `request`: reduced cognitive complexity from 27 → ~11 by extracting `redirectToLogin()`, `buildErrorResponse()`, and `retryRequest()` helpers; logic and behaviour are unchanged.
+
+## [0.53.0] - 2026-04-28
+### Added
+- **Frontend (dashboard):** `rememberMe` option wired end-to-end.
+  - `LoginPage` passes `rememberMe` flag to `loginRequest`; `authApi.service.ts` forwards it to the backend so the backend can set persistent vs. session cookies.
+  - `AuthContext` re-exported `firstName` / `lastName` from the session response for use in `NavBar`.
+  - `PasswordStrength`: minor accessibility tweak.
+- **Frontend (dashboard):** Full test suite for `api.service.ts` (`src/services/__tests__/api.service.test.ts`, 303 lines) covering: normal GET/POST/PUT/DELETE flows, transparent 401 → refresh → retry, concurrent refresh deduplication, `skipUnauthorized` bypass, network errors, and `onUnauthorized` / `onError` handler registration.
+
 ## [0.52.0] - 2026-04-28
 ### Added
 - **Backend (users):** Refresh token flow — `POST /auth/refresh` issues a new `auth_token` cookie and rotates the `refresh_token` cookie using a DB-backed opaque token (`RTK_RefreshTokens` table).

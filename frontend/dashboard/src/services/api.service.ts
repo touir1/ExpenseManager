@@ -32,16 +32,37 @@ function getErrorMessage(status: number, data: any, statusText: string): string 
 let refreshInFlight: Promise<boolean> | null = null
 
 async function attemptTokenRefresh(): Promise<boolean> {
-  if (!refreshInFlight) {
-    refreshInFlight = fetch(`${API_BASE}/api/users/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
-    })
-      .then(r => r.ok)
-      .catch(() => false)
-      .finally(() => { refreshInFlight = null })
-  }
+  refreshInFlight ??= fetch(`${API_BASE}/api/users/auth/refresh`, {
+    method: 'POST',
+    credentials: 'include',
+  })
+    .then(r => r.ok)
+    .catch(() => false)
+    .finally(() => { refreshInFlight = null })
   return refreshInFlight
+}
+
+function redirectToLogin(): void {
+  if (unauthorizedHandler) unauthorizedHandler()
+  else globalThis.location.assign('/login')
+}
+
+function buildErrorResponse<T>(status: number, data: unknown, statusText: string): ApiResponse<T> {
+  const msg = getErrorMessage(status, data, statusText)
+  if (errorHandler) errorHandler(msg)
+  return { ok: false, status, error: msg }
+}
+
+async function retryRequest<T>(url: string, init: RequestInit, headers: Record<string, string>): Promise<ApiResponse<T>> {
+  const retryRes = await fetch(url, { ...init, headers, credentials: 'include' })
+  const retryStatus = retryRes.status
+  const retryData = await parseJsonSafe(retryRes)
+  if (retryStatus >= 200 && retryStatus < 300) return { ok: true, status: retryStatus, data: retryData as T }
+  if (retryStatus === 401) {
+    redirectToLogin()
+    return { ok: false, status: retryStatus, error: API_ERRORS.UNAUTHORIZED }
+  }
+  return buildErrorResponse(retryStatus, retryData, retryRes.statusText)
 }
 
 export async function request<T>(path: string, init: RequestInit = {}, opts: { skipUnauthorized?: boolean } = {}): Promise<ApiResponse<T>> {
@@ -56,29 +77,12 @@ export async function request<T>(path: string, init: RequestInit = {}, opts: { s
 
     if (status === 401 && !opts.skipUnauthorized) {
       const refreshed = await attemptTokenRefresh()
-      if (refreshed) {
-        const retryRes = await fetch(url, { ...init, headers, credentials: 'include' })
-        const retryStatus = retryRes.status
-        const retryData = await parseJsonSafe(retryRes)
-        if (retryStatus >= 200 && retryStatus < 300) return { ok: true, status: retryStatus, data: retryData as T }
-        if (retryStatus === 401) {
-          if (unauthorizedHandler) unauthorizedHandler()
-          else globalThis.location.assign('/login')
-          return { ok: false, status: retryStatus, error: API_ERRORS.UNAUTHORIZED }
-        }
-        return { ok: false, status: retryStatus, error: getErrorMessage(retryStatus, retryData, retryRes.statusText) }
-      }
-      if (unauthorizedHandler) unauthorizedHandler()
-      else globalThis.location.assign('/login')
+      if (refreshed) return retryRequest<T>(url, init, headers)
+      redirectToLogin()
       return { ok: false, status, error: API_ERRORS.UNAUTHORIZED }
     }
 
-    if (!res.ok) {
-      const msg = getErrorMessage(status, data, res.statusText)
-      if (errorHandler) errorHandler(msg)
-      return { ok: false, status, error: msg }
-    }
-
+    if (!res.ok) return buildErrorResponse(status, data, res.statusText)
     return { ok: true, status, data }
   } catch {
     const msg = API_ERRORS.NETWORK
