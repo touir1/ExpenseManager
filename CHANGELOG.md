@@ -3,6 +3,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.53.2] - 2026-04-28
+### Fixed
+- **Backend (users):** Resolved two SonarQube quality-gate findings in `AuthenticationController` / `LoginRequest`.
+  - `Session()` annotated with `[ProducesResponseType(typeof(SessionResponse), StatusCodes.Status200OK)]`.
+  - `LoginRequest.RememberMe` changed from `bool` to `bool?` (nullable value type on controller input); controller resolves it with `?? false` so runtime behaviour is unchanged.
+
 ## [0.53.1] - 2026-04-28
 ### Fixed
 - **Frontend (dashboard):** Resolved two SonarQube quality-gate findings in `api.service.ts`.

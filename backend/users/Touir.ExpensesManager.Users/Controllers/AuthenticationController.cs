@@ -89,10 +89,11 @@ namespace Touir.ExpensesManager.Users.Controllers
                     return Unauthorized(new ErrorResponse { Message = "NO_ASSIGNED_ROLE" });
 
                 var accessToken = _authenticationService.GenerateJwtToken(user.Id!.Value, user.Email, user.FirstName, user.LastName);
-                var refreshTokenValue = await _refreshTokenService.GenerateAsync(user.Id!.Value, request.RememberMe);
+                var rememberMe = request.RememberMe ?? false;
+                var refreshTokenValue = await _refreshTokenService.GenerateAsync(user.Id!.Value, rememberMe);
 
-                var cookieOptions = BuildCookieOptions(request.RememberMe, _jwtAuthOptions.ExpiryInMinutes);
-                var refreshCookieOptions = BuildCookieOptions(request.RememberMe, _jwtAuthOptions.RefreshExpiryInDays * 24 * 60);
+                var cookieOptions = BuildCookieOptions(rememberMe, _jwtAuthOptions.ExpiryInMinutes);
+                var refreshCookieOptions = BuildCookieOptions(rememberMe, _jwtAuthOptions.RefreshExpiryInDays * 24 * 60);
 
                 Response.Cookies.Append(AuthTokenCookie, accessToken, cookieOptions);
                 Response.Cookies.Append(RefreshTokenCookie, refreshTokenValue, refreshCookieOptions);
@@ -278,6 +279,7 @@ namespace Touir.ExpensesManager.Users.Controllers
 
         [Route("session")]
         [HttpGet]
+        [ProducesResponseType(typeof(SessionResponse), StatusCodes.Status200OK)]
         public IActionResult Session()
         {
             try
