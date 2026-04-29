@@ -23,7 +23,7 @@ export function loginRequest(
   return post<LoginResponse>(
     `${AUTH_BASE}/login`,
     { email, password, applicationCode, rememberMe },
-    { skipUnauthorized: true }
+    { skipUnauthorized: true, silent: true }
   )
 }
 

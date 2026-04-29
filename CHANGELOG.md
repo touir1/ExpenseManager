@@ -3,6 +3,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.65.0] - 2026-04-29
+### Fixed
+- **Frontend — F-2:** Eliminated duplicate error toasts on failed login.
+  - `loginRequest()` in `authApi.service.ts` now passes `silent: true` alongside `skipUnauthorized: true`. The generic `errorHandler` toast is suppressed; `LoginPage` continues to show its own "Invalid credentials. Please try again." message.
+  - `AuthContext.test.tsx`: two `toHaveBeenCalledWith` assertions updated from `SKIP` to `SKIP_SILENT` to match the new opts. All 267 tests pass.
+
 ## [0.64.0] - 2026-04-29
 ### Fixed
 - **Frontend — F-1:** Suppressed duplicate "Authentication token is missing" toasts on every page load for unauthenticated visitors.

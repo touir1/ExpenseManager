@@ -162,7 +162,7 @@ describe('AuthContext', () => {
       expect(api.post).toHaveBeenCalledWith(
         `${AUTH_BASE}/login`,
         expect.objectContaining({ email: 'user@test.com', password: 'pass', applicationCode: expect.any(String), rememberMe: true }),
-        SKIP
+        SKIP_SILENT
       )
     })
 
@@ -175,7 +175,7 @@ describe('AuthContext', () => {
       expect(api.post).toHaveBeenCalledWith(
         `${AUTH_BASE}/login`,
         expect.objectContaining({ rememberMe: false }),
-        SKIP
+        SKIP_SILENT
       )
     })
   })

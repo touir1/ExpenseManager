@@ -35,20 +35,6 @@ The Expenses Manager frontend is well-structured and functional. Authentication,
 
 ## Functional Issues
 
-### F-2 — Duplicate error toasts on failed login (Medium)
-
-**Reproduction:**
-1. Navigate to `/login`
-2. Enter any wrong credentials and submit
-
-**Observed:** Two toasts appear simultaneously: "Invalid email or password." and "Invalid credentials. Please try again."
-
-**Expected:** A single error message.
-
-**Root cause:** The `api.service.ts` 401 interceptor and the login-specific error handler both trigger toasts on the same failure.
-
----
-
 ### F-3 — Invalid/expired verification link shows raw JSON (Medium)
 
 **Reproduction:**
