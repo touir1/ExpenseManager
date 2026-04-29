@@ -82,6 +82,17 @@ All 205 existing tests continued to pass after these changes.
 | Extract `PasswordManagementService` + `IPasswordManagementService` | New `PasswordManagementService` handles `ChangePasswordAsync`, `ResetPasswordAsync`, `RequestPasswordResetAsync`; `PasswordController` owns those endpoints |
 | Split `AuthenticationController` | Three controllers: `AuthenticationController` (login/logout/session/refresh/check), `RegistrationController`, `PasswordController` |
 
+### ISP / DIP — Obsolete after SRP refactor — 2026-04-29
+
+These four items were raised before the SRP split (v0.60.0) and are no longer actionable.
+
+| Item | Why obsolete |
+|---|---|
+| ISP: Split `IAuthenticationService` (7 methods) | The SRP refactor already split it into `IAuthenticationService` (1 method), `IJwtTokenService` (2 methods), `IRegistrationService` (2 methods), `IPasswordManagementService` (3 methods). No fat interface remains |
+| ISP: Split `IEmailHelper` into `IEmailSender` / `IEmailValidator` / `IEmailTemplateProvider` | Every consumer (`RegistrationService`, `PasswordManagementService`) uses all three methods — validate → render → send is always one flow. No client is forced to depend on methods it doesn't use, so there is no ISP violation to fix; splitting would add three injected dependencies per class with no practical benefit |
+| DIP: Inject `ITokenValidator` instead of inline JWT logic in `AuthenticationService` | JWT validation was extracted to `JwtTokenService` / `IJwtTokenService` in the SRP refactor. `AuthenticationService` now contains only credential verification and has no JWT logic at all |
+| DIP: Depend on `IAuthOptions` instead of concrete `JwtAuthOptions` in `AuthenticationController` | `IOptions<JwtAuthOptions>` is already a framework-provided abstraction and is trivially mockable via `Options.Create(...)` — existing tests do exactly that. Introducing a custom `IAuthOptions` interface would duplicate two property declarations with no testability gain and no realistic second implementation |
+
 ### LSP — Fix nullable contract mismatches — 2026-04-29 (v0.63.0)
 
 | Priority | Refactor | Resolution |

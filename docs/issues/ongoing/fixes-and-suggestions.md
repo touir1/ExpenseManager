@@ -70,17 +70,11 @@ The dashboard currently uses vanilla `fetch`, React Hook Form + Zod for auth for
 
 ### ISP — Split fat interfaces
 
-| Priority | Refactor | Files |
-|---|---|---|
-| High | Split `IAuthenticationService` (7 mixed methods) into focused interfaces per concern | `Services/Contracts/IAuthenticationService.cs` |
-| Medium | Split `IEmailHelper` into `IEmailSender`, `IEmailValidator`, `IEmailTemplateProvider` | `Helpers/Contracts/IEmailHelper.cs` |
+*Both items obsolete — see [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
 
 ### DIP — Replace concrete dependencies with abstractions
 
-| Priority | Refactor | Files |
-|---|---|---|
-| Medium | Inject `ITokenValidator` instead of building JWT validation logic inline | `Services/AuthenticationService.cs` |
-| Low | Depend on `IAuthOptions` abstraction instead of concrete `JwtAuthOptions` | `Controllers/AuthenticationController.cs` |
+*Both items obsolete — see [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
 
 ---
 
