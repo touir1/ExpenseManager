@@ -8,6 +8,7 @@ ExpenseManager/
 │   ├── commands/
 │   │   ├── cicd.md                    — `/cicd` skill definition
 │   │   ├── done.md                    — `/done` skill definition
+│   │   ├── qa.md                      — `/qa` skill definition
 │   │   └── test.md                    — `/test` skill definition
 │   ├── cicd.md                        — CI/CD skill reference
 │   ├── commands.md                    — All shell commands (imported by CLAUDE.md)
@@ -121,11 +122,13 @@ ExpenseManager/
 │       │   ├── Infrastructure/
 │       │   │   ├── UsersAppDbContext.cs      — EF Core context for users schema
 │       │   │   ├── CryptographyHelper.cs     — Password hashing and HMAC utilities
-│       │   │   ├── EmailHelper.cs            — SMTP email sending
+│       │   │   ├── EmailHelper.cs            — Email helper: validation, template loading; delegates send to IEmailService
+│       │   │   ├── SmtpEmailService.cs       — IEmailService implementation using System.Net.Mail SMTP
 │       │   │   ├── EmailHtmlTemplate.cs      — HTML email template keys and variable name constants
 │       │   │   ├── Contracts/
 │       │   │   │   ├── ICryptographyHelper.cs
-│       │   │   │   └── IEmailHelper.cs
+│       │   │   │   ├── IEmailHelper.cs
+│       │   │   │   └── IEmailService.cs      — Abstraction for email dispatch (OCP boundary)
 │       │   │   └── Options/
 │       │   │       ├── AuthenticationServiceOptions.cs
 │       │   │       ├── CryptographyOptions.cs
@@ -212,7 +215,8 @@ ExpenseManager/
 │           │   └── RegistrationControllerTests.cs
 │           ├── Infrastructure/
 │           │   ├── CryptographyHelperTests.cs
-│           │   └── EmailHelperTests.cs
+│           │   ├── EmailHelperTests.cs
+│           │   └── SmtpEmailServiceTests.cs
 │           ├── Repositories/
 │           │   ├── ApplicationRepositoryTests.cs
 │           │   ├── AuthenticationRepositoryTests.cs

@@ -71,7 +71,24 @@ All 205 existing tests continued to pass after these changes.
 
 ## Backend
 
-*No applied suggestions yet.*
+### SRP — Split `AuthenticationService` — 2026-04-28 (v0.60.0)
+
+`AuthenticationService` was split into four focused classes; `AuthenticationController` split into three controllers.
+
+| Refactor | Resolution |
+|---|---|
+| Extract `RegistrationService` + `IRegistrationService` | New `RegistrationService` handles `RegisterNewUserAsync` + `ValidateEmailAsync`; `RegistrationController` owns register + validate-email endpoints |
+| Extract `JwtTokenService` + `IJwtTokenService` | New `JwtTokenService` handles `GenerateJwtToken` + `ValidateToken`; injected into `AuthenticationController` for token ops |
+| Extract `PasswordManagementService` + `IPasswordManagementService` | New `PasswordManagementService` handles `ChangePasswordAsync`, `ResetPasswordAsync`, `RequestPasswordResetAsync`; `PasswordController` owns those endpoints |
+| Split `AuthenticationController` | Three controllers: `AuthenticationController` (login/logout/session/refresh/check), `RegistrationController`, `PasswordController` |
+
+### OCP — Abstract email dispatch — 2026-04-29 (v0.62.0)
+
+`IEmailService` abstraction introduced; SMTP dispatch logic extracted from `EmailHelper` into `SmtpEmailService`.
+
+| Refactor | Resolution |
+|---|---|
+| Introduce `IEmailService` abstraction; move SMTP logic behind it | `IEmailService` contract in `Infrastructure/Contracts/IEmailService.cs`; `SmtpEmailService` implementation in `Infrastructure/SmtpEmailService.cs`; `EmailHelper.SendEmail()` now delegates to `IEmailService`; `Program.cs` registers `SmtpEmailService` as scoped `IEmailService`. Swapping email providers requires only a new implementation + one DI registration change |
 
 ---
 

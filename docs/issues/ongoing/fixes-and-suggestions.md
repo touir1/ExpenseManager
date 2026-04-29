@@ -62,24 +62,7 @@ The dashboard currently uses vanilla `fetch`, React Hook Form + Zod for auth for
 
 ## Backend — SOLID / Architecture Refactors
 
-### SRP — Split `AuthenticationService` ✅ done
-
-`AuthenticationService` has been split into four focused classes. `AuthenticationController` has been split into three controllers.
-
-| Priority | Refactor | Status |
-|---|---|---|
-| High | Extract `RegistrationService` + `IRegistrationService` | ✅ done |
-| High | Extract `JwtTokenService` + `IJwtTokenService` | ✅ done |
-| High | Extract `PasswordManagementService` + `IPasswordManagementService` | ✅ done |
-| Medium | Split `AuthenticationController` into `AuthenticationController`, `RegistrationController`, `PasswordController` | ✅ done |
-
-### OCP — Abstract email dispatch
-
-Email sending logic is embedded directly in `AuthenticationService`. Adding a new email provider requires modifying the service.
-
-| Priority | Refactor | Files |
-|---|---|---|
-| Medium | Introduce `IEmailService` abstraction; move SMTP logic behind it | `Services/AuthenticationService.cs`, `Helpers/EmailHelper.cs` |
+*SRP and OCP refactors completed — see [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
 
 ### LSP — Fix nullable contract mismatches
 

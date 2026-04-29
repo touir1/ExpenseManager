@@ -143,6 +143,7 @@ builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
 #region Helpers
 
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 builder.Services.AddScoped<IEmailHelper, EmailHelper>();
 builder.Services.AddScoped<ICryptographyHelper, CryptographyHelper>();
 

@@ -3,6 +3,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.62.0] - 2026-04-29
+### Refactored
+- **Backend (users) — OCP:** Introduced `IEmailService` abstraction and `SmtpEmailService` implementation.
+  - SMTP dispatch logic extracted from `EmailHelper` into `SmtpEmailService : IEmailService`.
+  - `EmailHelper.SendEmail()` now delegates to `IEmailService` — swapping the email provider requires only a new `IEmailService` implementation and a single DI registration change, with no modification to `EmailHelper` or any service that calls it.
+  - `Program.cs`: registers `SmtpEmailService` as `IEmailService` (scoped).
+  - Tests: `EmailHelperTests` updated to mock `IEmailService`; SMTP failure coverage moved to new `SmtpEmailServiceTests`. Test count: 217 (was 208).
+
 ## [0.61.0] - 2026-04-29
 ### Fixed
 - **CI (users):** SonarQube job was crashing with an OOM error in the JS/HTML bridge server while parsing email template files.
