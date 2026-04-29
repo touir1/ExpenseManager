@@ -22,7 +22,8 @@ namespace Touir.ExpensesManager.Users.Services
                 Name = app.Name,
                 Description = app.Description,
                 UrlPath = app.UrlPath,
-                ResetPasswordUrlPath = app.ResetPasswordUrlPath
+                ResetPasswordUrlPath = app.ResetPasswordUrlPath,
+                VerifyEmailErrorUrlPath = app.VerifyEmailErrorUrlPath
             };
         }
     }

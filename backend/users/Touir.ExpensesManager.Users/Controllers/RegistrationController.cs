@@ -75,7 +75,14 @@ namespace Touir.ExpensesManager.Users.Controllers
                 var emailLower = email.ToLowerInvariant();
                 bool result = await _registrationService.ValidateEmailAsync(emailVerificationHash, emailLower);
                 if (!result)
+                {
+                    var errorPath = !string.IsNullOrWhiteSpace(app.VerifyEmailErrorUrlPath)
+                        ? $"{app.UrlPath}{app.VerifyEmailErrorUrlPath}"
+                        : null;
+                    if (errorPath != null)
+                        return Redirect(errorPath);
                     return Unauthorized(new ErrorResponse { Message = "EMAIL_VERIFICATION_FAILED" });
+                }
                 return Redirect($"{app.ResetPasswordUrlPath}?email={Uri.EscapeDataString(emailLower)}&h={emailVerificationHash}&mode=create");
             }
             catch (Exception)

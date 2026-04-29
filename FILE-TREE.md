@@ -204,6 +204,7 @@ ExpenseManager/
 │       │       ├── 20260323120000_UpdateApplicationUrls.cs — Updates APP_UrlPath and APP_ResetPasswordUrlPath from localhost:5173 to localhost (nginx)
 │       │       ├── 20260412165435_FixResetPasswordUrl.cs — Sets APP_ResetPasswordUrlPath to host-agnostic relative path /reset-password
 │       │       ├── AddRefreshTokens.cs          — Creates RTK_RefreshTokens table
+│       │       ├── 20260429200824_AddVerifyEmailErrorUrlPath.cs — Adds APP_VerifyEmailErrorUrlPath; seeds /verify-error for EXPENSES_MANAGER app
 │       │       └── UsersAppDbContextModelSnapshot.cs
 │       └── Touir.ExpensesManager.Users.Tests/
 │           ├── Touir.ExpensesManager.Users.Tests.csproj
@@ -312,6 +313,7 @@ ExpenseManager/
 │           │       └── pages/
 │           │           ├── HomePublicPage.tsx    — Public landing page
 │           │           ├── NotFoundPage.tsx      — 404 page; shown for any unmatched route
+│           │           ├── VerifyErrorPage.tsx   — Friendly error page for expired/used email verification links (/verify-error)
 │           │           └── __tests__/
 │           │               ├── HomePublicPage.test.tsx
 │           │               └── NotFoundPage.test.tsx

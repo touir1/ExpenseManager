@@ -26,7 +26,7 @@ Public (no auth required, accessible via `/api/users/auth/` through nginx):
 - `GET  /auth/session` — Validate `auth_token` cookie; returns `{ email, firstName, lastName }` from JWT claims if valid, 401 otherwise (used for session restore on page load)
 - `POST /auth/refresh` — Validate `refresh_token` cookie, issue new `auth_token`, rotate `refresh_token` (used transparently by the frontend on 401)
 - `POST /auth/register` — User registration
-- `GET  /auth/validate-email` — Verify email from link
+- `GET  /auth/validate-email` — Verify email from link; on success redirects to `{app.ResetPasswordUrlPath}?email=…&h=…&mode=create`; on failure redirects to `{app.UrlPath}{app.VerifyEmailErrorUrlPath}` (e.g. `/verify-error`) if configured, otherwise returns `{"message":"EMAIL_VERIFICATION_FAILED"}`
 - `POST /auth/request-password-reset` — Send reset email; body: `{ email, appCode }` — `appCode` is appended to the reset link so `validate-email` can look up the application
 - `POST /auth/change-password-reset` — Reset password with verification hash
 - `GET  /auth/check` — Internal auth check used by nginx `auth_request`; accepts Bearer token header or `auth_token` cookie

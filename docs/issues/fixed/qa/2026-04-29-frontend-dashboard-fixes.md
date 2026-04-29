@@ -20,6 +20,37 @@ Items below were identified in the 2026-04-29 QA session and subsequently resolv
 
 ---
 
+## F-3 — ~~Invalid/expired verification link shows raw JSON~~ ✅ FIXED
+
+**Severity:** Medium
+**Affected flow:** Email verification → expired/reused token path
+
+**Root cause:** `RegistrationController.ValidateEmail` returned `Unauthorized(new ErrorResponse { Message = "EMAIL_VERIFICATION_FAILED" })` as raw JSON when the token was invalid or already used. The browser rendered the JSON directly with no UI context.
+
+**Fix applied:**
+- Added `VerifyEmailErrorUrlPath` property to `Application` model and `ApplicationEo`.
+- Added `APP_VerifyEmailErrorUrlPath` column mapping in `UsersAppDbContext.OnModelCreating`.
+- Added EF migration `20260429200824_AddVerifyEmailErrorUrlPath` seeding `/verify-error` for the EXPENSES_MANAGER app.
+- Updated `ApplicationService.GetApplicationByCodeAsync` to map the new field.
+- Updated `RegistrationController.ValidateEmail`: when validation fails and `VerifyEmailErrorUrlPath` is configured, redirect to `{app.UrlPath}{app.VerifyEmailErrorUrlPath}` instead of returning JSON. Falls back to JSON response if path is not configured.
+- Created `VerifyErrorPage.tsx` (`/verify-error` route) with friendly error message and "Back to register" CTA.
+- Added `/verify-error` route in `router.tsx` (public, no auth guard).
+- Added new test `ValidateEmail_ReturnsRedirectToErrorPage_WhenValidationFails_AndErrorUrlConfigured`; renamed existing test to clarify it covers the no-URL-configured fallback. All 15 controller tests pass.
+
+---
+
+## U-1 — ~~"Authentication token is missing" misleading for fresh visitors~~ ✅ FIXED
+
+**Severity:** Medium  
+**Affected routes:** All public/auth pages on cold load while unauthenticated
+
+**Root cause:** Same root as F-1. `sessionCheck()` and `refreshRequest()` fired on startup, each 401 triggered the `errorHandler` toast with "Authentication token is missing." This message implies a prior session expired, which is false for first-time visitors — eroding trust.
+
+**Fix applied:**  
+Resolved by F-1's fix: `silent: true` on `sessionCheck()` and `refreshRequest()` suppresses the toast entirely. No toast fires at all for unauthenticated visitors on startup — the misleading message never shows.
+
+---
+
 ## F-2 — ~~Duplicate error toasts on failed login~~ ✅ FIXED
 
 **Severity:** Medium  

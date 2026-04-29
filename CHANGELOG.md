@@ -3,6 +3,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.66.0] - 2026-04-29
+### Fixed
+- **Frontend/Backend — F-3:** Invalid/expired email verification links now redirect to a friendly error page instead of rendering raw JSON.
+  - Added `VerifyEmailErrorUrlPath` property to `Application` model, `ApplicationEo`, and `UsersAppDbContext` column mapping (`APP_VerifyEmailErrorUrlPath`).
+  - Migration `20260429200824_AddVerifyEmailErrorUrlPath` seeds `/verify-error` for the EXPENSES_MANAGER app.
+  - `ApplicationService` maps the new field through to `ApplicationEo`.
+  - `RegistrationController.ValidateEmail`: when token validation fails and `VerifyEmailErrorUrlPath` is configured, redirects to `{app.UrlPath}{app.VerifyEmailErrorUrlPath}`; falls back to JSON `EMAIL_VERIFICATION_FAILED` if path is not configured.
+  - New `VerifyErrorPage.tsx` renders a friendly "Verification link expired" message with a "Back to register" CTA at `/verify-error` (public route, no auth guard).
+  - New test `ValidateEmail_ReturnsRedirectToErrorPage_WhenValidationFails_AndErrorUrlConfigured`; existing failure test renamed to clarify the no-URL fallback path. All 15 controller tests pass.
+
 ## [0.65.0] - 2026-04-29
 ### Fixed
 - **Frontend — F-2:** Eliminated duplicate error toasts on failed login.

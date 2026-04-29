@@ -10,6 +10,7 @@ import ChangePasswordPage from '@/features/auth/pages/ChangePasswordPage'
 import ResetPassword from '@/features/auth/pages/ResetPasswordPage'
 import RequestPasswordReset from '@/features/auth/pages/RequestPasswordResetPage'
 import NotFound from '@/features/public/pages/NotFoundPage'
+import VerifyError from '@/features/public/pages/VerifyErrorPage'
 
 export default function AppRoutes() {
   return (
@@ -25,6 +26,9 @@ export default function AppRoutes() {
       <Route path="/dashboard" element={<ProtectedRoute><HomeDashboardPage /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
+
+      {/* Standalone public pages */}
+      <Route path="/verify-error" element={<VerifyError />} />
 
       {/* Fallback */}
       <Route path="*" element={<NotFound />} />

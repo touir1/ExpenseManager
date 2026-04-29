@@ -100,6 +100,7 @@ namespace Touir.ExpensesManager.Users.Infrastructure
                 entity.Property(x => x.Description).HasColumnName("APP_Description");
                 entity.Property(x => x.UrlPath).HasColumnName("APP_UrlPath");
                 entity.Property(x => x.ResetPasswordUrlPath).HasColumnName("APP_ResetPasswordUrlPath");
+                entity.Property(x => x.VerifyEmailErrorUrlPath).HasColumnName("APP_VerifyEmailErrorUrlPath");
 
                 entity.HasIndex(x => x.Code).IsUnique();
             });

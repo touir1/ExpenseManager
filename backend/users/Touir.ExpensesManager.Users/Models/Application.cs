@@ -8,6 +8,7 @@
         public string? Description { get; set; }
         public string? UrlPath { get; set; }
         public string? ResetPasswordUrlPath { get; set; }
+        public string? VerifyEmailErrorUrlPath { get; set; }
 
         public ICollection<Role> Roles { get; set; } = new List<Role>();
         public ICollection<RequestAccess> RequestAccesses { get; set; } = new List<RequestAccess>();

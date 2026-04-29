@@ -166,7 +166,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         }
 
         [Fact]
-        public async Task ValidateEmail_ReturnsUnauthorized_WhenValidationFails()
+        public async Task ValidateEmail_ReturnsUnauthorized_WhenValidationFails_AndNoErrorUrlConfigured()
         {
             var app = new ApplicationEo { Id = 1, Code = "APP1", Name = "App1", ResetPasswordUrlPath = "http://reset" };
             var mockAppService = new Mock<IApplicationService>();
@@ -179,6 +179,21 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
             var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
             Assert.Equal("EMAIL_VERIFICATION_FAILED", response.Message);
+        }
+
+        [Fact]
+        public async Task ValidateEmail_ReturnsRedirectToErrorPage_WhenValidationFails_AndErrorUrlConfigured()
+        {
+            var app = new ApplicationEo { Id = 1, Code = "APP1", Name = "App1", UrlPath = "https://localhost", ResetPasswordUrlPath = "/reset-password", VerifyEmailErrorUrlPath = "/verify-error" };
+            var mockAppService = new Mock<IApplicationService>();
+            mockAppService.Setup(s => s.GetApplicationByCodeAsync("APP1")).ReturnsAsync(app);
+            var mockService = new Mock<IRegistrationService>();
+            mockService.Setup(s => s.ValidateEmailAsync("hash", "john@doe.com")).ReturnsAsync(false);
+            var controller = CreateController(registrationService: mockService.Object, appService: mockAppService.Object);
+            var result = await controller.ValidateEmail("hash", "john@doe.com", "APP1");
+
+            var redirectResult = Assert.IsType<RedirectResult>(result);
+            Assert.Equal("https://localhost/verify-error", redirectResult.Url);
         }
 
         [Fact]

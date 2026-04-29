@@ -13,12 +13,14 @@
 
 The Expenses Manager frontend is well-structured and functional. Authentication, session management, email verification, and form validation all work correctly. The UI is clean and consistent. However, several issues were found ranging from a **High** security finding (no rate limiting on login) to **Medium** bugs (duplicate error toasts, raw JSON on invalid verification links) and **Low** accessibility gaps. The Expenses module is a stub ("Coming soon…") so CRUD testing was not possible. No XSS vulnerabilities were found.
 
-| Severity | Count |
-|---|---|
-| High | 2 |
-| Medium | 4 |
-| Low | 4 |
-| Info | 3 |
+| Severity | Found | Open | Fixed |
+|---|---|---|---|
+| High | 2 | 2 | 0 |
+| Medium | 4 | 1 | 3 |
+| Low | 4 | 4 | 0 |
+| Info | 3 | 3 | 0 |
+
+Fixed items: [F-1, F-2, F-3, U-1](../../../fixed/qa/2026-04-29-frontend-dashboard-fixes.md)
 
 ---
 
@@ -34,18 +36,6 @@ The Expenses Manager frontend is well-structured and functional. Authentication,
 ---
 
 ## Functional Issues
-
-### F-3 — Invalid/expired verification link shows raw JSON (Medium)
-
-**Reproduction:**
-1. Click an already-used or expired verification link: `GET /api/users/auth/validate-email?h=<used-token>&…`
-2. Browser displays: `{"message":"EMAIL_VERIFICATION_FAILED"}`
-
-**Expected:** Redirect to a friendly frontend error page (e.g., `/verify-error`) explaining the link is expired with a call-to-action to request a new one.
-
-**Affected flow:** Email verification → expired/reused token path.
-
----
 
 ### F-4 — No max-length validation on registration name fields (Medium)
 
@@ -72,14 +62,6 @@ The Expenses Manager frontend is well-structured and functional. Authentication,
 ---
 
 ## UX/UI Issues
-
-### U-1 — "Authentication token is missing" is misleading for fresh visitors (Medium)
-
-Same root as F-1. The error message implies the user was previously logged in and their session expired, which is false for first-time visitors. This is confusing and erodes trust.
-
-**Recommendation:** Suppress these toasts entirely on public/auth pages when no prior session existed.
-
----
 
 ### U-2 — Expenses card on dashboard shows "Coming soon…" with no context (Info)
 
@@ -227,13 +209,11 @@ Registering with an already-used email returns "Registration successful!" (HTTP 
 
 ## Recommendations (Priority Order)
 
-1. **[High]** Add rate limiting to `POST /auth/login` — 5 attempts / email / 15 min minimum.
-2. **[High]** Add `Content-Security-Policy`, `X-Content-Type-Options`, `Referrer-Policy` headers in nginx config.
-3. **[Medium]** Fix double error toasts: suppress "Authentication token is missing" toasts on public pages for fresh unauthenticated sessions (F-1); deduplicate login error toasts (F-2).
-4. **[Medium]** Redirect invalid/expired verification token API calls to a frontend error page instead of returning raw JSON (F-3).
-5. **[Medium]** Add `maxLength` Zod validation (e.g., 100 chars) to first name / last name fields in the register schema (F-4).
-6. **[Low]** Add `<a href="#main-content">Skip to content</a>` skip-nav link (U-4).
-7. **[Low]** Add `aria-pressed` to the show/hide password toggle button (U-5).
-8. **[Low]** Update email template copyright year to dynamic current year (U-3).
-9. **[Info]** Pre-validate reset token on page load and redirect to error page if invalid (U-6).
-10. **[Info]** Add description or hide Expenses "Coming soon…" card until feature ships (U-2).
+1. **[High]** Add rate limiting to `POST /auth/login` — 5 attempts / email / 15 min minimum. (S-1)
+2. **[High]** Add `Content-Security-Policy`, `X-Content-Type-Options`, `Referrer-Policy` headers in nginx config. (S-2)
+3. **[Medium]** Add `maxLength` Zod validation (e.g., 100 chars) to first name / last name fields in the register schema. (F-4)
+4. **[Low]** Add `<a href="#main-content">Skip to content</a>` skip-nav link. (U-4)
+5. **[Low]** Add `aria-pressed` to the show/hide password toggle button. (U-5)
+6. **[Low]** Update email template copyright year to dynamic current year. (U-3)
+7. **[Info]** Pre-validate reset token on page load and redirect to error page if invalid. (U-6)
+8. **[Info]** Add description or hide Expenses "Coming soon…" card until feature ships. (U-2)
