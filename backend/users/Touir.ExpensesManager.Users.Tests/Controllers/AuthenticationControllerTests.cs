@@ -116,13 +116,13 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         }
 
         [Fact]
-        public async Task LoginAsync_ReturnsUnauthorized_WhenRolesIsNull()
+        public async Task LoginAsync_ReturnsUnauthorized_WhenRolesIsEmpty()
         {
             var user = new UserEo { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@doe.com" };
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync(user);
             var mockRoleService = new Mock<IRoleService>();
-            mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id!.Value)).Returns(Task.FromResult<IEnumerable<RoleEo>>(null!));
+            mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id!.Value)).ReturnsAsync(Enumerable.Empty<RoleEo>());
             var controller = CreateController(authService: mockAuthService.Object, roleService: mockRoleService.Object);
             var request = new LoginRequest { Email = "john@doe.com", Password = "password", ApplicationCode = "APP1" };
             var result = await controller.LoginAsync(request);

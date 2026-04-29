@@ -11,14 +11,15 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         #region GetUserRolesByApplicationCodeAsync Tests
 
         [Fact]
-        public async Task GetUserRolesByApplicationCodeAsync_ReturnsNull_WhenApplicationCodeIsNull()
+        public async Task GetUserRolesByApplicationCodeAsync_ReturnsEmpty_WhenApplicationCodeIsNull()
         {
             var mockRepo = new Mock<IRoleRepository>();
             var service = new RoleService(mockRepo.Object);
-            
+
             var result = await service.GetUserRolesByApplicationCodeAsync(null!, 1);
-            
-            Assert.Null(result);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
             mockRepo.Verify(r => r.GetUserRolesByApplicationCodeAsync(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
         }
 
@@ -109,16 +110,17 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         }
 
         [Fact]
-        public async Task GetUserRolesByApplicationCodeAsync_ReturnsNull_WhenRepositoryReturnsNull()
+        public async Task GetUserRolesByApplicationCodeAsync_ReturnsEmpty_WhenRepositoryReturnsNull()
         {
             var mockRepo = new Mock<IRoleRepository>();
             mockRepo.Setup(r => r.GetUserRolesByApplicationCodeAsync("APP1", 1))
                 .ReturnsAsync((IEnumerable<Role>?)null);
-            
+
             var service = new RoleService(mockRepo.Object);
             var result = await service.GetUserRolesByApplicationCodeAsync("APP1", 1);
-            
-            Assert.Null(result);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
 
         [Fact]

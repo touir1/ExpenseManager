@@ -3,6 +3,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.63.0] - 2026-04-29
+### Refactored
+- **Backend (users) — LSP:** Fixed nullable contract mismatches in the users service.
+  - `IUserRepository.CreateUserAsync`: return type changed from `Task<User?>` to `Task<User>` — creation either succeeds (returning the entity) or throws; returning null was never reachable and violated the contract.
+  - `UserRepository.CreateUserAsync`: implementation signature updated to match.
+  - `RegistrationService`: `user` variable now typed as non-nullable `User`; null-conditional operators (`?.`) removed; `DeleteUserAsync(user)` call is now clean.
+  - `RoleService.GetUserRolesByApplicationCodeAsync`: now returns `Enumerable.Empty<RoleEo>()` instead of `null` when `applicationCode` is null or the repository returns null — honouring the non-nullable `IEnumerable<RoleEo>` contract declared in `IRoleService`.
+  - `AuthenticationController`: simplified guard from `if (roles == null || !roles.Any())` to `if (!roles.Any())` — the null check was only needed because the service violated its own contract.
+  - Tests updated: `RoleServiceTests` renamed two cases from `ReturnsNull` to `ReturnsEmpty` with updated assertions; `AuthenticationControllerTests` mock changed from a null return to an empty enumerable. Total test count unchanged: 217.
+
 ## [0.62.0] - 2026-04-29
 ### Refactored
 - **Backend (users) — OCP:** Introduced `IEmailService` abstraction and `SmtpEmailService` implementation.

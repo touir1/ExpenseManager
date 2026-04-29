@@ -79,7 +79,7 @@ namespace Touir.ExpensesManager.Users.Services
         {
             var emailValidationHash = await GenerateUniqueEmailValidationHashAsync();
 
-            var user = await _userRepository.CreateUserAsync(new User
+            User user = await _userRepository.CreateUserAsync(new User
             {
                 FirstName = firstname,
                 LastName = lastname,
@@ -96,7 +96,7 @@ namespace Touir.ExpensesManager.Users.Services
             try
             {
                 string verificationLink = $"{_verifyEmailUrl.TrimEnd('/')}?h={HttpUtility.UrlEncode(emailValidationHash)}&s={HttpUtility.UrlEncode(email)}&app_code={HttpUtility.UrlEncode(applicationCode)}";
-                Console.WriteLine($"user: {user?.FirstName} {user?.LastName}, verifLink: {verificationLink}");
+                Console.WriteLine($"user: {user.FirstName} {user.LastName}, verifLink: {verificationLink}");
                 string emailVerificationHtml = _emailHelper.GetEmailTemplate(EmailHtmlTemplate.EmailVerification.Key, new Dictionary<string, string> {
                     { EmailHtmlTemplate.EmailVerification.Variables.VerificationLink, verificationLink },
                 });

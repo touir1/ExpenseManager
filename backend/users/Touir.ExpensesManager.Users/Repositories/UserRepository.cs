@@ -23,7 +23,7 @@ namespace Touir.ExpensesManager.Users.Repositories
             return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
         }
 
-        public async Task<User?> CreateUserAsync(User user)
+        public async Task<User> CreateUserAsync(User user)
         {
             user.Email = user.Email!.ToLowerInvariant();
             _context.Users.Add(user);

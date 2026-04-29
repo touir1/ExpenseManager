@@ -34,12 +34,12 @@ namespace Touir.ExpensesManager.Users.Infrastructure
         {
             try
             {
-                using var client = new SmtpClient();
+                using var client = new SmtpClient(); // NOSONAR - EnableSsl is intentionally configurable: false only for local dev (Mailpit), true in all other environments
                 client.Host = _host!;
                 client.Port = _port!.Value;
                 client.DeliveryMethod = SmtpDeliveryMethod.Network;
                 client.UseDefaultCredentials = false;
-                client.EnableSsl = _enableSsl; // NOSONAR - intentionally configurable: false only for local dev (Mailpit), true in all other environments
+                client.EnableSsl = _enableSsl;
                 client.Credentials = new NetworkCredential(_sender, _senderPassword);
 
                 using var message = new MailMessage();

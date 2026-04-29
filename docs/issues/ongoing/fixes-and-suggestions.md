@@ -66,10 +66,7 @@ The dashboard currently uses vanilla `fetch`, React Hook Form + Zod for auth for
 
 ### LSP — Fix nullable contract mismatches
 
-| Priority | Issue | File |
-|---|---|---|
-| Medium | `CreateUserAsync` returns `Task<User?>` — creation should return the entity or throw, not silently return null | `Repositories/Contracts/IUserRepository.cs` |
-| Low | `GetUserRolesByApplicationCodeAsync` returns null on null input without the contract reflecting this | `Services/RoleService.cs` |
+*Both items resolved — see [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
 
 ### ISP — Split fat interfaces
 

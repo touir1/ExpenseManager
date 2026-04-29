@@ -14,9 +14,11 @@ namespace Touir.ExpensesManager.Users.Services
         public async Task<IEnumerable<RoleEo>> GetUserRolesByApplicationCodeAsync(string applicationCode, int userId)
         {
             if (applicationCode == null)
-                return null;
+                return Enumerable.Empty<RoleEo>();
             var roles = await _roleRepository.GetUserRolesByApplicationCodeAsync(applicationCode, userId);
-            return roles?.Select(r => new RoleEo
+            if (roles == null)
+                return Enumerable.Empty<RoleEo>();
+            return roles.Select(r => new RoleEo
             {
                 Id = r.Id,
                 Code = r.Code,

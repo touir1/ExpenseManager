@@ -82,6 +82,13 @@ All 205 existing tests continued to pass after these changes.
 | Extract `PasswordManagementService` + `IPasswordManagementService` | New `PasswordManagementService` handles `ChangePasswordAsync`, `ResetPasswordAsync`, `RequestPasswordResetAsync`; `PasswordController` owns those endpoints |
 | Split `AuthenticationController` | Three controllers: `AuthenticationController` (login/logout/session/refresh/check), `RegistrationController`, `PasswordController` |
 
+### LSP — Fix nullable contract mismatches — 2026-04-29 (v0.63.0)
+
+| Priority | Refactor | Resolution |
+|---|---|---|
+| Medium | `CreateUserAsync` returned `Task<User?>` | Changed to `Task<User>` in `IUserRepository` and `UserRepository`; creation throws on failure and always returns the entity. `RegistrationService` updated: explicit `User` type, null-conditionals removed, `DeleteUserAsync` call cleaned up |
+| Low | `GetUserRolesByApplicationCodeAsync` returned `null` on null input / null repository result | `RoleService` now returns `Enumerable.Empty<RoleEo>()` in both cases, honouring the non-nullable `IEnumerable<RoleEo>` contract. `AuthenticationController` guard simplified from `roles == null \|\| !roles.Any()` to `!roles.Any()`. Tests updated accordingly |
+
 ### OCP — Abstract email dispatch — 2026-04-29 (v0.62.0)
 
 `IEmailService` abstraction introduced; SMTP dispatch logic extracted from `EmailHelper` into `SmtpEmailService`.
