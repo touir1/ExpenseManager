@@ -181,6 +181,23 @@ describe('api.service', () => {
     expect(result.error).toBe(API_ERRORS.NETWORK)
   })
 
+  // ── silent ────────────────────────────────────────────────────────────────
+
+  it('does not call errorHandler on error response when silent=true', async () => {
+    const handler = vi.fn()
+    onError(handler)
+    mockFetch.mockResolvedValueOnce(makeResponse(401))
+    await get('/test', { skipUnauthorized: true, silent: true })
+    expect(handler).not.toHaveBeenCalled()
+  })
+
+  it('still returns error response when silent=true', async () => {
+    mockFetch.mockResolvedValueOnce(makeResponse(401))
+    const result = await get('/test', { skipUnauthorized: true, silent: true })
+    expect(result.ok).toBe(false)
+    expect(result.status).toBe(401)
+  })
+
   // ── skipUnauthorized ──────────────────────────────────────────────────────
 
   it('returns 401 immediately without refresh when skipUnauthorized=true', async () => {

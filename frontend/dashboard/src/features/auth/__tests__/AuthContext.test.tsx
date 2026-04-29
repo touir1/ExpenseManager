@@ -19,6 +19,7 @@ Object.defineProperty(window, 'location', {
 
 const AUTH_BASE = '/api/users/auth'
 const SKIP = { skipUnauthorized: true }
+const SKIP_SILENT = { skipUnauthorized: true, silent: true }
 
 describe('AuthContext', () => {
   beforeEach(() => {
@@ -44,7 +45,7 @@ describe('AuthContext', () => {
       renderHook(() => useAuth(), { wrapper: AuthProvider })
 
       await waitFor(() => {})
-      expect(api.get).toHaveBeenCalledWith(`${AUTH_BASE}/session`, SKIP)
+      expect(api.get).toHaveBeenCalledWith(`${AUTH_BASE}/session`, SKIP_SILENT)
     })
 
     it('restores session when session check returns user data', async () => {

@@ -3,6 +3,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.64.0] - 2026-04-29
+### Fixed
+- **Frontend — F-1:** Suppressed duplicate "Authentication token is missing" toasts on every page load for unauthenticated visitors.
+  - Added `silent?: boolean` option to `api.service.ts` `request()`/`get()`/`post()`. When `true`, `errorHandler` (toast) is not called even on error responses — the `ApiResponse` still carries the error for callers to handle.
+  - Applied `silent: true` to `sessionCheck()` and `refreshRequest()` in `authApi.service.ts`. These are startup auth probes expected to fail for fresh visitors; suppressing their toasts is correct.
+  - Two new tests added to `api.service.test.ts` covering `silent` flag behaviour. `AuthContext.test.tsx` assertion updated to match new opts.
+
 ## [0.63.0] - 2026-04-29
 ### Refactored
 - **Backend (users) — LSP:** Fixed nullable contract mismatches in the users service.

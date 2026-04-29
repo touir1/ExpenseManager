@@ -47,9 +47,9 @@ function redirectToLogin(): void {
   else globalThis.location.assign('/login')
 }
 
-function buildErrorResponse<T>(status: number, data: unknown, statusText: string): ApiResponse<T> {
+function buildErrorResponse<T>(status: number, data: unknown, statusText: string, silent = false): ApiResponse<T> {
   const msg = getErrorMessage(status, data, statusText)
-  if (errorHandler) errorHandler(msg)
+  if (errorHandler && !silent) errorHandler(msg)
   return { ok: false, status, error: msg }
 }
 
@@ -65,7 +65,7 @@ async function retryRequest<T>(url: string, init: RequestInit, headers: Record<s
   return buildErrorResponse(retryStatus, retryData, retryRes.statusText)
 }
 
-export async function request<T>(path: string, init: RequestInit = {}, opts: { skipUnauthorized?: boolean } = {}): Promise<ApiResponse<T>> {
+export async function request<T>(path: string, init: RequestInit = {}, opts: { skipUnauthorized?: boolean; silent?: boolean } = {}): Promise<ApiResponse<T>> {
   const headers: Record<string, string> = { ...(init.headers as any) }
   if (init.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json'
 
@@ -82,7 +82,7 @@ export async function request<T>(path: string, init: RequestInit = {}, opts: { s
       return { ok: false, status, error: API_ERRORS.UNAUTHORIZED }
     }
 
-    if (!res.ok) return buildErrorResponse(status, data, res.statusText)
+    if (!res.ok) return buildErrorResponse(status, data, res.statusText, opts.silent)
     return { ok: true, status, data }
   } catch {
     const msg = API_ERRORS.NETWORK
@@ -91,11 +91,11 @@ export async function request<T>(path: string, init: RequestInit = {}, opts: { s
   }
 }
 
-export async function get<T>(path: string, opts: { skipUnauthorized?: boolean } = {}): Promise<ApiResponse<T>> {
+export async function get<T>(path: string, opts: { skipUnauthorized?: boolean; silent?: boolean } = {}): Promise<ApiResponse<T>> {
   return request<T>(path, { method: 'GET' }, opts)
 }
 
-export async function post<T>(path: string, body: unknown, opts: { skipUnauthorized?: boolean } = {}): Promise<ApiResponse<T>> {
+export async function post<T>(path: string, body: unknown, opts: { skipUnauthorized?: boolean; silent?: boolean } = {}): Promise<ApiResponse<T>> {
   return request<T>(path, { method: 'POST', body: JSON.stringify(body) }, opts)
 }
 

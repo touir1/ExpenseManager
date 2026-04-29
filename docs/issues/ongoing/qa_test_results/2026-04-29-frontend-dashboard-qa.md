@@ -16,7 +16,7 @@ The Expenses Manager frontend is well-structured and functional. Authentication,
 | Severity | Count |
 |---|---|
 | High | 2 |
-| Medium | 5 |
+| Medium | 4 |
 | Low | 4 |
 | Info | 3 |
 
@@ -34,20 +34,6 @@ The Expenses Manager frontend is well-structured and functional. Authentication,
 ---
 
 ## Functional Issues
-
-### F-1 — Duplicate "Authentication token is missing" toasts on every page load (Medium)
-
-**Reproduction:**
-1. Open any page while logged out (including `/`, `/login`, `/register`)
-2. Two red toasts appear: "Authentication token is missing. Please log in again."
-
-**Root cause:** On startup, `AuthContext` fires `GET /auth/session` → 401, then `POST /auth/refresh` → 401. Each failure triggers a toast, even for users who have never logged in.
-
-**Expected:** No toasts for fresh unauthenticated visitors. Toasts should only appear when a previously valid session expires.
-
-**Affected routes:** All public pages, every navigation.
-
----
 
 ### F-2 — Duplicate error toasts on failed login (Medium)
 
