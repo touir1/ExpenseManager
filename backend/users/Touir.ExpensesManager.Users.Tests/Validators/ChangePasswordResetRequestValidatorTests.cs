@@ -11,35 +11,35 @@ namespace Touir.ExpensesManager.Users.Tests.Validators
         [Fact]
         public void ShouldHaveError_WhenEmailIsEmpty()
         {
-            var result = _validator.TestValidate(new ChangePasswordResetRequest { Email = "", VerificationHash = "hash", NewPassword = "newPassword1", ConfirmPassword = "newPassword1" });
+            var result = _validator.TestValidate(new ChangePasswordResetRequest { Email = "", VerificationHash = "hash", NewPassword = "newPassword1"});
             result.ShouldHaveValidationErrorFor(x => x.Email).WithErrorMessage("MISSING_PARAMETERS");
         }
 
         [Fact]
         public void ShouldHaveError_WhenVerificationHashIsEmpty()
         {
-            var result = _validator.TestValidate(new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "", NewPassword = "newPassword1", ConfirmPassword = "newPassword1" });
+            var result = _validator.TestValidate(new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "", NewPassword = "newPassword1"});
             result.ShouldHaveValidationErrorFor(x => x.VerificationHash).WithErrorMessage("MISSING_PARAMETERS");
         }
 
         [Fact]
         public void ShouldHaveError_WhenVerificationHashIsNull()
         {
-            var result = _validator.TestValidate(new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = null, NewPassword = "newPassword1", ConfirmPassword = "newPassword1" });
+            var result = _validator.TestValidate(new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = null, NewPassword = "newPassword1"});
             result.ShouldHaveValidationErrorFor(x => x.VerificationHash).WithErrorMessage("MISSING_PARAMETERS");
         }
 
         [Fact]
         public void ShouldHaveError_WhenNewPasswordIsEmpty()
         {
-            var result = _validator.TestValidate(new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "", ConfirmPassword = "newPassword1" });
+            var result = _validator.TestValidate(new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = ""});
             result.ShouldHaveValidationErrorFor(x => x.NewPassword).WithErrorMessage("MISSING_PARAMETERS");
         }
 
         [Fact]
         public void ShouldHaveError_WhenNewPasswordTooShort()
         {
-            var result = _validator.TestValidate(new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "short", ConfirmPassword = "short" });
+            var result = _validator.TestValidate(new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "short"});
             result.ShouldHaveValidationErrorFor(x => x.NewPassword).WithErrorMessage("PASSWORD_TOO_SHORT");
         }
 

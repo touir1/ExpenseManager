@@ -22,7 +22,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var mockService = new Mock<IPasswordManagementService>();
             mockService.Setup(s => s.ChangePasswordAsync("john@doe.com", "old", "newPassword1")).ReturnsAsync(false);
             var controller = CreateController(mockService.Object);
-            var request = new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "old", NewPassword = "newPassword1", ConfirmPassword = "newPassword1" };
+            var request = new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "old", NewPassword = "newPassword1"};
             var result = await controller.ChangePassword(request);
 
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
@@ -36,7 +36,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var mockService = new Mock<IPasswordManagementService>();
             mockService.Setup(s => s.ChangePasswordAsync("john@doe.com", "old", "newPassword1")).ReturnsAsync(true);
             var controller = CreateController(mockService.Object);
-            var request = new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "old", NewPassword = "newPassword1", ConfirmPassword = "newPassword1" };
+            var request = new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "old", NewPassword = "newPassword1"};
 
             var result = await controller.ChangePassword(request);
 
@@ -50,7 +50,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             mockService.Setup(s => s.ChangePasswordAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ThrowsAsync(new Exception("Database error"));
             var controller = CreateController(mockService.Object);
-            var request = new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "old", NewPassword = "newPassword1", ConfirmPassword = "newPassword1" };
+            var request = new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "old", NewPassword = "newPassword1"};
             var result = await controller.ChangePassword(request);
 
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -114,7 +114,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var mockService = new Mock<IPasswordManagementService>();
             mockService.Setup(s => s.ResetPasswordAsync("john@doe.com", "hash", "newPassword1")).ReturnsAsync(false);
             var controller = CreateController(mockService.Object);
-            var request = new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "newPassword1", ConfirmPassword = "newPassword1" };
+            var request = new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "newPassword1"};
             var result = await controller.ChangePasswordReset(request);
 
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
@@ -128,7 +128,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var mockService = new Mock<IPasswordManagementService>();
             mockService.Setup(s => s.ResetPasswordAsync("john@doe.com", "hash", "newPassword1")).ReturnsAsync(true);
             var controller = CreateController(mockService.Object);
-            var request = new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "newPassword1", ConfirmPassword = "newPassword1" };
+            var request = new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "newPassword1"};
 
             var result = await controller.ChangePasswordReset(request);
 
@@ -142,7 +142,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             mockService.Setup(s => s.ResetPasswordAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ThrowsAsync(new Exception("Database error"));
             var controller = CreateController(mockService.Object);
-            var request = new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "newPassword1", ConfirmPassword = "newPassword1" };
+            var request = new ChangePasswordResetRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "newPassword1"};
             var result = await controller.ChangePasswordReset(request);
 
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);

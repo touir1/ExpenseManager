@@ -11,28 +11,28 @@ namespace Touir.ExpensesManager.Users.Tests.Validators
         [Fact]
         public void ShouldHaveError_WhenEmailIsEmpty()
         {
-            var result = _validator.TestValidate(new ChangePasswordRequest { Email = "", OldPassword = "old", NewPassword = "newPassword1", ConfirmPassword = "newPassword1" });
+            var result = _validator.TestValidate(new ChangePasswordRequest { Email = "", OldPassword = "old", NewPassword = "newPassword1"});
             result.ShouldHaveValidationErrorFor(x => x.Email).WithErrorMessage("MISSING_PARAMETERS");
         }
 
         [Fact]
         public void ShouldHaveError_WhenOldPasswordIsEmpty()
         {
-            var result = _validator.TestValidate(new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "", NewPassword = "newPassword1", ConfirmPassword = "newPassword1" });
+            var result = _validator.TestValidate(new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "", NewPassword = "newPassword1"});
             result.ShouldHaveValidationErrorFor(x => x.OldPassword).WithErrorMessage("MISSING_PARAMETERS");
         }
 
         [Fact]
         public void ShouldHaveError_WhenNewPasswordIsEmpty()
         {
-            var result = _validator.TestValidate(new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "old", NewPassword = "", ConfirmPassword = "newPassword1" });
+            var result = _validator.TestValidate(new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "old", NewPassword = ""});
             result.ShouldHaveValidationErrorFor(x => x.NewPassword).WithErrorMessage("MISSING_PARAMETERS");
         }
 
         [Fact]
         public void ShouldHaveError_WhenNewPasswordTooShort()
         {
-            var result = _validator.TestValidate(new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "old", NewPassword = "short", ConfirmPassword = "short" });
+            var result = _validator.TestValidate(new ChangePasswordRequest { Email = "john@doe.com", OldPassword = "old", NewPassword = "short"});
             result.ShouldHaveValidationErrorFor(x => x.NewPassword).WithErrorMessage("PASSWORD_TOO_SHORT");
         }
 
