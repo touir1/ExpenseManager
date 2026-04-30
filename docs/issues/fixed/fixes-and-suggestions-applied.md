@@ -108,6 +108,14 @@ These four items were raised before the SRP split (v0.60.0) and are no longer ac
 |---|---|
 | Introduce `IEmailService` abstraction; move SMTP logic behind it | `IEmailService` contract in `Infrastructure/Contracts/IEmailService.cs`; `SmtpEmailService` implementation in `Infrastructure/SmtpEmailService.cs`; `EmailHelper.SendEmail()` now delegates to `IEmailService`; `Program.cs` registers `SmtpEmailService` as scoped `IEmailService`. Swapping email providers requires only a new implementation + one DI registration change |
 
+### FluentValidation + ConfirmPassword removal — 2026-04-30 (v0.67.0, v0.68.0)
+
+| Item | Resolution |
+|---|---|
+| VAL-01: `newPassword` minimum length | `ChangePasswordRequestValidator` and `ChangePasswordResetRequestValidator` enforce `MinimumLength(8)` with `CascadeMode.Stop` → `PASSWORD_TOO_SHORT`. Wire format preserved via `InvalidModelStateResponseFactory` returning `401 ErrorResponse { Message = firstError }` |
+| FluentValidation auto-validation | All manual `if`-check validation blocks removed from `AuthenticationController`, `RegistrationController`, `PasswordController`. Five `AbstractValidator<T>` classes in `Validators/`; registered via `AddFluentValidationAutoValidation()` + `AddValidatorsFromAssemblyContaining<Program>()` in `Program.cs` |
+| ConfirmPassword removed from backend DTOs | `ChangePasswordRequest` and `ChangePasswordResetRequest` no longer have `ConfirmPassword` — it is frontend-only UX. `authApi.service.ts` calls updated; `AuthContext.tsx` signatures updated; 3 test files updated |
+
 ---
 
 ## Infrastructure

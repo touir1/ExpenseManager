@@ -28,12 +28,6 @@ namespace Touir.ExpensesManager.Users.Controllers
         [HttpPost]
         public async Task<IActionResult> RegisterAsync(RegisterRequest request)
         {
-            if (request == null)
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            if (string.IsNullOrWhiteSpace(request.FirstName) || string.IsNullOrWhiteSpace(request.LastName) || string.IsNullOrWhiteSpace(request.Email))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
             try
             {
                 var email = request.Email.ToLowerInvariant();

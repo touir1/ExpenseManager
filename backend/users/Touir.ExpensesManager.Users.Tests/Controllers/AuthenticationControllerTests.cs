@@ -38,53 +38,6 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         #region LoginAsync Tests
 
         [Fact]
-        public async Task LoginAsync_ReturnsUnauthorized_WhenRequestIsNull()
-        {
-            var controller = CreateController();
-            var result = await controller.LoginAsync(null!);
-
-            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
-            var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
-            Assert.Equal("MISSING_PARAMETERS", response.Message);
-        }
-
-        [Fact]
-        public async Task LoginAsync_ReturnsUnauthorized_WhenApplicationCodeIsEmpty()
-        {
-            var controller = CreateController();
-            var request = new LoginRequest { Email = "john@doe.com", Password = "password", ApplicationCode = "" };
-            var result = await controller.LoginAsync(request);
-
-            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
-            var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
-            Assert.Equal("MISSING_PARAMETERS", response.Message);
-        }
-
-        [Fact]
-        public async Task LoginAsync_ReturnsUnauthorized_WhenEmailIsEmpty()
-        {
-            var controller = CreateController();
-            var request = new LoginRequest { Email = "", Password = "password", ApplicationCode = "APP1" };
-            var result = await controller.LoginAsync(request);
-
-            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
-            var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
-            Assert.Equal("MISSING_PARAMETERS", response.Message);
-        }
-
-        [Fact]
-        public async Task LoginAsync_ReturnsUnauthorized_WhenPasswordIsEmpty()
-        {
-            var controller = CreateController();
-            var request = new LoginRequest { Email = "john@doe.com", Password = "", ApplicationCode = "APP1" };
-            var result = await controller.LoginAsync(request);
-
-            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
-            var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
-            Assert.Equal("MISSING_PARAMETERS", response.Message);
-        }
-
-        [Fact]
         public async Task LoginAsync_ReturnsUnauthorized_WhenUserNotFound()
         {
             var mockAuthService = new Mock<IAuthenticationService>();

@@ -9,7 +9,6 @@ namespace Touir.ExpensesManager.Users.Controllers
     [ApiController]
     public class PasswordController : ControllerBase
     {
-        private const string MissingParameters = "MISSING_PARAMETERS";
         private const string ServerError = "SERVER_ERROR";
 
         private readonly IPasswordManagementService _passwordManagementService;
@@ -23,21 +22,6 @@ namespace Touir.ExpensesManager.Users.Controllers
         [HttpPost]
         public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
         {
-            if (request == null)
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            if (string.IsNullOrWhiteSpace(request.Email))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            if (string.IsNullOrWhiteSpace(request.OldPassword))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            if (string.IsNullOrWhiteSpace(request.NewPassword) || string.IsNullOrWhiteSpace(request.ConfirmPassword))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            if (!request.NewPassword.Equals(request.ConfirmPassword))
-                return Unauthorized(new ErrorResponse { Message = "NOT_MATCHING_CONFIRM_PASSWORD" });
-
             try
             {
                 var email = request.Email.ToLowerInvariant();
@@ -56,12 +40,6 @@ namespace Touir.ExpensesManager.Users.Controllers
         [HttpPost]
         public async Task<IActionResult> RequestPasswordReset(RequestPasswordResetRequest request)
         {
-            if (request == null)
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.AppCode))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
             try
             {
                 var email = request.Email.ToLowerInvariant();
@@ -79,21 +57,6 @@ namespace Touir.ExpensesManager.Users.Controllers
         [HttpPost]
         public async Task<IActionResult> ChangePasswordReset(ChangePasswordResetRequest request)
         {
-            if (request == null)
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            if (string.IsNullOrWhiteSpace(request.Email))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            if (string.IsNullOrWhiteSpace(request.VerificationHash))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            if (string.IsNullOrWhiteSpace(request.NewPassword) || string.IsNullOrWhiteSpace(request.ConfirmPassword))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            if (!request.NewPassword.Equals(request.ConfirmPassword))
-                return Unauthorized(new ErrorResponse { Message = "NOT_MATCHING_CONFIRM_PASSWORD" });
-
             try
             {
                 var email = request.Email.ToLowerInvariant();

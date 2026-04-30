@@ -200,7 +200,7 @@ describe('ResetPassword page', () => {
     fireEvent.submit(form)
 
     await waitFor(() => {
-      expect(mockResetPassword).toHaveBeenCalledWith('test@example.com', 'abc123', 'newpass123', 'newpass123')
+      expect(mockResetPassword).toHaveBeenCalledWith('test@example.com', 'abc123', 'newpass123')
     })
 
     await waitFor(() => {
@@ -228,7 +228,7 @@ describe('ResetPassword page', () => {
     fireEvent.submit(form)
 
     await waitFor(() => {
-      expect(mockResetPassword).toHaveBeenCalledWith('test@example.com', 'abc123', 'newpass123', 'newpass123')
+      expect(mockResetPassword).toHaveBeenCalledWith('test@example.com', 'abc123', 'newpass123')
     })
 
     await waitFor(() => {
@@ -336,7 +336,7 @@ describe('ResetPassword page', () => {
     fireEvent.submit(form)
 
     await waitFor(() => {
-      expect(mockResetPassword).toHaveBeenCalledWith('user@test.com', 'xyz789', 'testpass1!', 'testpass1!')
+      expect(mockResetPassword).toHaveBeenCalledWith('user@test.com', 'xyz789', 'testpass1!')
     })
   })
 

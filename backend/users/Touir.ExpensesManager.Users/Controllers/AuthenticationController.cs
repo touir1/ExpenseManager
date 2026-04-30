@@ -17,7 +17,6 @@ namespace Touir.ExpensesManager.Users.Controllers
     {
         private const string AuthTokenCookie = "auth_token";
         private const string RefreshTokenCookie = "refresh_token";
-        private const string MissingParameters = "MISSING_PARAMETERS";
         private const string ServerError = "SERVER_ERROR";
 
         private readonly IAuthenticationService _authenticationService;
@@ -47,15 +46,9 @@ namespace Touir.ExpensesManager.Users.Controllers
         [HttpPost]
         public async Task<IActionResult> LoginAsync(LoginRequest request)
         {
-            if (request == null)
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
-            if (string.IsNullOrWhiteSpace(request.ApplicationCode) || string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
-
             try
             {
-                var email = request.Email.ToLowerInvariant();
+                var email = request.Email!.ToLowerInvariant();
                 var user = await _authenticationService.AuthenticateAsync(email, request.Password);
                 if (user == null)
                     return Unauthorized(new ErrorResponse { Message = "INVALID_USERNAME_OR_PASSWORD" });

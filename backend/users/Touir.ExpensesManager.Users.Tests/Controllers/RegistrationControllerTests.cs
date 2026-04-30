@@ -22,53 +22,6 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         #region RegisterAsync Tests
 
         [Fact]
-        public async Task RegisterAsync_ReturnsUnauthorized_WhenRequestIsNull()
-        {
-            var controller = CreateController();
-            var result = await controller.RegisterAsync(null!);
-
-            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
-            var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
-            Assert.Equal("MISSING_PARAMETERS", response.Message);
-        }
-
-        [Fact]
-        public async Task RegisterAsync_ReturnsUnauthorized_WhenFirstNameIsEmpty()
-        {
-            var controller = CreateController();
-            var request = new RegisterRequest { FirstName = "", LastName = "Doe", Email = "john@doe.com", ApplicationCode = "APP1" };
-            var result = await controller.RegisterAsync(request);
-
-            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
-            var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
-            Assert.Equal("MISSING_PARAMETERS", response.Message);
-        }
-
-        [Fact]
-        public async Task RegisterAsync_ReturnsUnauthorized_WhenLastNameIsEmpty()
-        {
-            var controller = CreateController();
-            var request = new RegisterRequest { FirstName = "John", LastName = "", Email = "john@doe.com", ApplicationCode = "APP1" };
-            var result = await controller.RegisterAsync(request);
-
-            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
-            var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
-            Assert.Equal("MISSING_PARAMETERS", response.Message);
-        }
-
-        [Fact]
-        public async Task RegisterAsync_ReturnsUnauthorized_WhenEmailIsEmpty()
-        {
-            var controller = CreateController();
-            var request = new RegisterRequest { FirstName = "John", LastName = "Doe", Email = "", ApplicationCode = "APP1" };
-            var result = await controller.RegisterAsync(request);
-
-            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
-            var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
-            Assert.Equal("MISSING_PARAMETERS", response.Message);
-        }
-
-        [Fact]
         public async Task RegisterAsync_ReturnsOk_WhenValid()
         {
             var mockService = new Mock<IRegistrationService>();

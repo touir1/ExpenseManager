@@ -154,7 +154,7 @@ ExpenseManager/
 │       │   │   │   ├── RoleEo.cs
 │       │   │   │   └── UserEo.cs               — User DTO with FirstName, LastName, Email
 │       │   │   ├── Requests/
-│       │   │   │   ├── ChangePasswordRequest.cs        — Requires Email, OldPassword, NewPassword, ConfirmPassword
+│       │   │   │   ├── ChangePasswordRequest.cs        — Requires Email, OldPassword, NewPassword
 │       │   │   │   ├── ChangePasswordResetRequest.cs
 │       │   │   │   ├── LoginRequest.cs          — Email, Password, ApplicationCode, RememberMe
 │       │   │   │   ├── RegisterRequest.cs
@@ -164,6 +164,12 @@ ExpenseManager/
 │       │   │       ├── LoginResponse.cs        — Returns User (UserEo) and Roles (token is cookie-only)
 │       │   │       ├── SessionResponse.cs      — Returns Email, FirstName, LastName from JWT claims
 │       │   │       └── RegisterResponse.cs
+│       │   ├── Validators/
+│       │   │   ├── LoginRequestValidator.cs             — ApplicationCode, Email, Password NotEmpty → MISSING_PARAMETERS
+│       │   │   ├── RegisterRequestValidator.cs          — FirstName, LastName, Email NotEmpty → MISSING_PARAMETERS
+│       │   │   ├── ChangePasswordRequestValidator.cs    — Email, OldPassword NotEmpty; NewPassword NotEmpty + MinLength(8) → PASSWORD_TOO_SHORT
+│       │   │   ├── ChangePasswordResetRequestValidator.cs — Email, VerificationHash NotEmpty; NewPassword NotEmpty + MinLength(8)
+│       │   │   └── RequestPasswordResetRequestValidator.cs — Email, AppCode NotEmpty → MISSING_PARAMETERS
 │       │   ├── Repositories/
 │       │   │   ├── ApplicationRepository.cs
 │       │   │   ├── AuthenticationRepository.cs
@@ -214,6 +220,12 @@ ExpenseManager/
 │           │   ├── AuthenticationControllerTests.cs
 │           │   ├── PasswordControllerTests.cs
 │           │   └── RegistrationControllerTests.cs
+│           ├── Validators/
+│           │   ├── LoginRequestValidatorTests.cs
+│           │   ├── RegisterRequestValidatorTests.cs
+│           │   ├── ChangePasswordRequestValidatorTests.cs
+│           │   ├── ChangePasswordResetRequestValidatorTests.cs
+│           │   └── RequestPasswordResetRequestValidatorTests.cs
 │           ├── Infrastructure/
 │           │   ├── CryptographyHelperTests.cs
 │           │   ├── EmailHelperTests.cs

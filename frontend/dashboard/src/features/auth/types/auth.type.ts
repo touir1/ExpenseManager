@@ -9,7 +9,7 @@ export type AuthContextValue = {
   login: (email: string, password: string, rememberMe?: boolean) => Promise<AuthResult>
   logout: () => void
   register: (firstName: string, lastName: string, email: string) => Promise<AuthResult>
-  changePassword: (oldPassword: string, newPassword: string, repeatPassword: string) => Promise<AuthResult>
-  resetPassword: (email: string, verificationHash: string, newPassword: string, repeatPassword: string) => Promise<AuthResult>
+  changePassword: (oldPassword: string, newPassword: string) => Promise<AuthResult>
+  resetPassword: (email: string, verificationHash: string, newPassword: string) => Promise<AuthResult>
   requestPasswordReset?: (email: string) => Promise<AuthResult>
 }

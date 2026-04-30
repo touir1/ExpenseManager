@@ -229,32 +229,21 @@ describe('AuthContext', () => {
       await waitFor(() => expect(result.current.isLoading).toBe(false))
 
       vi.mocked(api.post).mockResolvedValueOnce({ ok: true, status: 200 })
-      const changeResult = await result.current.changePassword('oldpass', 'newpass', 'newpass')
+      const changeResult = await result.current.changePassword('oldpass', 'newpass')
 
       expect(changeResult.ok).toBe(true)
       expect(api.post).toHaveBeenCalledWith(
         `${AUTH_BASE}/change-password`,
-        { email: undefined, oldPassword: 'oldpass', newPassword: 'newpass', confirmPassword: 'newpass' },
+        { email: undefined, oldPassword: 'oldpass', newPassword: 'newpass' },
         SKIP
       )
-    })
-
-    it('returns ok=false when passwords do not match', async () => {
-      const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
-      await waitFor(() => expect(result.current.isLoading).toBe(false))
-      vi.clearAllMocks()
-
-      const changeResult = await result.current.changePassword('oldpass', 'newpass1', 'newpass2')
-
-      expect(changeResult.ok).toBe(false)
-      expect(api.post).not.toHaveBeenCalled()
     })
 
     it('returns ok=false when old password is empty', async () => {
       const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
       await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-      const changeResult = await result.current.changePassword('', 'newpass', 'newpass')
+      const changeResult = await result.current.changePassword('', 'newpass')
 
       expect(changeResult.ok).toBe(false)
     })
@@ -264,7 +253,7 @@ describe('AuthContext', () => {
       await waitFor(() => expect(result.current.isLoading).toBe(false))
 
       vi.mocked(api.post).mockResolvedValueOnce({ ok: false, status: 400, error: 'Invalid email or password.' })
-      const changeResult = await result.current.changePassword('wrongpass', 'newpass12', 'newpass12')
+      const changeResult = await result.current.changePassword('wrongpass', 'newpass12')
 
       expect(changeResult.ok).toBe(false)
       expect(changeResult.error).toBe('Invalid email or password.')
@@ -277,32 +266,21 @@ describe('AuthContext', () => {
       await waitFor(() => expect(result.current.isLoading).toBe(false))
 
       vi.mocked(api.post).mockResolvedValueOnce({ ok: true, status: 200 })
-      const resetResult = await result.current.resetPassword('user@test.com', 'verification-hash', 'newpass', 'newpass')
+      const resetResult = await result.current.resetPassword('user@test.com', 'verification-hash', 'newpass')
 
       expect(resetResult.ok).toBe(true)
       expect(api.post).toHaveBeenCalledWith(
         `${AUTH_BASE}/change-password-reset`,
-        { email: 'user@test.com', verificationHash: 'verification-hash', newPassword: 'newpass', confirmPassword: 'newpass' },
+        { email: 'user@test.com', verificationHash: 'verification-hash', newPassword: 'newpass' },
         SKIP
       )
-    })
-
-    it('returns ok=false when passwords do not match', async () => {
-      const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
-      await waitFor(() => expect(result.current.isLoading).toBe(false))
-      vi.clearAllMocks()
-
-      const resetResult = await result.current.resetPassword('user@test.com', 'hash', 'pass1', 'pass2')
-
-      expect(resetResult.ok).toBe(false)
-      expect(api.post).not.toHaveBeenCalled()
     })
 
     it('returns ok=false when required fields are missing', async () => {
       const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
       await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-      const resetResult = await result.current.resetPassword('', 'hash', 'pass', 'pass')
+      const resetResult = await result.current.resetPassword('', 'hash', 'pass')
 
       expect(resetResult.ok).toBe(false)
     })

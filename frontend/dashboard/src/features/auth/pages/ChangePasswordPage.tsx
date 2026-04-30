@@ -25,7 +25,7 @@ export default function ChangePasswordPage() {
 
   const onSubmit = async (data: ChangePasswordFormData) => {
     setServerMsg(null)
-    const { ok, error } = await changePassword(data.oldPassword, data.newPassword, data.repeatPassword)
+    const { ok, error } = await changePassword(data.oldPassword, data.newPassword)
     setServerMsg({ text: ok ? 'Password changed.' : error ?? 'Incorrect current password.', ok })
   }
 

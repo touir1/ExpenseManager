@@ -47,12 +47,11 @@ export function registerRequest(
 export function changePasswordRequest(
   email: string | undefined,
   oldPassword: string,
-  newPassword: string,
-  confirmPassword: string
+  newPassword: string
 ): Promise<ApiResponse<unknown>> {
   return post<unknown>(
     `${AUTH_BASE}/change-password`,
-    { email, oldPassword, newPassword, confirmPassword },
+    { email, oldPassword, newPassword },
     { skipUnauthorized: true }
   )
 }
@@ -60,12 +59,11 @@ export function changePasswordRequest(
 export function resetPasswordRequest(
   email: string,
   verificationHash: string,
-  newPassword: string,
-  confirmPassword: string
+  newPassword: string
 ): Promise<ApiResponse<unknown>> {
   return post<unknown>(
     `${AUTH_BASE}/change-password-reset`,
-    { email, verificationHash, newPassword, confirmPassword },
+    { email, verificationHash, newPassword },
     { skipUnauthorized: true }
   )
 }

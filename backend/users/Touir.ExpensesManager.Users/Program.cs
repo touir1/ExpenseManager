@@ -1,3 +1,4 @@
+using Touir.ExpensesManager.Users.Controllers.Responses;
 using Touir.ExpensesManager.Users.Infrastructure;
 using Touir.ExpensesManager.Users.Infrastructure.Contracts;
 using Touir.ExpensesManager.Users.Infrastructure.Options;
@@ -5,6 +6,9 @@ using Touir.ExpensesManager.Users.Repositories;
 using Touir.ExpensesManager.Users.Repositories.Contracts;
 using Touir.ExpensesManager.Users.Services;
 using Touir.ExpensesManager.Users.Services.Contracts;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
@@ -19,6 +23,22 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
+
+builder.Services.AddFluentValidationAutoValidation();
+
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var firstError = context.ModelState.Values
+            .SelectMany(v => v.Errors)
+            .Select(e => e.ErrorMessage)
+            .FirstOrDefault() ?? "MISSING_PARAMETERS";
+        return new UnauthorizedObjectResult(new ErrorResponse { Message = firstError });
+    };
+});
 
 builder.Services.AddEndpointsApiExplorer();
 

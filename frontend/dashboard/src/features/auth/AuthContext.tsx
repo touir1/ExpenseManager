@@ -76,15 +76,15 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     return { ok, error }
   }, [])
 
-  const changePassword = useCallback<AuthContextValue['changePassword']>(async (oldPassword, newPassword, repeatPassword) => {
-    if (!oldPassword || !newPassword || newPassword !== repeatPassword) return { ok: false }
-    const { ok, error } = await changePasswordRequest(user?.email, oldPassword, newPassword, repeatPassword)
+  const changePassword = useCallback<AuthContextValue['changePassword']>(async (oldPassword, newPassword) => {
+    if (!oldPassword || !newPassword) return { ok: false }
+    const { ok, error } = await changePasswordRequest(user?.email, oldPassword, newPassword)
     return { ok, error }
   }, [user])
 
-  const resetPassword = useCallback<AuthContextValue['resetPassword']>(async (email, verificationHash, newPassword, repeatPassword) => {
-    if (!email || !verificationHash || !newPassword || newPassword !== repeatPassword) return { ok: false }
-    const { ok, error } = await resetPasswordRequest(email, verificationHash, newPassword, repeatPassword)
+  const resetPassword = useCallback<AuthContextValue['resetPassword']>(async (email, verificationHash, newPassword) => {
+    if (!email || !verificationHash || !newPassword) return { ok: false }
+    const { ok, error } = await resetPasswordRequest(email, verificationHash, newPassword)
     return { ok, error }
   }, [])
 

@@ -33,7 +33,7 @@ export default function ResetPasswordPage() {
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     setServerMsg(null)
-    const { ok } = await resetPassword(email, verificationHash, data.newPassword, data.repeatPassword)
+    const { ok } = await resetPassword(email, verificationHash, data.newPassword)
     if (ok) {
       setServerMsg({ text: isCreateMode ? 'Password created successfully. Redirecting to home…' : 'Password reset successfully. Redirecting to home…', ok: true })
       setTimeout(() => navigate('/'), 3000)

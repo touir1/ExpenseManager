@@ -98,7 +98,7 @@ describe('ChangePasswordPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /change password/i }))
 
     await waitFor(() => {
-      expect(mockChangePassword).toHaveBeenCalledWith('oldpass123', 'newpass456', 'newpass456')
+      expect(mockChangePassword).toHaveBeenCalledWith('oldpass123', 'newpass456')
     })
   })
 

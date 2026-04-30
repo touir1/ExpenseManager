@@ -6,6 +6,7 @@ REST API for user management, authentication (JWT), and email verification.
 
 - **.NET 8** — `net8.0` target framework
 - **Entity Framework Core 8** + **Npgsql** — PostgreSQL via EF Core
+- **FluentValidation 11** — request DTO validation with auto-validation middleware
 - **xUnit** + **Moq** — unit and integration tests
 
 ## Usage

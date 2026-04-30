@@ -3,6 +3,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.68.0] - 2026-04-30
+### Refactored
+- **Backend (users) + Frontend:** Removed `ConfirmPassword` from `ChangePasswordRequest` and `ChangePasswordResetRequest` DTOs — password confirmation is a UI-only concern.
+  - `ChangePasswordRequest.cs`, `ChangePasswordResetRequest.cs`: `ConfirmPassword` field dropped.
+  - `ChangePasswordRequestValidator`, `ChangePasswordResetRequestValidator`: `.Equal(x => x.NewPassword)` rule removed (field no longer exists on DTO).
+  - `PasswordControllerTests`: 2 remaining confirmation-match assertions removed.
+  - `authApi.service.ts`: `changePasswordRequest` and `resetPasswordRequest` no longer send `confirmPassword` in the payload.
+  - `AuthContext.tsx`: `changePassword` and `resetPassword` signatures updated to remove `repeatPassword` parameter; API calls updated accordingly.
+  - `AuthContext.test.tsx`, `ChangePasswordPage.test.tsx`, `ResetPasswordPage.test.tsx`: all assertions updated to match new 2- and 3-arg signatures.
+  - `repeatPassword` field remains in Zod schemas and form UI for client-side UX validation only.
+
+## [0.67.0] - 2026-04-30
+### Refactored
+- **Backend (users):** Replaced all manual request-field `if`-checks in controllers with FluentValidation auto-validation. Added minimum 8-char password length enforcement (VAL-01).
+  - New `Validators/` folder with five validators: `LoginRequestValidator`, `RegisterRequestValidator`, `ChangePasswordRequestValidator`, `ChangePasswordResetRequestValidator`, `RequestPasswordResetRequestValidator`.
+  - `Program.cs`: added `AddFluentValidationAutoValidation()`, `AddValidatorsFromAssemblyContaining<Program>()`, and `InvalidModelStateResponseFactory` (returns 401 `ErrorResponse { Message = firstError }` to preserve existing wire format).
+  - `AuthenticationController`, `RegistrationController`, `PasswordController`: all manual null/empty field checks removed; `MissingParameters`, `PasswordTooShort`, `MinPasswordLength` constants dropped.
+  - `ChangePasswordRequestValidator` and `ChangePasswordResetRequestValidator`: `NewPassword` rule uses `CascadeMode.Stop` + `NotEmpty` + `MinimumLength(8)` with message `PASSWORD_TOO_SHORT`.
+  - New `Tests/Validators/` folder with 26 tests across five validator test classes using `FluentValidation.TestHelper` (`TestValidate`, `ShouldHaveValidationErrorFor`, `ShouldNotHaveAnyValidationErrors`).
+  - `PasswordControllerTests`: 17 validation-path tests deleted (now covered by validator tests); 9 business-logic tests retained using `"newPassword1"` (8-char) passwords.
+  - `AuthenticationControllerTests`, `RegistrationControllerTests`: 4 validation tests each deleted (now covered by validator tests).
+
 ## [0.66.0] - 2026-04-29
 ### Fixed
 - **Frontend/Backend — F-3:** Invalid/expired email verification links now redirect to a friendly error page instead of rendering raw JSON.
