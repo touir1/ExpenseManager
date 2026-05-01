@@ -51,7 +51,7 @@ namespace Touir.ExpensesManager.Users.Services
             return await _authenticationRepository.UpdateAuthenticationAsync(auth);
         }
 
-        public async Task<bool> ResetPasswordAsync(string email, string verificationHash, string newPassword)
+        public async Task<bool> CreatePasswordAsync(string email, string verificationHash, string newPassword)
         {
             if (!_emailHelper.VerifyEmail(email))
                 return false;
@@ -62,27 +62,11 @@ namespace Touir.ExpensesManager.Users.Services
             if (user == null)
                 return false;
 
-            Authentication? auth = await _authenticationRepository.GetAuthenticationByUserIdAsync(user.Id);
-            byte[] salt = _cryptographyHelper.GenerateRandomSalt();
-
-            bool isPasswordReset = auth != null &&
-                auth.PasswordResetHash == verificationHash &&
-                auth.PasswordResetRequestedAt.HasValue &&
-                (DateTime.UtcNow - auth.PasswordResetRequestedAt.Value).TotalHours <= 24;
-
-            if (isPasswordReset)
-            {
-                auth!.IsTemporaryPassword = false;
-                auth.HashSaltBytes = salt;
-                auth.HashPasswordBytes = _cryptographyHelper.GeneratePasswordHash(newPassword, salt);
-                auth.PasswordResetHash = null;
-                auth.PasswordResetRequestedAt = null;
-                return await _authenticationRepository.UpdateAuthenticationAsync(auth);
-            }
-
-            // Initial password setup (mode=create): validate via EmailValidationHash
             if (!await _userRepository.ValidateEmail(verificationHash, email))
                 return false;
+
+            Authentication? auth = await _authenticationRepository.GetAuthenticationByUserIdAsync(user.Id);
+            byte[] salt = _cryptographyHelper.GenerateRandomSalt();
 
             if (auth == null)
             {
@@ -100,6 +84,35 @@ namespace Touir.ExpensesManager.Users.Services
             auth.HashSaltBytes = salt;
             auth.HashPasswordBytes = _cryptographyHelper.GeneratePasswordHash(newPassword, salt);
             return await _authenticationRepository.UpdateAuthenticationAsync(auth, resetHash: true);
+        }
+
+        public async Task<bool> ResetPasswordAsync(string email, string resetHash, string newPassword)
+        {
+            if (!_emailHelper.VerifyEmail(email))
+                return false;
+            if (!Guid.TryParse(resetHash, out _))
+                return false;
+
+            User? user = await _userRepository.GetUserByEmailAsync(email);
+            if (user == null)
+                return false;
+
+            Authentication? auth = await _authenticationRepository.GetAuthenticationByUserIdAsync(user.Id);
+            if (auth == null)
+                return false;
+
+            if (auth.PasswordResetHash != resetHash ||
+                !auth.PasswordResetRequestedAt.HasValue ||
+                (DateTime.UtcNow - auth.PasswordResetRequestedAt.Value).TotalHours > 24)
+                return false;
+
+            byte[] salt = _cryptographyHelper.GenerateRandomSalt();
+            auth.IsTemporaryPassword = false;
+            auth.HashSaltBytes = salt;
+            auth.HashPasswordBytes = _cryptographyHelper.GeneratePasswordHash(newPassword, salt);
+            auth.PasswordResetHash = null;
+            auth.PasswordResetRequestedAt = null;
+            return await _authenticationRepository.UpdateAuthenticationAsync(auth);
         }
 
         public async Task<bool> RequestPasswordResetAsync(string email, string appCode)

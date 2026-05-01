@@ -56,6 +56,18 @@ export function changePasswordRequest(
   )
 }
 
+export function createPasswordRequest(
+  email: string,
+  verificationHash: string,
+  newPassword: string
+): Promise<ApiResponse<unknown>> {
+  return post<unknown>(
+    `${AUTH_BASE}/create-password`,
+    { email, verificationHash, newPassword },
+    { skipUnauthorized: true }
+  )
+}
+
 export function resetPasswordRequest(
   email: string,
   verificationHash: string,

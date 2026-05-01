@@ -14,7 +14,7 @@ import { resetPasswordSchema, type ResetPasswordFormData } from '@/features/auth
 
 export default function ResetPasswordPage() {
   const [serverMsg, setServerMsg] = useState<{ text: string; ok: boolean } | null>(null)
-  const { resetPassword } = useAuth()
+  const { createPassword, resetPassword } = useAuth()
   const [params] = useSearchParams()
   const navigate = useNavigate()
 
@@ -33,7 +33,7 @@ export default function ResetPasswordPage() {
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     setServerMsg(null)
-    const { ok } = await resetPassword(email, verificationHash, data.newPassword)
+    const { ok } = await (isCreateMode ? createPassword : resetPassword)(email, verificationHash, data.newPassword)
     if (ok) {
       setServerMsg({ text: isCreateMode ? 'Password created successfully. Redirecting to home…' : 'Password reset successfully. Redirecting to home…', ok: true })
       setTimeout(() => navigate('/'), 3000)

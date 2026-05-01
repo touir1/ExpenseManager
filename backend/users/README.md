@@ -28,8 +28,9 @@ Public (no auth required, accessible via `/api/users/auth/` through nginx):
 - `POST /auth/refresh` — Validate `refresh_token` cookie, issue new `auth_token`, rotate `refresh_token` (used transparently by the frontend on 401)
 - `POST /auth/register` — User registration
 - `GET  /auth/validate-email` — Verify email from link; on success redirects to `{app.ResetPasswordUrlPath}?email=…&h=…&mode=create`; on failure redirects to `{app.UrlPath}{app.VerifyEmailErrorUrlPath}` (e.g. `/verify-error`) if configured, otherwise returns `{"message":"EMAIL_VERIFICATION_FAILED"}`
+- `POST /auth/create-password` — Initial password setup after email verification; body: `{ email, verificationHash, newPassword }` — validates via `EmailValidationHash`; creates auth record if none exists
 - `POST /auth/request-password-reset` — Send reset email; body: `{ email, appCode }` — link points to `ResetPasswordBaseUrl?email=…&h=…`
-- `POST /auth/change-password-reset` — Reset password; accepts either a `PasswordResetHash` (from `request-password-reset`, valid 24 h) or an email-verification hash (initial setup, `mode=create`); the two flows are distinguished automatically — no `mode` param needed on this endpoint
+- `POST /auth/change-password-reset` — Reset password using a `PasswordResetHash` from `request-password-reset`; body: `{ email, verificationHash, newPassword }` — hash must be valid and issued within the last 24 hours
 - `GET  /auth/check` — Internal auth check used by nginx `auth_request`; accepts Bearer token header or `auth_token` cookie
 
 Protected:

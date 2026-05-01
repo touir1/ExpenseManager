@@ -106,6 +106,52 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
 
         #endregion
 
+        #region CreatePassword Tests
+
+        [Fact]
+        public async Task CreatePassword_ReturnsUnauthorized_WhenServiceReturnsFalse()
+        {
+            var mockService = new Mock<IPasswordManagementService>();
+            mockService.Setup(s => s.CreatePasswordAsync("john@doe.com", "hash", "newPassword1")).ReturnsAsync(false);
+            var controller = CreateController(mockService.Object);
+            var request = new CreatePasswordRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "newPassword1" };
+            var result = await controller.CreatePassword(request);
+
+            var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
+            var response = Assert.IsType<ErrorResponse>(unauthorizedResult.Value);
+            Assert.Equal("CREATE_PASSWORD_FAILED", response.Message);
+        }
+
+        [Fact]
+        public async Task CreatePassword_ReturnsOk_WhenValid()
+        {
+            var mockService = new Mock<IPasswordManagementService>();
+            mockService.Setup(s => s.CreatePasswordAsync("john@doe.com", "hash", "newPassword1")).ReturnsAsync(true);
+            var controller = CreateController(mockService.Object);
+            var request = new CreatePasswordRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "newPassword1" };
+
+            var result = await controller.CreatePassword(request);
+
+            Assert.IsType<OkResult>(result);
+        }
+
+        [Fact]
+        public async Task CreatePassword_ReturnsBadRequest_WhenExceptionThrown()
+        {
+            var mockService = new Mock<IPasswordManagementService>();
+            mockService.Setup(s => s.CreatePasswordAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ThrowsAsync(new Exception("Database error"));
+            var controller = CreateController(mockService.Object);
+            var request = new CreatePasswordRequest { Email = "john@doe.com", VerificationHash = "hash", NewPassword = "newPassword1" };
+            var result = await controller.CreatePassword(request);
+
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            var response = Assert.IsType<ErrorResponse>(badRequestResult.Value);
+            Assert.Equal("SERVER_ERROR", response.Message);
+        }
+
+        #endregion
+
         #region ChangePasswordReset Tests
 
         [Fact]

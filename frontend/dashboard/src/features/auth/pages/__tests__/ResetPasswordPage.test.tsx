@@ -4,6 +4,7 @@ import { act } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import ResetPasswordPage from '../ResetPasswordPage'
 
+const mockCreatePassword = vi.fn()
 const mockResetPassword = vi.fn()
 const mockUseAuth = vi.fn()
 
@@ -15,7 +16,8 @@ describe('ResetPassword page', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockUseAuth.mockReturnValue({
-      resetPassword: mockResetPassword
+      createPassword: mockCreatePassword,
+      resetPassword: mockResetPassword,
     })
   })
 
@@ -380,7 +382,7 @@ describe('ResetPassword page', () => {
     })
 
     it('shows success message for create mode', async () => {
-      mockResetPassword.mockResolvedValueOnce({ ok: true })
+      mockCreatePassword.mockResolvedValueOnce({ ok: true })
 
       render(
         <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123&mode=create']}>
@@ -400,7 +402,7 @@ describe('ResetPassword page', () => {
     })
 
     it('shows error message for create mode on failure', async () => {
-      mockResetPassword.mockResolvedValueOnce({ ok: false })
+      mockCreatePassword.mockResolvedValueOnce({ ok: false })
 
       render(
         <MemoryRouter initialEntries={['/reset-password?email=test@example.com&h=abc123&mode=create']}>

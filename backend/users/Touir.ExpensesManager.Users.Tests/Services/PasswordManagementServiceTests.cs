@@ -121,35 +121,48 @@ namespace Touir.ExpensesManager.Users.Tests.Services
 
         #endregion
 
-        #region ResetPasswordAsync Tests
+        #region CreatePasswordAsync Tests
 
         [Fact]
-        public async Task ResetPasswordAsync_ReturnsFalse_WhenValidationFails()
+        public async Task CreatePasswordAsync_ReturnsFalse_WhenEmailInvalid()
         {
             var emailHelper = new Mock<IEmailHelper>();
             emailHelper.Setup(e => e.VerifyEmail(It.IsAny<string>())).Returns(false);
 
             var service = CreateService(emailHelper: emailHelper);
-            var result = await service.ResetPasswordAsync("test@test.com", "hash", "newpass");
+            var result = await service.CreatePasswordAsync("bad", Guid.NewGuid().ToString(), "newpass");
 
             Assert.False(result);
         }
 
         [Fact]
-        public async Task ResetPasswordAsync_ReturnsFalse_WhenUserNotFound()
+        public async Task CreatePasswordAsync_ReturnsFalse_WhenUserNotFound()
         {
             var userRepo = new Mock<IUserRepository>();
             userRepo.Setup(r => r.GetUserByEmailAsync("test@test.com")).ReturnsAsync((User?)null);
-            userRepo.Setup(r => r.ValidateEmail(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(true);
 
             var service = CreateService(userRepo);
-            var result = await service.ResetPasswordAsync("test@test.com", Guid.NewGuid().ToString(), "newpass");
+            var result = await service.CreatePasswordAsync("test@test.com", Guid.NewGuid().ToString(), "newpass");
 
             Assert.False(result);
         }
 
         [Fact]
-        public async Task ResetPasswordAsync_CreatesAuthentication_WhenAuthNotExists()
+        public async Task CreatePasswordAsync_ReturnsFalse_WhenEmailValidationFails()
+        {
+            var user = new User { Id = 1, Email = "test@test.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("test@test.com")).ReturnsAsync(user);
+            userRepo.Setup(r => r.ValidateEmail(It.IsAny<string>(), "test@test.com")).ReturnsAsync(false);
+
+            var service = CreateService(userRepo);
+            var result = await service.CreatePasswordAsync("test@test.com", Guid.NewGuid().ToString(), "newpass");
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task CreatePasswordAsync_CreatesAuthentication_WhenAuthNotExists()
         {
             var user = new User { Id = 1, Email = "test@test.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
 
@@ -166,14 +179,14 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             crypto.Setup(c => c.GeneratePasswordHash("newpass", It.IsAny<byte[]>())).Returns(Encoding.UTF8.GetBytes("hash"));
 
             var service = CreateService(userRepo, authRepo, crypto);
-            var result = await service.ResetPasswordAsync("test@test.com", Guid.NewGuid().ToString(), "newpass");
+            var result = await service.CreatePasswordAsync("test@test.com", Guid.NewGuid().ToString(), "newpass");
 
             Assert.True(result);
             authRepo.Verify(r => r.CreateAuthenticationAsync(It.Is<Authentication>(a => a.User == user && !a.IsTemporaryPassword), true), Times.Once);
         }
 
         [Fact]
-        public async Task ResetPasswordAsync_UpdatesAuthentication_WhenAuthExists()
+        public async Task CreatePasswordAsync_UpdatesAuthentication_WhenAuthExists()
         {
             var user = new User { Id = 1, Email = "test@test.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
             var auth = new Authentication { UserId = 1, HashPassword = "oldhash", HashSalt = "oldsalt", IsTemporaryPassword = true };
@@ -191,15 +204,110 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             crypto.Setup(c => c.GeneratePasswordHash("newpass", It.IsAny<byte[]>())).Returns(Encoding.UTF8.GetBytes("newhash"));
 
             var service = CreateService(userRepo, authRepo, crypto);
-            var result = await service.ResetPasswordAsync("test@test.com", Guid.NewGuid().ToString(), "newpass");
+            var result = await service.CreatePasswordAsync("test@test.com", Guid.NewGuid().ToString(), "newpass");
 
             Assert.True(result);
             Assert.False(auth.IsTemporaryPassword);
             authRepo.Verify(r => r.UpdateAuthenticationAsync(auth, true), Times.Once);
         }
 
+        #endregion
+
+        #region ResetPasswordAsync Tests
+
         [Fact]
-        public async Task ResetPasswordAsync_ResetsPassword_WhenPasswordResetHashMatches()
+        public async Task ResetPasswordAsync_ReturnsFalse_WhenEmailInvalid()
+        {
+            var emailHelper = new Mock<IEmailHelper>();
+            emailHelper.Setup(e => e.VerifyEmail(It.IsAny<string>())).Returns(false);
+
+            var service = CreateService(emailHelper: emailHelper);
+            var result = await service.ResetPasswordAsync("bad", Guid.NewGuid().ToString(), "newpass");
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task ResetPasswordAsync_ReturnsFalse_WhenUserNotFound()
+        {
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("test@test.com")).ReturnsAsync((User?)null);
+
+            var service = CreateService(userRepo);
+            var result = await service.ResetPasswordAsync("test@test.com", Guid.NewGuid().ToString(), "newpass");
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task ResetPasswordAsync_ReturnsFalse_WhenAuthNotFound()
+        {
+            var user = new User { Id = 1, Email = "test@test.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("test@test.com")).ReturnsAsync(user);
+
+            var authRepo = new Mock<IAuthenticationRepository>();
+            authRepo.Setup(r => r.GetAuthenticationByUserIdAsync(1)).ReturnsAsync((Authentication?)null);
+
+            var service = CreateService(userRepo, authRepo);
+            var result = await service.ResetPasswordAsync("test@test.com", Guid.NewGuid().ToString(), "newpass");
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task ResetPasswordAsync_ReturnsFalse_WhenHashMismatch()
+        {
+            var user = new User { Id = 1, Email = "test@test.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            var auth = new Authentication
+            {
+                UserId = 1,
+                HashPassword = "hash",
+                HashSalt = "salt",
+                PasswordResetHash = Guid.NewGuid().ToString(),
+                PasswordResetRequestedAt = DateTime.UtcNow.AddMinutes(-10)
+            };
+
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("test@test.com")).ReturnsAsync(user);
+
+            var authRepo = new Mock<IAuthenticationRepository>();
+            authRepo.Setup(r => r.GetAuthenticationByUserIdAsync(1)).ReturnsAsync(auth);
+
+            var service = CreateService(userRepo, authRepo);
+            var result = await service.ResetPasswordAsync("test@test.com", Guid.NewGuid().ToString(), "newpass");
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task ResetPasswordAsync_ReturnsFalse_WhenHashExpired()
+        {
+            var resetHash = Guid.NewGuid().ToString();
+            var user = new User { Id = 1, Email = "test@test.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            var auth = new Authentication
+            {
+                UserId = 1,
+                HashPassword = "oldhash",
+                HashSalt = "oldsalt",
+                PasswordResetHash = resetHash,
+                PasswordResetRequestedAt = DateTime.UtcNow.AddHours(-25)
+            };
+
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("test@test.com")).ReturnsAsync(user);
+
+            var authRepo = new Mock<IAuthenticationRepository>();
+            authRepo.Setup(r => r.GetAuthenticationByUserIdAsync(1)).ReturnsAsync(auth);
+
+            var service = CreateService(userRepo, authRepo);
+            var result = await service.ResetPasswordAsync("test@test.com", resetHash, "newpass");
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task ResetPasswordAsync_ResetsPassword_WhenHashValid()
         {
             var resetHash = Guid.NewGuid().ToString();
             var user = new User { Id = 1, Email = "test@test.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
@@ -231,34 +339,6 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             Assert.Null(auth.PasswordResetHash);
             Assert.Null(auth.PasswordResetRequestedAt);
             authRepo.Verify(r => r.UpdateAuthenticationAsync(auth, false), Times.Once);
-            userRepo.Verify(r => r.ValidateEmail(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task ResetPasswordAsync_ReturnsFalse_WhenPasswordResetHashExpired()
-        {
-            var resetHash = Guid.NewGuid().ToString();
-            var user = new User { Id = 1, Email = "test@test.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
-            var auth = new Authentication
-            {
-                UserId = 1,
-                HashPassword = "oldhash",
-                HashSalt = "oldsalt",
-                PasswordResetHash = resetHash,
-                PasswordResetRequestedAt = DateTime.UtcNow.AddHours(-25)
-            };
-
-            var userRepo = new Mock<IUserRepository>();
-            userRepo.Setup(r => r.GetUserByEmailAsync("test@test.com")).ReturnsAsync(user);
-            userRepo.Setup(r => r.ValidateEmail(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
-
-            var authRepo = new Mock<IAuthenticationRepository>();
-            authRepo.Setup(r => r.GetAuthenticationByUserIdAsync(1)).ReturnsAsync(auth);
-
-            var service = CreateService(userRepo, authRepo);
-            var result = await service.ResetPasswordAsync("test@test.com", resetHash, "newpass");
-
-            Assert.False(result);
         }
 
         #endregion

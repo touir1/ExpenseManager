@@ -3,16 +3,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.70.0] - 2026-05-01
+### Changed
+- **Frontend:** `ResetPasswordPage` now routes `mode=create` submissions to `POST /auth/create-password` (via new `createPassword` context function) instead of `POST /auth/change-password-reset`.
+  - `authApi.service.ts`: added `createPasswordRequest` targeting `POST /auth/create-password`.
+  - `auth.type.ts`: added `createPassword` to `AuthContextValue`.
+  - `AuthContext.tsx`: added `createPassword` callback wired to `createPasswordRequest`.
+  - `ResetPasswordPage.tsx`: destructures `createPassword` from `useAuth()`; `onSubmit` calls `createPassword` when `isCreateMode`, `resetPassword` otherwise.
+  - `ResetPasswordPage.test.tsx`: create-mode tests updated to mock and assert `createPassword` instead of `resetPassword`.
+
 ## [0.69.0] - 2026-05-01
-### Fixed
-- **Backend (users):** `ResetPasswordAsync` now handles two distinct flows within the same endpoint.
-  - **Password reset flow** (link from `RequestPasswordResetAsync`): if `PasswordResetHash` matches and was requested within 24 hours, resets the password directly — no `ValidateEmail` call needed. Clears `PasswordResetHash` and `PasswordResetRequestedAt` after success.
-  - **Initial setup flow** (`mode=create`, link from email verification): falls through to existing `ValidateEmail` check when no valid reset hash is present.
-  - `AuthenticationRepository.UpdateAuthenticationAsync`: added `resetHash` bool parameter; null-user guard now only applies when `resetHash: true` (password reset requires linked user; password-only update does not).
+### Refactored
+- **Backend (users):** Separated password creation (initial setup) and password reset (via link) into two distinct service methods and endpoints.
+  - `POST /auth/create-password` — initial password setup after email verification; validates via `EmailValidationHash`; can create or update auth record; returns `CREATE_PASSWORD_FAILED` on failure.
+  - `POST /auth/change-password-reset` — resets password using a `PasswordResetHash` issued by `RequestPasswordResetAsync`; hash must match and be within 24 hours; clears reset fields on success.
+  - `IPasswordManagementService`: added `CreatePasswordAsync(email, verificationHash, newPassword)`; `ResetPasswordAsync` signature unchanged but now only handles the reset-hash flow.
+  - `AuthenticationRepository.UpdateAuthenticationAsync`: added `resetHash` bool parameter; null-user guard applies only when `resetHash: true`.
   - `RequestPasswordResetAsync`: reset link now uses dedicated `ResetPasswordBaseUrl` with `?email=…&h=…` format (previously reused `VerifyEmailBaseUrl` with `app_code`).
   - New `ResetPasswordBaseUrl` property in `AuthenticationServiceOptions`; configurable via `AuthenticationService:ResetPasswordBaseUrl` in `appsettings.json` or `EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_RESET_PASSWORD_URL` env var.
   - `appsettings.Development.json`: seeded `ResetPasswordBaseUrl = "https://localhost/reset-password"`.
-  - Tests: `UpdateAuthenticationAsync_ReturnsFalse_WhenUserIsNullAndResetHash` renamed and tightened; new `UpdateAuthenticationAsync_ReturnsTrue_WhenUserIsNullAndNoResetHash`; two new `PasswordManagementServiceTests` covering the reset-hash flow and expired-hash rejection.
+  - New `CreatePasswordRequest.cs` and `CreatePasswordRequestValidator.cs`.
+  - Tests: 238 total (+9 net). New `CreatePasswordAsync` region (5 tests); `ResetPasswordAsync` region overhauled (6 tests, explicit hash-mismatch and auth-not-found cases added); 3 new controller tests for `CreatePassword`; 6 new validator tests in `CreatePasswordRequestValidatorTests`; old cross-flow tests removed.
 
 ## [0.68.0] - 2026-04-30
 ### Refactored

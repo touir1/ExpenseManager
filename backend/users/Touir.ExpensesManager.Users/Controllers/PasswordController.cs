@@ -53,6 +53,24 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
         }
 
+        [Route("create-password")]
+        [HttpPost]
+        public async Task<IActionResult> CreatePassword(CreatePasswordRequest request)
+        {
+            try
+            {
+                var email = request.Email.ToLowerInvariant();
+                if (!(await _passwordManagementService.CreatePasswordAsync(email, request.VerificationHash, request.NewPassword)))
+                    return Unauthorized(new ErrorResponse { Message = "CREATE_PASSWORD_FAILED" });
+
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return BadRequest(new ErrorResponse { Message = ServerError });
+            }
+        }
+
         [Route("change-password-reset")]
         [HttpPost]
         public async Task<IActionResult> ChangePasswordReset(ChangePasswordResetRequest request)

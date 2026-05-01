@@ -156,6 +156,7 @@ ExpenseManager/
 │       │   │   ├── Requests/
 │       │   │   │   ├── ChangePasswordRequest.cs        — Requires Email, OldPassword, NewPassword
 │       │   │   │   ├── ChangePasswordResetRequest.cs
+│       │   │   │   ├── CreatePasswordRequest.cs
 │       │   │   │   ├── LoginRequest.cs          — Email, Password, ApplicationCode, RememberMe
 │       │   │   │   ├── RegisterRequest.cs
 │       │   │   │   └── RequestPasswordResetRequest.cs
@@ -169,6 +170,7 @@ ExpenseManager/
 │       │   │   ├── RegisterRequestValidator.cs          — FirstName, LastName, Email NotEmpty → MISSING_PARAMETERS
 │       │   │   ├── ChangePasswordRequestValidator.cs    — Email, OldPassword NotEmpty; NewPassword NotEmpty + MinLength(8) → PASSWORD_TOO_SHORT
 │       │   │   ├── ChangePasswordResetRequestValidator.cs — Email, VerificationHash NotEmpty; NewPassword NotEmpty + MinLength(8)
+│       │   │   ├── CreatePasswordRequestValidator.cs    — Email, VerificationHash NotEmpty; NewPassword NotEmpty + MinLength(8)
 │       │   │   └── RequestPasswordResetRequestValidator.cs — Email, AppCode NotEmpty → MISSING_PARAMETERS
 │       │   ├── Repositories/
 │       │   │   ├── ApplicationRepository.cs
@@ -225,6 +227,7 @@ ExpenseManager/
 │           │   ├── RegisterRequestValidatorTests.cs
 │           │   ├── ChangePasswordRequestValidatorTests.cs
 │           │   ├── ChangePasswordResetRequestValidatorTests.cs
+│           │   ├── CreatePasswordRequestValidatorTests.cs
 │           │   └── RequestPasswordResetRequestValidatorTests.cs
 │           ├── Infrastructure/
 │           │   ├── CryptographyHelperTests.cs
@@ -305,7 +308,7 @@ ExpenseManager/
 │           │   │   │       ├── ResetPasswordPage.test.tsx
 │           │   │   │       └── RequestPasswordResetPage.test.tsx
 │           │   │   ├── services/
-│           │   │   │   └── authApi.service.ts   — Auth HTTP functions (login, logout, register, change/reset password)
+│           │   │   │   └── authApi.service.ts   — Auth HTTP functions (login, logout, register, create/change/reset password)
 │           │   │   ├── types/
 │           │   │   │   └── auth.type.ts         — User, AuthResult, AuthContextValue
 │           │   │   ├── AuthContext.tsx           — Cookie-based auth state; session restored via GET /auth/session (falls back to POST /auth/refresh); no localStorage/sessionStorage

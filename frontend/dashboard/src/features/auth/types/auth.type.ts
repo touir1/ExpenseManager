@@ -10,6 +10,7 @@ export type AuthContextValue = {
   logout: () => void
   register: (firstName: string, lastName: string, email: string) => Promise<AuthResult>
   changePassword: (oldPassword: string, newPassword: string) => Promise<AuthResult>
+  createPassword: (email: string, verificationHash: string, newPassword: string) => Promise<AuthResult>
   resetPassword: (email: string, verificationHash: string, newPassword: string) => Promise<AuthResult>
   requestPasswordReset?: (email: string) => Promise<AuthResult>
 }

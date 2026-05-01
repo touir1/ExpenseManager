@@ -7,6 +7,7 @@ import {
   logoutRequest,
   registerRequest,
   changePasswordRequest,
+  createPasswordRequest,
   resetPasswordRequest,
   requestPasswordResetRequest,
 } from '@/features/auth/services/authApi.service'
@@ -82,6 +83,12 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     return { ok, error }
   }, [user])
 
+  const createPassword = useCallback<AuthContextValue['createPassword']>(async (email, verificationHash, newPassword) => {
+    if (!email || !verificationHash || !newPassword) return { ok: false }
+    const { ok, error } = await createPasswordRequest(email, verificationHash, newPassword)
+    return { ok, error }
+  }, [])
+
   const resetPassword = useCallback<AuthContextValue['resetPassword']>(async (email, verificationHash, newPassword) => {
     if (!email || !verificationHash || !newPassword) return { ok: false }
     const { ok, error } = await resetPasswordRequest(email, verificationHash, newPassword)
@@ -102,9 +109,10 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     logout,
     register,
     changePassword,
+    createPassword,
     resetPassword,
     requestPasswordReset,
-  }), [isAuthenticated, isLoading, user, login, logout, register, changePassword, resetPassword, requestPasswordReset])
+  }), [isAuthenticated, isLoading, user, login, logout, register, changePassword, createPassword, resetPassword, requestPasswordReset])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
