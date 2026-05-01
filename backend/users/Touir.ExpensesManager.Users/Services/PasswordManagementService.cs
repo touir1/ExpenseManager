@@ -15,7 +15,6 @@ namespace Touir.ExpensesManager.Users.Services
         private readonly ICryptographyHelper _cryptographyHelper;
         private readonly IUserRepository _userRepository;
         private readonly IAuthenticationRepository _authenticationRepository;
-        private readonly string _verifyEmailUrl;
         private readonly string _resetPasswordBaseUrl;
 
         public PasswordManagementService(
@@ -29,7 +28,6 @@ namespace Touir.ExpensesManager.Users.Services
             _cryptographyHelper = cryptographyHelper;
             _userRepository = userRepository;
             _authenticationRepository = authenticationRepository;
-            _verifyEmailUrl = authServiceOptions.Value.VerifyEmailBaseUrl;
             _resetPasswordBaseUrl = authServiceOptions.Value.ResetPasswordBaseUrl;
         }
 
