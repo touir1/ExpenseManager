@@ -31,7 +31,11 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             Mock<IEmailHelper>? emailHelper = null)
         {
             return new PasswordManagementService(
-                Options.Create(new AuthenticationServiceOptions { VerifyEmailBaseUrl = "http://localhost/verify" }),
+                Options.Create(new AuthenticationServiceOptions
+                {
+                    VerifyEmailBaseUrl = "http://localhost/verify",
+                    ResetPasswordBaseUrl = "http://localhost/reset-password"
+                }),
                 emailHelper?.Object ?? CreateEmailHelperMock().Object,
                 crypto?.Object ?? new Mock<ICryptographyHelper>().Object,
                 userRepo?.Object ?? new Mock<IUserRepository>().Object,
@@ -192,6 +196,69 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             Assert.True(result);
             Assert.False(auth.IsTemporaryPassword);
             authRepo.Verify(r => r.UpdateAuthenticationAsync(auth, true), Times.Once);
+        }
+
+        [Fact]
+        public async Task ResetPasswordAsync_ResetsPassword_WhenPasswordResetHashMatches()
+        {
+            var resetHash = Guid.NewGuid().ToString();
+            var user = new User { Id = 1, Email = "test@test.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            var auth = new Authentication
+            {
+                UserId = 1,
+                HashPassword = "oldhash",
+                HashSalt = "oldsalt",
+                IsTemporaryPassword = false,
+                PasswordResetHash = resetHash,
+                PasswordResetRequestedAt = DateTime.UtcNow.AddMinutes(-10)
+            };
+
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("test@test.com")).ReturnsAsync(user);
+
+            var authRepo = new Mock<IAuthenticationRepository>();
+            authRepo.Setup(r => r.GetAuthenticationByUserIdAsync(1)).ReturnsAsync(auth);
+            authRepo.Setup(r => r.UpdateAuthenticationAsync(auth, false)).ReturnsAsync(true);
+
+            var crypto = new Mock<ICryptographyHelper>();
+            crypto.Setup(c => c.GenerateRandomSalt()).Returns(Encoding.UTF8.GetBytes("newsalt"));
+            crypto.Setup(c => c.GeneratePasswordHash("newpass", It.IsAny<byte[]>())).Returns(Encoding.UTF8.GetBytes("newhash"));
+
+            var service = CreateService(userRepo, authRepo, crypto);
+            var result = await service.ResetPasswordAsync("test@test.com", resetHash, "newpass");
+
+            Assert.True(result);
+            Assert.Null(auth.PasswordResetHash);
+            Assert.Null(auth.PasswordResetRequestedAt);
+            authRepo.Verify(r => r.UpdateAuthenticationAsync(auth, false), Times.Once);
+            userRepo.Verify(r => r.ValidateEmail(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task ResetPasswordAsync_ReturnsFalse_WhenPasswordResetHashExpired()
+        {
+            var resetHash = Guid.NewGuid().ToString();
+            var user = new User { Id = 1, Email = "test@test.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            var auth = new Authentication
+            {
+                UserId = 1,
+                HashPassword = "oldhash",
+                HashSalt = "oldsalt",
+                PasswordResetHash = resetHash,
+                PasswordResetRequestedAt = DateTime.UtcNow.AddHours(-25)
+            };
+
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("test@test.com")).ReturnsAsync(user);
+            userRepo.Setup(r => r.ValidateEmail(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
+
+            var authRepo = new Mock<IAuthenticationRepository>();
+            authRepo.Setup(r => r.GetAuthenticationByUserIdAsync(1)).ReturnsAsync(auth);
+
+            var service = CreateService(userRepo, authRepo);
+            var result = await service.ResetPasswordAsync("test@test.com", resetHash, "newpass");
+
+            Assert.False(result);
         }
 
         #endregion

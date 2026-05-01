@@ -118,6 +118,8 @@ builder.Services.Configure<AuthenticationServiceOptions>(c =>
 {
     c.VerifyEmailBaseUrl = builder.Configuration.GetValue("AuthenticationService:VerifyEmailBaseUrl",
                 Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_VERIFY_EMAIL_URL")) ?? "https://localhost:7114/api/auth/verifyEmail";
+    c.ResetPasswordBaseUrl = builder.Configuration.GetValue("AuthenticationService:ResetPasswordBaseUrl",
+                Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_RESET_PASSWORD_URL")) ?? "https://localhost/reset-password";
 });
 
 builder.Services.Configure<CryptographyOptions>(c =>

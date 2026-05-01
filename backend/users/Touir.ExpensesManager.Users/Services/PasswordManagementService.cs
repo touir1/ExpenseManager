@@ -16,6 +16,7 @@ namespace Touir.ExpensesManager.Users.Services
         private readonly IUserRepository _userRepository;
         private readonly IAuthenticationRepository _authenticationRepository;
         private readonly string _verifyEmailUrl;
+        private readonly string _resetPasswordBaseUrl;
 
         public PasswordManagementService(
             IOptions<AuthenticationServiceOptions> authServiceOptions,
@@ -29,6 +30,7 @@ namespace Touir.ExpensesManager.Users.Services
             _userRepository = userRepository;
             _authenticationRepository = authenticationRepository;
             _verifyEmailUrl = authServiceOptions.Value.VerifyEmailBaseUrl;
+            _resetPasswordBaseUrl = authServiceOptions.Value.ResetPasswordBaseUrl;
         }
 
         public async Task<bool> ChangePasswordAsync(string email, string oldPassword, string newPassword)
@@ -55,16 +57,32 @@ namespace Touir.ExpensesManager.Users.Services
                 return false;
             if (!Guid.TryParse(verificationHash, out _))
                 return false;
-            if (!await _userRepository.ValidateEmail(verificationHash, email))
-                return false;
 
             User? user = await _userRepository.GetUserByEmailAsync(email);
             if (user == null)
                 return false;
 
             Authentication? auth = await _authenticationRepository.GetAuthenticationByUserIdAsync(user.Id);
-
             byte[] salt = _cryptographyHelper.GenerateRandomSalt();
+
+            bool isPasswordReset = auth != null &&
+                auth.PasswordResetHash == verificationHash &&
+                auth.PasswordResetRequestedAt.HasValue &&
+                (DateTime.UtcNow - auth.PasswordResetRequestedAt.Value).TotalHours <= 24;
+
+            if (isPasswordReset)
+            {
+                auth!.IsTemporaryPassword = false;
+                auth.HashSaltBytes = salt;
+                auth.HashPasswordBytes = _cryptographyHelper.GeneratePasswordHash(newPassword, salt);
+                auth.PasswordResetHash = null;
+                auth.PasswordResetRequestedAt = null;
+                return await _authenticationRepository.UpdateAuthenticationAsync(auth);
+            }
+
+            // Initial password setup (mode=create): validate via EmailValidationHash
+            if (!await _userRepository.ValidateEmail(verificationHash, email))
+                return false;
 
             if (auth == null)
             {
@@ -81,7 +99,6 @@ namespace Touir.ExpensesManager.Users.Services
             auth.IsTemporaryPassword = false;
             auth.HashSaltBytes = salt;
             auth.HashPasswordBytes = _cryptographyHelper.GeneratePasswordHash(newPassword, salt);
-
             return await _authenticationRepository.UpdateAuthenticationAsync(auth, resetHash: true);
         }
 
@@ -100,7 +117,7 @@ namespace Touir.ExpensesManager.Users.Services
                 return false;
             try
             {
-                string resetLink = $"{_verifyEmailUrl.TrimEnd('/')}?h={HttpUtility.UrlEncode(resetHash)}&s={HttpUtility.UrlEncode(email)}&app_code={HttpUtility.UrlEncode(appCode)}";
+                string resetLink = $"{_resetPasswordBaseUrl.TrimEnd('/')}?email={HttpUtility.UrlEncode(email)}&h={HttpUtility.UrlEncode(resetHash)}";
                 string emailResetHtml = _emailHelper.GetEmailTemplate(EmailHtmlTemplate.PasswordReset.Key, new Dictionary<string, string> {
                     { EmailHtmlTemplate.PasswordReset.Variables.ResetLink, resetLink },
                 });

@@ -28,8 +28,8 @@ Public (no auth required, accessible via `/api/users/auth/` through nginx):
 - `POST /auth/refresh` — Validate `refresh_token` cookie, issue new `auth_token`, rotate `refresh_token` (used transparently by the frontend on 401)
 - `POST /auth/register` — User registration
 - `GET  /auth/validate-email` — Verify email from link; on success redirects to `{app.ResetPasswordUrlPath}?email=…&h=…&mode=create`; on failure redirects to `{app.UrlPath}{app.VerifyEmailErrorUrlPath}` (e.g. `/verify-error`) if configured, otherwise returns `{"message":"EMAIL_VERIFICATION_FAILED"}`
-- `POST /auth/request-password-reset` — Send reset email; body: `{ email, appCode }` — `appCode` is appended to the reset link so `validate-email` can look up the application
-- `POST /auth/change-password-reset` — Reset password with verification hash
+- `POST /auth/request-password-reset` — Send reset email; body: `{ email, appCode }` — link points to `ResetPasswordBaseUrl?email=…&h=…`
+- `POST /auth/change-password-reset` — Reset password; accepts either a `PasswordResetHash` (from `request-password-reset`, valid 24 h) or an email-verification hash (initial setup, `mode=create`); the two flows are distinguished automatically — no `mode` param needed on this endpoint
 - `GET  /auth/check` — Internal auth check used by nginx `auth_request`; accepts Bearer token header or `auth_token` cookie
 
 Protected:
@@ -48,6 +48,7 @@ Configured via environment variables:
 | `EXPENSES_MANAGEMENT_USERS_EMAILAUTH_EMAIL` | Sender address | — |
 | `EXPENSES_MANAGEMENT_USERS_EMAILAUTH_PASSWORD` | SMTP password | — |
 | `EXPENSES_MANAGEMENT_USERS_EMAILAUTH_ENABLESSL` | Enable SSL/TLS on the SMTP connection | `true` |
+| `EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_RESET_PASSWORD_URL` | Base URL for password-reset links sent by email | `https://localhost/reset-password` |
 
 For local development, [Mailpit](https://mailpit.axllent.org/) is included in the tools Docker Compose stack (`host.docker.internal:1025`, `EnableSsl=false`). The web UI is available at `http://localhost:8025`.
 

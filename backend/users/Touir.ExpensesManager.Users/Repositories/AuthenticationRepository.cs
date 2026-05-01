@@ -50,8 +50,8 @@ namespace Touir.ExpensesManager.Users.Repositories
 
         public async Task<bool> UpdateAuthenticationAsync(Authentication authentication, bool resetHash = false)
         {
-            if (authentication == null || authentication.User == null)
-                return false;
+            if (authentication == null) return false;
+            if (resetHash && authentication.User == null) return false;
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
 

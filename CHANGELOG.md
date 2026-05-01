@@ -3,6 +3,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.69.0] - 2026-05-01
+### Fixed
+- **Backend (users):** `ResetPasswordAsync` now handles two distinct flows within the same endpoint.
+  - **Password reset flow** (link from `RequestPasswordResetAsync`): if `PasswordResetHash` matches and was requested within 24 hours, resets the password directly — no `ValidateEmail` call needed. Clears `PasswordResetHash` and `PasswordResetRequestedAt` after success.
+  - **Initial setup flow** (`mode=create`, link from email verification): falls through to existing `ValidateEmail` check when no valid reset hash is present.
+  - `AuthenticationRepository.UpdateAuthenticationAsync`: added `resetHash` bool parameter; null-user guard now only applies when `resetHash: true` (password reset requires linked user; password-only update does not).
+  - `RequestPasswordResetAsync`: reset link now uses dedicated `ResetPasswordBaseUrl` with `?email=…&h=…` format (previously reused `VerifyEmailBaseUrl` with `app_code`).
+  - New `ResetPasswordBaseUrl` property in `AuthenticationServiceOptions`; configurable via `AuthenticationService:ResetPasswordBaseUrl` in `appsettings.json` or `EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_RESET_PASSWORD_URL` env var.
+  - `appsettings.Development.json`: seeded `ResetPasswordBaseUrl = "https://localhost/reset-password"`.
+  - Tests: `UpdateAuthenticationAsync_ReturnsFalse_WhenUserIsNullAndResetHash` renamed and tightened; new `UpdateAuthenticationAsync_ReturnsTrue_WhenUserIsNullAndNoResetHash`; two new `PasswordManagementServiceTests` covering the reset-hash flow and expired-hash rejection.
+
 ## [0.68.0] - 2026-04-30
 ### Refactored
 - **Backend (users) + Frontend:** Removed `ConfirmPassword` from `ChangePasswordRequest` and `ChangePasswordResetRequest` DTOs — password confirmation is a UI-only concern.

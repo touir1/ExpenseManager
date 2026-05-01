@@ -232,7 +232,7 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
         }
 
         [Fact]
-        public async Task UpdateAuthenticationAsync_ReturnsFalse_WhenUserIsNull()
+        public async Task UpdateAuthenticationAsync_ReturnsFalse_WhenUserIsNullAndResetHash()
         {
             using var db = new TestDbContextWrapper();
             var user = new User { Id = 9, FirstName = "O", LastName = "P", Email = "o@p.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
@@ -240,14 +240,34 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
             db.Context.Users.Add(user);
             db.Context.Authentications.Add(auth);
             db.Context.SaveChanges();
-            
+
             var repo = new AuthenticationRepository(db.Context);
             var dbAuth = db.Context.Authentications.First(a => a.UserId == 9);
             dbAuth.User = null!;
-            
-            var result = await repo.UpdateAuthenticationAsync(dbAuth);
-            
+
+            var result = await repo.UpdateAuthenticationAsync(dbAuth, resetHash: true);
+
             Assert.False(result);
+        }
+
+        [Fact]
+        public async Task UpdateAuthenticationAsync_ReturnsTrue_WhenUserIsNullAndNoResetHash()
+        {
+            using var db = new TestDbContextWrapper();
+            var user = new User { Id = 19, FirstName = "X", LastName = "Y", Email = "x@y.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            var auth = new Authentication { UserId = 19, User = user, HashPassword = "hash19", HashSalt = "salt19" };
+            db.Context.Users.Add(user);
+            db.Context.Authentications.Add(auth);
+            db.Context.SaveChanges();
+
+            var repo = new AuthenticationRepository(db.Context);
+            var dbAuth = db.Context.Authentications.First(a => a.UserId == 19);
+            dbAuth.User = null!;
+            dbAuth.HashPassword = "newhash";
+
+            var result = await repo.UpdateAuthenticationAsync(dbAuth, resetHash: false);
+
+            Assert.True(result);
         }
 
         [Fact]
