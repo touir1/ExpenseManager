@@ -116,6 +116,12 @@ These four items were raised before the SRP split (v0.60.0) and are no longer ac
 | FluentValidation auto-validation | All manual `if`-check validation blocks removed from `AuthenticationController`, `RegistrationController`, `PasswordController`. Five `AbstractValidator<T>` classes in `Validators/`; registered via `AddFluentValidationAutoValidation()` + `AddValidatorsFromAssemblyContaining<Program>()` in `Program.cs` |
 | ConfirmPassword removed from backend DTOs | `ChangePasswordRequest` and `ChangePasswordResetRequest` no longer have `ConfirmPassword` — it is frontend-only UX. `authApi.service.ts` calls updated; `AuthContext.tsx` signatures updated; 3 test files updated |
 
+### Validation parity — 2026-05-01 (v0.71.0)
+
+| Item | Resolution |
+|---|---|
+| VAL-02: `firstName`, `lastName`, `email` max-length on registration | `RegisterRequestValidator`: `.MaximumLength(100).WithMessage("FIELD_TOO_LONG")` on all three fields; 3 new backend tests. `registerSchema` in `auth.schemas.ts`: `.max(100, ...)` on all three fields. `RegisterPage.tsx`: `maxLength={100}` on all three inputs. 3 new frontend tests. |
+
 ---
 
 ## Infrastructure

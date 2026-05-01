@@ -56,6 +56,7 @@ export default function RegisterPage() {
               autoFocus
               {...register('firstName')}
               required
+              maxLength={100}
               disabled={isSubmitting}
               className="field-input"
               placeholder="Jane"
@@ -70,6 +71,7 @@ export default function RegisterPage() {
               id="lastName"
               {...register('lastName')}
               required
+              maxLength={100}
               disabled={isSubmitting}
               className="field-input"
               placeholder="Doe"
@@ -88,6 +90,7 @@ export default function RegisterPage() {
             autoComplete="email"
             {...register('email')}
             required
+            maxLength={100}
             disabled={isSubmitting}
             className="field-input"
             placeholder="you@example.com"

@@ -84,7 +84,6 @@ Discrepancies found by cross-checking Zod schemas (`auth.schemas.ts`) against co
 
 | # | Priority | Field / Flow | Backend | Frontend | Fix needed |
 |---|----------|--------------|---------|----------|------------|
-| VAL-02 | 🟡 Moderate | `firstName`, `lastName` — Registration | Required (non-null), no max length | `min(1)`, no max length | Add `maxLength` constraint (e.g. 100) on both sides to prevent oversized DB writes |
 | VAL-03 | 🟡 Moderate | `email` — Login | Only checks non-empty (`IsNullOrWhiteSpace`) | Validates full email format via Zod | Add email format validation in login path so backend returns consistent error instead of silently failing at lookup |
 | VAL-04 | 🟢 Low | `email` — Registration | Uses `MailAddress` constructor (strict RFC) | Uses Zod email regex (lenient) | Verify both accept same set of valid addresses; document which is authoritative or align to one implementation |
 

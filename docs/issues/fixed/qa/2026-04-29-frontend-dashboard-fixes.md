@@ -5,6 +5,21 @@ Items below were identified in the 2026-04-29 QA session and subsequently resolv
 
 ---
 
+## F-4 — ~~No max-length validation on registration name fields~~ ✅ FIXED
+
+**Severity:** Medium  
+**Affected route:** `/register`
+
+**Root cause:** `RegisterRequestValidator` had no `MaximumLength` rule; `registerSchema` had no `.max()` constraint. Oversized payloads were accepted and written to the DB.
+
+**Fix applied (v0.71.0):**
+- `RegisterRequestValidator.cs`: `.MaximumLength(100).WithMessage("FIELD_TOO_LONG")` added to `FirstName`, `LastName`, and `Email`; 3 new backend tests.
+- `auth.schemas.ts`: `.max(100, ...)` added to `firstName`, `lastName`, and `email` in `registerSchema`.
+- `RegisterPage.tsx`: `maxLength={100}` on all three inputs as a browser-level guard.
+- `RegisterPage.test.tsx`: 3 new tests asserting per-field max-length error messages.
+
+---
+
 ## F-1 — ~~Duplicate "Authentication token is missing" toasts on every page load~~ ✅ FIXED
 
 **Severity:** Medium  

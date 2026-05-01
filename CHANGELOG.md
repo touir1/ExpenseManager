@@ -3,6 +3,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.71.0] - 2026-05-01
+### Fixed
+- **Backend + Frontend:** Added max-length (100) validation on `firstName`, `lastName`, and `email` for the registration flow (F-4 / VAL-02).
+  - `RegisterRequestValidator.cs`: `.MaximumLength(100).WithMessage("FIELD_TOO_LONG")` on all three fields; 3 new validator tests.
+  - `auth.schemas.ts`: `.max(100, ...)` added to `firstName`, `lastName`, and `email` in `registerSchema`.
+  - `RegisterPage.tsx`: `maxLength={100}` on all three inputs.
+  - `RegisterPage.test.tsx`: 3 new tests for max-length error messages.
+
 ## [0.70.0] - 2026-05-01
 ### Changed
 - **Frontend:** `ResetPasswordPage` now routes `mode=create` submissions to `POST /auth/create-password` (via new `createPassword` context function) instead of `POST /auth/change-password-reset`.

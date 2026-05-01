@@ -16,11 +16,11 @@ The Expenses Manager frontend is well-structured and functional. Authentication,
 | Severity | Found | Open | Fixed |
 |---|---|---|---|
 | High | 2 | 2 | 0 |
-| Medium | 4 | 1 | 3 |
+| Medium | 4 | 0 | 4 |
 | Low | 4 | 4 | 0 |
 | Info | 3 | 3 | 0 |
 
-Fixed items: [F-1, F-2, F-3, U-1](../../../fixed/qa/2026-04-29-frontend-dashboard-fixes.md)
+Fixed items: [F-1, F-2, F-3, F-4, U-1](../../../fixed/qa/2026-04-29-frontend-dashboard-fixes.md)
 
 ---
 

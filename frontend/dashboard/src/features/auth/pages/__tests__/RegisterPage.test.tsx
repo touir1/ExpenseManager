@@ -251,6 +251,51 @@ describe('Register page', () => {
     })
   })
 
+  it('shows error when first name exceeds 100 characters', async () => {
+    mockUseAuth.mockReturnValue({ register: mockRegister })
+    render(<MemoryRouter><RegisterPage /></MemoryRouter>)
+
+    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'a'.repeat(101) } })
+    fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'Smith' } })
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'jane@example.com' } })
+    fireEvent.submit(screen.getByRole('button', { name: /register/i }).closest('form')!)
+
+    await waitFor(() => {
+      expect(screen.getByText('First name must be at most 100 characters.')).toBeInTheDocument()
+    })
+    expect(mockRegister).not.toHaveBeenCalled()
+  })
+
+  it('shows error when last name exceeds 100 characters', async () => {
+    mockUseAuth.mockReturnValue({ register: mockRegister })
+    render(<MemoryRouter><RegisterPage /></MemoryRouter>)
+
+    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Jane' } })
+    fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'a'.repeat(101) } })
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'jane@example.com' } })
+    fireEvent.submit(screen.getByRole('button', { name: /register/i }).closest('form')!)
+
+    await waitFor(() => {
+      expect(screen.getByText('Last name must be at most 100 characters.')).toBeInTheDocument()
+    })
+    expect(mockRegister).not.toHaveBeenCalled()
+  })
+
+  it('shows error when email exceeds 100 characters', async () => {
+    mockUseAuth.mockReturnValue({ register: mockRegister })
+    render(<MemoryRouter><RegisterPage /></MemoryRouter>)
+
+    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Jane' } })
+    fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'Smith' } })
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'a'.repeat(101) } })
+    fireEvent.submit(screen.getByRole('button', { name: /register/i }).closest('form')!)
+
+    await waitFor(() => {
+      expect(screen.getByText('Email must be at most 100 characters.')).toBeInTheDocument()
+    })
+    expect(mockRegister).not.toHaveBeenCalled()
+  })
+
   it('inputs have no aria-describedby initially', () => {
     mockUseAuth.mockReturnValue({ register: mockRegister })
     render(<MemoryRouter><RegisterPage /></MemoryRouter>)
