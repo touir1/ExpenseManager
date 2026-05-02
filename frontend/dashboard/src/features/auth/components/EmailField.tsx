@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { UseFormRegisterReturn } from 'react-hook-form'
 import FieldError from '@/components/FieldError'
 
@@ -9,9 +10,10 @@ interface EmailFieldProps {
 }
 
 export default function EmailField({ registration, error, isSubmitting, autoFocus }: EmailFieldProps) {
+  const { t } = useTranslation()
   return (
     <div>
-      <label htmlFor="email" className="field-label">Email address</label>
+      <label htmlFor="email" className="field-label">{t('auth.email.label')}</label>
       <input
         id="email"
         type="email"
@@ -21,7 +23,7 @@ export default function EmailField({ registration, error, isSubmitting, autoFocu
         required
         disabled={isSubmitting}
         className="field-input"
-        placeholder="you@example.com"
+        placeholder={t('auth.email.placeholder')}
         aria-describedby={error ? 'email-error' : undefined}
         aria-invalid={!!error}
       />

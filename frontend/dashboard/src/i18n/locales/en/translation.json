@@ -1,0 +1,202 @@
+{
+  "appTitle": "Expenses Manager",
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "settings": "Settings",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "getStarted": "Get started",
+    "toggleMenu": "Toggle menu",
+    "mobileNav": "Mobile navigation"
+  },
+  "auth": {
+    "login": {
+      "pageTitle": "Login",
+      "title": "Welcome back",
+      "subtitle": "Sign in to your account to continue.",
+      "password": "Password",
+      "rememberMe": "Remember me",
+      "submit": "Login",
+      "submitting": "Signing in…",
+      "invalidCredentials": "Invalid credentials. Please try again.",
+      "noAccount": "Don't have an account?",
+      "register": "Register",
+      "forgotPassword": "Forgot your password?",
+      "haveVerificationLink": "Have a verification link?",
+      "backToHome": "← Back to home"
+    },
+    "register": {
+      "pageTitle": "Register",
+      "title": "Create an account",
+      "subtitle": "Get started — it only takes a moment.",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "emailAddress": "Email address",
+      "submit": "Register",
+      "submitting": "Submitting…",
+      "successMessage": "Registration successful! Check your inbox for a verification email. Click the link to verify your address and set your password — you will then be able to log in.",
+      "failedMessage": "Registration failed. Please try again.",
+      "goToLogin": "Go to login →",
+      "alreadyHaveAccount": "Already have an account?",
+      "goToLoginLink": "Go to login"
+    },
+    "changePassword": {
+      "pageTitle": "Change Password",
+      "title": "Change Password",
+      "subtitle": "Update your account password below.",
+      "backToSettings": "Back to settings",
+      "oldPassword": "Old password",
+      "newPassword": "New password",
+      "repeatPassword": "Repeat new password",
+      "submit": "Change password",
+      "submitting": "Saving…",
+      "success": "Password changed.",
+      "error": "Incorrect current password."
+    },
+    "requestPasswordReset": {
+      "pageTitle": "Request Password Reset",
+      "title": "Request Password Reset",
+      "subtitle": "We'll send a reset link to your email if it's registered.",
+      "submit": "Send reset link",
+      "submitting": "Sending…",
+      "successToast": "If the email exists, a reset link has been sent.",
+      "errorToast": "Please enter a valid email.",
+      "notAvailable": "Reset request not available",
+      "hint": "You will receive an email with a verification link to reset your password.",
+      "backToLogin": "Back to login"
+    },
+    "resetPassword": {
+      "pageTitle": "Reset Password",
+      "createPageTitle": "Create Password",
+      "title": "Reset Password",
+      "createTitle": "Create Password",
+      "subtitle": "Enter a new password for your account.",
+      "createSubtitle": "Set a password for your new account.",
+      "newPassword": "New password",
+      "repeatPassword": "Repeat new password",
+      "submit": "Reset",
+      "createSubmit": "Create",
+      "submitting": "Resetting…",
+      "createSubmitting": "Creating…",
+      "successMessage": "Password reset successfully. Redirecting to home…",
+      "createSuccessMessage": "Password created successfully. Redirecting to home…",
+      "errorMessage": "Password reset failed. Please try again.",
+      "createErrorMessage": "Password creation failed. Please try again.",
+      "invalidLink": "Invalid or missing verification link. Please request a new reset link.",
+      "requestReset": "Request password reset"
+    },
+    "email": {
+      "label": "Email address",
+      "placeholder": "you@example.com"
+    }
+  },
+  "dashboard": {
+    "pageTitle": "Dashboard",
+    "title": "Dashboard",
+    "welcome": "Welcome {{name}}! This is your private home page.",
+    "loading": "Loading dashboard",
+    "account": {
+      "title": "Account",
+      "signedInAs": "Signed in as"
+    },
+    "settings": {
+      "title": "Settings",
+      "changePassword": "Change Password"
+    },
+    "expenses": {
+      "title": "Expenses",
+      "comingSoon": "Coming soon…"
+    }
+  },
+  "settings": {
+    "pageTitle": "Settings",
+    "title": "Settings",
+    "subtitle": "Manage your account settings.",
+    "password": {
+      "title": "Password",
+      "description": "Update the password used to sign in to your account.",
+      "changeLink": "Change Password"
+    }
+  },
+  "public": {
+    "home": {
+      "headline": "Track your expenses,",
+      "headlineAccent": "simply.",
+      "description": "A clean, minimal tool for keeping your finances in check. Sign in to your account or create one — it takes under a minute.",
+      "signIn": "Sign in",
+      "createAccount": "Create account"
+    },
+    "notFound": {
+      "pageTitle": "Page Not Found",
+      "title": "Page not found",
+      "description": "The page you're looking for doesn't exist or has been moved.",
+      "goHome": "Go to home"
+    },
+    "verifyError": {
+      "pageTitle": "Verification Failed",
+      "title": "Verification link expired",
+      "description": "This email verification link has already been used or has expired. Please register again to receive a new verification email.",
+      "backToRegister": "Back to register"
+    }
+  },
+  "passwordStrength": {
+    "label": "Strength",
+    "requirements": "Password requirements",
+    "criteria": {
+      "length": "At least 8 characters",
+      "uppercase": "Uppercase letter (A–Z)",
+      "lowercase": "Lowercase letter (a–z)",
+      "number": "Number (0–9)",
+      "special": "Special character (!@#…)"
+    },
+    "levels": {
+      "weak": "Weak",
+      "fair": "Fair",
+      "good": "Good",
+      "strong": "Strong"
+    }
+  },
+  "apiErrors": {
+    "server": "Server error, please retry later.",
+    "rateLimit": "Too many requests. Please wait and try again.",
+    "notFound": "Resource not found.",
+    "forbidden": "Access denied. You might not have permission.",
+    "badRequest": "Invalid request. Please check your input.",
+    "network": "Network error. Please check your connection and try again.",
+    "unauthorized": "Unauthorized",
+    "missingParameters": "Please fill in all required fields.",
+    "serverError": "Server error, please retry later.",
+    "invalidUsernameOrPassword": "Invalid email or password.",
+    "noAssignedRole": "Your account has no assigned role. Please contact support.",
+    "emailVerificationFailed": "Email verification failed. Please check the link and try again.",
+    "notMatchingConfirmPassword": "Passwords do not match.",
+    "setNewPasswordFailed": "Failed to set the new password. Please try again.",
+    "requestPasswordResetFailed": "Failed to request a password reset. Please try again.",
+    "resetPasswordFailed": "Failed to reset your password. Please try again.",
+    "missingToken": "Authentication token is missing. Please log in again.",
+    "invalidToken": "Invalid authentication token. Please log in again."
+  },
+  "validation": {
+    "emailRequired": "Email is required.",
+    "emailInvalid": "Please enter a valid email address.",
+    "passwordRequired": "Password is required.",
+    "firstNameRequired": "First name is required.",
+    "firstNameMax": "First name must be at most 100 characters.",
+    "lastNameRequired": "Last name is required.",
+    "lastNameMax": "Last name must be at most 100 characters.",
+    "emailMax": "Email must be at most 100 characters.",
+    "currentPasswordRequired": "Current password is required.",
+    "newPasswordRequired": "New password is required.",
+    "passwordMin": "Password must be at least 8 characters.",
+    "repeatPasswordRequired": "Please repeat your new password.",
+    "passwordsNoMatch": "New passwords do not match."
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "fr": "Français",
+    "es": "Español",
+    "de": "Deutsch"
+  }
+}

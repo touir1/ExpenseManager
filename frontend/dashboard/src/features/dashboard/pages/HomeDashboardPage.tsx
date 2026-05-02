@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
 function DashboardSkeleton() {
+  const { t } = useTranslation()
   return (
-    <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-8" aria-busy="true" aria-label="Loading dashboard">
+    <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-8" aria-busy="true" aria-label={t('dashboard.loading')}>
       <div className="mb-8 animate-pulse">
         <div className="h-7 bg-slate-200 rounded-lg w-32 mb-2" />
         <div className="h-4 bg-slate-100 rounded w-64" />
@@ -26,22 +28,21 @@ function DashboardSkeleton() {
 }
 
 export default function HomeDashboardPage() {
-  usePageTitle('Dashboard')
+  const { t } = useTranslation()
+  usePageTitle(t('dashboard.pageTitle'))
   const { user, isLoading } = useAuth()
 
   if (isLoading) return <DashboardSkeleton />
 
   return (
     <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-8">
-      {/* Page header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Dashboard</h1>
+        <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">{t('dashboard.title')}</h1>
         <p className="text-sm text-slate-500 mt-1">
-          Welcome {user?.firstName ?? user?.email ?? 'user'}! This is your private home page.
+          {t('dashboard.welcome', { name: user?.firstName ?? user?.email ?? 'user' })}
         </p>
       </div>
 
-      {/* Cards grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Account card */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-card p-6">
@@ -58,9 +59,9 @@ export default function HomeDashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </span>
-            <h2 className="text-sm font-semibold text-slate-900">Account</h2>
+            <h2 className="text-sm font-semibold text-slate-900">{t('dashboard.account.title')}</h2>
           </div>
-          <p className="text-xs text-slate-500 mb-0.5">Signed in as</p>
+          <p className="text-xs text-slate-500 mb-0.5">{t('dashboard.account.signedInAs')}</p>
           <p className="text-sm font-medium text-slate-800 truncate">{user?.email ?? '—'}</p>
         </div>
 
@@ -80,13 +81,13 @@ export default function HomeDashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </span>
-            <h2 className="text-sm font-semibold text-slate-900">Settings</h2>
+            <h2 className="text-sm font-semibold text-slate-900">{t('dashboard.settings.title')}</h2>
           </div>
           <Link
             to="/change-password"
             className="inline-flex items-center gap-1.5 text-sm text-brand-600 hover:text-brand-700 font-medium transition-colors duration-150"
           >
-            Change Password
+            {t('dashboard.settings.changePassword')}
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
@@ -108,9 +109,9 @@ export default function HomeDashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
               </svg>
             </span>
-            <h2 className="text-sm font-semibold text-slate-900">Expenses</h2>
+            <h2 className="text-sm font-semibold text-slate-900">{t('dashboard.expenses.title')}</h2>
           </div>
-          <p className="text-sm text-slate-400 italic">Coming soon…</p>
+          <p className="text-sm text-slate-400 italic">{t('dashboard.expenses.comingSoon')}</p>
         </div>
       </div>
 

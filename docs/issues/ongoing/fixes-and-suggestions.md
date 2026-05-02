@@ -46,9 +46,12 @@ The dashboard currently uses vanilla `fetch`, React Hook Form + Zod for auth for
 - **TanStack Query** (`@tanstack/react-query`): The expenses feature will need paginated lists, filters, background refetch, and cache invalidation. TanStack Query handles all of this and eliminates per-component `[loading, setLoading]` / `[data, setData]` patterns. `api.service.ts` stays as the low-level fetch layer; TanStack Query calls it. Auth mutations in `AuthContext` can remain as-is.
 - **Recharts** (`recharts`): An expense manager without charts is incomplete. Expected visualizations: spending over time (line), by category (pie/donut), monthly comparison (bar). Recharts is composable, TypeScript-friendly, and lightweight (~200 KB). New components go in `src/components/charts/`.
 
-#### Phase 3 — Conditional (only if needed)
+#### Phase 3 — react-i18next ✅ done ([v0.72.0](../../CHANGELOG.md))
 
-- **react-i18next** (`react-i18next`): All text is currently hardcoded in English. Add only if multi-language support is an actual requirement. Prefer `react-i18next` over FormatJS for its simpler API; FormatJS adds value only if rich locale-aware number/date/plural formatting is needed (which can be layered on top via `i18next-icu`). Do not add both.
+*Moved to [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
+
+#### Phase 3 remaining — Conditional (only if needed)
+
 - **react-dropzone** (`react-dropzone`): Add only when receipt or attachment upload is being implemented.
 - **Motion** (`motion` / Framer Motion): Current CSS transitions via Tailwind are sufficient. Add only after the expense feature's UX design calls for page transitions, drag-and-drop reordering, or complex entrance/exit animations.
 

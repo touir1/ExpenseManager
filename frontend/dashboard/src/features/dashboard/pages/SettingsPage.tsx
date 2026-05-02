@@ -1,17 +1,17 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
 export default function SettingsPage() {
-  usePageTitle('Settings')
+  const { t } = useTranslation()
+  usePageTitle(t('settings.pageTitle'))
   return (
     <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-8">
-      {/* Page header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Settings</h1>
-        <p className="text-sm text-slate-500 mt-1">Manage your account settings.</p>
+        <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">{t('settings.title')}</h1>
+        <p className="text-sm text-slate-500 mt-1">{t('settings.subtitle')}</p>
       </div>
 
-      {/* Settings cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Password card */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-card p-6">
@@ -28,14 +28,14 @@ export default function SettingsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </span>
-            <h2 className="text-sm font-semibold text-slate-900">Password</h2>
+            <h2 className="text-sm font-semibold text-slate-900">{t('settings.password.title')}</h2>
           </div>
-          <p className="text-xs text-slate-500 mb-3">Update the password used to sign in to your account.</p>
+          <p className="text-xs text-slate-500 mb-3">{t('settings.password.description')}</p>
           <Link
             to="/change-password"
             className="inline-flex items-center gap-1.5 text-sm text-brand-600 hover:text-brand-700 font-medium transition-colors duration-150"
           >
-            Change Password
+            {t('settings.password.changeLink')}
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>

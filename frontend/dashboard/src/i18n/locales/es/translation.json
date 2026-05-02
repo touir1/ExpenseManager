@@ -1,0 +1,202 @@
+{
+  "appTitle": "Expenses Manager",
+  "nav": {
+    "home": "Inicio",
+    "dashboard": "Panel",
+    "settings": "Configuración",
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión",
+    "getStarted": "Comenzar",
+    "toggleMenu": "Abrir menú",
+    "mobileNav": "Navegación móvil"
+  },
+  "auth": {
+    "login": {
+      "pageTitle": "Inicio de sesión",
+      "title": "Bienvenido de nuevo",
+      "subtitle": "Inicia sesión en tu cuenta para continuar.",
+      "password": "Contraseña",
+      "rememberMe": "Recordarme",
+      "submit": "Iniciar sesión",
+      "submitting": "Iniciando sesión…",
+      "invalidCredentials": "Credenciales incorrectas. Por favor, inténtalo de nuevo.",
+      "noAccount": "¿No tienes cuenta?",
+      "register": "Registrarse",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "haveVerificationLink": "¿Tienes un enlace de verificación?",
+      "backToHome": "← Volver al inicio"
+    },
+    "register": {
+      "pageTitle": "Registro",
+      "title": "Crear una cuenta",
+      "subtitle": "Empieza — solo toma un momento.",
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "emailAddress": "Correo electrónico",
+      "submit": "Registrarse",
+      "submitting": "Enviando…",
+      "successMessage": "¡Registro exitoso! Revisa tu bandeja de entrada. Haz clic en el enlace para verificar tu dirección y establecer tu contraseña — luego podrás iniciar sesión.",
+      "failedMessage": "Error en el registro. Por favor, inténtalo de nuevo.",
+      "goToLogin": "Ir al inicio de sesión →",
+      "alreadyHaveAccount": "¿Ya tienes cuenta?",
+      "goToLoginLink": "Ir al inicio de sesión"
+    },
+    "changePassword": {
+      "pageTitle": "Cambiar contraseña",
+      "title": "Cambiar contraseña",
+      "subtitle": "Actualiza tu contraseña de cuenta a continuación.",
+      "backToSettings": "Volver a configuración",
+      "oldPassword": "Contraseña actual",
+      "newPassword": "Nueva contraseña",
+      "repeatPassword": "Repetir nueva contraseña",
+      "submit": "Cambiar contraseña",
+      "submitting": "Guardando…",
+      "success": "Contraseña cambiada.",
+      "error": "Contraseña actual incorrecta."
+    },
+    "requestPasswordReset": {
+      "pageTitle": "Restablecer contraseña",
+      "title": "Restablecer contraseña",
+      "subtitle": "Te enviaremos un enlace de restablecimiento si tu correo está registrado.",
+      "submit": "Enviar enlace",
+      "submitting": "Enviando…",
+      "successToast": "Si el correo existe, se ha enviado un enlace de restablecimiento.",
+      "errorToast": "Por favor, introduce un correo electrónico válido.",
+      "notAvailable": "Restablecimiento no disponible",
+      "hint": "Recibirás un correo con un enlace de verificación para restablecer tu contraseña.",
+      "backToLogin": "Volver al inicio de sesión"
+    },
+    "resetPassword": {
+      "pageTitle": "Restablecer contraseña",
+      "createPageTitle": "Crear contraseña",
+      "title": "Restablecer contraseña",
+      "createTitle": "Crear contraseña",
+      "subtitle": "Introduce una nueva contraseña para tu cuenta.",
+      "createSubtitle": "Establece una contraseña para tu nueva cuenta.",
+      "newPassword": "Nueva contraseña",
+      "repeatPassword": "Repetir nueva contraseña",
+      "submit": "Restablecer",
+      "createSubmit": "Crear",
+      "submitting": "Restableciendo…",
+      "createSubmitting": "Creando…",
+      "successMessage": "Contraseña restablecida correctamente. Redirigiendo…",
+      "createSuccessMessage": "Contraseña creada correctamente. Redirigiendo…",
+      "errorMessage": "Error al restablecer la contraseña. Por favor, inténtalo de nuevo.",
+      "createErrorMessage": "Error al crear la contraseña. Por favor, inténtalo de nuevo.",
+      "invalidLink": "Enlace de verificación inválido o faltante. Por favor, solicita un nuevo enlace.",
+      "requestReset": "Solicitar restablecimiento"
+    },
+    "email": {
+      "label": "Correo electrónico",
+      "placeholder": "tu@ejemplo.com"
+    }
+  },
+  "dashboard": {
+    "pageTitle": "Panel",
+    "title": "Panel",
+    "welcome": "¡Bienvenido {{name}}! Esta es tu página de inicio privada.",
+    "loading": "Cargando panel",
+    "account": {
+      "title": "Cuenta",
+      "signedInAs": "Conectado como"
+    },
+    "settings": {
+      "title": "Configuración",
+      "changePassword": "Cambiar contraseña"
+    },
+    "expenses": {
+      "title": "Gastos",
+      "comingSoon": "Próximamente…"
+    }
+  },
+  "settings": {
+    "pageTitle": "Configuración",
+    "title": "Configuración",
+    "subtitle": "Administra la configuración de tu cuenta.",
+    "password": {
+      "title": "Contraseña",
+      "description": "Actualiza la contraseña usada para iniciar sesión.",
+      "changeLink": "Cambiar contraseña"
+    }
+  },
+  "public": {
+    "home": {
+      "headline": "Controla tus gastos,",
+      "headlineAccent": "fácilmente.",
+      "description": "Una herramienta simple y limpia para gestionar tus finanzas. Inicia sesión o crea una cuenta — toma menos de un minuto.",
+      "signIn": "Iniciar sesión",
+      "createAccount": "Crear cuenta"
+    },
+    "notFound": {
+      "pageTitle": "Página no encontrada",
+      "title": "Página no encontrada",
+      "description": "La página que buscas no existe o ha sido movida.",
+      "goHome": "Ir al inicio"
+    },
+    "verifyError": {
+      "pageTitle": "Verificación fallida",
+      "title": "Enlace de verificación expirado",
+      "description": "Este enlace de verificación ya ha sido utilizado o ha expirado. Por favor, regístrate de nuevo para recibir un nuevo correo de verificación.",
+      "backToRegister": "Volver al registro"
+    }
+  },
+  "passwordStrength": {
+    "label": "Seguridad",
+    "requirements": "Requisitos de contraseña",
+    "criteria": {
+      "length": "Al menos 8 caracteres",
+      "uppercase": "Letra mayúscula (A–Z)",
+      "lowercase": "Letra minúscula (a–z)",
+      "number": "Número (0–9)",
+      "special": "Carácter especial (!@#…)"
+    },
+    "levels": {
+      "weak": "Débil",
+      "fair": "Regular",
+      "good": "Buena",
+      "strong": "Fuerte"
+    }
+  },
+  "apiErrors": {
+    "server": "Error del servidor. Por favor, inténtalo más tarde.",
+    "rateLimit": "Demasiadas solicitudes. Por favor, espera e inténtalo de nuevo.",
+    "notFound": "Recurso no encontrado.",
+    "forbidden": "Acceso denegado. Es posible que no tengas permiso.",
+    "badRequest": "Solicitud inválida. Por favor, revisa tu entrada.",
+    "network": "Error de red. Comprueba tu conexión e inténtalo de nuevo.",
+    "unauthorized": "No autorizado",
+    "missingParameters": "Por favor, completa todos los campos obligatorios.",
+    "serverError": "Error del servidor. Por favor, inténtalo más tarde.",
+    "invalidUsernameOrPassword": "Correo o contraseña inválidos.",
+    "noAssignedRole": "Tu cuenta no tiene un rol asignado. Por favor, contacta con soporte.",
+    "emailVerificationFailed": "Error en la verificación del correo. Comprueba el enlace e inténtalo de nuevo.",
+    "notMatchingConfirmPassword": "Las contraseñas no coinciden.",
+    "setNewPasswordFailed": "Error al establecer la nueva contraseña. Por favor, inténtalo de nuevo.",
+    "requestPasswordResetFailed": "Error al solicitar el restablecimiento. Por favor, inténtalo de nuevo.",
+    "resetPasswordFailed": "Error al restablecer la contraseña. Por favor, inténtalo de nuevo.",
+    "missingToken": "Falta el token de autenticación. Por favor, inicia sesión de nuevo.",
+    "invalidToken": "Token de autenticación inválido. Por favor, inicia sesión de nuevo."
+  },
+  "validation": {
+    "emailRequired": "El correo electrónico es obligatorio.",
+    "emailInvalid": "Por favor, introduce una dirección de correo válida.",
+    "passwordRequired": "La contraseña es obligatoria.",
+    "firstNameRequired": "El nombre es obligatorio.",
+    "firstNameMax": "El nombre no puede superar los 100 caracteres.",
+    "lastNameRequired": "El apellido es obligatorio.",
+    "lastNameMax": "El apellido no puede superar los 100 caracteres.",
+    "emailMax": "El correo electrónico no puede superar los 100 caracteres.",
+    "currentPasswordRequired": "La contraseña actual es obligatoria.",
+    "newPasswordRequired": "La nueva contraseña es obligatoria.",
+    "passwordMin": "La contraseña debe tener al menos 8 caracteres.",
+    "repeatPasswordRequired": "Por favor, repite tu nueva contraseña.",
+    "passwordsNoMatch": "Las nuevas contraseñas no coinciden."
+  },
+  "language": {
+    "label": "Idioma",
+    "en": "English",
+    "fr": "Français",
+    "es": "Español",
+    "de": "Deutsch"
+  }
+}

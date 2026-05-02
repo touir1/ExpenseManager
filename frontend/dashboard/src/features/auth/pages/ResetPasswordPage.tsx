@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import PasswordStrength from '@/components/PasswordStrength'
@@ -10,9 +11,10 @@ import AuthPageHeader from '@/features/auth/components/AuthPageHeader'
 import SubmitButton from '@/components/SubmitButton'
 import FieldError from '@/components/FieldError'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { resetPasswordSchema, type ResetPasswordFormData } from '@/features/auth/auth.schemas'
+import { makeResetPasswordSchema, type ResetPasswordFormData } from '@/features/auth/auth.schemas'
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation()
   const [serverMsg, setServerMsg] = useState<{ text: string; ok: boolean } | null>(null)
   const { createPassword, resetPassword } = useAuth()
   const [params] = useSearchParams()
@@ -23,10 +25,11 @@ export default function ResetPasswordPage() {
   const isCreateMode = params.get('mode') === 'create'
   const missingParams = !email || !verificationHash
 
-  usePageTitle(isCreateMode ? 'Create Password' : 'Reset Password')
+  usePageTitle(isCreateMode ? t('auth.resetPassword.createPageTitle') : t('auth.resetPassword.pageTitle'))
 
+  const schema = useMemo(() => makeResetPasswordSchema(t), [t])
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<ResetPasswordFormData>({
-    resolver: zodResolver(resetPasswordSchema),
+    resolver: zodResolver(schema),
   })
 
   const newPassword = watch('newPassword', '')
@@ -35,29 +38,29 @@ export default function ResetPasswordPage() {
     setServerMsg(null)
     const { ok } = await (isCreateMode ? createPassword : resetPassword)(email, verificationHash, data.newPassword)
     if (ok) {
-      setServerMsg({ text: isCreateMode ? 'Password created successfully. Redirecting to home…' : 'Password reset successfully. Redirecting to home…', ok: true })
+      setServerMsg({ text: isCreateMode ? t('auth.resetPassword.createSuccessMessage') : t('auth.resetPassword.successMessage'), ok: true })
       setTimeout(() => navigate('/'), 3000)
     } else {
-      setServerMsg({ text: isCreateMode ? 'Password creation failed. Please try again.' : 'Password reset failed. Please try again.', ok: false })
+      setServerMsg({ text: isCreateMode ? t('auth.resetPassword.createErrorMessage') : t('auth.resetPassword.errorMessage'), ok: false })
     }
   }
 
   return (
     <AuthCard>
       <AuthPageHeader
-        title={isCreateMode ? 'Create Password' : 'Reset Password'}
-        subtitle={isCreateMode ? 'Set a password for your new account.' : 'Enter a new password for your account.'}
+        title={isCreateMode ? t('auth.resetPassword.createTitle') : t('auth.resetPassword.title')}
+        subtitle={isCreateMode ? t('auth.resetPassword.createSubtitle') : t('auth.resetPassword.subtitle')}
       />
 
       {missingParams && (
         <div className="msg-info mb-5" role="alert">
-          Invalid or missing verification link. Please request a new reset link.
+          {t('auth.resetPassword.invalidLink')}
         </div>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div>
-          <label htmlFor="newPassword" className="field-label">New password</label>
+          <label htmlFor="newPassword" className="field-label">{t('auth.resetPassword.newPassword')}</label>
           <PasswordInput
             id="newPassword"
             autoComplete="new-password"
@@ -73,7 +76,7 @@ export default function ResetPasswordPage() {
         </div>
 
         <div>
-          <label htmlFor="repeatPassword" className="field-label">Repeat new password</label>
+          <label htmlFor="repeatPassword" className="field-label">{t('auth.resetPassword.repeatPassword')}</label>
           <PasswordInput
             id="repeatPassword"
             autoComplete="new-password"
@@ -89,8 +92,8 @@ export default function ResetPasswordPage() {
 
         <SubmitButton
           isSubmitting={isSubmitting}
-          label={isCreateMode ? 'Create' : 'Reset'}
-          loadingLabel={isCreateMode ? 'Creating…' : 'Resetting…'}
+          label={isCreateMode ? t('auth.resetPassword.createSubmit') : t('auth.resetPassword.submit')}
+          loadingLabel={isCreateMode ? t('auth.resetPassword.createSubmitting') : t('auth.resetPassword.submitting')}
           disabled={missingParams || !!serverMsg?.ok || isSubmitting}
         />
       </form>
@@ -107,7 +110,7 @@ export default function ResetPasswordPage() {
             to="/request-password-reset"
             className="text-sm text-brand-600 hover:text-brand-700 font-medium transition-colors duration-150"
           >
-            Request password reset
+            {t('auth.resetPassword.requestReset')}
           </Link>
         </div>
       )}

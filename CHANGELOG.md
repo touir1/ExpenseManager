@@ -3,6 +3,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.72.0] - 2026-05-02
+### Added
+- **Frontend:** Internationalisation (react-i18next) with English, French, Spanish, and German support.
+  - `react-i18next`, `i18next`, `i18next-browser-languagedetector` installed.
+  - `src/i18n/index.ts`: singleton config; language detection via localStorage → browser navigator; resources inlined (no HTTP backend).
+  - Translation JSON files: `src/i18n/locales/{en,fr,es,de}/translation.json` — full coverage of all UI strings.
+  - `src/components/LanguageSwitcher.tsx`: select dropdown wired to `i18n.changeLanguage`.
+  - All auth schemas (`auth.schemas.ts`) converted to factory functions `makeXxxSchema(t: TFunction)` for translated validation messages.
+  - All pages and components updated to use `useTranslation` + `t()`: `LoginPage`, `RegisterPage`, `ChangePasswordPage`, `RequestPasswordResetPage`, `ResetPasswordPage`, `HomeDashboardPage`, `SettingsPage`, `HomePublicPage`, `NotFoundPage`, `VerifyErrorPage`, `NavBar`, `EmailField`, `PasswordStrength`.
+  - `src/constants/apiErrors.constant.ts`: getters + Proxy pattern for dynamic i18next lookups.
+
 ## [0.71.0] - 2026-05-01
 ### Fixed
 - **Backend + Frontend:** Added max-length (100) validation on `firstName`, `lastName`, and `email` for the registration flow (F-4 / VAL-02).

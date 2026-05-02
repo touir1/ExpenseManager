@@ -37,18 +37,6 @@ Fixed items: [F-1, F-2, F-3, F-4, U-1](../../../fixed/qa/2026-04-29-frontend-das
 
 ## Functional Issues
 
-### F-4 — No max-length validation on registration name fields (Medium)
-
-**Reproduction:**
-1. Navigate to `/register`
-2. Enter 256+ character strings in First name / Last name fields and submit
-
-**Observed:** Request accepted (HTTP 200), registration succeeds.
-
-**Expected:** Frontend Zod schema should enforce a maximum length (e.g., 100 chars) to prevent oversized payloads and potential DB truncation.
-
----
-
 ### F-5 — Login/register page buttons unresponsive to coordinate clicks (Low)
 
 **Reproduction:**
@@ -174,7 +162,7 @@ Registering with an already-used email returns "Registration successful!" (HTTP 
 | Empty register form | — | All 3 fields show errors correctly ✓ |
 | Invalid email format | `notanemail` | "Please enter a valid email address." ✓ |
 | Mismatched passwords | `TestPass123!` vs `Different123!` | "New passwords do not match." ✓ |
-| 256-char name fields | 256× 'A', 256× 'B' | Accepted without validation error ✗ (F-4) |
+| 256-char name fields | 256× 'A', 256× 'B' | Rejected with max-length error ✓ (F-4 fixed) |
 | Unicode / emoji names | `محمد علي 中文 🔥💀`, `Ünïcödé` | Accepted and processed correctly ✓ |
 | Rapid login (6 concurrent) | Wrong credentials | All 6 returned 401, no 429 ✗ (S-1) |
 | Token reuse | Consumed hash | `EMAIL_VERIFICATION_FAILED` ✓ |
@@ -211,9 +199,8 @@ Registering with an already-used email returns "Registration successful!" (HTTP 
 
 1. **[High]** Add rate limiting to `POST /auth/login` — 5 attempts / email / 15 min minimum. (S-1)
 2. **[High]** Add `Content-Security-Policy`, `X-Content-Type-Options`, `Referrer-Policy` headers in nginx config. (S-2)
-3. **[Medium]** Add `maxLength` Zod validation (e.g., 100 chars) to first name / last name fields in the register schema. (F-4)
-4. **[Low]** Add `<a href="#main-content">Skip to content</a>` skip-nav link. (U-4)
-5. **[Low]** Add `aria-pressed` to the show/hide password toggle button. (U-5)
-6. **[Low]** Update email template copyright year to dynamic current year. (U-3)
-7. **[Info]** Pre-validate reset token on page load and redirect to error page if invalid. (U-6)
-8. **[Info]** Add description or hide Expenses "Coming soon…" card until feature ships. (U-2)
+3. **[Low]** Add `<a href="#main-content">Skip to content</a>` skip-nav link. (U-4)
+4. **[Low]** Add `aria-pressed` to the show/hide password toggle button. (U-5)
+5. **[Low]** Update email template copyright year to dynamic current year. (U-3)
+6. **[Info]** Pre-validate reset token on page load and redirect to error page if invalid. (U-6)
+7. **[Info]** Add description or hide Expenses "Coming soon…" card until feature ships. (U-2)

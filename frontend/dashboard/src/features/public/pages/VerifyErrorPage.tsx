@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
 export default function VerifyErrorPage() {
-  usePageTitle('Verification Failed')
+  const { t } = useTranslation()
+  usePageTitle(t('public.verifyError.pageTitle'))
   return (
     <div className="auth-page">
       <div className="text-center max-w-lg px-4">
@@ -24,19 +26,18 @@ export default function VerifyErrorPage() {
         </span>
 
         <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-3">
-          Verification link expired
+          {t('public.verifyError.title')}
         </h1>
 
         <p className="text-base text-slate-500 leading-relaxed mb-8">
-          This email verification link has already been used or has expired.
-          Please register again to receive a new verification email.
+          {t('public.verifyError.description')}
         </p>
 
         <Link
           to="/register"
           className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium transition-colors duration-150 shadow-sm"
         >
-          Back to register
+          {t('public.verifyError.backToRegister')}
         </Link>
       </div>
     </div>

@@ -1,23 +1,31 @@
-export const API_ERRORS = {
-  SERVER: 'Server error, please retry later.',
-  RATE_LIMIT: 'Too many requests. Please wait and try again.',
-  NOT_FOUND: 'Resource not found.',
-  FORBIDDEN: 'Access denied. You might not have permission.',
-  BAD_REQUEST: 'Invalid request. Please check your input.',
-  NETWORK: 'Network error. Please check your connection and try again.',
-  UNAUTHORIZED: 'Unauthorized',
-} as const
+import i18next from 'i18next'
 
-export const BACKEND_ERROR_CODES: Record<string, string> = {
-  MISSING_PARAMETERS: 'Please fill in all required fields.',
-  SERVER_ERROR: 'Server error, please retry later.',
-  INVALID_USERNAME_OR_PASSWORD: 'Invalid email or password.', // NOSONAR
-  NO_ASSIGNED_ROLE: 'Your account has no assigned role. Please contact support.',
-  EMAIL_VERIFICATION_FAILED: 'Email verification failed. Please check the link and try again.',
-  NOT_MATCHING_CONFIRM_PASSWORD: 'Passwords do not match.',
-  SET_NEW_PASSWORD_FAILED: 'Failed to set the new password. Please try again.',
-  REQUEST_PASSWORD_RESET_FAILED: 'Failed to request a password reset. Please try again.',
-  RESET_PASSWORD_FAILED: 'Failed to reset your password. Please try again.',
-  MISSING_TOKEN: 'Authentication token is missing. Please log in again.',
-  INVALID_TOKEN: 'Invalid authentication token. Please log in again.',
+export const API_ERRORS = {
+  get SERVER()     { return i18next.t('apiErrors.server') },
+  get RATE_LIMIT() { return i18next.t('apiErrors.rateLimit') },
+  get NOT_FOUND()  { return i18next.t('apiErrors.notFound') },
+  get FORBIDDEN()  { return i18next.t('apiErrors.forbidden') },
+  get BAD_REQUEST(){ return i18next.t('apiErrors.badRequest') },
+  get NETWORK()    { return i18next.t('apiErrors.network') },
+  get UNAUTHORIZED(){ return i18next.t('apiErrors.unauthorized') },
 }
+
+const BACKEND_KEYS: Record<string, string> = {
+  MISSING_PARAMETERS:           'apiErrors.missingParameters',
+  SERVER_ERROR:                 'apiErrors.serverError',
+  INVALID_USERNAME_OR_PASSWORD: 'apiErrors.invalidUsernameOrPassword',
+  NO_ASSIGNED_ROLE:             'apiErrors.noAssignedRole',
+  EMAIL_VERIFICATION_FAILED:    'apiErrors.emailVerificationFailed',
+  NOT_MATCHING_CONFIRM_PASSWORD:'apiErrors.notMatchingConfirmPassword',
+  SET_NEW_PASSWORD_FAILED:      'apiErrors.setNewPasswordFailed',
+  REQUEST_PASSWORD_RESET_FAILED:'apiErrors.requestPasswordResetFailed',
+  RESET_PASSWORD_FAILED:        'apiErrors.resetPasswordFailed',
+  MISSING_TOKEN:                'apiErrors.missingToken',
+  INVALID_TOKEN:                'apiErrors.invalidToken',
+}
+
+export const BACKEND_ERROR_CODES: Record<string, string> = new Proxy(BACKEND_KEYS, {
+  get(target, key: string) {
+    return key in target ? i18next.t(target[key]) : undefined
+  },
+})

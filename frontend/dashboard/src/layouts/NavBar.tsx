@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 const baseNavClass = 'text-sm font-medium px-3 py-1.5 rounded-lg transition-colors duration-150'
 const activeNavClass = `${baseNavClass} bg-brand-50 text-brand-700`
@@ -10,6 +12,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   isActive ? activeNavClass : inactiveNavClass
 
 export default function NavBar() {
+  const { t } = useTranslation()
   const { isAuthenticated, logout } = useAuth()
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -94,34 +97,37 @@ export default function NavBar() {
           {isAuthenticated ? (
             <>
               <NavLink to="/dashboard" className={navLinkClass}>
-                Dashboard
+                {t('nav.dashboard')}
               </NavLink>
               <NavLink to="/settings" className={() => settingsClass}>
-                Settings
+                {t('nav.settings')}
               </NavLink>
               <button
                 onClick={handleLogout}
                 className="ml-2 text-sm font-medium px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors duration-150 cursor-pointer"
               >
-                Sign out
+                {t('nav.signOut')}
               </button>
             </>
           ) : (
             <>
               <NavLink to="/" end className={navLinkClass}>
-                Home
+                {t('nav.home')}
               </NavLink>
               <NavLink to="/login" className={navLinkClass}>
-                Sign in
+                {t('nav.signIn')}
               </NavLink>
               <Link
                 to="/register"
                 className="ml-2 text-sm font-medium px-3.5 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white transition-colors duration-150"
               >
-                Get started
+                {t('nav.getStarted')}
               </Link>
             </>
           )}
+          <div className="ml-2">
+            <LanguageSwitcher />
+          </div>
         </nav>
 
         {/* Mobile hamburger */}
@@ -129,7 +135,7 @@ export default function NavBar() {
           ref={hamburgerRef}
           className="sm:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors duration-150 cursor-pointer"
           onClick={() => setMobileOpen(o => !o)}
-          aria-label="Toggle menu"
+          aria-label={t('nav.toggleMenu')}
           aria-expanded={mobileOpen}
           aria-controls="mobile-menu"
         >
@@ -155,7 +161,7 @@ export default function NavBar() {
         <nav
           id="mobile-menu"
           ref={menuRef}
-          aria-label="Mobile navigation"
+          aria-label={t('nav.mobileNav')}
           className="sm:hidden border-t border-slate-200 bg-white px-4 py-3 flex flex-col gap-1"
         >
           {isAuthenticated ? (
@@ -165,20 +171,20 @@ export default function NavBar() {
                 className={navLinkClass}
                 onClick={() => setMobileOpen(false)}
               >
-                Dashboard
+                {t('nav.dashboard')}
               </NavLink>
               <NavLink
                 to="/settings"
                 className={() => settingsClass}
                 onClick={() => setMobileOpen(false)}
               >
-                Settings
+                {t('nav.settings')}
               </NavLink>
               <button
                 onClick={handleLogout}
                 className="text-left text-sm font-medium px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors duration-150 cursor-pointer"
               >
-                Sign out
+                {t('nav.signOut')}
               </button>
             </>
           ) : (
@@ -189,24 +195,27 @@ export default function NavBar() {
                 className={navLinkClass}
                 onClick={() => setMobileOpen(false)}
               >
-                Home
+                {t('nav.home')}
               </NavLink>
               <NavLink
                 to="/login"
                 className={navLinkClass}
                 onClick={() => setMobileOpen(false)}
               >
-                Sign in
+                {t('nav.signIn')}
               </NavLink>
               <Link
                 to="/register"
                 className="text-sm font-medium px-3 py-1.5 rounded-lg text-brand-600 hover:bg-brand-50 transition-colors duration-150"
                 onClick={() => setMobileOpen(false)}
               >
-                Get started
+                {t('nav.getStarted')}
               </Link>
             </>
           )}
+          <div className="mt-1">
+            <LanguageSwitcher />
+          </div>
         </nav>
       )}
     </header>

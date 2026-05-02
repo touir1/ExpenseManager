@@ -1,32 +1,35 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
 import AuthCard from '@/features/auth/components/AuthCard'
 import AuthPageHeader from '@/features/auth/components/AuthPageHeader'
 import SubmitButton from '@/components/SubmitButton'
 import FieldError from '@/components/FieldError'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { registerSchema, type RegisterFormData } from '@/features/auth/auth.schemas'
+import { makeRegisterSchema, type RegisterFormData } from '@/features/auth/auth.schemas'
 
 export default function RegisterPage() {
-  usePageTitle('Register')
+  const { t } = useTranslation()
+  usePageTitle(t('auth.register.pageTitle'))
   const [isSuccess, setIsSuccess] = useState(false)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
   const { register: registerUser } = useAuth()
 
+  const schema = useMemo(() => makeRegisterSchema(t), [t])
   const { register, handleSubmit, formState: { errors, isSubmitting }, setError } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(schema),
   })
 
   const onSubmit = async (data: RegisterFormData) => {
     const { ok } = await registerUser(data.firstName, data.lastName, data.email)
     if (ok) {
       setIsSuccess(true)
-      setSuccessMsg('Registration successful! Check your inbox for a verification email. Click the link to verify your address and set your password — you will then be able to log in.')
+      setSuccessMsg(t('auth.register.successMessage'))
     } else {
-      setError('root', { message: 'Registration failed. Please try again.' })
+      setError('root', { message: t('auth.register.failedMessage') })
     }
   }
 
@@ -36,7 +39,7 @@ export default function RegisterPage() {
         <p className="msg-success" role="alert">{successMsg}</p>
         <div className="mt-6 pt-5 border-t border-slate-100 text-center">
           <Link to="/login" className="text-sm text-brand-600 hover:text-brand-700 transition-colors duration-150 font-medium">
-            Go to login →
+            {t('auth.register.goToLogin')}
           </Link>
         </div>
       </AuthCard>
@@ -45,12 +48,12 @@ export default function RegisterPage() {
 
   return (
     <AuthCard>
-      <AuthPageHeader title="Create an account" subtitle="Get started — it only takes a moment." />
+      <AuthPageHeader title={t('auth.register.title')} subtitle={t('auth.register.subtitle')} />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label htmlFor="firstName" className="field-label">First name</label>
+            <label htmlFor="firstName" className="field-label">{t('auth.register.firstName')}</label>
             <input
               id="firstName"
               autoFocus
@@ -66,7 +69,7 @@ export default function RegisterPage() {
             <FieldError id="firstName-error" message={errors.firstName?.message} />
           </div>
           <div>
-            <label htmlFor="lastName" className="field-label">Last name</label>
+            <label htmlFor="lastName" className="field-label">{t('auth.register.lastName')}</label>
             <input
               id="lastName"
               {...register('lastName')}
@@ -83,7 +86,7 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label htmlFor="email" className="field-label">Email address</label>
+          <label htmlFor="email" className="field-label">{t('auth.register.emailAddress')}</label>
           <input
             id="email"
             type="email"
@@ -100,7 +103,7 @@ export default function RegisterPage() {
           <FieldError id="email-error" message={errors.email?.message} />
         </div>
 
-        <SubmitButton isSubmitting={isSubmitting} label="Register" loadingLabel="Submitting…" />
+        <SubmitButton isSubmitting={isSubmitting} label={t('auth.register.submit')} loadingLabel={t('auth.register.submitting')} />
       </form>
 
       {errors.root && (
@@ -111,7 +114,7 @@ export default function RegisterPage() {
 
       <div className="mt-6 pt-5 border-t border-slate-100 text-center">
         <Link to="/login" className="text-sm text-brand-600 hover:text-brand-700 transition-colors duration-150">
-          Already have an account? <span className="font-medium">Go to login</span>
+          {t('auth.register.alreadyHaveAccount')} <span className="font-medium">{t('auth.register.goToLoginLink')}</span>
         </Link>
       </div>
     </AuthCard>

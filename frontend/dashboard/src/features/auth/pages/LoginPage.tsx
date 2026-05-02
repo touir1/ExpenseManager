@@ -1,6 +1,8 @@
+import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useToast } from '@/components/Toast'
 import PasswordInput from '@/components/PasswordInput'
@@ -10,23 +12,25 @@ import EmailField from '@/features/auth/components/EmailField'
 import SubmitButton from '@/components/SubmitButton'
 import FieldError from '@/components/FieldError'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { loginSchema, type LoginFormData } from '@/features/auth/auth.schemas'
+import { makeLoginSchema, type LoginFormData } from '@/features/auth/auth.schemas'
 
 export default function LoginPage() {
-  usePageTitle('Login')
+  const { t } = useTranslation()
+  usePageTitle(t('auth.login.pageTitle'))
   const navigate = useNavigate()
   const { login } = useAuth()
   const { show } = useToast()
 
+  const schema = useMemo(() => makeLoginSchema(t), [t])
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(schema),
     defaultValues: { email: '', password: '', rememberMe: false },
   })
 
   const onSubmit = async (data: LoginFormData) => {
     const { ok } = await login(data.email, data.password, Boolean(data.rememberMe))
     if (!ok) {
-      show('Invalid credentials. Please try again.', 'error')
+      show(t('auth.login.invalidCredentials'), 'error')
       return
     }
     navigate('/dashboard')
@@ -34,7 +38,7 @@ export default function LoginPage() {
 
   return (
     <AuthCard>
-      <AuthPageHeader title="Welcome back" subtitle="Sign in to your account to continue." />
+      <AuthPageHeader title={t('auth.login.title')} subtitle={t('auth.login.subtitle')} />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <EmailField
@@ -45,7 +49,7 @@ export default function LoginPage() {
         />
 
         <div>
-          <label htmlFor="password" className="field-label">Password</label>
+          <label htmlFor="password" className="field-label">{t('auth.login.password')}</label>
           <PasswordInput
             id="password"
             autoComplete="current-password"
@@ -68,25 +72,25 @@ export default function LoginPage() {
             className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
           />
           <label htmlFor="rememberMe" className="text-sm text-slate-600 cursor-pointer select-none">
-            Remember me
+            {t('auth.login.rememberMe')}
           </label>
         </div>
 
-        <SubmitButton isSubmitting={isSubmitting} label="Login" loadingLabel="Signing in…" />
+        <SubmitButton isSubmitting={isSubmitting} label={t('auth.login.submit')} loadingLabel={t('auth.login.submitting')} />
       </form>
 
       <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col gap-2 text-center">
         <Link to="/register" className="text-sm text-brand-600 hover:text-brand-700 transition-colors duration-150">
-          Don't have an account? <span className="font-medium">Register</span>
+          {t('auth.login.noAccount')} <span className="font-medium">{t('auth.login.register')}</span>
         </Link>
         <Link to="/request-password-reset" className="text-sm text-slate-500 hover:text-slate-700 transition-colors duration-150">
-          Forgot your password?
+          {t('auth.login.forgotPassword')}
         </Link>
         <Link to="/reset-password" className="text-sm text-slate-400 hover:text-slate-600 transition-colors duration-150">
-          Have a verification link?
+          {t('auth.login.haveVerificationLink')}
         </Link>
         <Link to="/" className="text-sm text-slate-400 hover:text-slate-600 transition-colors duration-150">
-          ← Back to home
+          {t('auth.login.backToHome')}
         </Link>
       </div>
     </AuthCard>

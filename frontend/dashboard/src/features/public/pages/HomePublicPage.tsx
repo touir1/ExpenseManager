@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
 export default function HomePublicPage() {
+  const { t } = useTranslation()
   usePageTitle()
   return (
     <div className="auth-page">
@@ -25,13 +27,12 @@ export default function HomePublicPage() {
         </span>
 
         <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-3">
-          Track your expenses,{' '}
-          <span className="text-brand-600">simply.</span>
+          {t('public.home.headline')}{' '}
+          <span className="text-brand-600">{t('public.home.headlineAccent')}</span>
         </h1>
 
         <p className="text-base text-slate-500 leading-relaxed mb-8">
-          A clean, minimal tool for keeping your finances in check.
-          Sign in to your account or create one — it takes under a minute.
+          {t('public.home.description')}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -39,13 +40,13 @@ export default function HomePublicPage() {
             to="/login"
             className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium transition-colors duration-150 shadow-sm"
           >
-            Sign in
+            {t('public.home.signIn')}
           </Link>
           <Link
             to="/register"
             className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium border border-slate-300 transition-colors duration-150 shadow-sm"
           >
-            Create account
+            {t('public.home.createAccount')}
           </Link>
         </div>
       </div>

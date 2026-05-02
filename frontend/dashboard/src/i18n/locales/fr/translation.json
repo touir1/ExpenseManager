@@ -1,0 +1,202 @@
+{
+  "appTitle": "Expenses Manager",
+  "nav": {
+    "home": "Accueil",
+    "dashboard": "Tableau de bord",
+    "settings": "Paramètres",
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter",
+    "getStarted": "Commencer",
+    "toggleMenu": "Ouvrir le menu",
+    "mobileNav": "Navigation mobile"
+  },
+  "auth": {
+    "login": {
+      "pageTitle": "Connexion",
+      "title": "Bienvenue",
+      "subtitle": "Connectez-vous à votre compte pour continuer.",
+      "password": "Mot de passe",
+      "rememberMe": "Se souvenir de moi",
+      "submit": "Se connecter",
+      "submitting": "Connexion en cours…",
+      "invalidCredentials": "Identifiants incorrects. Veuillez réessayer.",
+      "noAccount": "Pas encore de compte ?",
+      "register": "S'inscrire",
+      "forgotPassword": "Mot de passe oublié ?",
+      "haveVerificationLink": "Vous avez un lien de vérification ?",
+      "backToHome": "← Retour à l'accueil"
+    },
+    "register": {
+      "pageTitle": "Inscription",
+      "title": "Créer un compte",
+      "subtitle": "C'est rapide — cela ne prend qu'un instant.",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "emailAddress": "Adresse e-mail",
+      "submit": "S'inscrire",
+      "submitting": "Envoi en cours…",
+      "successMessage": "Inscription réussie ! Vérifiez votre boîte mail. Cliquez sur le lien pour vérifier votre adresse et définir votre mot de passe — vous pourrez ensuite vous connecter.",
+      "failedMessage": "Échec de l'inscription. Veuillez réessayer.",
+      "goToLogin": "Aller à la connexion →",
+      "alreadyHaveAccount": "Vous avez déjà un compte ?",
+      "goToLoginLink": "Aller à la connexion"
+    },
+    "changePassword": {
+      "pageTitle": "Changer le mot de passe",
+      "title": "Changer le mot de passe",
+      "subtitle": "Mettez à jour votre mot de passe ci-dessous.",
+      "backToSettings": "Retour aux paramètres",
+      "oldPassword": "Ancien mot de passe",
+      "newPassword": "Nouveau mot de passe",
+      "repeatPassword": "Répéter le nouveau mot de passe",
+      "submit": "Changer le mot de passe",
+      "submitting": "Enregistrement…",
+      "success": "Mot de passe modifié.",
+      "error": "Mot de passe actuel incorrect."
+    },
+    "requestPasswordReset": {
+      "pageTitle": "Réinitialisation du mot de passe",
+      "title": "Réinitialisation du mot de passe",
+      "subtitle": "Nous enverrons un lien de réinitialisation à votre e-mail s'il est enregistré.",
+      "submit": "Envoyer le lien",
+      "submitting": "Envoi en cours…",
+      "successToast": "Si l'e-mail existe, un lien de réinitialisation a été envoyé.",
+      "errorToast": "Veuillez saisir un e-mail valide.",
+      "notAvailable": "Réinitialisation non disponible",
+      "hint": "Vous recevrez un e-mail avec un lien de vérification pour réinitialiser votre mot de passe.",
+      "backToLogin": "Retour à la connexion"
+    },
+    "resetPassword": {
+      "pageTitle": "Réinitialiser le mot de passe",
+      "createPageTitle": "Créer un mot de passe",
+      "title": "Réinitialiser le mot de passe",
+      "createTitle": "Créer un mot de passe",
+      "subtitle": "Entrez un nouveau mot de passe pour votre compte.",
+      "createSubtitle": "Définissez un mot de passe pour votre nouveau compte.",
+      "newPassword": "Nouveau mot de passe",
+      "repeatPassword": "Répéter le nouveau mot de passe",
+      "submit": "Réinitialiser",
+      "createSubmit": "Créer",
+      "submitting": "Réinitialisation…",
+      "createSubmitting": "Création…",
+      "successMessage": "Mot de passe réinitialisé. Redirection…",
+      "createSuccessMessage": "Mot de passe créé. Redirection…",
+      "errorMessage": "Échec de la réinitialisation. Veuillez réessayer.",
+      "createErrorMessage": "Échec de la création. Veuillez réessayer.",
+      "invalidLink": "Lien de vérification invalide ou manquant. Veuillez en demander un nouveau.",
+      "requestReset": "Demander une réinitialisation"
+    },
+    "email": {
+      "label": "Adresse e-mail",
+      "placeholder": "vous@exemple.com"
+    }
+  },
+  "dashboard": {
+    "pageTitle": "Tableau de bord",
+    "title": "Tableau de bord",
+    "welcome": "Bienvenue {{name}} ! Ceci est votre page d'accueil privée.",
+    "loading": "Chargement du tableau de bord",
+    "account": {
+      "title": "Compte",
+      "signedInAs": "Connecté en tant que"
+    },
+    "settings": {
+      "title": "Paramètres",
+      "changePassword": "Changer le mot de passe"
+    },
+    "expenses": {
+      "title": "Dépenses",
+      "comingSoon": "Bientôt disponible…"
+    }
+  },
+  "settings": {
+    "pageTitle": "Paramètres",
+    "title": "Paramètres",
+    "subtitle": "Gérez vos paramètres de compte.",
+    "password": {
+      "title": "Mot de passe",
+      "description": "Mettez à jour le mot de passe utilisé pour vous connecter.",
+      "changeLink": "Changer le mot de passe"
+    }
+  },
+  "public": {
+    "home": {
+      "headline": "Suivez vos dépenses,",
+      "headlineAccent": "simplement.",
+      "description": "Un outil simple et épuré pour gérer vos finances. Connectez-vous ou créez un compte — cela prend moins d'une minute.",
+      "signIn": "Se connecter",
+      "createAccount": "Créer un compte"
+    },
+    "notFound": {
+      "pageTitle": "Page introuvable",
+      "title": "Page introuvable",
+      "description": "La page que vous recherchez n'existe pas ou a été déplacée.",
+      "goHome": "Retour à l'accueil"
+    },
+    "verifyError": {
+      "pageTitle": "Vérification échouée",
+      "title": "Lien de vérification expiré",
+      "description": "Ce lien de vérification a déjà été utilisé ou a expiré. Veuillez vous réinscrire pour recevoir un nouvel e-mail de vérification.",
+      "backToRegister": "Retour à l'inscription"
+    }
+  },
+  "passwordStrength": {
+    "label": "Robustesse",
+    "requirements": "Exigences du mot de passe",
+    "criteria": {
+      "length": "Au moins 8 caractères",
+      "uppercase": "Lettre majuscule (A–Z)",
+      "lowercase": "Lettre minuscule (a–z)",
+      "number": "Chiffre (0–9)",
+      "special": "Caractère spécial (!@#…)"
+    },
+    "levels": {
+      "weak": "Faible",
+      "fair": "Passable",
+      "good": "Bon",
+      "strong": "Fort"
+    }
+  },
+  "apiErrors": {
+    "server": "Erreur serveur, veuillez réessayer plus tard.",
+    "rateLimit": "Trop de requêtes. Veuillez patienter et réessayer.",
+    "notFound": "Ressource introuvable.",
+    "forbidden": "Accès refusé. Vous n'avez peut-être pas les permissions nécessaires.",
+    "badRequest": "Requête invalide. Veuillez vérifier votre saisie.",
+    "network": "Erreur réseau. Vérifiez votre connexion et réessayez.",
+    "unauthorized": "Non autorisé",
+    "missingParameters": "Veuillez remplir tous les champs obligatoires.",
+    "serverError": "Erreur serveur, veuillez réessayer plus tard.",
+    "invalidUsernameOrPassword": "E-mail ou mot de passe invalide.",
+    "noAssignedRole": "Aucun rôle assigné à votre compte. Veuillez contacter le support.",
+    "emailVerificationFailed": "Échec de la vérification de l'e-mail. Vérifiez le lien et réessayez.",
+    "notMatchingConfirmPassword": "Les mots de passe ne correspondent pas.",
+    "setNewPasswordFailed": "Échec de la définition du nouveau mot de passe. Veuillez réessayer.",
+    "requestPasswordResetFailed": "Échec de la demande de réinitialisation. Veuillez réessayer.",
+    "resetPasswordFailed": "Échec de la réinitialisation du mot de passe. Veuillez réessayer.",
+    "missingToken": "Jeton d'authentification manquant. Veuillez vous reconnecter.",
+    "invalidToken": "Jeton d'authentification invalide. Veuillez vous reconnecter."
+  },
+  "validation": {
+    "emailRequired": "L'adresse e-mail est requise.",
+    "emailInvalid": "Veuillez saisir une adresse e-mail valide.",
+    "passwordRequired": "Le mot de passe est requis.",
+    "firstNameRequired": "Le prénom est requis.",
+    "firstNameMax": "Le prénom ne doit pas dépasser 100 caractères.",
+    "lastNameRequired": "Le nom est requis.",
+    "lastNameMax": "Le nom ne doit pas dépasser 100 caractères.",
+    "emailMax": "L'adresse e-mail ne doit pas dépasser 100 caractères.",
+    "currentPasswordRequired": "Le mot de passe actuel est requis.",
+    "newPasswordRequired": "Le nouveau mot de passe est requis.",
+    "passwordMin": "Le mot de passe doit comporter au moins 8 caractères.",
+    "repeatPasswordRequired": "Veuillez répéter votre nouveau mot de passe.",
+    "passwordsNoMatch": "Les nouveaux mots de passe ne correspondent pas."
+  },
+  "language": {
+    "label": "Langue",
+    "en": "English",
+    "fr": "Français",
+    "es": "Español",
+    "de": "Deutsch"
+  }
+}

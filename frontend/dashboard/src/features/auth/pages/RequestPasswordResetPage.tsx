@@ -1,5 +1,7 @@
+import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useToast } from '@/components/Toast'
 import AuthCard from '@/features/auth/components/AuthCard'
@@ -8,35 +10,37 @@ import SubmitButton from '@/components/SubmitButton'
 import EmailField from '@/features/auth/components/EmailField'
 import BackLink from '@/components/BackLink'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { requestPasswordResetSchema, type RequestPasswordResetFormData } from '@/features/auth/auth.schemas'
+import { makeRequestPasswordResetSchema, type RequestPasswordResetFormData } from '@/features/auth/auth.schemas'
 
 export default function RequestPasswordResetPage() {
-  usePageTitle('Request Password Reset')
+  const { t } = useTranslation()
+  usePageTitle(t('auth.requestPasswordReset.pageTitle'))
   const { requestPasswordReset } = useAuth()
   const { show } = useToast()
 
+  const schema = useMemo(() => makeRequestPasswordResetSchema(t), [t])
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RequestPasswordResetFormData>({
-    resolver: zodResolver(requestPasswordResetSchema),
+    resolver: zodResolver(schema),
   })
 
   const onSubmit = async (data: RequestPasswordResetFormData) => {
     if (!requestPasswordReset) {
-      show('Reset request not available', 'error')
+      show(t('auth.requestPasswordReset.notAvailable'), 'error')
       return
     }
     const { ok } = await requestPasswordReset(data.email)
     if (ok) {
-      show('If the email exists, a reset link has been sent.', 'success')
+      show(t('auth.requestPasswordReset.successToast'), 'success')
     } else {
-      show('Please enter a valid email.', 'error')
+      show(t('auth.requestPasswordReset.errorToast'), 'error')
     }
   }
 
   return (
     <AuthCard>
       <AuthPageHeader
-        title="Request Password Reset"
-        subtitle="We'll send a reset link to your email if it's registered."
+        title={t('auth.requestPasswordReset.title')}
+        subtitle={t('auth.requestPasswordReset.subtitle')}
       />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
@@ -47,15 +51,15 @@ export default function RequestPasswordResetPage() {
           autoFocus
         />
 
-        <SubmitButton isSubmitting={isSubmitting} label="Send reset link" loadingLabel="Sending…" />
+        <SubmitButton isSubmitting={isSubmitting} label={t('auth.requestPasswordReset.submit')} loadingLabel={t('auth.requestPasswordReset.submitting')} />
       </form>
 
       <p className="mt-5 text-xs text-slate-400 text-center leading-relaxed">
-        You will receive an email with a verification link to reset your password.
+        {t('auth.requestPasswordReset.hint')}
       </p>
 
       <div className="mt-5 text-center">
-        <BackLink to="/login">Back to login</BackLink>
+        <BackLink to="/login">{t('auth.requestPasswordReset.backToLogin')}</BackLink>
       </div>
     </AuthCard>
   )

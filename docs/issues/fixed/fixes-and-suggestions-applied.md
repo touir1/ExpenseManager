@@ -6,6 +6,17 @@ A record of improvement ideas from [fixes-and-suggestions.md](../ongoing/fixes-a
 
 ## Frontend
 
+### Library adoption: Phase 3 (react-i18next) — 2026-05-02 (v0.72.0)
+
+| Item | Resolution |
+|------|------------|
+| react-i18next | `react-i18next`, `i18next`, `i18next-browser-languagedetector` installed; `src/i18n/index.ts` singleton; detection order: localStorage → browser navigator |
+| 4 languages | English, French, Spanish, German translation JSON files under `src/i18n/locales/{en,fr,es,de}/translation.json` — full UI coverage |
+| LanguageSwitcher | `src/components/LanguageSwitcher.tsx` dropdown added to NavBar (desktop + mobile) |
+| Schema factory functions | All 5 auth schemas in `auth.schemas.ts` converted to `makeXxxSchema(t: TFunction)`; consumers use `useMemo(() => makeXxxSchema(t), [t])` + `zodResolver(schema)` |
+| Dynamic API errors | `apiErrors.constant.ts` uses getter properties + Proxy so error strings resolve via `i18next.t()` at access time |
+| All pages/components | `LoginPage`, `RegisterPage`, `ChangePasswordPage`, `RequestPasswordResetPage`, `ResetPasswordPage`, `HomeDashboardPage`, `SettingsPage`, `HomePublicPage`, `NotFoundPage`, `VerifyErrorPage`, `NavBar`, `EmailField`, `PasswordStrength` all use `useTranslation` + `t()` |
+
 ### Library adoption: Phase 1 (React Hook Form + Zod) — 2026-04-26 (v0.48.0)
 
 | Item | Resolution |
