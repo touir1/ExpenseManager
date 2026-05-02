@@ -13,13 +13,13 @@ export const API_ERRORS = {
 const BACKEND_KEYS: Record<string, string> = {
   MISSING_PARAMETERS:           'apiErrors.missingParameters',
   SERVER_ERROR:                 'apiErrors.serverError',
-  INVALID_USERNAME_OR_PASSWORD: 'apiErrors.invalidUsernameOrPassword',
+  INVALID_USERNAME_OR_PASSWORD: 'apiErrors.invalidUsernameOrPassword', // NOSONAR: i18n key, not a credential
   NO_ASSIGNED_ROLE:             'apiErrors.noAssignedRole',
   EMAIL_VERIFICATION_FAILED:    'apiErrors.emailVerificationFailed',
-  NOT_MATCHING_CONFIRM_PASSWORD:'apiErrors.notMatchingConfirmPassword',
-  SET_NEW_PASSWORD_FAILED:      'apiErrors.setNewPasswordFailed',
-  REQUEST_PASSWORD_RESET_FAILED:'apiErrors.requestPasswordResetFailed',
-  RESET_PASSWORD_FAILED:        'apiErrors.resetPasswordFailed',
+  NOT_MATCHING_CONFIRM_PASSWORD:'apiErrors.notMatchingConfirmPassword', // NOSONAR: i18n key, not a credential
+  SET_NEW_PASSWORD_FAILED:      'apiErrors.setNewPasswordFailed',       // NOSONAR: i18n key, not a credential
+  REQUEST_PASSWORD_RESET_FAILED:'apiErrors.requestPasswordResetFailed', // NOSONAR: i18n key, not a credential
+  RESET_PASSWORD_FAILED:        'apiErrors.resetPasswordFailed',        // NOSONAR: i18n key, not a credential
   MISSING_TOKEN:                'apiErrors.missingToken',
   INVALID_TOKEN:                'apiErrors.invalidToken',
 }

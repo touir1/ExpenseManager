@@ -3,6 +3,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.72.2] - 2026-05-02
+### Changed
+- **Frontend:** Resolved Sonar alert on `Toast.tsx` (no behaviour change).
+  - `src/components/Toast.tsx`: toast ID generation `Date.now() + Math.random()` → `crypto.randomUUID()`; `Toast.id` type updated `number` → `string`.
+
+## [0.72.1] - 2026-05-02
+### Changed
+- **Frontend:** Resolved three Sonar static-analysis alerts (no behaviour change).
+  - `src/i18n/index.ts`: `export default i18n` → `export { i18n as default }` (re-export form).
+  - `src/features/auth/AuthContext.tsx`: `window.location.assign` → `globalThis.location.assign`.
+  - `src/constants/apiErrors.constant.ts`: added `// NOSONAR` on four i18n key constants falsely flagged as hardcoded credentials (S2068).
+
 ## [0.72.0] - 2026-05-02
 ### Added
 - **Frontend:** Internationalisation (react-i18next) with English, French, Spanish, and German support.

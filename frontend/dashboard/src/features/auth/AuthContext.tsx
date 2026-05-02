@@ -50,7 +50,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     onUnauthorized(() => {
       setUser(null)
       setIsAuthenticated(false)
-      window.location.assign('/login')
+      globalThis.location.assign('/login')
     })
     return () => onUnauthorized(null)
   }, [])

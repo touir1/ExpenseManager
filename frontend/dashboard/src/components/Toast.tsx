@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 
-export type Toast = { id: number; message: string; type?: 'info' | 'success' | 'error' }
+export type Toast = { id: string; message: string; type?: 'info' | 'success' | 'error' }
 
 const ToastContext = createContext<{ show: (message: string, type?: Toast['type']) => void } | null>(null)
 
@@ -32,7 +32,7 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
   const [toasts, setToasts] = useState<Toast[]>([])
 
   const show = (message: string, type: Toast['type'] = 'error') => {
-    const id = Date.now() + Math.random()
+    const id = crypto.randomUUID()
     setToasts(t => [...t, { id, message, type }])
     const removeById = (t: Toast[]) => t.filter(x => x.id !== id)
     setTimeout(() => setToasts(removeById), 4000)
