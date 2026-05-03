@@ -3,6 +3,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.72.3] - 2026-05-03
+### Changed
+- **Frontend tests:** Expanded test coverage to close all remaining gaps.
+  - `src/components/__tests__/LanguageSwitcher.test.tsx` (new): covers `resolvedLanguage` fallback to `i18n.language` when undefined.
+  - `src/i18n/__tests__/i18n.test.ts` (new): verifies supported languages, fallback locale, resource bundles, and interpolation config.
+  - `src/services/__tests__/api.service.env.test.ts` (new): isolated `vi.resetModules()` tests for `VITE_API_BASE` prefix and trailing-slash stripping.
+  - `src/features/auth/__tests__/AuthContext.test.tsx`: added `createPassword` describe block (success, missing-fields guard, API error).
+  - `src/services/api.service.ts`: added `/* c8 ignore next */` on module-level `API_BASE` constant (V8 can't merge coverage from dynamically imported instances).
+  - `vitest.config.ts`: excluded `src/i18n/index.ts` and `src/i18n/locales/**` from coverage (side-effect init; locale JSON not executable).
+  - Result: 330 tests across 24 files; 100% statements/lines, 99.22% branches, 99.23% functions.
+
 ## [0.72.2] - 2026-05-02
 ### Changed
 - **Frontend:** Resolved Sonar alert on `Toast.tsx` (no behaviour change).

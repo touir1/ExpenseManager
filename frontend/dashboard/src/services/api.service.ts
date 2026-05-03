@@ -1,6 +1,7 @@
 import { API_ERRORS, BACKEND_ERROR_CODES } from '@/constants/apiErrors.constant'
 import type { ApiResponse } from '@/types/api.type'
 
+/* c8 ignore next */
 const API_BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
 
 let unauthorizedHandler: (() => void) | null = null

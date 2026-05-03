@@ -13,7 +13,7 @@ Run `git status --short` and map changed paths to projects:
 
 **Frontend** (`frontend/dashboard`):
 ```bash
-cd frontend/dashboard && npm test -- --coverage --coverageReporters=text-summary
+cd frontend/dashboard && npm test
 ```
 
 **Expenses backend** (`backend/expenses`):

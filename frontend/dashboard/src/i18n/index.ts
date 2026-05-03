@@ -6,7 +6,7 @@ import fr from './locales/fr/translation.json'
 import es from './locales/es/translation.json'
 import de from './locales/de/translation.json'
 
-i18n
+export default i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
@@ -25,4 +25,3 @@ i18n
     },
   })
 
-export { i18n as default }

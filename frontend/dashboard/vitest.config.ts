@@ -19,7 +19,9 @@ export default defineConfig({
         '**/*.d.ts',
         '**/setupTests.ts',
         'vite.config.ts',
-        'vitest.config.ts'
+        'vitest.config.ts',
+        'src/i18n/index.ts',
+        'src/i18n/locales/**'
       ]
     }
   },

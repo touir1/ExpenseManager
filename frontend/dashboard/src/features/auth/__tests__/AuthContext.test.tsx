@@ -314,6 +314,48 @@ describe('AuthContext', () => {
     })
   })
 
+  describe('createPassword', () => {
+    it('successfully creates password', async () => {
+      const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      vi.mocked(api.post).mockResolvedValueOnce({ ok: true, status: 200 })
+      const createResult = await result.current.createPassword!('user@test.com', 'verification-hash', 'newpass')
+
+      expect(createResult.ok).toBe(true)
+      expect(api.post).toHaveBeenCalledWith(
+        `${AUTH_BASE}/create-password`,
+        { email: 'user@test.com', verificationHash: 'verification-hash', newPassword: 'newpass' },
+        SKIP
+      )
+    })
+
+    it('returns ok=false when required fields are missing', async () => {
+      const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      const createResult = await result.current.createPassword!('', 'hash', 'pass')
+
+      expect(createResult.ok).toBe(false)
+      expect(api.post).not.toHaveBeenCalledWith(
+        `${AUTH_BASE}/create-password`,
+        expect.anything(),
+        expect.anything()
+      )
+    })
+
+    it('returns error from API on failure', async () => {
+      const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      vi.mocked(api.post).mockResolvedValueOnce({ ok: false, status: 400, error: 'Invalid hash.' })
+      const createResult = await result.current.createPassword!('user@test.com', 'bad-hash', 'newpass')
+
+      expect(createResult.ok).toBe(false)
+      expect(createResult.error).toBe('Invalid hash.')
+    })
+  })
+
   describe('useAuth hook', () => {
     it('throws error when used outside AuthProvider', () => {
       const TestComponent = () => { useAuth(); return null }

@@ -277,14 +277,25 @@ ExpenseManager/
 │           ├── components/            — Shared UI primitives (generic, cross-feature)
 │           │   ├── BackLink.tsx        — Back-arrow link with chevron SVG
 │           │   ├── FieldError.tsx      — Per-field error paragraph with role="alert"
+│           │   ├── LanguageSwitcher.tsx — Language selector dropdown wired to i18n.changeLanguage
 │           │   ├── PasswordInput.tsx   — Password input with show/hide toggle
 │           │   ├── PasswordStrength.tsx — Live password strength indicator (5-segment bar + checklist)
 │           │   ├── SubmitButton.tsx    — Submit button with spinner SVG and configurable labels
 │           │   ├── Toast.tsx           — Toast notification provider and hook
 │           │   └── __tests__/
+│           │       ├── LanguageSwitcher.test.tsx
 │           │       ├── PasswordInput.test.tsx
 │           │       ├── PasswordStrength.test.tsx
 │           │       └── Toast.test.tsx
+│           ├── i18n/                  — Internationalisation (react-i18next)
+│           │   ├── index.ts           — i18next singleton config; language detection via localStorage → navigator
+│           │   ├── locales/
+│           │   │   ├── en/translation.json
+│           │   │   ├── fr/translation.json
+│           │   │   ├── es/translation.json
+│           │   │   └── de/translation.json
+│           │   └── __tests__/
+│           │       └── i18n.test.ts   — Verifies supported languages, fallback, resources, interpolation config
 │           ├── constants/             — App-wide typed constants (used by shared services)
 │           │   └── apiErrors.constant.ts — API_ERRORS + BACKEND_ERROR_CODES
 │           ├── features/
@@ -341,7 +352,8 @@ ExpenseManager/
 │           ├── services/              — Shared base services
 │           │   ├── api.service.ts     — Base fetch wrapper with cookie auth, transparent refresh-and-retry on 401, and skipUnauthorized option
 │           │   └── __tests__/
-│           │       ├── api.service.test.ts — Full coverage: normal flows, 401 refresh-and-retry, deduplication, skipUnauthorized, network errors
+│           │       ├── api.service.test.ts     — Full coverage: normal flows, 401 refresh-and-retry, deduplication, skipUnauthorized, network errors
+│           │       ├── api.service.env.test.ts — Isolated env tests: VITE_API_BASE prefix and trailing-slash strip
 │           │       └── api.test.ts
 │           ├── styles/
 │           │   └── index.css          — Tailwind directives + @layer components
