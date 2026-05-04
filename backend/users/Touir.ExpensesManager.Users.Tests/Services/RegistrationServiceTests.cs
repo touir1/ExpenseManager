@@ -46,19 +46,6 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         #region RegisterNewUserAsync Tests
 
         [Fact]
-        public async Task RegisterNewUserAsync_ReturnsError_WhenEmailFormatIsInvalid()
-        {
-            var emailHelper = new Mock<IEmailHelper>();
-            emailHelper.Setup(e => e.VerifyEmail("invalidemail")).Returns(false);
-
-            var service = CreateService(emailHelper: emailHelper);
-            var errors = await service.RegisterNewUserAsync("John", "Doe", "invalidemail", "APP1");
-
-            Assert.Single(errors);
-            Assert.Contains("email format is invalid", errors);
-        }
-
-        [Fact]
         public async Task RegisterNewUserAsync_ReturnsError_WhenEmailAlreadyValidated()
         {
             var user = new User { Id = 1, Email = "test@test.com", IsEmailValidated = true, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };

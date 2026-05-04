@@ -3,6 +3,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.73.0] - 2026-05-04
+### Changed
+- **Backend — Validation parity (VAL-03, VAL-04):** Email format validation moved to the FluentValidation layer for both login and registration.
+  - `LoginRequestValidator`: added `.EmailAddress().WithMessage("INVALID_EMAIL_FORMAT")` — login now rejects malformed emails at the validator instead of silently failing at DB lookup.
+  - `RegisterRequestValidator`: added `.EmailAddress().WithMessage("INVALID_EMAIL_FORMAT")` — registration validator is now the single authoritative source for email format.
+  - `RegistrationService.RegisterNewUserAsync`: removed redundant `MailAddress` constructor check (was strict RFC; diverged from Zod's lenient regex on the frontend).
+  - Tests: 2 new validator tests; obsolete `RegisterNewUserAsync_ReturnsError_WhenEmailFormatIsInvalid` service test removed.
+
 ## [0.72.3] - 2026-05-03
 ### Changed
 - **Frontend tests:** Expanded test coverage to close all remaining gaps.

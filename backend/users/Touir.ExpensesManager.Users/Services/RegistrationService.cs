@@ -32,12 +32,6 @@ namespace Touir.ExpensesManager.Users.Services
         {
             List<string> errors = [];
 
-            if (email != null && !_emailHelper.VerifyEmail(email))
-                errors.Add("email format is invalid");
-
-            if (errors.Count > 0)
-                return errors;
-
             User? user = await _userRepository.GetUserByEmailAsync(email);
             if (user != null)
             {

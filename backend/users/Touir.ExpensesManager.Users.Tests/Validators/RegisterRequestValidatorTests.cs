@@ -51,6 +51,13 @@ namespace Touir.ExpensesManager.Users.Tests.Validators
         }
 
         [Fact]
+        public void ShouldHaveError_WhenEmailIsInvalidFormat()
+        {
+            var result = _validator.TestValidate(new RegisterRequest { FirstName = "John", LastName = "Doe", Email = "not-an-email" });
+            result.ShouldHaveValidationErrorFor(x => x.Email).WithErrorMessage("INVALID_EMAIL_FORMAT");
+        }
+
+        [Fact]
         public void ShouldNotHaveErrors_WhenAllRequiredFieldsValid()
         {
             var result = _validator.TestValidate(new RegisterRequest { FirstName = "John", LastName = "Doe", Email = "john@doe.com" });

@@ -127,6 +127,13 @@ These four items were raised before the SRP split (v0.60.0) and are no longer ac
 | FluentValidation auto-validation | All manual `if`-check validation blocks removed from `AuthenticationController`, `RegistrationController`, `PasswordController`. Five `AbstractValidator<T>` classes in `Validators/`; registered via `AddFluentValidationAutoValidation()` + `AddValidatorsFromAssemblyContaining<Program>()` in `Program.cs` |
 | ConfirmPassword removed from backend DTOs | `ChangePasswordRequest` and `ChangePasswordResetRequest` no longer have `ConfirmPassword` — it is frontend-only UX. `authApi.service.ts` calls updated; `AuthContext.tsx` signatures updated; 3 test files updated |
 
+### Validation parity — 2026-05-04 (v0.73.0)
+
+| Item | Resolution |
+|---|---|
+| VAL-03: `email` format validation on login | `LoginRequestValidator`: `.EmailAddress().WithMessage("INVALID_EMAIL_FORMAT")` added; 1 new test. Backend now rejects malformed emails at validator layer instead of silently failing at DB lookup |
+| VAL-04: `email` format validation on registration — align to single impl | `RegisterRequestValidator`: `.EmailAddress().WithMessage("INVALID_EMAIL_FORMAT")` added; 1 new test. Redundant `MailAddress` check removed from `RegistrationService.RegisterNewUserAsync` — validator is now authoritative. Obsolete `RegisterNewUserAsync_ReturnsError_WhenEmailFormatIsInvalid` service test removed |
+
 ### Validation parity — 2026-05-01 (v0.71.0)
 
 | Item | Resolution |
