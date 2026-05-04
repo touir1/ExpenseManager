@@ -3,6 +3,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.75.0] - 2026-05-04
+### Added
+- **Docs:** `docs/plans/application-description.md` — full product specification (roles, Default family semantics, multi-family attribution, categories, delete permissions, two-table audit design, currency rate resolution, all screens).
+- **Docs:** `docs/plans/implementation-plan.md` — 15-phase implementation plan covering DB schema, categories, CRUD, families, tags, currency rates, dashboard API, frontend screens, admin, CSV, notifications, PWA.
+
+## [0.74.0] - 2026-05-04
+### Changed
+- **Backend — EO → DTO rename (users service):** Renamed `Controllers/EO/` → `Controllers/DTO/`, all `*Eo` classes → `*Dto` throughout the users service.
+  - `ApplicationEo` → `ApplicationDto`, `RoleEo` → `RoleDto`, `UserEo` → `UserDto`.
+  - Namespace `Controllers.EO` → `Controllers.DTO` across all source and test files.
+  - Old `EO/` folder deleted; `DTO/` folder added with `ApplicationDto.cs`, `RoleDto.cs`, `UserDto.cs`.
+- **Backend — Docker security (users + expenses):** Hardened `.dockerignore` for both services.
+  - Added `**/appsettings.Development.json` and `**/coverage` exclusions.
+  - Removed erroneous `!**/.gitignore`, `!.git/HEAD`, `!.git/config`, `!.git/packed-refs`, `!.git/refs/heads/**` re-inclusions.
+
 ## [0.73.0] - 2026-05-04
 ### Changed
 - **Backend — Validation parity (VAL-03, VAL-04):** Email format validation moved to the FluentValidation layer for both login and registration.

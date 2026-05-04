@@ -1,6 +1,6 @@
 using Touir.ExpensesManager.Users.Models;
 using Touir.ExpensesManager.Users.Services;
-using Touir.ExpensesManager.Users.Controllers.EO;
+using Touir.ExpensesManager.Users.Controllers.DTO;
 using Touir.ExpensesManager.Users.Repositories.Contracts;
 using Moq;
 

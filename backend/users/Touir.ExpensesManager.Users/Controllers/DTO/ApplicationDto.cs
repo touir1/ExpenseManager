@@ -1,6 +1,6 @@
-﻿namespace Touir.ExpensesManager.Users.Controllers.EO
+namespace Touir.ExpensesManager.Users.Controllers.DTO
 {
-    public class ApplicationEo
+    public class ApplicationDto
     {
         public int? Id { get; set; }
         public string? Code { get; set; }

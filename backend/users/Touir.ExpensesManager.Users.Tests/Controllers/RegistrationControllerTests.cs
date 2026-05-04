@@ -1,7 +1,7 @@
 using Touir.ExpensesManager.Users.Controllers;
 using Touir.ExpensesManager.Users.Controllers.Requests;
 using Touir.ExpensesManager.Users.Controllers.Responses;
-using Touir.ExpensesManager.Users.Controllers.EO;
+using Touir.ExpensesManager.Users.Controllers.DTO;
 using Touir.ExpensesManager.Users.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -109,7 +109,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         public async Task ValidateEmail_ReturnsUnauthorized_WhenApplicationNotFound()
         {
             var mockAppService = new Mock<IApplicationService>();
-            mockAppService.Setup(s => s.GetApplicationByCodeAsync("APP1")).ReturnsAsync((ApplicationEo?)null);
+            mockAppService.Setup(s => s.GetApplicationByCodeAsync("APP1")).ReturnsAsync((ApplicationDto?)null);
             var controller = CreateController(appService: mockAppService.Object);
             var result = await controller.ValidateEmail("hash", "john@doe.com", "APP1");
 
@@ -121,7 +121,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ValidateEmail_ReturnsUnauthorized_WhenValidationFails_AndNoErrorUrlConfigured()
         {
-            var app = new ApplicationEo { Id = 1, Code = "APP1", Name = "App1", ResetPasswordUrlPath = "http://reset" };
+            var app = new ApplicationDto { Id = 1, Code = "APP1", Name = "App1", ResetPasswordUrlPath = "http://reset" };
             var mockAppService = new Mock<IApplicationService>();
             mockAppService.Setup(s => s.GetApplicationByCodeAsync("APP1")).ReturnsAsync(app);
             var mockService = new Mock<IRegistrationService>();
@@ -137,7 +137,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ValidateEmail_ReturnsRedirectToErrorPage_WhenValidationFails_AndErrorUrlConfigured()
         {
-            var app = new ApplicationEo { Id = 1, Code = "APP1", Name = "App1", UrlPath = "https://localhost", ResetPasswordUrlPath = "/reset-password", VerifyEmailErrorUrlPath = "/verify-error" };
+            var app = new ApplicationDto { Id = 1, Code = "APP1", Name = "App1", UrlPath = "https://localhost", ResetPasswordUrlPath = "/reset-password", VerifyEmailErrorUrlPath = "/verify-error" };
             var mockAppService = new Mock<IApplicationService>();
             mockAppService.Setup(s => s.GetApplicationByCodeAsync("APP1")).ReturnsAsync(app);
             var mockService = new Mock<IRegistrationService>();
@@ -152,7 +152,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task ValidateEmail_ReturnsRedirect_WhenValid()
         {
-            var app = new ApplicationEo { Id = 1, Code = "APP1", Name = "App1", ResetPasswordUrlPath = "http://reset" };
+            var app = new ApplicationDto { Id = 1, Code = "APP1", Name = "App1", ResetPasswordUrlPath = "http://reset" };
             var mockAppService = new Mock<IApplicationService>();
             mockAppService.Setup(s => s.GetApplicationByCodeAsync("APP1")).ReturnsAsync(app);
             var mockService = new Mock<IRegistrationService>();

@@ -1,9 +1,9 @@
-﻿using Touir.ExpensesManager.Users.Controllers.EO;
+﻿using Touir.ExpensesManager.Users.Controllers.DTO;
 
 namespace Touir.ExpensesManager.Users.Services.Contracts
 {
     public interface IRoleService
     {
-        Task<IEnumerable<RoleEo>> GetUserRolesByApplicationCodeAsync(string applicationCode, int userId);
+        Task<IEnumerable<RoleDto>> GetUserRolesByApplicationCodeAsync(string applicationCode, int userId);
     }
 }

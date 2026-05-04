@@ -1,4 +1,4 @@
-﻿using Touir.ExpensesManager.Users.Controllers.EO;
+using Touir.ExpensesManager.Users.Controllers.DTO;
 using Touir.ExpensesManager.Users.Repositories.Contracts;
 using Touir.ExpensesManager.Users.Services.Contracts;
 
@@ -11,20 +11,20 @@ namespace Touir.ExpensesManager.Users.Services
         {
             _roleRepository = roleRepository;
         }
-        public async Task<IEnumerable<RoleEo>> GetUserRolesByApplicationCodeAsync(string applicationCode, int userId)
+        public async Task<IEnumerable<RoleDto>> GetUserRolesByApplicationCodeAsync(string applicationCode, int userId)
         {
             if (applicationCode == null)
-                return Enumerable.Empty<RoleEo>();
+                return Enumerable.Empty<RoleDto>();
             var roles = await _roleRepository.GetUserRolesByApplicationCodeAsync(applicationCode, userId);
             if (roles == null)
-                return Enumerable.Empty<RoleEo>();
-            return roles.Select(r => new RoleEo
+                return Enumerable.Empty<RoleDto>();
+            return roles.Select(r => new RoleDto
             {
                 Id = r.Id,
                 Code = r.Code,
                 Name = r.Name,
                 Description = r.Description,
-                Application = r.Application != null ? new ApplicationEo
+                Application = r.Application != null ? new ApplicationDto
                 {
                     Id = r.Application.Id,
                     Code = r.Application.Code,

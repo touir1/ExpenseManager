@@ -1,10 +1,10 @@
-﻿using Touir.ExpensesManager.Users.Controllers.EO;
+﻿using Touir.ExpensesManager.Users.Controllers.DTO;
 
 namespace Touir.ExpensesManager.Users.Controllers.Responses
 {
     public class LoginResponse
     {
-        public UserEo? User { get; set; }
-        public IEnumerable<RoleEo>? Roles { get; set; }
+        public UserDto? User { get; set; }
+        public IEnumerable<RoleDto>? Roles { get; set; }
     }
 }

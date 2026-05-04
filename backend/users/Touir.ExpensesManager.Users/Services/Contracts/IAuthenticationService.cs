@@ -1,9 +1,9 @@
-using Touir.ExpensesManager.Users.Controllers.EO;
+using Touir.ExpensesManager.Users.Controllers.DTO;
 
 namespace Touir.ExpensesManager.Users.Services.Contracts
 {
     public interface IAuthenticationService
     {
-        Task<UserEo?> AuthenticateAsync(string email, string password);
+        Task<UserDto?> AuthenticateAsync(string email, string password);
     }
 }

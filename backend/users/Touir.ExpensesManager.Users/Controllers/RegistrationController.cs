@@ -1,4 +1,4 @@
-using Touir.ExpensesManager.Users.Controllers.EO;
+using Touir.ExpensesManager.Users.Controllers.DTO;
 using Touir.ExpensesManager.Users.Controllers.Requests;
 using Touir.ExpensesManager.Users.Controllers.Responses;
 using Touir.ExpensesManager.Users.Services.Contracts;
@@ -62,7 +62,7 @@ namespace Touir.ExpensesManager.Users.Controllers
 
             try
             {
-                ApplicationEo? app = await _applicationService.GetApplicationByCodeAsync(appCode);
+                ApplicationDto? app = await _applicationService.GetApplicationByCodeAsync(appCode);
                 if (app == null)
                     return Unauthorized(new ErrorResponse { Message = "EMAIL_VERIFICATION_FAILED" });
 

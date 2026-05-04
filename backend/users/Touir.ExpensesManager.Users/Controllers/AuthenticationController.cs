@@ -1,4 +1,4 @@
-using Touir.ExpensesManager.Users.Controllers.EO;
+using Touir.ExpensesManager.Users.Controllers.DTO;
 using Touir.ExpensesManager.Users.Controllers.Requests;
 using Touir.ExpensesManager.Users.Controllers.Responses;
 using Touir.ExpensesManager.Users.Infrastructure.Options;
@@ -69,13 +69,13 @@ namespace Touir.ExpensesManager.Users.Controllers
 
                 return Ok(new LoginResponse
                 {
-                    User = new UserEo
+                    User = new UserDto
                     {
                         FirstName = user.FirstName,
                         LastName = user.LastName,
                         Email = user.Email
                     },
-                    Roles = roles.Select(s => new RoleEo
+                    Roles = roles.Select(s => new RoleDto
                     {
                         Code = s.Code,
                         Description = s.Description,

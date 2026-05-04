@@ -1,4 +1,4 @@
-# File Tree
+﻿# File Tree
 
 Excludes: `node_modules/`, `bin/`, `obj/`, `.git/`, `coverage/`, `dist/`, generated build artifacts.
 
@@ -27,15 +27,18 @@ ExpenseManager/
 ├── LICENSE                            — Project license
 ├── README.md                          — Main project README
 ├── docs/
-│   └── issues/
-│       ├── ongoing/
-│       │   ├── fixes-and-suggestions.md          — Open improvement ideas and technical debt backlog
-│       │   └── qa_test_results/
-│       │       └── 2026-03-22-frontend-dashboard-qa.md  — Frontend dashboard QA (open items only)
-│       └── fixed/
-│           ├── fixes-and-suggestions-applied.md  — Applied suggestions (moved here from ongoing once shipped)
-│           └── qa/
-│               └── 2026-03-22-frontend-dashboard-fixes.md  — Resolved issues from the 2026-03-22 QA session
+│   ├── issues/
+│   │   ├── ongoing/
+│   │   │   ├── fixes-and-suggestions.md          — Open improvement ideas and technical debt backlog
+│   │   │   └── qa_test_results/
+│   │   │       └── 2026-03-22-frontend-dashboard-qa.md  — Frontend dashboard QA (open items only)
+│   │   └── fixed/
+│   │       ├── fixes-and-suggestions-applied.md  — Applied suggestions (moved here from ongoing once shipped)
+│   │       └── qa/
+│   │           └── 2026-03-22-frontend-dashboard-fixes.md  — Resolved issues from the 2026-03-22 QA session
+│   └── plans/
+│       ├── application-description.md  — Full product specification (roles, families, audit, rate resolution, all screens)
+│       └── implementation-plan.md      — 15-phase implementation plan
 │
 ├── backend/
 │   ├── dashboard/
@@ -149,10 +152,10 @@ ExpenseManager/
 │       │   │   ├── AuthenticationController.cs  — Login, logout, session, refresh, auth check (token ops via IJwtTokenService)
 │       │   │   ├── RegistrationController.cs    — Register, validate-email
 │       │   │   ├── PasswordController.cs        — Change-password, request-password-reset, change-password-reset
-│       │   │   ├── EO/
-│       │   │   │   ├── ApplicationEo.cs
-│       │   │   │   ├── RoleEo.cs
-│       │   │   │   └── UserEo.cs               — User DTO with FirstName, LastName, Email
+│       │   │   ├── DTO/
+│       │   │   │   ├── ApplicationDto.cs
+│       │   │   │   ├── RoleDto.cs
+│       │   │   │   └── UserDto.cs              — User DTO with FirstName, LastName, Email
 │       │   │   ├── Requests/
 │       │   │   │   ├── ChangePasswordRequest.cs        — Requires Email, OldPassword, NewPassword
 │       │   │   │   ├── ChangePasswordResetRequest.cs
@@ -162,7 +165,7 @@ ExpenseManager/
 │       │   │   │   └── RequestPasswordResetRequest.cs
 │       │   │   └── Responses/
 │       │   │       ├── ErrorResponse.cs
-│       │   │       ├── LoginResponse.cs        — Returns User (UserEo) and Roles (token is cookie-only)
+│       │   │       ├── LoginResponse.cs        — Returns User (UserDto) and Roles (token is cookie-only)
 │       │   │       ├── SessionResponse.cs      — Returns Email, FirstName, LastName from JWT claims
 │       │   │       └── RegisterResponse.cs
 │       │   ├── Validators/

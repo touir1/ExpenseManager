@@ -1,4 +1,4 @@
-using Touir.ExpensesManager.Users.Controllers.EO;
+using Touir.ExpensesManager.Users.Controllers.DTO;
 using Touir.ExpensesManager.Users.Infrastructure.Contracts;
 using Touir.ExpensesManager.Users.Models;
 using Touir.ExpensesManager.Users.Repositories.Contracts;
@@ -22,7 +22,7 @@ namespace Touir.ExpensesManager.Users.Services
             _authenticationRepository = authenticationRepository;
         }
 
-        public async Task<UserEo?> AuthenticateAsync(string email, string password)
+        public async Task<UserDto?> AuthenticateAsync(string email, string password)
         {
             var user = await _userRepository.GetUserByEmailAsync(email);
             if (user == null)
@@ -32,7 +32,7 @@ namespace Touir.ExpensesManager.Users.Services
                 !_cryptographyHelper.VerifyPasswordHash(password, authentication.HashPasswordBytes, authentication.HashSaltBytes))
                 return null;
 
-            return new UserEo
+            return new UserDto
             {
                 Id = user.Id,
                 FirstName = user.FirstName,

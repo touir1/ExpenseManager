@@ -3,7 +3,7 @@ using Touir.ExpensesManager.Users.Controllers.Requests;
 using Touir.ExpensesManager.Users.Controllers.Responses;
 using Touir.ExpensesManager.Users.Services.Contracts;
 using Touir.ExpensesManager.Users.Repositories.Contracts;
-using Touir.ExpensesManager.Users.Controllers.EO;
+using Touir.ExpensesManager.Users.Controllers.DTO;
 using Touir.ExpensesManager.Users.Infrastructure.Options;
 using Touir.ExpensesManager.Users.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -41,7 +41,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         public async Task LoginAsync_ReturnsUnauthorized_WhenUserNotFound()
         {
             var mockAuthService = new Mock<IAuthenticationService>();
-            mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync((UserEo?)null);
+            mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync((UserDto?)null);
             var controller = CreateController(authService: mockAuthService.Object);
             var request = new LoginRequest { Email = "john@doe.com", Password = "password", ApplicationCode = "APP1" };
             var result = await controller.LoginAsync(request);
@@ -54,11 +54,11 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task LoginAsync_ReturnsUnauthorized_WhenNoRolesAssigned()
         {
-            var user = new UserEo { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@doe.com" };
+            var user = new UserDto { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@doe.com" };
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync(user);
             var mockRoleService = new Mock<IRoleService>();
-            mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id!.Value)).ReturnsAsync(new List<RoleEo>());
+            mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id!.Value)).ReturnsAsync(new List<RoleDto>());
             var controller = CreateController(authService: mockAuthService.Object, roleService: mockRoleService.Object);
             var request = new LoginRequest { Email = "john@doe.com", Password = "password", ApplicationCode = "APP1" };
             var result = await controller.LoginAsync(request);
@@ -71,11 +71,11 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task LoginAsync_ReturnsUnauthorized_WhenRolesIsEmpty()
         {
-            var user = new UserEo { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@doe.com" };
+            var user = new UserDto { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@doe.com" };
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync(user);
             var mockRoleService = new Mock<IRoleService>();
-            mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id!.Value)).ReturnsAsync(Enumerable.Empty<RoleEo>());
+            mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id!.Value)).ReturnsAsync(Enumerable.Empty<RoleDto>());
             var controller = CreateController(authService: mockAuthService.Object, roleService: mockRoleService.Object);
             var request = new LoginRequest { Email = "john@doe.com", Password = "password", ApplicationCode = "APP1" };
             var result = await controller.LoginAsync(request);
@@ -88,14 +88,14 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task LoginAsync_ReturnsOk_WhenValid()
         {
-            var user = new UserEo { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@doe.com" };
+            var user = new UserDto { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@doe.com" };
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync(user);
             var mockJwtService = new Mock<IJwtTokenService>();
             mockJwtService.Setup(s => s.GenerateJwtToken(user.Id!.Value, user.Email, user.FirstName, user.LastName)).Returns("access_token");
             var mockRoleService = new Mock<IRoleService>();
             mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id!.Value))
-                .ReturnsAsync(new List<RoleEo> { new RoleEo { Code = "ADMIN", Name = "Admin" } });
+                .ReturnsAsync(new List<RoleDto> { new RoleDto { Code = "ADMIN", Name = "Admin" } });
             var mockRefreshService = new Mock<IRefreshTokenService>();
             mockRefreshService.Setup(s => s.GenerateAsync(user.Id!.Value, It.IsAny<bool>())).ReturnsAsync("refresh_token_value");
             var controller = CreateController(
@@ -116,14 +116,14 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task LoginAsync_SetsHttpOnlyCookies_WhenValid()
         {
-            var user = new UserEo { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@doe.com" };
+            var user = new UserDto { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@doe.com" };
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync(user);
             var mockJwtService = new Mock<IJwtTokenService>();
             mockJwtService.Setup(s => s.GenerateJwtToken(user.Id!.Value, user.Email, user.FirstName, user.LastName)).Returns("access_token");
             var mockRoleService = new Mock<IRoleService>();
             mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id!.Value))
-                .ReturnsAsync(new List<RoleEo> { new RoleEo { Code = "ADMIN", Name = "Admin" } });
+                .ReturnsAsync(new List<RoleDto> { new RoleDto { Code = "ADMIN", Name = "Admin" } });
             var mockRefreshService = new Mock<IRefreshTokenService>();
             mockRefreshService.Setup(s => s.GenerateAsync(user.Id!.Value, It.IsAny<bool>())).ReturnsAsync("refresh_token_value");
             var httpContext = new DefaultHttpContext();
@@ -148,14 +148,14 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task LoginAsync_SetsSessionCookies_WhenRememberMeFalse()
         {
-            var user = new UserEo { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@doe.com" };
+            var user = new UserDto { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@doe.com" };
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync(user);
             var mockJwtService = new Mock<IJwtTokenService>();
             mockJwtService.Setup(s => s.GenerateJwtToken(user.Id!.Value, user.Email, user.FirstName, user.LastName)).Returns("access_token");
             var mockRoleService = new Mock<IRoleService>();
             mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id!.Value))
-                .ReturnsAsync(new List<RoleEo> { new RoleEo { Code = "ADMIN", Name = "Admin" } });
+                .ReturnsAsync(new List<RoleDto> { new RoleDto { Code = "ADMIN", Name = "Admin" } });
             var mockRefreshService = new Mock<IRefreshTokenService>();
             mockRefreshService.Setup(s => s.GenerateAsync(user.Id!.Value, false)).ReturnsAsync("refresh_token_value");
             var httpContext = new DefaultHttpContext();
@@ -177,14 +177,14 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         [Fact]
         public async Task LoginAsync_SetsPersistentCookies_WhenRememberMeTrue()
         {
-            var user = new UserEo { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@doe.com" };
+            var user = new UserDto { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@doe.com" };
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync(user);
             var mockJwtService = new Mock<IJwtTokenService>();
             mockJwtService.Setup(s => s.GenerateJwtToken(user.Id!.Value, user.Email, user.FirstName, user.LastName)).Returns("access_token");
             var mockRoleService = new Mock<IRoleService>();
             mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id!.Value))
-                .ReturnsAsync(new List<RoleEo> { new RoleEo { Code = "ADMIN", Name = "Admin" } });
+                .ReturnsAsync(new List<RoleDto> { new RoleDto { Code = "ADMIN", Name = "Admin" } });
             var mockRefreshService = new Mock<IRefreshTokenService>();
             mockRefreshService.Setup(s => s.GenerateAsync(user.Id!.Value, true)).ReturnsAsync("refresh_token_value");
             var httpContext = new DefaultHttpContext();
