@@ -11,7 +11,7 @@ COPY Touir.ExpensesManager.Expenses.Tests/Touir.ExpensesManager.Expenses.Tests.c
 RUN dotnet restore ./Touir.ExpensesManager.Expenses.sln
 
 # Copy the rest of the source code
-COPY . .  # NOSONAR - sensitive files excluded via .dockerignore
+COPY . .
 
 # Build and publish the main project
 WORKDIR /src/Touir.ExpensesManager.Expenses
