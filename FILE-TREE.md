@@ -65,7 +65,7 @@ ExpenseManager/
 │   │   │   ├── Properties/
 │   │   │   │   └── launchSettings.json
 │   │   │   ├── Infrastructure/
-│   │   │   │   ├── ExpensesDbContext.cs     — EF Core context; maps ext.USR_Users
+│   │   │   │   ├── ExpensesDbContext.cs     — EF Core context; all 13 DbSets with full Fluent API config
 │   │   │   │   └── Options/
 │   │   │   │       ├── PostgresOptions.cs
 │   │   │   │       └── RabbitMQOptions.cs
@@ -73,9 +73,29 @@ ExpenseManager/
 │   │   │   │   └── Responses/
 │   │   │   │       └── ErrorResponse.cs     — Uniform error envelope (matches users service pattern)
 │   │   │   ├── Models/
-│   │   │   │   ├── Category.cs
+│   │   │   │   ├── Category.cs              — Updated: IsArchived, ParentCategoryId, Children
 │   │   │   │   ├── Currency.cs
-│   │   │   │   ├── Expense.cs
+│   │   │   │   ├── Expense.cs               — Rewritten: owner, amount, date, category, audit fields; FK int columns
+│   │   │   │   ├── Family.cs
+│   │   │   │   ├── FamilyMembership.cs      — RoleId (int FK) instead of enum
+│   │   │   │   ├── ExpenseFamilyAttribution.cs
+│   │   │   │   ├── Tag.cs
+│   │   │   │   ├── ExpenseTag.cs
+│   │   │   │   ├── CurrencyDailyRate.cs     — RateSourceId (int FK) instead of enum
+│   │   │   │   ├── CurrencyPairDefault.cs
+│   │   │   │   ├── CurrencyRateConflict.cs  — StatusId/ResolutionId (int FK) instead of enums
+│   │   │   │   ├── ExpenseAuditLog.cs       — OperationId/PerformedFromId (int FK) instead of enums
+│   │   │   │   ├── ExpenseAuditSnapshot.cs  — SnapshotTypeId (int FK) instead of enum
+│   │   │   │   ├── Lookups/
+│   │   │   │   │   ├── ILookupEntity.cs     — Common interface: Id, Name
+│   │   │   │   │   ├── OperationSource.cs   — 1=SingleWeb, 2=SingleMobile, 3=BulkWeb
+│   │   │   │   │   ├── ModifiedSource.cs    — 1=Web, 2=Mobile
+│   │   │   │   │   ├── FamilyRole.cs        — 1=Head, 2=Member
+│   │   │   │   │   ├── RateSource.cs        — 1=Auto, 2=Manual
+│   │   │   │   │   ├── ConflictStatus.cs    — 1=Pending, 2=Resolved
+│   │   │   │   │   ├── ConflictResolution.cs — 1=AcceptAuto, 2=KeepManual, 3=Custom
+│   │   │   │   │   ├── AuditOperation.cs    — 1=Add, 2=Update, 3=Delete
+│   │   │   │   │   └── SnapshotType.cs      — 1=Before, 2=After
 │   │   │   │   └── External/
 │   │   │   │       └── User.cs              — Read-only mapping of users DB entity
 │   │   │   ├── Repositories/
@@ -85,11 +105,17 @@ ExpenseManager/
 │   │   │   │       └── UserRepository.cs    — Read-only cross-service user access
 │   │   │   ├── Services/
 │   │   │   │   ├── Contracts/
-│   │   │   │   │   └── IRabbitMQService.cs
-│   │   │   │   └── RabbitMQService.cs       — RabbitMQ connection and messaging
+│   │   │   │   │   ├── IRabbitMQService.cs
+│   │   │   │   │   └── ILookupCacheService.cs — GetIdAsync<T>(name) / GetNameAsync<T>(id)
+│   │   │   │   ├── RabbitMQService.cs       — RabbitMQ connection and messaging
+│   │   │   │   └── LookupCacheService.cs    — IMemoryCache-backed lookup; NeverRemove priority; loads entire table on first access
 │   │   │   └── Migrations/
 │   │   │       ├── 20260217225816_InitialCreate.cs
 │   │   │       ├── 20260217225816_InitialCreate.Designer.cs
+│   │   │       ├── 20260505144048_SchemaFoundation.cs   — Phase 1: all domain + 8 lookup tables with seed data
+│   │   │       ├── 20260505144048_SchemaFoundation.Designer.cs
+│   │   │       ├── 20260505145359_LongIdsForExpenseAndAudit.cs   — bigint PKs/FKs for Expense, AuditLog, AuditSnapshot, FamilyAttribution
+│   │   │       ├── 20260505145359_LongIdsForExpenseAndAudit.Designer.cs
 │   │   │       └── ExpensesDbContextModelSnapshot.cs
 │   │   └── Touir.ExpensesManager.Expenses.Tests/
 │   │       ├── Touir.ExpensesManager.Expenses.Tests.csproj
@@ -97,8 +123,11 @@ ExpenseManager/
 │   │       │   └── TestExpensesDbContext.cs  — In-memory DB wrapper for tests
 │   │       ├── Repositories/External/
 │   │       │   └── UserRepositoryTests.cs
+│   │       ├── Infrastructure/
+│   │       │   └── ExpensesDbContextSchemaTests.cs  — 23 tests: all Phase 1 entities, composite PKs, unique constraints, cascades
 │   │       └── Services/
-│   │           └── RabbitMQServiceTests.cs
+│   │           ├── RabbitMQServiceTests.cs
+│   │           └── LookupCacheServiceTests.cs       — 7 tests: GetId/Name, KeyNotFoundException, cache hit, all 8 types
 │   │
 │   └── users/
 │       ├── .config/

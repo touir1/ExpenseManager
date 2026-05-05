@@ -182,14 +182,15 @@ Replace current model with:
 
 ### Tasks
 
-- [ ] Update `Category` model — add `IsArchived`
-- [ ] Rewrite `Expense` model with new columns
-- [ ] Add `Family`, `FamilyMembership`, `ExpenseFamilyAttribution` models
-- [ ] Add `Tag`, `ExpenseTag` models
-- [ ] Add `CurrencyDailyRate`, `CurrencyPairDefault`, `CurrencyRateConflict` models
-- [ ] Add `ExpenseAuditLog`, `ExpenseAuditSnapshot` models
-- [ ] Update `ExpensesDbContext` — register all new models, configure constraints/indexes
-- [ ] Generate and apply EF Core migration
+- [x] Update `Category` model — add `IsArchived`
+- [x] Rewrite `Expense` model with new columns
+- [x] Add `Family`, `FamilyMembership`, `ExpenseFamilyAttribution` models
+- [x] Add `Tag`, `ExpenseTag` models
+- [x] Add `CurrencyDailyRate`, `CurrencyPairDefault`, `CurrencyRateConflict` models
+- [x] Add `ExpenseAuditLog`, `ExpenseAuditSnapshot` models
+- [x] Update `ExpensesDbContext` — register all new models, configure constraints/indexes
+- [x] Generate and apply EF Core migration (`SchemaFoundation` — 2026-05-05)
+- [x] Replace all 8 C# enums with DB lookup tables (`Models/Lookups/`); FK int columns in all domain models; `ILookupCacheService` / `LookupCacheService` with `IMemoryCache` (NeverRemove); migration regenerated with full seed data (2026-05-05)
 
 ### Key indexes to add
 - `Expense`: `(user_id, date)`, `(category_id)`, `(currency_id)`

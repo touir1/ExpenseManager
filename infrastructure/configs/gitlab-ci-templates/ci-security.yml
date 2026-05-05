@@ -12,6 +12,7 @@ variables:
     when: always
     paths:
       - $BASE_DIR_PATH/dependency-check-report/
+  timeout: 2h
   script:
     - mkdir -p dependency-check-data
     - export PATH="$PATH:/usr/share/dependency-check/bin"

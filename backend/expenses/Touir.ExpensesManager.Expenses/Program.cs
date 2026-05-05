@@ -5,6 +5,7 @@ using Touir.ExpensesManager.Expenses.Repositories.External;
 using Touir.ExpensesManager.Expenses.Repositories.External.Contracts;
 using Touir.ExpensesManager.Expenses.Services;
 using Touir.ExpensesManager.Expenses.Services.Contracts;
+using Microsoft.Extensions.Caching.Memory;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
@@ -94,7 +95,9 @@ builder.Services.Configure<PostgresOptions>(c =>
 #endregion
 
 #region Services
+builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<IRabbitMQService, RabbitMQService>();
+builder.Services.AddScoped<ILookupCacheService, LookupCacheService>();
 #endregion
 
 #region Repositories

@@ -3,6 +3,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.76.3] - 2026-05-05
+### Changed
+- **Backend — Expenses service: `int` → `long` PKs and FKs for high-volume tables:**
+  - `Expense.Id`, `ExpenseAuditLog.Id`, `ExpenseAuditSnapshot.Id`, `ExpenseFamilyAttribution.Id` changed to `long`
+  - FK columns updated to match: `ExpenseAuditLog.ExpenseId`, `ExpenseAuditSnapshot.AuditLogId`, `ExpenseTag.ExpenseId`, `ExpenseFamilyAttribution.ExpenseId`
+  - EF Core migration `LongIdsForExpenseAndAudit` generated (2026-05-05)
+  - Tests updated: `SeedAuditLogAsync` takes `long expenseId`; `FindAsync` calls use `1L` literals for affected tables
+
+## [0.76.2] - 2026-05-05
+### Changed
+- **Backend — Expenses service: enums → lookup tables with memory cache:**
+  - Deleted 8 C# enums from `Models/Enums/`; replaced with 8 DB-backed lookup entity classes in `Models/Lookups/` (each implements `ILookupEntity`): `OperationSource`, `ModifiedSource`, `FamilyRole`, `RateSource`, `ConflictStatus`, `ConflictResolution`, `AuditOperation`, `SnapshotType`
+  - All FK columns in domain models now use `int` FK + nav property instead of string-converted enum (e.g. `Expense.CreatedFromId`, `FamilyMembership.RoleId`, `CurrencyDailyRate.RateSourceId`, `CurrencyRateConflict.StatusId`/`ResolutionId`, `ExpenseAuditLog.OperationId`/`PerformedFromId`, `ExpenseAuditSnapshot.SnapshotTypeId`)
+  - `ExpensesDbContext`: 8 new lookup `DbSet<T>` properties; each lookup table has `HasData` seed (e.g. OperationSource: 1=SingleWeb, 2=SingleMobile, 3=BulkWeb)
+  - Added `ILookupCacheService` / `LookupCacheService`: generic `GetIdAsync<T>(name)` / `GetNameAsync<T>(id)` backed by `IMemoryCache` with `CacheItemPriority.NeverRemove`; registered as scoped in `Program.cs`; `AddMemoryCache()` added
+  - `SchemaFoundation` migration regenerated from InitialCreate baseline to create all tables with correct FK int columns
+  - `ExpensesDbContextSchemaTests` rewritten (enum references → int FK IDs); `LookupCacheServiceTests` added (7 tests: GetId, GetName, KeyNotFoundException, cache hit, all 8 lookup types)
+  - Total tests: 77/77 passing
+
+## [0.76.1] - 2026-05-05
+### Added
+- **Backend — Expenses service schema tests:** `ExpensesDbContextSchemaTests` (23 tests) covering all Phase 1 entities — Category hierarchy, Expense with all FK variants, Family/Membership/Attribution, Tag, ExpenseTag composite PK, CurrencyDailyRate unique constraint, CurrencyPairDefault composite PK, CurrencyRateConflict nullable fields, ExpenseAuditLog all operations, ExpenseAuditSnapshot before/after, cascade deletes. Total test count: 70/70 passing.
+
+## [0.76.0] - 2026-05-05
+### Added
+- **Backend — Phase 1 Schema Foundation (expenses service):**
+  - 8 new enums in `Models/Enums/`: `CreatedFromSource`, `ModifiedFromSource`, `FamilyMemberRole`, `CurrencyRateSource`, `CurrencyRateConflictStatus`, `CurrencyRateConflictResolution`, `ExpenseAuditOperation`, `ExpenseAuditSnapshotType`
+  - `Category` updated: added `IsArchived`, `ParentCategoryId` (explicit FK), `Children` collection
+  - `Expense` rewritten: `UserId`, `CurrencyId`, `CategoryId`, `SubcategoryId`, `Date` (DateOnly), `CreatedAt/By/From`, `ModifiedAt/By/From`; removed `IsHidden`/`CreatedDate`
+  - New models: `Family`, `FamilyMembership`, `ExpenseFamilyAttribution`, `Tag`, `ExpenseTag`, `CurrencyDailyRate`, `CurrencyPairDefault`, `CurrencyRateConflict`, `ExpenseAuditLog`, `ExpenseAuditSnapshot`
+  - `ExpensesDbContext` updated: all 13 application DbSets registered with full Fluent API (precision, max-lengths, enum-to-string, FKs, indexes)
+  - EF Core migration `SchemaFoundation` generated and applied; all 47 tests pass
+
 ## [0.75.1] - 2026-05-05
 ### Changed
 - **Backend — Expenses service structural parity with users service:**

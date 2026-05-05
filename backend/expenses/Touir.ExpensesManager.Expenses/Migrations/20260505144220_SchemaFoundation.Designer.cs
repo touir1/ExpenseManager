@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Touir.ExpensesManager.Expenses.Infrastructure;
@@ -11,9 +12,11 @@ using Touir.ExpensesManager.Expenses.Infrastructure;
 namespace Touir.ExpensesManager.Expenses.Migrations
 {
     [DbContext(typeof(ExpensesDbContext))]
-    partial class ExpensesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260505144220_SchemaFoundation")]
+    partial class SchemaFoundation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -196,11 +199,11 @@ namespace Touir.ExpensesManager.Expenses.Migrations
 
             modelBuilder.Entity("Touir.ExpensesManager.Expenses.Models.Expense", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 4)
@@ -266,14 +269,14 @@ namespace Touir.ExpensesManager.Expenses.Migrations
 
             modelBuilder.Entity("Touir.ExpensesManager.Expenses.Models.ExpenseAuditLog", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<long>("ExpenseId")
-                        .HasColumnType("bigint");
+                    b.Property<int>("ExpenseId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("OperationId")
                         .HasColumnType("integer");
@@ -302,18 +305,18 @@ namespace Touir.ExpensesManager.Expenses.Migrations
 
             modelBuilder.Entity("Touir.ExpensesManager.Expenses.Models.ExpenseAuditSnapshot", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 4)
                         .HasColumnType("numeric(18,4)");
 
-                    b.Property<long>("AuditLogId")
-                        .HasColumnType("bigint");
+                    b.Property<int>("AuditLogId")
+                        .HasColumnType("integer");
 
                     b.Property<int?>("CategoryId")
                         .HasColumnType("integer");
@@ -355,11 +358,11 @@ namespace Touir.ExpensesManager.Expenses.Migrations
 
             modelBuilder.Entity("Touir.ExpensesManager.Expenses.Models.ExpenseFamilyAttribution", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("AttributedAt")
                         .HasColumnType("timestamp with time zone");
@@ -367,8 +370,8 @@ namespace Touir.ExpensesManager.Expenses.Migrations
                     b.Property<int>("AttributedById")
                         .HasColumnType("integer");
 
-                    b.Property<long>("ExpenseId")
-                        .HasColumnType("bigint");
+                    b.Property<int>("ExpenseId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("FamilyId")
                         .HasColumnType("integer");
@@ -386,8 +389,8 @@ namespace Touir.ExpensesManager.Expenses.Migrations
 
             modelBuilder.Entity("Touir.ExpensesManager.Expenses.Models.ExpenseTag", b =>
                 {
-                    b.Property<long>("ExpenseId")
-                        .HasColumnType("bigint");
+                    b.Property<int>("ExpenseId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("TagId")
                         .HasColumnType("integer");
