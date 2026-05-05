@@ -8,7 +8,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
     public class LookupCacheServiceTests : IDisposable
     {
         private readonly TestExpensesDbContextWrapper _wrapper;
-        private readonly IMemoryCache _cache;
+        private readonly MemoryCache _cache;
         private readonly LookupCacheService _sut;
 
         public LookupCacheServiceTests()
@@ -22,6 +22,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         {
             _wrapper.Dispose();
             _cache.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         [Fact]

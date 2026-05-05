@@ -17,7 +17,11 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
             _ctx = _wrapper.Context;
         }
 
-        public void Dispose() => _wrapper.Dispose();
+        public void Dispose()
+        {
+            _wrapper.Dispose();
+            GC.SuppressFinalize(this);
+        }
 
         // ── helpers ───────────────────────────────────────────────────────────
 
