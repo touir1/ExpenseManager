@@ -11,6 +11,12 @@ namespace Touir.ExpensesManager.Expenses.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // SQLite INTEGER is already 64-bit; AlterColumn with bigint triggers
+            // a table rebuild that generates "BIGINT PRIMARY KEY AUTOINCREMENT" which
+            // SQLite rejects. Skip on SQLite — the columns function identically.
+            if (migrationBuilder.ActiveProvider == "Microsoft.EntityFrameworkCore.Sqlite")
+                return;
+
             migrationBuilder.AlterColumn<long>(
                 name: "Id",
                 table: "Expenses",
@@ -87,6 +93,9 @@ namespace Touir.ExpensesManager.Expenses.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            if (migrationBuilder.ActiveProvider == "Microsoft.EntityFrameworkCore.Sqlite")
+                return;
+
             migrationBuilder.AlterColumn<int>(
                 name: "Id",
                 table: "Expenses",
