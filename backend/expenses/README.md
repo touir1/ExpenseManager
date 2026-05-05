@@ -6,6 +6,7 @@ REST API for managing expenses, categories, and currencies.
 
 - **.NET 8** — `net8.0` target framework
 - **Entity Framework Core 8** + **Npgsql** — PostgreSQL via EF Core
+- **FluentValidation 11** — request DTO validation (`AddFluentValidationAutoValidation`); validators in `Validators/`
 - **xUnit** + **Moq** — unit and integration tests
 
 ## Usage

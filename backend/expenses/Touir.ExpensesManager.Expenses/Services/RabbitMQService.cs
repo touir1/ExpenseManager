@@ -8,23 +8,35 @@ namespace Touir.ExpensesManager.Expenses.Services
     public class RabbitMQService : IRabbitMQService
     {
         private readonly ConnectionFactory _connectionFactory;
+        private IConnection? _connection;
+        private readonly object _lock = new();
 
         public RabbitMQService(IOptions<RabbitMQOptions> option)
         {
-            var _option = option.Value;
-
+            var opt = option.Value;
             _connectionFactory = new ConnectionFactory
             {
-                HostName = _option.HostName,
-                Port = _option.Port,
-                UserName = _option.UserName,
-                Password = _option.Password
+                HostName = opt.HostName,
+                Port = opt.Port,
+                UserName = opt.UserName,
+                Password = opt.Password
             };
         }
 
         public IConnection GetConnection()
         {
-            return _connectionFactory.CreateConnection();
+            if (_connection is { IsOpen: true })
+                return _connection;
+
+            lock (_lock)
+            {
+                if (_connection is { IsOpen: true })
+                    return _connection;
+
+                _connection = _connectionFactory.CreateConnection();
+            }
+
+            return _connection;
         }
     }
 }

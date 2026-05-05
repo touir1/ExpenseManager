@@ -9,6 +9,6 @@
         public External.User User { get; set; }
         public Category Category { get; set; }
         public Currency Currency { get; set; }
-        public double Amount { get; set; }
+        public decimal Amount { get; set; }
     }
 }

@@ -3,6 +3,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.75.1] - 2026-05-05
+### Changed
+- **Backend — Expenses service structural parity with users service:**
+  - `Expense.Amount`: `double` → `decimal` (financial precision; `double` loses precision for money)
+  - `RabbitMQService`: connection now cached with double-checked lock; no longer creates new `IConnection` per `GetConnection()` call
+  - `Program.cs`: added FluentValidation auto-validation + `InvalidModelStateResponseFactory` (returns `401 UnauthorizedObjectResult(ErrorResponse)` on model errors, matching users service wire format); added health checks (`/health`); replaced bare `AddSwaggerGen()` with named info (title, version, contact, XML docs); added `app.UsePathBase("/api/expenses")` in Development; added `ENABLE_SWAGGER` env-var gate; removed redundant `AddJsonFile` call; added `WhenWritingNull` JSON option
+  - `.csproj`: added `FluentValidation.AspNetCore 11.3.0`, `Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore 8.0.0`; bumped `Swashbuckle.AspNetCore` from `6.4.0` → `8.0.0`; added `GenerateDocumentationFile` + `NoWarn` (CS8618/CS8603/CS8604/CS1591) to match users service
+  - `Controllers/Responses/ErrorResponse.cs`: created (identical pattern to users service)
+
 ## [0.75.0] - 2026-05-04
 ### Added
 - **Docs:** `docs/plans/application-description.md` — full product specification (roles, Default family semantics, multi-family attribution, categories, delete permissions, two-table audit design, currency rate resolution, all screens).

@@ -69,6 +69,9 @@ ExpenseManager/
 │   │   │   │   └── Options/
 │   │   │   │       ├── PostgresOptions.cs
 │   │   │   │       └── RabbitMQOptions.cs
+│   │   │   ├── Controllers/
+│   │   │   │   └── Responses/
+│   │   │   │       └── ErrorResponse.cs     — Uniform error envelope (matches users service pattern)
 │   │   │   ├── Models/
 │   │   │   │   ├── Category.cs
 │   │   │   │   ├── Currency.cs

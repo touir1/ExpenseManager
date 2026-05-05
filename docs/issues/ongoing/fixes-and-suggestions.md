@@ -106,7 +106,7 @@ Discrepancies found by cross-checking Zod schemas (`auth.schemas.ts`) against co
 
 ## Infrastructure — Suggestions
 
-- **Health-check endpoints**: Add `/healthz` (liveness) and `/readyz` (readiness) endpoints to both .NET services and wire them into the Docker Compose `healthcheck` stanza and nginx upstream checks.
+- **Health-check endpoints**: ⚠️ Partial — both services now expose `GET /health` (liveness + DB readiness). Remaining: wire into Docker Compose `healthcheck` stanza and nginx upstream checks.
 - **Structured logging**: Replace default ASP.NET console logging with Serilog + JSON output. Forward logs to a centralised sink (e.g., Loki) for querying via Grafana.
 - **Secret management**: Credentials (DB passwords, JWT signing key, SMTP credentials) are currently passed as plain environment variables. Migrate to Docker Secrets or a vault solution for production deployments.
 - **nginx rate limiting**: Add `limit_req_zone` / `limit_req` directives in `expenses-manager.conf` to protect the auth endpoints from brute-force traffic at the proxy layer.

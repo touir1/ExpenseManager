@@ -1,26 +1,71 @@
+using Touir.ExpensesManager.Expenses.Controllers.Responses;
+using Touir.ExpensesManager.Expenses.Infrastructure;
+using Touir.ExpensesManager.Expenses.Infrastructure.Options;
 using Touir.ExpensesManager.Expenses.Repositories.External;
 using Touir.ExpensesManager.Expenses.Repositories.External.Contracts;
 using Touir.ExpensesManager.Expenses.Services;
 using Touir.ExpensesManager.Expenses.Services.Contracts;
-using Touir.ExpensesManager.Expenses.Infrastructure;
-using Touir.ExpensesManager.Expenses.Infrastructure.Options;
-using Microsoft.Extensions.Options;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var firstError = context.ModelState.Values
+            .SelectMany(v => v.Errors)
+            .Select(e => e.ErrorMessage)
+            .FirstOrDefault() ?? "MISSING_PARAMETERS";
+        return new UnauthorizedObjectResult(new ErrorResponse { Message = firstError });
+    };
+});
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
-var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-builder.Configuration.AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true);
+#region Swagger
+var info = new OpenApiInfo()
+{
+    Title = "Expenses service API documentation",
+    Version = "v1",
+    Description = "Expense management system",
+    Contact = new OpenApiContact()
+    {
+        Name = "Mohamed Ali Touir",
+        Email = "touir.mat@gmail.com",
+    }
+};
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", info);
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        c.IncludeXmlComments(xmlPath);
+    }
+});
+#endregion
 
 #region Options
-
 builder.Services.Configure<RabbitMQOptions>(c =>
 {
     c.HostName = builder.Configuration.GetValue("RabbitMQ:HostName",
@@ -46,72 +91,68 @@ builder.Services.Configure<PostgresOptions>(c =>
     c.Database = builder.Configuration.GetValue("Postgres:Database",
                     Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_DATABASE_DATABASE")) ?? "expenses";
 });
-
 #endregion
 
 #region Services
-
 builder.Services.AddSingleton<IRabbitMQService, RabbitMQService>();
-
 #endregion
 
 #region Repositories
-
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-
 #endregion
 
 #region Database
-
 builder.Services.AddDbContext<ExpensesDbContext>((sp, options) =>
 {
     var pgOptions = sp.GetRequiredService<IOptions<PostgresOptions>>().Value;
     options.UseNpgsql(pgOptions.ConnectionString);
 });
-
 #endregion
 
 #region Cors Policy
-
-// Add CORS policy to allow requests from localhost on any port
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalhost", policy =>
     {
-        policy.WithOrigins(
-            "http://localhost",
-            "https://localhost"
-        )
-        .SetIsOriginAllowed(origin =>
-            origin.StartsWith("http://localhost:") ||
-            origin.StartsWith("https://localhost:")
-        )
-        .AllowAnyHeader()
-        .AllowAnyMethod();
+        policy.WithOrigins("http://localhost", "https://localhost")
+            .SetIsOriginAllowed(origin =>
+                origin.StartsWith("http://localhost:") ||
+                origin.StartsWith("https://localhost:")
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
     });
 });
+#endregion
 
+#region Health Checks
+string[] ReadyDb = { "ready", "db" };
+builder.Services.AddHealthChecks()
+    .AddCheck("self", () => HealthCheckResult.Healthy())
+    .AddDbContextCheck<ExpensesDbContext>("database", tags: ReadyDb);
 #endregion
 
 var app = builder.Build();
 
-// Apply pending migrations at startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ExpensesDbContext>();
     await db.Database.MigrateAsync();
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseCors("AllowLocalhost");
+    app.UsePathBase("/api/expenses");
+}
+
+if (app.Environment.IsDevelopment() || string.Equals(Environment.GetEnvironmentVariable("ENABLE_SWAGGER"), "true", StringComparison.OrdinalIgnoreCase))
+{
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
 app.UseAuthorization();
-
 app.MapControllers();
-
+app.MapHealthChecks("/health");
 await app.RunAsync();
