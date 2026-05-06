@@ -98,7 +98,7 @@ Discrepancies found by cross-checking Zod schemas (`auth.schemas.ts`) against co
 - **`GET /auth/session` performance**: The session-check endpoint is called on every SPA load. Ensure the JWT validation path is lightweight (no DB hit on happy-path).
 
 ### Expenses service
-- **Implement expenses CRUD**: `HomeDashboardPage.tsx` already shows a "Coming soon…" placeholder. The expenses service has models and migrations but no working controllers or services — these need to be implemented.
+- **Implement expenses CRUD**: `HomeDashboardPage.tsx` shows "Coming soon…". Phase 2 done (categories + currencies read endpoints live). Phase 3 (expense CRUD) is next — see `docs/plans/implementation-plan.md`.
 - **Pagination**: When expenses are implemented, the list endpoint should support cursor- or offset-based pagination from day one rather than returning all records.
 - **Input sanitisation**: Validate and sanitise string fields (`description`, category name, etc.) at the controller layer before they reach the database.
 

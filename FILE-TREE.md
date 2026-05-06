@@ -70,6 +70,12 @@ ExpenseManager/
 │   │   │   │       ├── PostgresOptions.cs
 │   │   │   │       └── RabbitMQOptions.cs
 │   │   │   ├── Controllers/
+│   │   │   │   ├── CategoryController.cs    — GET /categories → IEnumerable<CategoryDto>
+│   │   │   │   ├── CurrencyController.cs    — GET /currencies → IEnumerable<CurrencyDto>
+│   │   │   │   ├── DTO/
+│   │   │   │   │   ├── CategoryDto.cs       — Id, Name, Description?, Subcategories: IEnumerable<SubcategoryDto>
+│   │   │   │   │   ├── SubcategoryDto.cs    — Id, Name, Description? (no nested subcategories)
+│   │   │   │   │   └── CurrencyDto.cs       — Id, Code, Name, Symbol, Decimals
 │   │   │   │   └── Responses/
 │   │   │   │       └── ErrorResponse.cs     — Uniform error envelope (matches users service pattern)
 │   │   │   ├── Models/
@@ -99,6 +105,11 @@ ExpenseManager/
 │   │   │   │   └── External/
 │   │   │   │       └── User.cs              — Read-only mapping of users DB entity
 │   │   │   ├── Repositories/
+│   │   │   │   ├── CategoryRepository.cs    — GetAllActiveAsync(): top-level non-archived categories with Include(Children), AsNoTracking
+│   │   │   │   ├── CurrencyRepository.cs    — GetAllAsync(): all currencies, AsNoTracking
+│   │   │   │   ├── Contracts/
+│   │   │   │   │   ├── ICategoryRepository.cs
+│   │   │   │   │   └── ICurrencyRepository.cs
 │   │   │   │   └── External/
 │   │   │   │       ├── Contracts/
 │   │   │   │       │   └── IUserRepository.cs
@@ -106,9 +117,13 @@ ExpenseManager/
 │   │   │   ├── Services/
 │   │   │   │   ├── Contracts/
 │   │   │   │   │   ├── IRabbitMQService.cs
-│   │   │   │   │   └── ILookupCacheService.cs — GetIdAsync<T>(name) / GetNameAsync<T>(id)
+│   │   │   │   │   ├── ILookupCacheService.cs — GetIdAsync<T>(name) / GetNameAsync<T>(id)
+│   │   │   │   │   ├── ICategoryService.cs  — GetAllAsync() → active category tree
+│   │   │   │   │   └── ICurrencyService.cs  — GetAllAsync() → all currencies
 │   │   │   │   ├── RabbitMQService.cs       — RabbitMQ connection and messaging
-│   │   │   │   └── LookupCacheService.cs    — IMemoryCache-backed lookup; NeverRemove priority; loads entire table on first access
+│   │   │   │   ├── LookupCacheService.cs    — IMemoryCache-backed lookup; NeverRemove priority; loads entire table on first access
+│   │   │   │   ├── CategoryService.cs       — Injects ICategoryRepository; projects Category → CategoryDto (filters archived children)
+│   │   │   │   └── CurrencyService.cs       — Injects ICurrencyRepository; projects Currency → CurrencyDto
 │   │   │   └── Migrations/
 │   │   │       ├── 20260217225816_InitialCreate.cs
 │   │   │       ├── 20260217225816_InitialCreate.Designer.cs
@@ -121,13 +136,18 @@ ExpenseManager/
 │   │       ├── Touir.ExpensesManager.Expenses.Tests.csproj
 │   │       ├── TestHelpers/
 │   │       │   └── TestExpensesDbContext.cs  — In-memory DB wrapper for tests
-│   │       ├── Repositories/External/
-│   │       │   └── UserRepositoryTests.cs
+│   │       ├── Repositories/
+│   │       │   ├── External/
+│   │       │   │   └── UserRepositoryTests.cs
+│   │       │   ├── CategoryRepositoryTests.cs       — 5 tests: top-level only, children included, archived excluded, empty, archived subs
+│   │       │   └── CurrencyRepositoryTests.cs       — 4 tests: all currencies, field mapping, empty set, positive IDs
 │   │       ├── Infrastructure/
 │   │       │   └── ExpensesDbContextSchemaTests.cs  — 23 tests: all Phase 1 entities, composite PKs, unique constraints, cascades
 │   │       └── Services/
 │   │           ├── RabbitMQServiceTests.cs
-│   │           └── LookupCacheServiceTests.cs       — 7 tests: GetId/Name, KeyNotFoundException, cache hit, all 8 types
+│   │           ├── LookupCacheServiceTests.cs       — 7 tests: GetId/Name, KeyNotFoundException, cache hit, all 8 types
+│   │           ├── CategoryServiceTests.cs          — 8 tests: Mock<ICategoryRepository>; top-level, subcategories, archived exclusion, field mapping, call count
+│   │           └── CurrencyServiceTests.cs          — 5 tests: Mock<ICurrencyRepository>; all currencies, field mapping, empty set, ID mapping, call count
 │   │
 │   └── users/
 │       ├── .config/
@@ -363,6 +383,13 @@ ExpenseManager/
 │           │   │       ├── AuthContext.test.tsx
 │           │   │       ├── ProtectedRoute.test.tsx
 │           │   │       └── PublicOnlyRoute.test.tsx
+│           │   ├── expenses/          — Expense management feature
+│           │   │   ├── types/
+│           │   │   │   └── expenses.type.ts     — Category, Subcategory, Currency types
+│           │   │   ├── services/
+│           │   │   │   ├── categoriesApi.service.ts — getCategories() → GET /api/expenses/categories
+│           │   │   │   └── currenciesApi.service.ts — getCurrencies() → GET /api/expenses/currencies
+│           │   │   └── ExpensesDataContext.tsx  — ExpensesDataProvider / useExpensesData(); fetches categories + currencies on mount
 │           │   ├── dashboard/         — Authenticated dashboard feature
 │           │   │   └── pages/
 │           │   │       ├── HomeDashboardPage.tsx — Dashboard home; shows user greeting and cards

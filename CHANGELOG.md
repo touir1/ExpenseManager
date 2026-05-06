@@ -3,6 +3,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.78.0] - 2026-05-06
+### Changed
+- **Backend — Expenses service: repository layer added (structural parity with users service):**
+  - `ICategoryRepository` / `CategoryRepository`: `GetAllActiveAsync()` — filters top-level non-archived categories with `Include(Children)` + `AsNoTracking()`; DbContext access now owned by repo
+  - `ICurrencyRepository` / `CurrencyRepository`: `GetAllAsync()` — all currencies with `AsNoTracking()`
+  - `CategoryService` and `CurrencyService`: inject `ICategoryRepository` / `ICurrencyRepository` respectively; no longer depend on `ExpensesDbContext` directly; project domain models → DTOs in memory
+  - `Program.cs`: repos registered in `#region Repositories`
+  - `CategoryServiceTests` and `CurrencyServiceTests`: rewritten to use `Mock<IXRepository>` with static `CreateService()` factory (no more in-memory DB in service tests)
+  - `CategoryRepositoryTests` (5 tests) and `CurrencyRepositoryTests` (4 tests) added using `TestExpensesDbContextWrapper`; total: 109/109 passing
+
+## [0.77.0] - 2026-05-06
+### Added
+- **Backend — Phase 2: Categories & Currencies read endpoints (expenses service):**
+  - `ICategoryService` / `CategoryService`: `GetAllAsync()` returns active top-level categories with their active children as a tree (archived entries excluded at both levels); loads via `Include(Children)` then projects in memory
+  - `ICurrencyService` / `CurrencyService`: `GetAllAsync()` returns all currencies
+  - `CategoryController`: `GET /categories` → `IEnumerable<CategoryDto>` (tree)
+  - `CurrencyController`: `GET /currencies` → `IEnumerable<CurrencyDto>`
+  - `Controllers/DTO/` folder: `CategoryDto` (with `IEnumerable<SubcategoryDto>`), `SubcategoryDto`, `CurrencyDto` — matches users service DTO pattern
+  - Both services registered as scoped in `Program.cs`
+  - `CategoryServiceTests` (7 tests) and `CurrencyServiceTests` (4 tests) using in-memory DB; total: 88/88 passing
+- **Frontend — Phase 2: expenses data layer:**
+  - `src/features/expenses/types/expenses.type.ts` — `Category`, `Subcategory`, `Currency` types
+  - `src/features/expenses/services/categoriesApi.service.ts` — `getCategories()` → `GET /api/expenses/categories`
+  - `src/features/expenses/services/currenciesApi.service.ts` — `getCurrencies()` → `GET /api/expenses/currencies`
+  - `src/features/expenses/ExpensesDataContext.tsx` — `ExpensesDataProvider` / `useExpensesData()` — fetches both on mount, exposes `{ categories, currencies, isLoading, refresh }`
+  - `App.tsx` — `ExpensesDataProvider` nested inside `AuthProvider`
+
 ## [0.76.3] - 2026-05-05
 ### Changed
 - **Backend — Expenses service: `int` → `long` PKs and FKs for high-volume tables:**

@@ -21,11 +21,21 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 
 ## Key Endpoints
 
-- `GET/POST/PUT/DELETE /expenses` — Expense CRUD
-- `GET/POST/PUT/DELETE /categories` — Expense categories
-- `GET /health` — Liveness/readiness probe
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/categories` | Active category tree (top-level + subcategories, archived excluded) → `CategoryDto[]` |
+| `GET` | `/currencies` | All currencies → `CurrencyDto[]` |
+| `GET` | `/health` | Liveness/readiness probe |
 
-All endpoints (except health) require authentication, enforced by nginx's `auth_request` subrequest to the users service before forwarding.
+All endpoints (except `/health`) require authentication, enforced by nginx's `auth_request` subrequest to the users service before forwarding.
+
+### Response DTOs
+
+**`CategoryDto`** — `{ id, name, description?, subcategories: SubcategoryDto[] }`  
+**`SubcategoryDto`** — `{ id, name, description? }`  
+**`CurrencyDto`** — `{ id, code, name, symbol, decimals }`
+
+DTOs live in `Controllers/DTO/`; error envelopes (`{ message }`) in `Controllers/Responses/`.
 
 ## Architecture
 

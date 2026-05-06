@@ -207,18 +207,18 @@ Replace current model with:
 
 ### Backend
 
-- [ ] `CategoryService` — `GetAllAsync()` (tree: categories with subcategory children, excluding archived)
-- [ ] `CurrencyService` — `GetAllAsync()`
-- [ ] `CategoryController` — `GET /categories`
-- [ ] `CurrencyController` — `GET /currencies`
-- [ ] FluentValidation not needed (read-only, no request bodies)
-- [ ] Unit tests for services
+- [x] `CategoryService` — `GetAllAsync()` (tree: categories with subcategory children, excluding archived)
+- [x] `CurrencyService` — `GetAllAsync()`
+- [x] `CategoryController` — `GET /categories`
+- [x] `CurrencyController` — `GET /currencies`
+- [x] FluentValidation not needed (read-only, no request bodies)
+- [x] Unit tests for services
 
 ### Frontend
 
-- [ ] `categoriesApi.service.ts` — fetch categories tree
-- [ ] `currenciesApi.service.ts` — fetch currencies list
-- [ ] Store both in React context or TanStack Query cache (available globally)
+- [x] `categoriesApi.service.ts` — fetch categories tree
+- [x] `currenciesApi.service.ts` — fetch currencies list
+- [x] Store both in React context or TanStack Query cache (available globally)
 
 **Depends on:** Phase 1
 

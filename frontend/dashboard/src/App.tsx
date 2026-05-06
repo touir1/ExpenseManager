@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from '@/features/auth/AuthContext'
+import { ExpensesDataProvider } from '@/features/expenses/ExpensesDataContext'
 import { ToastProvider, useToast } from '@/components/Toast'
 import { onError } from '@/services/api.service'
 import NavBar from '@/layouts/NavBar'
@@ -13,10 +14,12 @@ export default function App() {
         <ToastProvider>
           <ErrorBinder />
           <AuthProvider>
-            <NavBar />
-            <main className="flex-1 flex flex-col">
-              <AppRoutes />
-            </main>
+            <ExpensesDataProvider>
+              <NavBar />
+              <main className="flex-1 flex flex-col">
+                <AppRoutes />
+              </main>
+            </ExpensesDataProvider>
           </AuthProvider>
         </ToastProvider>
       </BrowserRouter>

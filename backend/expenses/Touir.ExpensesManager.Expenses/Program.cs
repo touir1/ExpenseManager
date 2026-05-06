@@ -1,6 +1,8 @@
 using Touir.ExpensesManager.Expenses.Controllers.Responses;
 using Touir.ExpensesManager.Expenses.Infrastructure;
 using Touir.ExpensesManager.Expenses.Infrastructure.Options;
+using Touir.ExpensesManager.Expenses.Repositories;
+using Touir.ExpensesManager.Expenses.Repositories.Contracts;
 using Touir.ExpensesManager.Expenses.Repositories.External;
 using Touir.ExpensesManager.Expenses.Repositories.External.Contracts;
 using Touir.ExpensesManager.Expenses.Services;
@@ -98,10 +100,14 @@ builder.Services.Configure<PostgresOptions>(c =>
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<IRabbitMQService, RabbitMQService>();
 builder.Services.AddScoped<ILookupCacheService, LookupCacheService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ICurrencyService, CurrencyService>();
 #endregion
 
 #region Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICurrencyRepository, CurrencyRepository>();
 #endregion
 
 #region Database
