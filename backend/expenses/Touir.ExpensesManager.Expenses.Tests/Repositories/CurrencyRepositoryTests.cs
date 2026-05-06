@@ -25,39 +25,39 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
         public async Task GetAllAsync_ReturnsAllCurrencies()
         {
             _wrapper.Context.Currencies.AddRange(
-                new Currency { Code = "USD", Name = "US Dollar", Symbol = "$", Decimals = 2 },
-                new Currency { Code = "EUR", Name = "Euro", Symbol = "€", Decimals = 2 }
+                new Currency { Code = "ZZ1", Name = "Test Currency 1", Symbol = "$", Decimals = 2 },
+                new Currency { Code = "ZZ2", Name = "Test Currency 2", Symbol = "$", Decimals = 2 }
             );
             await _wrapper.Context.SaveChangesAsync();
 
             var result = (await _sut.GetAllAsync()).ToList();
 
-            Assert.Equal(2, result.Count);
+            Assert.Equal(156, result.Count); // 154 seeded + 2 added
         }
 
         [Fact]
         public async Task GetAllAsync_MapsAllFields()
         {
             _wrapper.Context.Currencies.Add(
-                new Currency { Code = "TND", Name = "Tunisian Dinar", Symbol = "د.ت", Decimals = 3 }
+                new Currency { Code = "ZZZ", Name = "Zero Zone Currency", Symbol = "Ø", Decimals = 3 }
             );
             await _wrapper.Context.SaveChangesAsync();
 
             var result = (await _sut.GetAllAsync()).ToList();
 
-            var currency = result.First();
-            Assert.Equal("TND", currency.Code);
-            Assert.Equal("Tunisian Dinar", currency.Name);
-            Assert.Equal("د.ت", currency.Symbol);
+            var currency = result.First(c => c.Code == "ZZZ");
+            Assert.Equal("ZZZ", currency.Code);
+            Assert.Equal("Zero Zone Currency", currency.Name);
+            Assert.Equal("Ø", currency.Symbol);
             Assert.Equal(3, currency.Decimals);
         }
 
         [Fact]
-        public async Task GetAllAsync_ReturnsEmptyWhenNoCurrenciesExist()
+        public async Task GetAllAsync_ReturnsSeededCurrenciesWithNoAdded()
         {
             var result = await _sut.GetAllAsync();
 
-            Assert.Empty(result);
+            Assert.Equal(154, result.Count());
         }
 
         [Fact]

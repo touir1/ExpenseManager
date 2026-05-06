@@ -33,17 +33,17 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
             return user;
         }
 
-        private async Task<Currency> SeedCurrencyAsync(int id = 1)
+        private async Task<Currency> SeedCurrencyAsync(int id = 1000)
         {
-            var currency = new Currency { Id = id, Code = $"C{id:00}", Name = $"Currency {id}", Symbol = "$", Decimals = 2 };
+            var currency = new Currency { Id = id, Code = $"T{id}", Name = $"Test Currency {id}", Symbol = "$", Decimals = 2 };
             _ctx.Currencies.Add(currency);
             await _ctx.SaveChangesAsync();
             return currency;
         }
 
-        private async Task<Category> SeedCategoryAsync(int id = 1, int? parentId = null)
+        private async Task<Category> SeedCategoryAsync(int id = 2000, int? parentId = null)
         {
-            var category = new Category { Id = id, Name = $"Category {id}", IsArchived = false, ParentCategoryId = parentId };
+            var category = new Category { Id = id, Name = $"TestCategory {id}", IsArchived = false, ParentCategoryId = parentId };
             _ctx.Categories.Add(category);
             await _ctx.SaveChangesAsync();
             return category;
@@ -98,12 +98,12 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
         [Fact]
         public async Task Category_CanPersist_WithIsArchived()
         {
-            var category = new Category { Id = 1, Name = "Food", IsArchived = true };
+            var category = new Category { Id = 2000, Name = "TestFood", IsArchived = true };
             _ctx.Categories.Add(category);
             await _ctx.SaveChangesAsync();
 
             _ctx.ChangeTracker.Clear();
-            var saved = await _ctx.Categories.FindAsync(1);
+            var saved = await _ctx.Categories.FindAsync(2000);
             Assert.NotNull(saved);
             Assert.True(saved.IsArchived);
         }
@@ -111,15 +111,15 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
         [Fact]
         public async Task Category_CanPersist_ParentChildHierarchy()
         {
-            var parent = new Category { Id = 1, Name = "Food", IsArchived = false };
-            var child = new Category { Id = 2, Name = "Groceries", IsArchived = false, ParentCategoryId = 1 };
+            var parent = new Category { Id = 2000, Name = "TestFood", IsArchived = false };
+            var child = new Category { Id = 2001, Name = "TestGroceries", IsArchived = false, ParentCategoryId = 2000 };
             _ctx.Categories.AddRange(parent, child);
             await _ctx.SaveChangesAsync();
 
             _ctx.ChangeTracker.Clear();
-            var saved = await _ctx.Categories.Include(c => c.Children).FirstAsync(c => c.Id == 1);
+            var saved = await _ctx.Categories.Include(c => c.Children).FirstAsync(c => c.Id == 2000);
             Assert.Single(saved.Children);
-            Assert.Equal(2, saved.Children.First().Id);
+            Assert.Equal(2001, saved.Children.First().Id);
         }
 
         // ── Expense ───────────────────────────────────────────────────────────
@@ -203,8 +203,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
         {
             var user = await SeedUserAsync();
             var currency = await SeedCurrencyAsync();
-            var parent = await SeedCategoryAsync(id: 1);
-            var sub = await SeedCategoryAsync(id: 2, parentId: 1);
+            var parent = await SeedCategoryAsync(id: 2000);
+            var sub = await SeedCategoryAsync(id: 2001, parentId: 2000);
 
             var expense = new Expense { Id = 1, UserId = user.Id, Amount = 10m, CurrencyId = currency.Id, Date = DateOnly.FromDateTime(DateTime.UtcNow), CategoryId = parent.Id, SubcategoryId = sub.Id, CreatedAt = DateTime.UtcNow, CreatedById = user.Id, CreatedFromId = 1 };
             _ctx.Expenses.Add(expense);
@@ -339,8 +339,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
         [Fact]
         public async Task CurrencyDailyRate_CanPersist()
         {
-            var src = await SeedCurrencyAsync(id: 1);
-            var dst = await SeedCurrencyAsync(id: 2);
+            var src = await SeedCurrencyAsync(id: 1000);
+            var dst = await SeedCurrencyAsync(id: 1001);
             var rate = new CurrencyDailyRate { Id = 1, SourceCurrencyId = src.Id, DestinationCurrencyId = dst.Id, Date = new DateOnly(2026, 5, 1), Rate = 1.12345678m, RateSourceId = 2 /* RateSource: Manual */ };
             _ctx.CurrencyDailyRates.Add(rate);
             await _ctx.SaveChangesAsync();
@@ -354,8 +354,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
         [Fact]
         public async Task CurrencyDailyRate_UniqueConstraint_ThrowsOnDuplicate()
         {
-            var src = await SeedCurrencyAsync(id: 1);
-            var dst = await SeedCurrencyAsync(id: 2);
+            var src = await SeedCurrencyAsync(id: 1000);
+            var dst = await SeedCurrencyAsync(id: 1001);
             var date = new DateOnly(2026, 5, 1);
 
             _ctx.CurrencyDailyRates.Add(new CurrencyDailyRate { Id = 1, SourceCurrencyId = src.Id, DestinationCurrencyId = dst.Id, Date = date, Rate = 1.1m, RateSourceId = 1 /* RateSource: Auto */ });
@@ -371,8 +371,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
         [Fact]
         public async Task CurrencyPairDefault_CompositePK_CanPersist()
         {
-            var src = await SeedCurrencyAsync(id: 1);
-            var dst = await SeedCurrencyAsync(id: 2);
+            var src = await SeedCurrencyAsync(id: 1000);
+            var dst = await SeedCurrencyAsync(id: 1001);
             var pair = new CurrencyPairDefault { SourceCurrencyId = src.Id, DestinationCurrencyId = dst.Id, Rate = 1.5m };
             _ctx.CurrencyPairDefaults.Add(pair);
             await _ctx.SaveChangesAsync();
@@ -386,8 +386,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
         [Fact]
         public async Task CurrencyPairDefault_DuplicateCompositePK_ThrowsOnSave()
         {
-            var src = await SeedCurrencyAsync(id: 1);
-            var dst = await SeedCurrencyAsync(id: 2);
+            var src = await SeedCurrencyAsync(id: 1000);
+            var dst = await SeedCurrencyAsync(id: 1001);
 
             _ctx.CurrencyPairDefaults.Add(new CurrencyPairDefault { SourceCurrencyId = src.Id, DestinationCurrencyId = dst.Id, Rate = 1.5m });
             await _ctx.SaveChangesAsync();
@@ -402,8 +402,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
         [Fact]
         public async Task CurrencyRateConflict_CanPersist_Pending()
         {
-            var src = await SeedCurrencyAsync(id: 1);
-            var dst = await SeedCurrencyAsync(id: 2);
+            var src = await SeedCurrencyAsync(id: 1000);
+            var dst = await SeedCurrencyAsync(id: 1001);
             var conflict = new CurrencyRateConflict { Id = 1, SourceCurrencyId = src.Id, DestinationCurrencyId = dst.Id, Date = new DateOnly(2026, 5, 1), AutomaticRate = 1.1m, ManualRate = 1.2m, StatusId = 1 /* ConflictStatus: Pending */ };
             _ctx.CurrencyRateConflicts.Add(conflict);
             await _ctx.SaveChangesAsync();
@@ -421,8 +421,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
         public async Task CurrencyRateConflict_CanPersist_Resolved_WithCustomRate()
         {
             var user = await SeedUserAsync();
-            var src = await SeedCurrencyAsync(id: 1);
-            var dst = await SeedCurrencyAsync(id: 2);
+            var src = await SeedCurrencyAsync(id: 1000);
+            var dst = await SeedCurrencyAsync(id: 1001);
             var conflict = new CurrencyRateConflict { Id = 1, SourceCurrencyId = src.Id, DestinationCurrencyId = dst.Id, Date = new DateOnly(2026, 5, 1), AutomaticRate = 1.1m, ManualRate = 1.2m, StatusId = 2 /* ConflictStatus: Resolved */, ResolvedAt = DateTime.UtcNow, ResolvedById = user.Id, ResolutionId = 3 /* ConflictResolution: Custom */, CustomRate = 1.15m };
             _ctx.CurrencyRateConflicts.Add(conflict);
             await _ctx.SaveChangesAsync();

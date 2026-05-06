@@ -127,10 +127,14 @@ ExpenseManager/
 │   │   │   └── Migrations/
 │   │   │       ├── 20260217225816_InitialCreate.cs
 │   │   │       ├── 20260217225816_InitialCreate.Designer.cs
-│   │   │       ├── 20260505144048_SchemaFoundation.cs   — Phase 1: all domain + 8 lookup tables with seed data
-│   │   │       ├── 20260505144048_SchemaFoundation.Designer.cs
+│   │   │       ├── 20260505144220_SchemaFoundation.cs   — Phase 1: all domain + 8 lookup tables with seed data
+│   │   │       ├── 20260505144220_SchemaFoundation.Designer.cs
 │   │   │       ├── 20260505145359_LongIdsForExpenseAndAudit.cs   — bigint PKs/FKs for Expense, AuditLog, AuditSnapshot, FamilyAttribution
 │   │   │       ├── 20260505145359_LongIdsForExpenseAndAudit.Designer.cs
+│   │   │       ├── 20260506203552_SeedCurrencies.cs     — 154 ISO 4217 active currencies (AED→ZWG)
+│   │   │       ├── 20260506203552_SeedCurrencies.Designer.cs
+│   │   │       ├── 20260506204543_SeedCategories.cs     — 17 top-level + 108 subcategories (125 total)
+│   │   │       ├── 20260506204543_SeedCategories.Designer.cs
 │   │   │       └── ExpensesDbContextModelSnapshot.cs
 │   │   └── Touir.ExpensesManager.Expenses.Tests/
 │   │       ├── Touir.ExpensesManager.Expenses.Tests.csproj

@@ -24,67 +24,68 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
         [Fact]
         public async Task GetAllActiveAsync_ReturnsOnlyTopLevelCategories()
         {
-            var parent = new Category { Name = "Food", IsArchived = false };
-            var child = new Category { Name = "Groceries", IsArchived = false, ParentCategory = parent };
+            var parent = new Category { Name = "TestParentOnly", IsArchived = false };
+            var child = new Category { Name = "TestChildOnly", IsArchived = false, ParentCategory = parent };
             _wrapper.Context.Categories.AddRange(parent, child);
             await _wrapper.Context.SaveChangesAsync();
 
             var result = (await _sut.GetAllActiveAsync()).ToList();
 
-            Assert.Single(result);
-            Assert.Equal("Food", result[0].Name);
+            Assert.Contains(result, c => c.Name == "TestParentOnly");
+            Assert.DoesNotContain(result, c => c.Name == "TestChildOnly");
         }
 
         [Fact]
         public async Task GetAllActiveAsync_IncludesChildren()
         {
-            var parent = new Category { Name = "Transport", IsArchived = false };
-            var child1 = new Category { Name = "Car", IsArchived = false, ParentCategory = parent };
-            var child2 = new Category { Name = "Bus", IsArchived = false, ParentCategory = parent };
+            var parent = new Category { Name = "TestTransportGroup", IsArchived = false };
+            var child1 = new Category { Name = "TestCar", IsArchived = false, ParentCategory = parent };
+            var child2 = new Category { Name = "TestBus", IsArchived = false, ParentCategory = parent };
             _wrapper.Context.Categories.AddRange(parent, child1, child2);
             await _wrapper.Context.SaveChangesAsync();
 
             var result = (await _sut.GetAllActiveAsync()).ToList();
 
-            Assert.Single(result);
-            Assert.Equal(2, result[0].Children.Count);
+            var found = result.First(c => c.Name == "TestTransportGroup");
+            Assert.Equal(2, found.Children.Count);
         }
 
         [Fact]
         public async Task GetAllActiveAsync_ExcludesArchivedCategories()
         {
-            var active = new Category { Name = "Active", IsArchived = false };
-            var archived = new Category { Name = "Archived", IsArchived = true };
+            var active = new Category { Name = "TestActiveCategory", IsArchived = false };
+            var archived = new Category { Name = "TestArchivedCategory", IsArchived = true };
             _wrapper.Context.Categories.AddRange(active, archived);
             await _wrapper.Context.SaveChangesAsync();
 
             var result = (await _sut.GetAllActiveAsync()).ToList();
 
-            Assert.Single(result);
-            Assert.Equal("Active", result[0].Name);
+            Assert.Contains(result, c => c.Name == "TestActiveCategory");
+            Assert.DoesNotContain(result, c => c.Name == "TestArchivedCategory");
         }
 
         [Fact]
-        public async Task GetAllActiveAsync_ReturnsEmptyWhenNoCategoriesExist()
+        public async Task GetAllActiveAsync_ReturnsSeededTopLevelCategories()
         {
-            var result = await _sut.GetAllActiveAsync();
+            var result = (await _sut.GetAllActiveAsync()).ToList();
 
-            Assert.Empty(result);
+            Assert.Equal(17, result.Count); // 17 seeded top-level categories
         }
 
         [Fact]
         public async Task GetAllActiveAsync_IncludesArchivedChildrenInCollection()
         {
-            var parent = new Category { Name = "Food", IsArchived = false };
-            var activeSub = new Category { Name = "Active Sub", IsArchived = false, ParentCategory = parent };
-            var archivedSub = new Category { Name = "Archived Sub", IsArchived = true, ParentCategory = parent };
+            var parent = new Category { Name = "TestFoodGroup", IsArchived = false };
+            var activeSub = new Category { Name = "TestActiveSub", IsArchived = false, ParentCategory = parent };
+            var archivedSub = new Category { Name = "TestArchivedSub", IsArchived = true, ParentCategory = parent };
             _wrapper.Context.Categories.AddRange(parent, activeSub, archivedSub);
             await _wrapper.Context.SaveChangesAsync();
 
             var result = (await _sut.GetAllActiveAsync()).ToList();
 
             // Repository returns all children; service filters archived ones
-            Assert.Equal(2, result[0].Children.Count);
+            var found = result.First(c => c.Name == "TestFoodGroup");
+            Assert.Equal(2, found.Children.Count);
         }
     }
 }

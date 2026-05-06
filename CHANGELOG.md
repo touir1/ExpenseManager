@@ -3,6 +3,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.79.0] - 2026-05-06
+### Added
+- **Backend — Expenses service: reference data seeded via migrations:**
+  - `20260506203552_SeedCurrencies`: inserts 154 ISO 4217 active currencies (AED→ZWG) into `Currencies` table with `Code`, `Name`, `Decimals`, `Symbol`; `Down` deletes by explicit ID range
+  - `20260506204543_SeedCategories`: inserts 17 top-level categories (IDs 1–17) + 108 subcategories (IDs 18–125) into `Categories` table; parents inserted first, subcategories in a second pass per group to satisfy self-referential FK
+  - Test suite kept green: `SeedCurrencyAsync` and `SeedCategoryAsync` helpers moved to IDs 1000+ / 2000+ to avoid PK conflicts with seed rows; `CurrencyRepositoryTests` and `CategoryRepositoryTests` rewritten to assert on named items rather than `Single`/`Empty` counts
+
 ## [0.78.1] - 2026-05-06
 ### Fixed
 - **Frontend — `ExpensesDataContext` infinite reload loop on app start:**
