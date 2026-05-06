@@ -1,9 +1,9 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
-using Touir.ExpensesManager.Expenses.Infrastructure.Options;
-using Touir.ExpensesManager.Expenses.Services.Contracts;
+using Touir.ExpensesManager.Users.Infrastructure.Options;
+using Touir.ExpensesManager.Users.Services.Contracts;
 
-namespace Touir.ExpensesManager.Expenses.Services
+namespace Touir.ExpensesManager.Users.Services
 {
     public class RabbitMQService : IRabbitMQService
     {
@@ -11,16 +11,15 @@ namespace Touir.ExpensesManager.Expenses.Services
         private IConnection? _connection;
         private readonly object _lock = new();
 
-        public RabbitMQService(IOptions<RabbitMQOptions> option)
+        public RabbitMQService(IOptions<RabbitMQOptions> options)
         {
-            var opt = option.Value;
+            var opt = options.Value;
             _connectionFactory = new ConnectionFactory
             {
                 HostName = opt.HostName,
                 Port = opt.Port,
                 UserName = opt.UserName,
-                Password = opt.Password,
-                DispatchConsumersAsync = true
+                Password = opt.Password
             };
         }
 

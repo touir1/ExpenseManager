@@ -1,6 +1,7 @@
 using Touir.ExpensesManager.Expenses.Controllers.Responses;
 using Touir.ExpensesManager.Expenses.Infrastructure;
 using Touir.ExpensesManager.Expenses.Infrastructure.Options;
+using Touir.ExpensesManager.Expenses.Messaging.Consumers;
 using Touir.ExpensesManager.Expenses.Repositories;
 using Touir.ExpensesManager.Expenses.Repositories.Contracts;
 using Touir.ExpensesManager.Expenses.Repositories.External;
@@ -104,10 +105,15 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICurrencyService, CurrencyService>();
 #endregion
 
+#region Messaging
+builder.Services.AddHostedService<UserEventConsumer>();
+#endregion
+
 #region Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICurrencyRepository, CurrencyRepository>();
+builder.Services.AddScoped<IInboxRepository, InboxRepository>();
 #endregion
 
 #region Database

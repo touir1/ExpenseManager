@@ -6,6 +6,7 @@ using Touir.ExpensesManager.Users.Infrastructure.Contracts;
 using Touir.ExpensesManager.Users.Infrastructure.Options;
 using Microsoft.Extensions.Options;
 using Moq;
+using System.Text.Json;
 
 namespace Touir.ExpensesManager.Users.Tests.Services
 {
@@ -33,12 +34,14 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         private static RegistrationService CreateService(
             Mock<IUserRepository>? userRepo = null,
             Mock<IUserRoleAssignmentService>? roleAssignment = null,
-            Mock<IEmailHelper>? emailHelper = null)
+            Mock<IEmailHelper>? emailHelper = null,
+            Mock<IOutboxRepository>? outboxRepo = null)
         {
             return new RegistrationService(
                 Options.Create(new AuthenticationServiceOptions { VerifyEmailBaseUrl = "http://localhost/verify" }),
                 emailHelper?.Object ?? CreateEmailHelperMock().Object,
                 userRepo?.Object ?? new Mock<IUserRepository>().Object,
+                outboxRepo?.Object ?? new Mock<IOutboxRepository>().Object,
                 roleAssignment?.Object ?? CreateRoleAssignmentMock().Object
             );
         }
@@ -163,13 +166,36 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         [Fact]
         public async Task ValidateEmailAsync_ReturnsTrue_WhenValid()
         {
+            var user = new User { Id = 1, Email = "test@test.com", FirstName = "John", LastName = "Doe", IsEmailValidated = true };
             var userRepo = new Mock<IUserRepository>();
-            userRepo.Setup(r => r.ValidateEmail(It.IsAny<string>(), "test@test.com")).ReturnsAsync(true);
+            userRepo.Setup(r => r.ValidateEmailAsync(It.IsAny<string>(), "test@test.com"))
+                .ReturnsAsync(user);
 
-            var service = CreateService(userRepo);
+            var outboxRepo = new Mock<IOutboxRepository>();
+            outboxRepo.Setup(r => r.EnqueueAsync(It.IsAny<OutboxEvent>())).Returns(Task.CompletedTask);
+
+            var service = CreateService(userRepo, outboxRepo: outboxRepo);
             var result = await service.ValidateEmailAsync(Guid.NewGuid().ToString(), "test@test.com");
 
             Assert.True(result);
+            userRepo.Verify(r => r.ValidateEmailAsync(It.IsAny<string>(), "test@test.com"), Times.Once);
+            outboxRepo.Verify(r => r.EnqueueAsync(It.IsAny<OutboxEvent>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task ValidateEmailAsync_ReturnsFalse_WhenUserNotFound()
+        {
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.ValidateEmailAsync(It.IsAny<string>(), "test@test.com"))
+                .ReturnsAsync((User?)null);
+
+            var outboxRepo = new Mock<IOutboxRepository>();
+
+            var service = CreateService(userRepo, outboxRepo: outboxRepo);
+            var result = await service.ValidateEmailAsync(Guid.NewGuid().ToString(), "test@test.com");
+
+            Assert.False(result);
+            outboxRepo.Verify(r => r.EnqueueAsync(It.IsAny<OutboxEvent>()), Times.Never);
         }
 
         #endregion

@@ -1,11 +1,13 @@
+using System.Text.Json;
+using System.Web;
+using Microsoft.Extensions.Options;
 using Touir.ExpensesManager.Users.Infrastructure;
 using Touir.ExpensesManager.Users.Infrastructure.Contracts;
 using Touir.ExpensesManager.Users.Infrastructure.Options;
+using Touir.ExpensesManager.Users.Messaging.Messages;
 using Touir.ExpensesManager.Users.Models;
 using Touir.ExpensesManager.Users.Repositories.Contracts;
 using Touir.ExpensesManager.Users.Services.Contracts;
-using Microsoft.Extensions.Options;
-using System.Web;
 
 namespace Touir.ExpensesManager.Users.Services
 {
@@ -13,6 +15,7 @@ namespace Touir.ExpensesManager.Users.Services
     {
         private readonly IEmailHelper _emailHelper;
         private readonly IUserRepository _userRepository;
+        private readonly IOutboxRepository _outboxRepository;
         private readonly IUserRoleAssignmentService _userRoleAssignmentService;
         private readonly string _verifyEmailUrl;
 
@@ -20,10 +23,12 @@ namespace Touir.ExpensesManager.Users.Services
             IOptions<AuthenticationServiceOptions> authServiceOptions,
             IEmailHelper emailHelper,
             IUserRepository userRepository,
+            IOutboxRepository outboxRepository,
             IUserRoleAssignmentService userRoleAssignmentService)
         {
             _emailHelper = emailHelper;
             _userRepository = userRepository;
+            _outboxRepository = outboxRepository;
             _userRoleAssignmentService = userRoleAssignmentService;
             _verifyEmailUrl = authServiceOptions.Value.VerifyEmailBaseUrl;
         }
@@ -54,7 +59,28 @@ namespace Touir.ExpensesManager.Users.Services
             if (!Guid.TryParse(emailVerificationHash, out _))
                 return false;
 
-            return await _userRepository.ValidateEmail(emailVerificationHash, email);
+            var user = await _userRepository.ValidateEmailAsync(emailVerificationHash, email);
+            if (user == null)
+                return false;
+
+            await _outboxRepository.EnqueueAsync(new OutboxEvent
+            {
+                MessageId = Guid.NewGuid().ToString(),
+                EventType = UserEventType.Created,
+                Payload = JsonSerializer.Serialize(new UserEventMessage
+                {
+                    EventType = UserEventType.Created,
+                    UserId = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    FamilyId = user.FamilyId
+                }),
+                CreatedAt = DateTime.UtcNow,
+                RetryCount = 0
+            });
+
+            return true;
         }
 
         private async Task<string> GenerateUniqueEmailValidationHashAsync()

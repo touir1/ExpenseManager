@@ -46,13 +46,13 @@ namespace Touir.ExpensesManager.Users.Repositories
                 .ToListAsync();
         }
 
-        public async Task<bool> ValidateEmail(string emailValidationHash, string email)
+        public async Task<bool> ValidateEmail(string emailVerificationHash, string email)
         {
             var lowerEmail = email.ToLowerInvariant();
             var user = await _context.Users
                 .FirstOrDefaultAsync(u =>
                     u.Email == lowerEmail &&
-                    u.EmailValidationHash == emailValidationHash);
+                    u.EmailValidationHash == emailVerificationHash);
             if (user != null)
             {
                 user.IsEmailValidated = true;
@@ -60,6 +60,22 @@ namespace Touir.ExpensesManager.Users.Repositories
             }
 
             return user != null;
+        }
+
+        public async Task<User?> ValidateEmailAsync(string emailVerificationHash, string email)
+        {
+            var lowerEmail = email.ToLowerInvariant();
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u =>
+                    u.Email == lowerEmail &&
+                    u.EmailValidationHash == emailVerificationHash);
+            if (user != null)
+            {
+                user.IsEmailValidated = true;
+                await _context.SaveChangesAsync();
+            }
+
+            return user;
         }
     }
 }

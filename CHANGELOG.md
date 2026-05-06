@@ -3,6 +3,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.81.0] - 2026-05-07
+### Added
+- **RabbitMQ reliability — outbox pattern (users service):**
+  - `OutboxEvent` model (`MSG_OutboxEvents` table: `MSG_Id` bigint identity PK, `MSG_MessageId` varchar(36) unique, `MSG_EventType`, `MSG_Payload`, `MSG_CreatedAt`, `MSG_PublishedAt` nullable, `MSG_RetryCount` default 0, `MSG_LastError` varchar(2000))
+  - `IOutboxRepository` / `OutboxRepository`: `EnqueueAsync(OutboxEvent)` (adds row + saves), `GetPendingAsync(maxRetries)`, `MarkPublishedAsync`, `MarkFailedAsync` (increments retry + truncates error to 2000 chars), `RequeueAsync` (resets `PublishedAt`/`RetryCount`/`LastError` for replay)
+  - `OutboxPublisherService` (`BackgroundService`): polls every 5 s; fetches unpublished events with `RetryCount < 5`; calls `IUserEventPublisher.PublishRaw()` then `MarkPublishedAsync`; on failure calls `MarkFailedAsync`
+  - `IUserEventPublisher` extended with `PublishRaw(eventType, jsonPayload, messageId)`; `UserEventPublisher.Publish()` delegates to `PublishRaw` with new GUID
+  - `MessagingController`: `POST /messaging/replay?eventType=&from=&forceAll=` → calls `RequeueAsync`, returns count; `GET /messaging/outbox/stats` → pending/published/failed counts
+  - `RegistrationService` refactored: injects `IOutboxRepository`; `ValidateEmailAsync` calls `IUserRepository.ValidateEmailAsync` (validates + saves user), then independently calls `IOutboxRepository.EnqueueAsync` with the built `OutboxEvent` — no shared-transaction coupling
+  - `IUserRepository.ValidateEmailAsync(hash, email) → User?` added (validates, saves, returns user); replaces old `ValidateEmailAndEnqueueAsync` factory-lambda approach
+  - Migration `20260506224929_AddOutboxEvents`: creates `MSG_OutboxEvents` with unique index on `MSG_MessageId` and composite index on `(MSG_PublishedAt, MSG_RetryCount)`
+  - `Program.cs`: registered `IOutboxRepository` (scoped), `OutboxPublisherService` (hosted)
+- **RabbitMQ reliability — inbox pattern (expenses service):**
+  - `InboxEvent` model (`InboxEvents` table: `MessageId` varchar(36) PK, `EventType` varchar(100), `ReceivedAt`, `Status` varchar(20), `Error` varchar(2000) nullable); `InboxEventStatus` constants (`Processed`, `Failed`)
+  - `IInboxRepository` / `InboxRepository`: `ExistsAsync(messageId)`, `AddAsync(InboxEvent)`
+  - `UserEventConsumer` updated with inbox deduplication: extracts `MessageId` from `ea.BasicProperties.MessageId` (fallback: new GUID); checks `ExistsAsync` before processing — duplicate → `BasicAck`, skip; on success writes `InboxEvent { Status=Processed }` then `BasicAck`; on failure `BasicNack` without inbox write (allows RabbitMQ redelivery)
+  - Migration `20260506224942_AddInboxEvents`: creates `InboxEvents` table with index on `ReceivedAt`
+  - `Program.cs`: registered `IInboxRepository` (scoped)
+- **Tests:** `RegistrationServiceTests` updated — `CreateService` accepts `Mock<IOutboxRepository>`; `ValidateEmailAsync_ReturnsTrue_WhenValid` verifies `ValidateEmailAsync` + `EnqueueAsync` both called; `ValidateEmailAsync_ReturnsFalse_WhenUserNotFound` verifies `EnqueueAsync` not called when user missing; 243/243 passing
+
+## [0.80.0] - 2026-05-07
+### Added
+- **RabbitMQ user sync messaging (users → expenses):**
+  - **Users service:** added `RabbitMQ.Client` package; `IRabbitMQService` / `RabbitMQService` (singleton, double-checked-lock connection); `RabbitMQOptions` (`EXPENSES_MANAGEMENT_USERS_RABBITMQ_*` env vars); `IUserEventPublisher` / `UserEventPublisher` — publishes JSON messages to `users.events` topic exchange with routing key matching `UserEventType` (`user.created`, `user.updated`, `user.deleted`)
+  - **Users service — trigger:** `RegistrationService.ValidateEmailAsync` publishes `user.created` after successful email validation with full user payload (Id, FirstName, LastName, Email, FamilyId)
+  - **Expenses service:** `UserEventConsumer` (`BackgroundService`) declares `expenses.users.sync` queue bound to `users.events` with `user.#` routing key; routes `user.created`/`user.updated` → `IUserRepository.SaveOrUpdateUserAsync`, `user.deleted` → `IUserRepository.DeleteUserAsync`; nacks without requeue on deserialization/processing errors; `RabbitMQService` updated to set `DispatchConsumersAsync = true` for async consumer support
+  - **Tests:** `RegistrationServiceTests` updated — `CreateService` factory accepts `Mock<IUserEventPublisher>`; `ValidateEmailAsync_ReturnsTrue_WhenValid` now verifies publisher called with `user.created` event
+
 ## [0.79.0] - 2026-05-06
 ### Added
 - **Backend — Expenses service: reference data seeded via migrations:**

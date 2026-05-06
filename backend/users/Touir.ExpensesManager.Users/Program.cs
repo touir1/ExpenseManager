@@ -2,6 +2,8 @@ using Touir.ExpensesManager.Users.Controllers.Responses;
 using Touir.ExpensesManager.Users.Infrastructure;
 using Touir.ExpensesManager.Users.Infrastructure.Contracts;
 using Touir.ExpensesManager.Users.Infrastructure.Options;
+using Touir.ExpensesManager.Users.Messaging;
+using Touir.ExpensesManager.Users.Messaging.Publishers;
 using Touir.ExpensesManager.Users.Repositories;
 using Touir.ExpensesManager.Users.Repositories.Contracts;
 using Touir.ExpensesManager.Users.Services;
@@ -128,6 +130,18 @@ builder.Services.Configure<CryptographyOptions>(c =>
                 Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_CRYPTOGRAPHY_MAXIMUM_SALT_SIZE")) ?? "32");
 });
 
+builder.Services.Configure<RabbitMQOptions>(c =>
+{
+    c.HostName = builder.Configuration.GetValue("RabbitMQ:HostName",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_RABBITMQ_HOSTNAME")) ?? "127.0.0.1";
+    c.Port = int.Parse(builder.Configuration.GetValue("RabbitMQ:Port",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_RABBITMQ_PORT")) ?? "5672");
+    c.UserName = builder.Configuration.GetValue("RabbitMQ:UserName",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_RABBITMQ_USERNAME")) ?? "EXPENSES_users";
+    c.Password = builder.Configuration.GetValue("RabbitMQ:Password",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_RABBITMQ_PASSWORD")) ?? "EXPENSES_users";
+});
+
 #endregion
 
 #region DbContext
@@ -147,6 +161,15 @@ builder.Services.AddScoped<IAuthenticationRepository, AuthenticationRepository>(
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+
+#endregion
+
+#region Messaging
+
+builder.Services.AddSingleton<IRabbitMQService, RabbitMQService>();
+builder.Services.AddScoped<IUserEventPublisher, UserEventPublisher>();
+builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
+builder.Services.AddHostedService<OutboxPublisherService>();
 
 #endregion
 

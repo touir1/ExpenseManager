@@ -64,6 +64,11 @@ ExpenseManager/
 │   │   │   ├── Touir.ExpensesManager.Expenses.csproj
 │   │   │   ├── Properties/
 │   │   │   │   └── launchSettings.json
+│   │   │   ├── Messaging/
+│   │   │   │   ├── Messages/
+│   │   │   │   │   └── UserEventMessage.cs  — Inbound event DTO + UserEventType constants (Created/Updated/Deleted)
+│   │   │   │   └── Consumers/
+│   │   │   │       └── UserEventConsumer.cs — BackgroundService; binds expenses.users.sync → users.events; inbox deduplication via IInboxRepository.ExistsAsync; calls IUserRepository.SaveOrUpdateUserAsync / DeleteUserAsync
 │   │   │   ├── Infrastructure/
 │   │   │   │   ├── ExpensesDbContext.cs     — EF Core context; all 13 DbSets with full Fluent API config
 │   │   │   │   └── Options/
@@ -102,14 +107,17 @@ ExpenseManager/
 │   │   │   │   │   ├── ConflictResolution.cs — 1=AcceptAuto, 2=KeepManual, 3=Custom
 │   │   │   │   │   ├── AuditOperation.cs    — 1=Add, 2=Update, 3=Delete
 │   │   │   │   │   └── SnapshotType.cs      — 1=Before, 2=After
+│   │   │   │   ├── InboxEvent.cs            — MessageId (PK), EventType, ReceivedAt, Status, Error?; InboxEventStatus constants
 │   │   │   │   └── External/
 │   │   │   │       └── User.cs              — Read-only mapping of users DB entity
 │   │   │   ├── Repositories/
 │   │   │   │   ├── CategoryRepository.cs    — GetAllActiveAsync(): top-level non-archived categories with Include(Children), AsNoTracking
 │   │   │   │   ├── CurrencyRepository.cs    — GetAllAsync(): all currencies, AsNoTracking
+│   │   │   │   ├── InboxRepository.cs       — ExistsAsync(messageId), AddAsync(InboxEvent) for deduplication
 │   │   │   │   ├── Contracts/
 │   │   │   │   │   ├── ICategoryRepository.cs
-│   │   │   │   │   └── ICurrencyRepository.cs
+│   │   │   │   │   ├── ICurrencyRepository.cs
+│   │   │   │   │   └── IInboxRepository.cs  — ExistsAsync, AddAsync
 │   │   │   │   └── External/
 │   │   │   │       ├── Contracts/
 │   │   │   │       │   └── IUserRepository.cs
@@ -135,6 +143,8 @@ ExpenseManager/
 │   │   │       ├── 20260506203552_SeedCurrencies.Designer.cs
 │   │   │       ├── 20260506204543_SeedCategories.cs     — 17 top-level + 108 subcategories (125 total)
 │   │   │       ├── 20260506204543_SeedCategories.Designer.cs
+│   │   │       ├── 20260506224942_AddInboxEvents.cs     — InboxEvents table (MessageId PK, index on ReceivedAt)
+│   │   │       ├── 20260506224942_AddInboxEvents.Designer.cs
 │   │   │       └── ExpensesDbContextModelSnapshot.cs
 │   │   └── Touir.ExpensesManager.Expenses.Tests/
 │   │       ├── Touir.ExpensesManager.Expenses.Tests.csproj
@@ -178,6 +188,13 @@ ExpenseManager/
 │       │   ├── Assets/EmailTemplates/
 │       │   │   ├── EMAIL_VERIFICATION_TEMPLATE.html
 │       │   │   └── PASSWORD_RESET_TEMPLATE.html
+│       │   ├── Messaging/
+│       │   │   ├── Messages/
+│       │   │   │   └── UserEventMessage.cs  — Outbound event DTO + UserEventType constants (Created/Updated/Deleted)
+│       │   │   └── Publishers/
+│       │   │       ├── IUserEventPublisher.cs — Publish(UserEventMessage), PublishRaw(eventType, payload, messageId)
+│       │   │       ├── UserEventPublisher.cs — Publishes to users.events topic exchange; sets MessageId property on AMQP message
+│       │   │       └── OutboxPublisherService.cs — BackgroundService; polls MSG_OutboxEvents every 5 s; max 5 retries; calls PublishRaw then MarkPublishedAsync
 │       │   ├── Infrastructure/
 │       │   │   ├── UsersAppDbContext.cs      — EF Core context for users schema
 │       │   │   ├── CryptographyHelper.cs     — Password hashing and HMAC utilities
@@ -193,11 +210,13 @@ ExpenseManager/
 │       │   │       ├── CryptographyOptions.cs
 │       │   │       ├── EmailOptions.cs
 │       │   │       ├── JwtAuthOptions.cs
-│       │   │       └── PostgresOptions.cs
+│       │   │       ├── PostgresOptions.cs
+│       │   │       └── RabbitMQOptions.cs
 │       │   ├── Models/
 │       │   │   ├── AllowedOrigin.cs
 │       │   │   ├── Application.cs
 │       │   │   ├── Authentication.cs
+│       │   │   ├── OutboxEvent.cs               — MSG_OutboxEvents entity: Id, MessageId, EventType, Payload, CreatedAt, PublishedAt?, RetryCount, LastError?
 │       │   │   ├── RefreshToken.cs              — Opaque refresh token entity (RTK_RefreshTokens)
 │       │   │   ├── RequestAccess.cs
 │       │   │   ├── Role.cs
@@ -208,6 +227,7 @@ ExpenseManager/
 │       │   │   ├── AuthenticationController.cs  — Login, logout, session, refresh, auth check (token ops via IJwtTokenService)
 │       │   │   ├── RegistrationController.cs    — Register, validate-email
 │       │   │   ├── PasswordController.cs        — Change-password, request-password-reset, change-password-reset
+│       │   │   ├── MessagingController.cs       — POST /messaging/replay (requeue outbox events); GET /messaging/outbox/stats
 │       │   │   ├── DTO/
 │       │   │   │   ├── ApplicationDto.cs
 │       │   │   │   ├── RoleDto.cs
@@ -234,12 +254,14 @@ ExpenseManager/
 │       │   ├── Repositories/
 │       │   │   ├── ApplicationRepository.cs
 │       │   │   ├── AuthenticationRepository.cs
+│       │   │   ├── OutboxRepository.cs          — EnqueueAsync, GetPendingAsync, MarkPublishedAsync, MarkFailedAsync, RequeueAsync
 │       │   │   ├── RefreshTokenRepository.cs    — CRUD for RTK_RefreshTokens
 │       │   │   ├── RoleRepository.cs
 │       │   │   ├── UserRepository.cs
 │       │   │   └── Contracts/
 │       │   │       ├── IApplicationRepository.cs
 │       │   │       ├── IAuthenticationRepository.cs
+│       │   │       ├── IOutboxRepository.cs     — EnqueueAsync, GetPendingAsync, MarkPublishedAsync, MarkFailedAsync, RequeueAsync
 │       │   │       ├── IRefreshTokenRepository.cs
 │       │   │       ├── IRoleRepository.cs
 │       │   │       └── IUserRepository.cs
@@ -247,7 +269,8 @@ ExpenseManager/
 │       │   │   ├── ApplicationService.cs
 │       │   │   ├── AuthenticationService.cs        — Credential verification only (AuthenticateAsync)
 │       │   │   ├── JwtTokenService.cs              — JWT generation (claims: sub, email, givenName, surname, jti) and validation
-│       │   │   ├── RegistrationService.cs          — User registration and email validation
+│       │   │   ├── RabbitMQService.cs              — Singleton RabbitMQ connection
+│       │   │   ├── RegistrationService.cs          — User registration, email validation; on success enqueues user.created outbox event via IOutboxRepository
 │       │   │   ├── PasswordManagementService.cs    — Change password, reset password, request password reset
 │       │   │   ├── RefreshTokenService.cs          — Generates and validates opaque refresh tokens (DB-backed)
 │       │   │   ├── RoleService.cs
@@ -257,6 +280,7 @@ ExpenseManager/
 │       │   │       ├── IAuthenticationService.cs
 │       │   │       ├── IJwtTokenService.cs
 │       │   │       ├── IPasswordManagementService.cs
+│       │   │       ├── IRabbitMQService.cs
 │       │   │       ├── IRefreshTokenService.cs
 │       │   │       ├── IRegistrationService.cs
 │       │   │       ├── IRoleService.cs
@@ -272,6 +296,8 @@ ExpenseManager/
 │       │       ├── 20260412165435_FixResetPasswordUrl.cs — Sets APP_ResetPasswordUrlPath to host-agnostic relative path /reset-password
 │       │       ├── AddRefreshTokens.cs          — Creates RTK_RefreshTokens table
 │       │       ├── 20260429200824_AddVerifyEmailErrorUrlPath.cs — Adds APP_VerifyEmailErrorUrlPath; seeds /verify-error for EXPENSES_MANAGER app
+│       │       ├── 20260506224929_AddOutboxEvents.cs — MSG_OutboxEvents table; unique index on MessageId; composite index on (PublishedAt, RetryCount)
+│       │       ├── 20260506224929_AddOutboxEvents.Designer.cs
 │       │       └── UsersAppDbContextModelSnapshot.cs
 │       └── Touir.ExpensesManager.Users.Tests/
 │           ├── Touir.ExpensesManager.Users.Tests.csproj

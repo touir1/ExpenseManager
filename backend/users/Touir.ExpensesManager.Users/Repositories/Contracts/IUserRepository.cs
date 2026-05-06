@@ -1,4 +1,4 @@
-﻿using Touir.ExpensesManager.Users.Models;
+using Touir.ExpensesManager.Users.Models;
 
 namespace Touir.ExpensesManager.Users.Repositories.Contracts
 {
@@ -9,6 +9,7 @@ namespace Touir.ExpensesManager.Users.Repositories.Contracts
         Task<User> CreateUserAsync(User user);
         Task<bool?> DeleteUserAsync(User user);
         Task<IList<string>> GetUsedEmailValidationHashesAsync();
-        Task<bool> ValidateEmail(string emailValidationHash, string email);
+        Task<bool> ValidateEmail(string emailVerificationHash, string email);
+        Task<User?> ValidateEmailAsync(string emailVerificationHash, string email);
     }
 }

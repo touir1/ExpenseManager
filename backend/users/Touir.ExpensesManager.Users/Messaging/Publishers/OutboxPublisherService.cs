@@ -1,0 +1,64 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Touir.ExpensesManager.Users.Messaging.Publishers;
+using Touir.ExpensesManager.Users.Repositories.Contracts;
+
+namespace Touir.ExpensesManager.Users.Messaging
+{
+    public class OutboxPublisherService : BackgroundService
+    {
+        private const int PollIntervalMs = 5000;
+        private const int MaxRetries = 5;
+
+        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly ILogger<OutboxPublisherService> _logger;
+
+        public OutboxPublisherService(IServiceScopeFactory scopeFactory, ILogger<OutboxPublisherService> logger)
+        {
+            _scopeFactory = scopeFactory;
+            _logger = logger;
+        }
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                try
+                {
+                    await ProcessPendingAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Outbox publisher poll cycle failed.");
+                }
+
+                await Task.Delay(PollIntervalMs, stoppingToken);
+            }
+        }
+
+        private async Task ProcessPendingAsync()
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var outboxRepo = scope.ServiceProvider.GetRequiredService<IOutboxRepository>();
+            var publisher = scope.ServiceProvider.GetRequiredService<IUserEventPublisher>();
+
+            var events = await outboxRepo.GetPendingAsync(MaxRetries);
+            foreach (var evt in events)
+            {
+                try
+                {
+                    publisher.PublishRaw(evt.EventType, evt.Payload, evt.MessageId);
+                    await outboxRepo.MarkPublishedAsync(evt.Id);
+                    _logger.LogInformation("Published outbox event {MessageId} ({EventType}).", evt.MessageId, evt.EventType);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to publish outbox event {MessageId}, retry {RetryCount}/{MaxRetries}.",
+                        evt.MessageId, evt.RetryCount + 1, MaxRetries);
+                    await outboxRepo.MarkFailedAsync(evt.Id, ex.Message);
+                }
+            }
+        }
+    }
+}

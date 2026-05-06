@@ -7,6 +7,7 @@ REST API for user management, authentication (JWT), and email verification.
 - **.NET 8** — `net8.0` target framework
 - **Entity Framework Core 8** + **Npgsql** — PostgreSQL via EF Core
 - **FluentValidation 11** — request DTO validation with auto-validation middleware
+- **RabbitMQ.Client 6.8.1** — event publishing to `users.events` topic exchange
 - **xUnit** + **Moq** — unit and integration tests
 
 ## Usage
@@ -52,6 +53,25 @@ Configured via environment variables:
 | `EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_RESET_PASSWORD_URL` | Base URL for password-reset links sent by email | `https://localhost/reset-password` |
 
 For local development, [Mailpit](https://mailpit.axllent.org/) is included in the tools Docker Compose stack (`host.docker.internal:1025`, `EnableSsl=false`). The web UI is available at `http://localhost:8025`.
+
+## Messaging
+
+Publishes to RabbitMQ exchange `users.events` (topic, durable) via the **outbox pattern** — events are first written to `MSG_OutboxEvents` in the same DB transaction as the business operation, then `OutboxPublisherService` (BackgroundService) polls and publishes with up to 5 retries.
+
+| Routing key | Trigger |
+|---|---|
+| `user.created` | Email validation succeeds (`GET /auth/validate-email`) |
+| `user.updated` | User profile update (future) |
+| `user.deleted` | Validated user deletion (future) |
+
+Config via `EXPENSES_MANAGEMENT_USERS_RABBITMQ_*` env vars (HostName, Port, UserName, Password).
+
+### Messaging Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/messaging/replay` | Requeue failed/undelivered outbox events; query params: `eventType`, `from` (ISO datetime), `forceAll` (bool) |
+| `GET`  | `/messaging/outbox/stats` | Counts of pending, published, and failed outbox events |
 
 ## Database Schema
 

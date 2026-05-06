@@ -15,6 +15,7 @@ namespace Touir.ExpensesManager.Users.Infrastructure
         public DbSet<RoleRequestAccess> RoleRequestAccesses { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<OutboxEvent> OutboxEvents { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -205,6 +206,24 @@ namespace Touir.ExpensesManager.Users.Infrastructure
                     .WithMany(a => a.AllowedOrigins)
                     .HasForeignKey(x => x.ApplicationId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<OutboxEvent>(entity =>
+            {
+                entity.ToTable("MSG_OutboxEvents");
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Id).HasColumnName("MSG_Id").UseIdentityAlwaysColumn();
+                entity.Property(x => x.MessageId).HasColumnName("MSG_MessageId").IsRequired().HasMaxLength(36);
+                entity.Property(x => x.EventType).HasColumnName("MSG_EventType").IsRequired().HasMaxLength(100);
+                entity.Property(x => x.Payload).HasColumnName("MSG_Payload").IsRequired();
+                entity.Property(x => x.CreatedAt).HasColumnName("MSG_CreatedAt");
+                entity.Property(x => x.PublishedAt).HasColumnName("MSG_PublishedAt");
+                entity.Property(x => x.RetryCount).HasColumnName("MSG_RetryCount").HasDefaultValue(0);
+                entity.Property(x => x.LastError).HasColumnName("MSG_LastError").HasMaxLength(2000);
+
+                entity.HasIndex(x => x.MessageId).IsUnique();
+                entity.HasIndex(x => new { x.PublishedAt, x.RetryCount });
             });
 
         }

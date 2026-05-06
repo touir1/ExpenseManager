@@ -25,6 +25,8 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
         public DbSet<ExpenseAuditLog> ExpenseAuditLogs { get; set; }
         public DbSet<ExpenseAuditSnapshot> ExpenseAuditSnapshots { get; set; }
 
+        public DbSet<InboxEvent> InboxEvents { get; set; }
+
         // Lookup tables
         public DbSet<OperationSource> OperationSources { get; set; }
         public DbSet<ModifiedSource> ModifiedSources { get; set; }
@@ -401,6 +403,20 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
                       .WithMany()
                       .HasForeignKey(e => e.SnapshotTypeId)
                       .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ── Inbox ─────────────────────────────────────────────────────────
+
+            modelBuilder.Entity<InboxEvent>(entity =>
+            {
+                entity.ToTable("InboxEvents");
+                entity.HasKey(e => e.MessageId);
+                entity.Property(e => e.MessageId).HasMaxLength(36).IsRequired();
+                entity.Property(e => e.EventType).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.ReceivedAt).IsRequired();
+                entity.Property(e => e.Status).HasMaxLength(20).IsRequired();
+                entity.Property(e => e.Error).HasMaxLength(2000);
+                entity.HasIndex(e => e.ReceivedAt);
             });
         }
     }
