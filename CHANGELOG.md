@@ -3,6 +3,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.78.1] - 2026-05-06
+### Fixed
+- **Frontend — `ExpensesDataContext` infinite reload loop on app start:**
+  - Root cause: `ExpensesDataProvider` fired `getCategories()` + `getCurrencies()` immediately on mount regardless of auth state; unauthenticated requests returned 401 → `api.service.ts` attempted token refresh → refresh failed → `unauthorizedHandler` called `location.assign('/login')` → page reloaded → infinite loop
+  - Fix: `ExpensesDataProvider` now consumes `useAuth()` and gates all fetching on `isAuthenticated`; effect re-runs when auth state changes (fetch on login, clear data on logout)
+  - `isLoading` default changed from `true` to `false` — no loading state until auth confirmed
+  - `ExpensesDataContext.test.tsx`: mocks `@/features/auth/AuthContext` (`useAuth` returns `{ isAuthenticated: true }`); added 2 new tests: "does not fetch when not authenticated" and "clears data when unauthenticated"; total: 12/12 passing
+
 ## [0.78.0] - 2026-05-06
 ### Changed
 - **Backend — Expenses service: repository layer added (structural parity with users service):**

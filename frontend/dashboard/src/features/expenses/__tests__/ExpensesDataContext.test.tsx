@@ -13,6 +13,10 @@ vi.mock('@/features/expenses/services/currenciesApi.service', () => ({
   getCurrencies: vi.fn(),
 }))
 
+vi.mock('@/features/auth/AuthContext', () => ({
+  useAuth: vi.fn().mockReturnValue({ isAuthenticated: true }),
+}))
+
 const mockCategories: Category[] = [
   { id: 1, name: 'Food', subcategories: [{ id: 2, name: 'Groceries' }] },
 ]
@@ -28,13 +32,13 @@ describe('ExpensesDataContext', () => {
   })
 
   describe('ExpensesDataProvider initialization', () => {
-    it('starts with isLoading true then resolves to false', async () => {
+    it('resolves isLoading to false after fetch', async () => {
       const { result } = renderHook(() => useExpensesData(), { wrapper: ExpensesDataProvider })
 
       await waitFor(() => expect(result.current.isLoading).toBe(false))
     })
 
-    it('loads categories and currencies on mount', async () => {
+    it('loads categories and currencies on mount when authenticated', async () => {
       const { result } = renderHook(() => useExpensesData(), { wrapper: ExpensesDataProvider })
 
       await waitFor(() => expect(result.current.isLoading).toBe(false))
@@ -96,6 +100,35 @@ describe('ExpensesDataContext', () => {
 
       expect(order).toContain('categories')
       expect(order).toContain('currencies')
+    })
+
+    it('does not fetch when not authenticated', async () => {
+      const { useAuth } = await import('@/features/auth/AuthContext')
+      vi.mocked(useAuth).mockReturnValue({ isAuthenticated: false } as any)
+
+      const { result } = renderHook(() => useExpensesData(), { wrapper: ExpensesDataProvider })
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      expect(categoriesService.getCategories).not.toHaveBeenCalled()
+      expect(currenciesService.getCurrencies).not.toHaveBeenCalled()
+
+      // restore
+      vi.mocked(useAuth).mockReturnValue({ isAuthenticated: true } as any)
+    })
+
+    it('clears data when unauthenticated', async () => {
+      const { useAuth } = await import('@/features/auth/AuthContext')
+      vi.mocked(useAuth).mockReturnValue({ isAuthenticated: false } as any)
+
+      const { result } = renderHook(() => useExpensesData(), { wrapper: ExpensesDataProvider })
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      expect(result.current.categories).toEqual([])
+      expect(result.current.currencies).toEqual([])
+
+      vi.mocked(useAuth).mockReturnValue({ isAuthenticated: true } as any)
     })
   })
 
