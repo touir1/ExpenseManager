@@ -213,7 +213,11 @@ namespace Touir.ExpensesManager.Users.Infrastructure
                 entity.ToTable("MSG_OutboxEvents");
                 entity.HasKey(x => x.Id);
 
-                entity.Property(x => x.Id).HasColumnName("MSG_Id").UseIdentityAlwaysColumn();
+                var idProp = entity.Property(x => x.Id).HasColumnName("MSG_Id");
+                if (Database.IsNpgsql())
+                    idProp.UseIdentityAlwaysColumn();
+                else
+                    idProp.ValueGeneratedOnAdd();
                 entity.Property(x => x.MessageId).HasColumnName("MSG_MessageId").IsRequired().HasMaxLength(36);
                 entity.Property(x => x.EventType).HasColumnName("MSG_EventType").IsRequired().HasMaxLength(100);
                 entity.Property(x => x.Payload).HasColumnName("MSG_Payload").IsRequired();

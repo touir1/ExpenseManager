@@ -3,6 +3,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.82.0] - 2026-05-07
+### Fixed
+- **Outbox `MSG_Id` type (users service):** `OutboxEvent.Id` stays `long`; `UsersAppDbContext.OnModelCreating` now applies `UseIdentityAlwaysColumn()` only when Npgsql is the provider and `ValueGeneratedOnAdd()` otherwise — SQLite `EnsureCreated()` correctly emits `INTEGER PRIMARY KEY` (auto-increment) without the Npgsql annotation forcing `BIGINT`
+- **Deleted `FixOutboxEventsIdType` migration** (was generated as a workaround when `Id` was temporarily changed to `int`); reverted `AddOutboxEvents.cs` and `UsersAppDbContextModelSnapshot.cs` to `bigint` + `IdentityAlwaysColumn`
+- **`IOutboxRepository` / `OutboxRepository`:** `MarkPublishedAsync(long)` and `MarkFailedAsync(long, string)` reverted to `long` id params
+- **Sonar alerts fixed (`UserEventConsumer`):** `JsonSerializerOptions` now static readonly (no per-call allocation); `GC.SuppressFinalize(this)` added to `Dispose()`
+### Added
+- **Tests — users service:** `OutboxRepositoryTests` (15 tests: `EnqueueAsync`×2, `GetPendingAsync`×3, `MarkPublishedAsync`×2, `MarkFailedAsync`×4, `RequeueAsync`×4) using new `TestDbContextEnsureCreated` helper; `MessagingControllerTests` (6 tests: `Replay`×4, `Stats`×2)
+- **Tests — expenses service:** `InboxRepositoryTests` (7 tests: `ExistsAsync`×3, `AddAsync`×4) using `TestExpensesDbContextWrapper`
+- **`TestDbContextEnsureCreated`** (`TestHelpers/`) — SQLite in-memory wrapper using `EnsureCreated()` instead of `Migrate()` so `long` PKs map to `INTEGER PRIMARY KEY` correctly; used by `OutboxRepositoryTests`
+
 ## [0.81.0] - 2026-05-07
 ### Added
 - **RabbitMQ reliability — outbox pattern (users service):**

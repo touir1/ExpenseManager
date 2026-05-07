@@ -150,11 +150,15 @@ ExpenseManager/
 │   │       ├── Touir.ExpensesManager.Expenses.Tests.csproj
 │   │       ├── TestHelpers/
 │   │       │   └── TestExpensesDbContext.cs  — In-memory DB wrapper for tests
+│   │       ├── Controllers/
+│   │       │   ├── CategoryControllerTests.cs
+│   │       │   └── CurrencyControllerTests.cs
 │   │       ├── Repositories/
 │   │       │   ├── External/
 │   │       │   │   └── UserRepositoryTests.cs
 │   │       │   ├── CategoryRepositoryTests.cs       — 5 tests: top-level only, children included, archived excluded, empty, archived subs
-│   │       │   └── CurrencyRepositoryTests.cs       — 4 tests: all currencies, field mapping, empty set, positive IDs
+│   │       │   ├── CurrencyRepositoryTests.cs       — 4 tests: all currencies, field mapping, empty set, positive IDs
+│   │       │   └── InboxRepositoryTests.cs          — 7 tests: ExistsAsync×3, AddAsync×4
 │   │       ├── Infrastructure/
 │   │       │   └── ExpensesDbContextSchemaTests.cs  — 23 tests: all Phase 1 entities, composite PKs, unique constraints, cascades
 │   │       └── Services/
@@ -296,15 +300,17 @@ ExpenseManager/
 │       │       ├── 20260412165435_FixResetPasswordUrl.cs — Sets APP_ResetPasswordUrlPath to host-agnostic relative path /reset-password
 │       │       ├── AddRefreshTokens.cs          — Creates RTK_RefreshTokens table
 │       │       ├── 20260429200824_AddVerifyEmailErrorUrlPath.cs — Adds APP_VerifyEmailErrorUrlPath; seeds /verify-error for EXPENSES_MANAGER app
-│       │       ├── 20260506224929_AddOutboxEvents.cs — MSG_OutboxEvents table; unique index on MessageId; composite index on (PublishedAt, RetryCount)
+│       │       ├── 20260506224929_AddOutboxEvents.cs — MSG_OutboxEvents table (bigint PK); unique index on MessageId; composite index on (PublishedAt, RetryCount)
 │       │       ├── 20260506224929_AddOutboxEvents.Designer.cs
 │       │       └── UsersAppDbContextModelSnapshot.cs
 │       └── Touir.ExpensesManager.Users.Tests/
 │           ├── Touir.ExpensesManager.Users.Tests.csproj
 │           ├── TestHelpers/
-│           │   └── TestDbContextWrapper.cs     — In-memory DB wrapper for tests
+│           │   ├── TestDbContextWrapper.cs          — SQLite in-memory + Migrate() wrapper (int/short PK entities)
+│           │   └── TestDbContextEnsureCreated.cs    — SQLite in-memory + EnsureCreated() wrapper; used for long PK entities (OutboxEvent) where Npgsql annotation would force BIGINT
 │           ├── Controllers/
 │           │   ├── AuthenticationControllerTests.cs
+│           │   ├── MessagingControllerTests.cs      — 6 tests: Replay×4, Stats×2
 │           │   ├── PasswordControllerTests.cs
 │           │   └── RegistrationControllerTests.cs
 │           ├── Validators/
@@ -321,6 +327,7 @@ ExpenseManager/
 │           ├── Repositories/
 │           │   ├── ApplicationRepositoryTests.cs
 │           │   ├── AuthenticationRepositoryTests.cs
+│           │   ├── OutboxRepositoryTests.cs         — 15 tests: EnqueueAsync×2, GetPendingAsync×3, MarkPublishedAsync×2, MarkFailedAsync×4, RequeueAsync×4
 │           │   ├── RefreshTokenRepositoryTests.cs
 │           │   ├── RoleRepositoryTests.cs
 │           │   └── UserRepositoryTests.cs

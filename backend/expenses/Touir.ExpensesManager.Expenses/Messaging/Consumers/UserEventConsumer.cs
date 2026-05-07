@@ -20,6 +20,8 @@ namespace Touir.ExpensesManager.Expenses.Messaging.Consumers
         private const string QueueName = "expenses.users.sync";
         private const string RoutingKey = "user.#";
 
+        private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
+
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IRabbitMQService _rabbitMqService;
         private readonly ILogger<UserEventConsumer> _logger;
@@ -58,10 +60,7 @@ namespace Touir.ExpensesManager.Expenses.Messaging.Consumers
             var messageId = ea.BasicProperties?.MessageId ?? Guid.NewGuid().ToString();
             try
             {
-                var message = JsonSerializer.Deserialize<UserEventMessage>(body, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                var message = JsonSerializer.Deserialize<UserEventMessage>(body, _jsonOptions);
 
                 if (message == null)
                 {
@@ -134,6 +133,7 @@ namespace Touir.ExpensesManager.Expenses.Messaging.Consumers
             _channel?.Close();
             _channel?.Dispose();
             base.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

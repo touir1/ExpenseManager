@@ -363,5 +363,74 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
         }
 
         #endregion
+
+        #region ValidateEmailAsync Tests
+
+        [Fact]
+        public async Task ValidateEmailAsync_ReturnsUser_WhenHashAndEmailMatch()
+        {
+            using var db = new TestDbContextWrapper();
+            db.Context.Users.Add(new User { FirstName = "S", LastName = "T", Email = "s@t.com", EmailValidationHash = "hash-s", IsEmailValidated = false, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow });
+            db.Context.SaveChanges();
+
+            var repo = new UserRepository(db.Context);
+            var user = await repo.ValidateEmailAsync("hash-s", "s@t.com");
+
+            Assert.NotNull(user);
+            Assert.Equal("s@t.com", user.Email);
+        }
+
+        [Fact]
+        public async Task ValidateEmailAsync_SetsIsEmailValidated()
+        {
+            using var db = new TestDbContextWrapper();
+            db.Context.Users.Add(new User { FirstName = "U", LastName = "V", Email = "u@v.com", EmailValidationHash = "hash-u", IsEmailValidated = false, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow });
+            db.Context.SaveChanges();
+
+            var repo = new UserRepository(db.Context);
+            await repo.ValidateEmailAsync("hash-u", "u@v.com");
+
+            var updated = db.Context.Users.First(u => u.Email == "u@v.com");
+            Assert.True(updated.IsEmailValidated);
+        }
+
+        [Fact]
+        public async Task ValidateEmailAsync_ReturnsNull_WhenUserNotFound()
+        {
+            using var db = new TestDbContextWrapper();
+            var repo = new UserRepository(db.Context);
+
+            var user = await repo.ValidateEmailAsync("no-hash", "none@none.com");
+
+            Assert.Null(user);
+        }
+
+        [Fact]
+        public async Task ValidateEmailAsync_ReturnsNull_WhenHashDoesNotMatch()
+        {
+            using var db = new TestDbContextWrapper();
+            db.Context.Users.Add(new User { FirstName = "W", LastName = "X", Email = "w@x.com", EmailValidationHash = "real-hash", IsEmailValidated = false, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow });
+            db.Context.SaveChanges();
+
+            var repo = new UserRepository(db.Context);
+            var user = await repo.ValidateEmailAsync("wrong-hash", "w@x.com");
+
+            Assert.Null(user);
+        }
+
+        [Fact]
+        public async Task ValidateEmailAsync_IsCaseInsensitiveOnEmail()
+        {
+            using var db = new TestDbContextWrapper();
+            db.Context.Users.Add(new User { FirstName = "Y", LastName = "Z", Email = "y@z.com", EmailValidationHash = "hash-y", IsEmailValidated = false, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow });
+            db.Context.SaveChanges();
+
+            var repo = new UserRepository(db.Context);
+            var user = await repo.ValidateEmailAsync("hash-y", "Y@Z.COM");
+
+            Assert.NotNull(user);
+        }
+
+        #endregion
     }
 }

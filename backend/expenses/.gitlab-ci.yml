@@ -14,7 +14,7 @@ include:
 variables:
   IMAGE_NAME: expense-manager-backend-expenses
   BASE_DIR_PATH: backend/expenses
-  PROJECT_KEY: touir:expense-manager:backend:expenses
+  PROJECT_KEY: expenses-manager-backend-expenses
 
 # ----------------------
 # cache configuration
