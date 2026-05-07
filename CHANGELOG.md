@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.83.0] - 2026-05-07
+### Changed
+- **Infrastructure:** Both `backend/users/Dockerfile` and `backend/expenses/Dockerfile` final runtime stage switched from `mcr.microsoft.com/dotnet/aspnet:8.0-noble-chiseled` to `mcr.microsoft.com/dotnet/aspnet:8.0-alpine`
+
 ## [0.82.0] - 2026-05-07
 ### Fixed
 - **Outbox `MSG_Id` type (users service):** `OutboxEvent.Id` stays `long`; `UsersAppDbContext.OnModelCreating` now applies `UseIdentityAlwaysColumn()` only when Npgsql is the provider and `ValueGeneratedOnAdd()` otherwise — SQLite `EnsureCreated()` correctly emits `INTEGER PRIMARY KEY` (auto-increment) without the Npgsql annotation forcing `BIGINT`
