@@ -3,6 +3,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.86.0] - 2026-05-07
+### Changed
+- **expenses `appsettings.json`:** Removed `RabbitMQ` section entirely — Docker uses env vars, local dev uses `appsettings.Development.json`; no env-specific values belong in the base config
+- **expenses `appsettings.Development.json`:** Added missing `VirtualHost: expense_management` to `RabbitMQ` section
+
 ## [0.85.0] - 2026-05-07
 ### Changed
 - **Config priority (both services, all options):** All `Configure<T>` blocks now use `appsettings.json` first, env var as fallback, hardcoded default last — consistent across `PostgresOptions`, `RabbitMQOptions`, `JwtAuthOptions`, `EmailOptions`, `AuthenticationServiceOptions`, `CryptographyOptions`; pattern: `builder.Configuration.GetValue("Key", Environment.GetEnvironmentVariable("ENV_VAR")) ?? "default"`
