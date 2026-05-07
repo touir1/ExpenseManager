@@ -20,6 +20,7 @@ namespace Touir.ExpensesManager.Expenses.Services
                 Port = opt.Port,
                 UserName = opt.UserName,
                 Password = opt.Password,
+                VirtualHost = opt.VirtualHost ?? "/",
                 DispatchConsumersAsync = true
             };
         }

@@ -19,7 +19,8 @@ namespace Touir.ExpensesManager.Users.Services
                 HostName = opt.HostName,
                 Port = opt.Port,
                 UserName = opt.UserName,
-                Password = opt.Password
+                Password = opt.Password,
+                VirtualHost = opt.VirtualHost ?? "/"
             };
         }
 

@@ -140,6 +140,8 @@ builder.Services.Configure<RabbitMQOptions>(c =>
                     Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_RABBITMQ_USERNAME")) ?? "EXPENSES_users";
     c.Password = builder.Configuration.GetValue("RabbitMQ:Password",
                     Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_RABBITMQ_PASSWORD")) ?? "EXPENSES_users";
+    c.VirtualHost = builder.Configuration.GetValue("RabbitMQ:VirtualHost",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_RABBITMQ_VIRTUALHOST")) ?? "expense_management";
 });
 
 #endregion

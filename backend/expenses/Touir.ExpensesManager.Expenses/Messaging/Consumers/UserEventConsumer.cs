@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 using System.Text;
 using System.Text.Json;
 using Touir.ExpensesManager.Expenses.Messaging.Messages;
@@ -37,21 +38,32 @@ namespace Touir.ExpensesManager.Expenses.Messaging.Consumers
             _logger = logger;
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _channel = _rabbitMqService.GetConnection().CreateModel();
-            _channel.ExchangeDeclare(ExchangeName, ExchangeType.Topic, durable: true, autoDelete: false);
-            _channel.QueueDeclare(QueueName, durable: true, exclusive: false, autoDelete: false);
-            _channel.QueueBind(QueueName, ExchangeName, RoutingKey);
-            _channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                try
+                {
+                    _channel = _rabbitMqService.GetConnection().CreateModel();
+                    _channel.ExchangeDeclare(ExchangeName, ExchangeType.Topic, durable: true, autoDelete: false);
+                    _channel.QueueDeclare(QueueName, durable: true, exclusive: false, autoDelete: false);
+                    _channel.QueueBind(QueueName, ExchangeName, RoutingKey);
+                    _channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
 
-            var consumer = new AsyncEventingBasicConsumer(_channel);
-            consumer.Received += OnMessageReceivedAsync;
-            _channel.BasicConsume(QueueName, autoAck: false, consumer);
+                    var consumer = new AsyncEventingBasicConsumer(_channel);
+                    consumer.Received += OnMessageReceivedAsync;
+                    _channel.BasicConsume(QueueName, autoAck: false, consumer);
 
-            stoppingToken.Register(() => _channel?.Close());
-
-            return Task.CompletedTask;
+                    stoppingToken.Register(() => _channel?.Close());
+                    _logger.LogInformation("UserEventConsumer connected to RabbitMQ.");
+                    return;
+                }
+                catch (BrokerUnreachableException ex)
+                {
+                    _logger.LogWarning(ex, "RabbitMQ unreachable. Retrying in 5s...");
+                    await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+                }
+            }
         }
 
         private async Task OnMessageReceivedAsync(object sender, BasicDeliverEventArgs ea)

@@ -73,13 +73,15 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.Configure<RabbitMQOptions>(c =>
 {
     c.HostName = builder.Configuration.GetValue("RabbitMQ:HostName",
-                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_RABBITMQ_HOSTNAME") ?? "127.0.0.1");
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_RABBITMQ_HOSTNAME")) ?? "127.0.0.1";
     c.Port = int.Parse(builder.Configuration.GetValue("RabbitMQ:Port",
                     Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_RABBITMQ_PORT")) ?? "5672");
     c.UserName = builder.Configuration.GetValue("RabbitMQ:UserName",
-                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_RABBITMQ_USERNAME") ?? "EXPENSES_expenses");
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_RABBITMQ_USERNAME")) ?? "expense_expenses";
     c.Password = builder.Configuration.GetValue("RabbitMQ:Password",
-                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_RABBITMQ_PASSWORD") ?? "EXPENSES_expenses");
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_RABBITMQ_PASSWORD")) ?? "expense_expenses";
+    c.VirtualHost = builder.Configuration.GetValue("RabbitMQ:VirtualHost",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_RABBITMQ_VIRTUALHOST")) ?? "expense_management";
 });
 
 builder.Services.Configure<PostgresOptions>(c =>

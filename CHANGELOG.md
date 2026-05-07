@@ -3,6 +3,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.85.0] - 2026-05-07
+### Changed
+- **Config priority (both services, all options):** All `Configure<T>` blocks now use `appsettings.json` first, env var as fallback, hardcoded default last — consistent across `PostgresOptions`, `RabbitMQOptions`, `JwtAuthOptions`, `EmailOptions`, `AuthenticationServiceOptions`, `CryptographyOptions`; pattern: `builder.Configuration.GetValue("Key", Environment.GetEnvironmentVariable("ENV_VAR")) ?? "default"`
+- **Reverted expenses RabbitMQ hostname priority** from env-var-first (introduced in v0.84.0) back to appsettings-first to match all other options
+
+## [0.84.0] - 2026-05-07
+### Fixed
+- **RabbitMQ VirtualHost (both services):** `RabbitMQOptions` and `ConnectionFactory` now set `VirtualHost`; defaults to `expense_management` (where `expense_expenses` and `expense_users` have permissions); previously defaulted to `/` → auth failure after TCP connect
+- **RabbitMQ hostname priority (expenses service):** `Program.cs` options binding now checks env var first, then `appsettings.json`; previously `GetValue(key, envVarDefault)` would return the `appsettings.json` value (`localhost`) before ever checking the env var — caused "Connection refused" inside Docker where `localhost` = the container itself
+- **RabbitMQ startup resilience (expenses service):** `UserEventConsumer.ExecuteAsync` now retries on `BrokerUnreachableException` with 5 s delay instead of crashing the host
+
 ## [0.83.0] - 2026-05-07
 ### Changed
 - **Infrastructure:** Both `backend/users/Dockerfile` and `backend/expenses/Dockerfile` final runtime stage switched from `mcr.microsoft.com/dotnet/aspnet:8.0-noble-chiseled` to `mcr.microsoft.com/dotnet/aspnet:8.0-alpine`

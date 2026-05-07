@@ -44,7 +44,8 @@ Layered structure: **Controllers → Services → Repositories → DbContext**
 
 - Migrations are applied automatically at startup via `db.Database.MigrateAsync()`
 - Reads user data from the users service's PostgreSQL database via `Repositories/External/UserRepository` (read-only, `ext.USR_Users` table)
-- `UserEventConsumer` (BackgroundService) subscribes to queue `expenses.users.sync` bound to `users.events` exchange (`user.#`); uses **inbox deduplication** via `InboxEvents` table (`IInboxRepository.ExistsAsync` checked before processing; `InboxEvent { Status=Processed }` written on success); `user.created`/`user.updated` → `SaveOrUpdateUserAsync`, `user.deleted` → `DeleteUserAsync` on `ext.USR_Users`
+- `UserEventConsumer` (BackgroundService) subscribes to queue `expenses.users.sync` bound to `users.events` exchange (`user.#`); retries connection on `BrokerUnreachableException` every 5 s (host starts even if RabbitMQ not yet ready); uses **inbox deduplication** via `InboxEvents` table (`IInboxRepository.ExistsAsync` checked before processing; `InboxEvent { Status=Processed }` written on success); `user.created`/`user.updated` → `SaveOrUpdateUserAsync`, `user.deleted` → `DeleteUserAsync` on `ext.USR_Users`
+- RabbitMQ connects to vhost `expense_management`; `expense_expenses` user has permissions only on this vhost. Env vars override `appsettings.json` values (env var checked first in `Program.cs`).
 
 ## Testing
 
