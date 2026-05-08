@@ -326,6 +326,24 @@ services:
       DOCKER_REGISTRY_TOKEN: ${DOCKER_REGISTRY_TOKEN}
   
   
+  nexus:
+    build: ./configs/nexus
+    container_name: nexus
+    networks:
+      expenses_manager_tools_net:
+        ipv4_address: 172.50.0.50
+    ports:
+      - "8081:8081"   # UI + npm + nuget
+      - "8082:8082"   # Docker group (proxy mirror)
+    volumes:
+      - nexus-data:/nexus-data
+    environment:
+      - INSTALL4J_ADD_VM_PARAMS=-Xms512m -Xmx1g -XX:MaxDirectMemorySize=1g
+      - NEXUS_ADMIN_PASSWORD=${NEXUS_ADMIN_PASSWORD}
+      - NEXUS_CI_USER=${NEXUS_CI_USER}
+      - NEXUS_CI_PASSWORD=${NEXUS_CI_PASSWORD}
+
 volumes:
   dind-data:
   runner-config-volume:
+  nexus-data:

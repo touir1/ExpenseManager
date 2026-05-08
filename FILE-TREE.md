@@ -464,7 +464,7 @@ ExpenseManager/
 │   ├── .env.example
 │   ├── README.md
 │   ├── docker-compose-apps.yml        — App stack: nginx, users-service, expenses-service
-│   ├── docker-compose-tools.yml       — Tool stack: PostgreSQL, RabbitMQ, Grafana, Prometheus, SonarQube, Mailpit
+│   ├── docker-compose-tools.yml       — Tool stack: PostgreSQL, RabbitMQ, Grafana, Prometheus, SonarQube, Mailpit, Nexus
 │   ├── run-docker-compose-apps.bat    — Start app containers (Windows)
 │   ├── run-docker-compose-tools.bat   — Start tool containers (Windows)
 │   ├── start-expenses-manager-apps.bat
@@ -495,6 +495,11 @@ ExpenseManager/
 │   │   │   ├── rabbitmq.conf
 │   │   │   ├── enabled_plugins
 │   │   │   └── management_definitions.json
+│   │   ├── nexus/
+│   │   │   ├── Dockerfile             — Custom Nexus image: apk installs bash+curl+jq, bakes in scripts
+│   │   │   ├── docker-entrypoint.sh   — Wrapper: launches provision.sh in background, execs nexus
+│   │   │   ├── provision.sh           — Provisioning: waits for Nexus, changes admin password, creates repos+CI user from repos.json
+│   │   │   └── repos.json             — Repo definitions (docker/npm/nuget proxies and groups)
 │   │   └── sql_database_scripts/
 │   │       ├── gitlab/
 │   │       │   ├── create_database.sql

@@ -1,5 +1,6 @@
 # Use the official .NET 8 SDK image to build the app
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG REGISTRY=mcr.microsoft.com
+FROM ${REGISTRY}/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy solution and project files
@@ -18,7 +19,7 @@ WORKDIR /src/Touir.ExpensesManager.Expenses
 RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 
 # Use the chiseled (minimal, non-root) ASP.NET Core runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
+FROM ${REGISTRY}/dotnet/aspnet:8.0-alpine AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 USER app

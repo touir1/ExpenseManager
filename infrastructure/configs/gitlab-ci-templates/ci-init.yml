@@ -6,6 +6,10 @@ variables:
   PROJECT_KEY: "expense-manager"
   IMAGE_NAME: ""
   CI_REGISTRY: "gitlab:5050"
+  NEXUS_HOST: "nexus:8081"
+  NEXUS_DOCKER_REGISTRY: "nexus:8082"
+  NEXUS_NPM_REGISTRY: "http://nexus:8081/repository/npm-group/"
+  NEXUS_NUGET_SOURCE: "http://nexus:8081/repository/nuget-group/index.json"
 
 default:
   before_script:

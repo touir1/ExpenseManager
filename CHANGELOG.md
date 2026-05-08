@@ -3,6 +3,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.87.0] - 2026-05-08
+### Added
+- **Nexus Repository Manager** (`infrastructure/configs/nexus/`): custom Docker image built on `sonatype/nexus3:latest` with `curl`+`jq`+`bash` installed; `provision.sh` runs at container startup via `docker-entrypoint.sh` wrapper — polls REST API until ready, changes admin password, creates all proxy/group repos from `repos.json`, creates CI user; idempotent via `/nexus-data/.provisioned` flag file
+- **`infrastructure/configs/nexus/repos.json`**: externalised repo definitions (docker-hub-proxy, mcr-proxy, ghcr-proxy, docker-group:8082, npm-proxy/group, nuget-proxy/group) — add/remove proxies without touching scripts
+- **`infrastructure/docker-compose-tools.yml`**: `nexus` service at `172.50.0.50`, ports 8081+8082, `build: ./configs/nexus`, `nexus-data` volume, `NEXUS_ADMIN_PASSWORD`/`NEXUS_CI_USER`/`NEXUS_CI_PASSWORD` env vars
+### Changed
+- **`infrastructure/configs/gitlab-runner/config.toml`**: added `nexus:172.50.0.50` to `extra_hosts`
+- **`infrastructure/configs/gitlab-ci-templates/ci-init.yml`**: added `NEXUS_HOST`, `NEXUS_DOCKER_REGISTRY`, `NEXUS_NPM_REGISTRY`, `NEXUS_NUGET_SOURCE` variables
+- **`infrastructure/configs/gitlab-ci-templates/ci-build.yml`**: `.dotnet-build` adds Nexus NuGet source before `dotnet restore`; `.node-build` sets npm registry to `$NEXUS_NPM_REGISTRY` before `npm ci`
+- **`infrastructure/configs/gitlab-ci-templates/ci-docker.yml`**: DinD gets `--insecure-registry=nexus:8082` and `--registry-mirror=http://nexus:8082`; Nexus login added before `docker build`; `--build-arg REGISTRY=$NEXUS_DOCKER_REGISTRY` passed to `docker build`
+- **`backend/users/Dockerfile`** and **`backend/expenses/Dockerfile`**: added `ARG REGISTRY=mcr.microsoft.com`; both `FROM` lines use `${REGISTRY}/...` — local builds use MCR default, CI passes `nexus:8082`
+- **`infrastructure/.env.example`**: added `NEXUS_ADMIN_PASSWORD`, `NEXUS_CI_USER`, `NEXUS_CI_PASSWORD` keys
+
 ## [0.86.0] - 2026-05-07
 ### Changed
 - **expenses `appsettings.json`:** Removed `RabbitMQ` section entirely — Docker uses env vars, local dev uses `appsettings.Development.json`; no env-specific values belong in the base config

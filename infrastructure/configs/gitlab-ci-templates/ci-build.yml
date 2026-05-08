@@ -16,6 +16,7 @@ variables:
     paths:
       - .nuget/packages/
   script:
+    - dotnet nuget add source "$NEXUS_NUGET_SOURCE" --name nexus --username "$NEXUS_USER" --password "$NEXUS_PASSWORD" --store-password-in-clear-text
     - dotnet restore
     - dotnet build --configuration $BUILD_CONFIGURATION
 
@@ -24,6 +25,7 @@ variables:
   image: node:20
   script:
     - npm config set cache .npm --location=project
+    - npm config set registry $NEXUS_NPM_REGISTRY
     - npm ci
     - npm run build:prod
   artifacts:
