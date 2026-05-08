@@ -43,9 +43,10 @@ jq -c '.[]' "$REPOS_FILE" | while read -r repo; do
     docker/proxy)
       REMOTE=$(echo "$repo" | jq -r '.remoteUrl')
       INDEX=$(echo  "$repo" | jq -r '.indexType // "REGISTRY"')
-      PAYLOAD=$(jq -n --arg name "$NAME" --arg remote "$REMOTE" --arg index "$INDEX" '{
+      FORCE_AUTH=$(echo "$repo" | jq '.forceBasicAuth // false')
+      PAYLOAD=$(jq -n --arg name "$NAME" --arg remote "$REMOTE" --arg index "$INDEX" --argjson forceAuth "$FORCE_AUTH" '{
         name: $name, online: true,
-        docker: {httpPort: null, httpsPort: null, forceBasicAuth: false, v1Enabled: false},
+        docker: {httpPort: null, httpsPort: null, forceBasicAuth: $forceAuth, v1Enabled: false},
         dockerProxy: {indexType: $index, remoteUrl: $remote},
         httpClient: {blocked: false, autoBlock: true},
         storage: {blobStoreName: "default", strictContentTypeValidation: true},
@@ -54,11 +55,12 @@ jq -c '.[]' "$REPOS_FILE" | while read -r repo; do
       }')
       ;;
     docker/group)
-      PORT=$(echo    "$repo" | jq '.httpPort // null')
-      MEMBERS=$(echo "$repo" | jq '[.members[] | {name: .}]')
-      PAYLOAD=$(jq -n --arg name "$NAME" --argjson port "$PORT" --argjson members "$MEMBERS" '{
+      PORT=$(echo       "$repo" | jq '.httpPort // null')
+      MEMBERS=$(echo    "$repo" | jq '[.members[] | {name: .}]')
+      FORCE_AUTH=$(echo "$repo" | jq '.forceBasicAuth // false')
+      PAYLOAD=$(jq -n --arg name "$NAME" --argjson port "$PORT" --argjson members "$MEMBERS" --argjson forceAuth "$FORCE_AUTH" '{
         name: $name, online: true,
-        docker: {httpPort: $port, httpsPort: null, forceBasicAuth: false, v1Enabled: false},
+        docker: {httpPort: $port, httpsPort: null, forceBasicAuth: $forceAuth, v1Enabled: false},
         group: {memberNames: [$members[].name]},
         storage: {blobStoreName: "default", strictContentTypeValidation: true}
       }')
@@ -108,7 +110,7 @@ echo "Creating CI user '$CI_USER'..."
 curl -sf -u "$AUTH" \
   -X POST "$NEXUS_URL/service/rest/v1/security/users" \
   -H "Content-Type: application/json" \
-  -d "{\"userId\":\"$CI_USER\",\"firstName\":\"CI\",\"lastName\":\"User\",\"emailAddress\":\"ci@local\",\"password\":\"$CI_PASSWORD\",\"status\":\"active\",\"roles\":[\"nx-anonymous\"]}"
+  -d "{\"userId\":\"$CI_USER\",\"firstName\":\"CI\",\"lastName\":\"User\",\"emailAddress\":\"ci@local\",\"password\":\"$CI_PASSWORD\",\"status\":\"active\",\"roles\":[\"nx-admin\"]}"
 
 touch "$FLAG"
 echo "Done."

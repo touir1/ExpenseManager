@@ -1,8 +1,8 @@
 [
-  {"format": "docker", "type": "proxy", "name": "docker-hub-proxy", "remoteUrl": "https://registry-1.docker.io", "indexType": "HUB"},
-  {"format": "docker", "type": "proxy", "name": "mcr-proxy",        "remoteUrl": "https://mcr.microsoft.com",    "indexType": "REGISTRY"},
-  {"format": "docker", "type": "proxy", "name": "ghcr-proxy",       "remoteUrl": "https://ghcr.io",              "indexType": "REGISTRY"},
-  {"format": "docker", "type": "group", "name": "docker-group",     "httpPort": 8082, "members": ["docker-hub-proxy", "mcr-proxy", "ghcr-proxy"]},
+  {"format": "docker", "type": "proxy", "name": "docker-hub-proxy", "remoteUrl": "https://registry-1.docker.io", "indexType": "HUB",      "forceBasicAuth": true},
+  {"format": "docker", "type": "proxy", "name": "mcr-proxy",        "remoteUrl": "https://mcr.microsoft.com",    "indexType": "REGISTRY", "forceBasicAuth": true},
+  {"format": "docker", "type": "proxy", "name": "ghcr-proxy",       "remoteUrl": "https://ghcr.io",              "indexType": "REGISTRY", "forceBasicAuth": true},
+  {"format": "docker", "type": "group", "name": "docker-group",     "httpPort": 8082, "members": ["docker-hub-proxy", "mcr-proxy", "ghcr-proxy"], "forceBasicAuth": true},
   {"format": "npm",    "type": "proxy", "name": "npm-proxy",        "remoteUrl": "https://registry.npmjs.org"},
   {"format": "npm",    "type": "group", "name": "npm-group",        "members": ["npm-proxy"]},
   {"format": "nuget",  "type": "proxy", "name": "nuget-proxy",      "remoteUrl": "https://api.nuget.org/v3/index.json"},

@@ -16,6 +16,7 @@
         echo "IMAGE_NAME variable is not set. Please set it in the CI configuration."
         exit 1
       fi
+    - docker info | grep -A5 "Insecure"
     - echo "$NEXUS_PASSWORD" | docker login $NEXUS_DOCKER_REGISTRY -u "$NEXUS_USER" --password-stdin
     - FULL_IMAGE_NAME="$CI_REGISTRY_IMAGE/$IMAGE_NAME:$IMAGE_VERSION"
     - echo "image = $FULL_IMAGE_NAME"
