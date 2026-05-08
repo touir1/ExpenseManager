@@ -18,6 +18,7 @@
     TRIVY_CACHE_DIR: ".trivycache/"
     TRIVY_INSECURE: "true"
     TRIVY_NON_SSL: "true"
+    TRIVY_DB_REPOSITORY: "ghcr.io/aquasecurity/trivy-db:2"
   script:
     - |
       if [ -z "$IMAGE_NAME" ]; then
