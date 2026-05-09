@@ -3,6 +3,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.90.0] - 2026-05-09
+### Added
+- **Tests — expenses `UserEventConsumer`:** 24 new tests covering constructor, `ExecuteAsync` (happy path, cancellation, `BrokerUnreachableException` retry), `Dispose`, `OnMessageReceivedAsync` (null message, duplicate inbox deduplication, `Created`/`Updated`/`Deleted`/unknown event types, exception → nack, null/missing `MessageId` → generated GUID), and `HandleMessageAsync` (all 4 branches); `UserEventMessage` + `UserEventType` constants also covered
+- **Tests — users `UserEventPublisher`:** 15 new tests covering `Publish` (serialisation, unique `MessageId` per call, channel created + disposed per call, properties set) and `PublishRaw` (exchange declaration, UTF-8 encoding, `MessageId` from argument, all 3 event types)
+- **Tests — users `OutboxPublisherService`:** 9 new tests covering constructor, `ExecuteAsync` (cancellation), and `ProcessPendingAsync` via reflection (no events, single event published + marked, multiple events, publish failure → `MarkFailedAsync`, mixed success/failure, max-retries=5 verified, exception propagation)
+### Changed
+- **Coverage — users backend:** sequence 88.02% → 88.61%, branch 73.64% → 75.33%; 272 → 296 tests
+- **Coverage — expenses backend:** sequence 83.94% → 84.88%, branch 26.04% → 50.00%; 116 → 140 tests
+
 ## [0.89.0] - 2026-05-09
 ### Changed
 - **Expenses service — soft-delete for `Category` and `Family`:** replaced `IsArchived` (bool) with `IsDeleted` (bool, default false) + `DeletedAt` (DateTime?) on both models; `CategoryRepository.GetAllActiveAsync` filters `!c.IsDeleted`; `CategoryService.GetAllAsync` filters subcategories by `!s.IsDeleted`

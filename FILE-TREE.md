@@ -157,6 +157,8 @@ ExpenseManager/
 │   │       ├── Controllers/
 │   │       │   ├── CategoryControllerTests.cs
 │   │       │   └── CurrencyControllerTests.cs
+│   │       ├── Messaging/
+│   │       │   └── UserEventConsumerTests.cs        — 24 tests: constructor, ExecuteAsync, Dispose, OnMessageReceivedAsync (null msg, dedup, Created/Updated/Deleted/unknown/exception), HandleMessageAsync, UserEventMessage/UserEventType
 │   │       ├── Repositories/
 │   │       │   ├── External/
 │   │       │   │   └── UserRepositoryTests.cs
@@ -319,6 +321,9 @@ ExpenseManager/
 │           │   ├── MessagingControllerTests.cs      — 6 tests: Replay×4, Stats×2
 │           │   ├── PasswordControllerTests.cs
 │           │   └── RegistrationControllerTests.cs
+│           ├── Messaging/
+│           │   ├── UserEventPublisherTests.cs       — 15 tests: Publish (serialisation, unique MessageId, channel lifecycle, properties), PublishRaw (exchange declare, UTF-8, MessageId, all event types)
+│           │   └── OutboxPublisherServiceTests.cs   — 9 tests: constructor, ExecuteAsync cancellation, ProcessPendingAsync (no events, single, multiple, publish failure → MarkFailed, mixed, max-retries=5, exception propagation)
 │           ├── Validators/
 │           │   ├── LoginRequestValidatorTests.cs
 │           │   ├── RegisterRequestValidatorTests.cs
