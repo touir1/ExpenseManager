@@ -18,7 +18,7 @@ namespace Touir.ExpensesManager.Expenses.Repositories
         {
             return await _dbContext.Categories
                 .Include(c => c.Children)
-                .Where(c => c.ParentCategoryId == null && !c.IsArchived)
+                .Where(c => c.ParentCategoryId == null && !c.IsDeleted)
                 .AsNoTracking()
                 .ToListAsync();
         }

@@ -23,7 +23,7 @@ namespace Touir.ExpensesManager.Expenses.Services
                 Name = c.Name,
                 Description = c.Description,
                 Subcategories = c.Children
-                    .Where(s => !s.IsArchived)
+                    .Where(s => !s.IsDeleted)
                     .Select(s => new SubcategoryDto
                     {
                         Id = s.Id,

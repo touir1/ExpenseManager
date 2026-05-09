@@ -24,8 +24,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
         [Fact]
         public async Task GetAllActiveAsync_ReturnsOnlyTopLevelCategories()
         {
-            var parent = new Category { Name = "TestParentOnly", IsArchived = false };
-            var child = new Category { Name = "TestChildOnly", IsArchived = false, ParentCategory = parent };
+            var parent = new Category { Name = "TestParentOnly", IsDeleted = false };
+            var child = new Category { Name = "TestChildOnly", IsDeleted = false, ParentCategory = parent };
             _wrapper.Context.Categories.AddRange(parent, child);
             await _wrapper.Context.SaveChangesAsync();
 
@@ -38,9 +38,9 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
         [Fact]
         public async Task GetAllActiveAsync_IncludesChildren()
         {
-            var parent = new Category { Name = "TestTransportGroup", IsArchived = false };
-            var child1 = new Category { Name = "TestCar", IsArchived = false, ParentCategory = parent };
-            var child2 = new Category { Name = "TestBus", IsArchived = false, ParentCategory = parent };
+            var parent = new Category { Name = "TestTransportGroup", IsDeleted = false };
+            var child1 = new Category { Name = "TestCar", IsDeleted = false, ParentCategory = parent };
+            var child2 = new Category { Name = "TestBus", IsDeleted = false, ParentCategory = parent };
             _wrapper.Context.Categories.AddRange(parent, child1, child2);
             await _wrapper.Context.SaveChangesAsync();
 
@@ -53,8 +53,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
         [Fact]
         public async Task GetAllActiveAsync_ExcludesArchivedCategories()
         {
-            var active = new Category { Name = "TestActiveCategory", IsArchived = false };
-            var archived = new Category { Name = "TestArchivedCategory", IsArchived = true };
+            var active = new Category { Name = "TestActiveCategory", IsDeleted = false };
+            var archived = new Category { Name = "TestArchivedCategory", IsDeleted = true };
             _wrapper.Context.Categories.AddRange(active, archived);
             await _wrapper.Context.SaveChangesAsync();
 
@@ -75,9 +75,9 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
         [Fact]
         public async Task GetAllActiveAsync_IncludesArchivedChildrenInCollection()
         {
-            var parent = new Category { Name = "TestFoodGroup", IsArchived = false };
-            var activeSub = new Category { Name = "TestActiveSub", IsArchived = false, ParentCategory = parent };
-            var archivedSub = new Category { Name = "TestArchivedSub", IsArchived = true, ParentCategory = parent };
+            var parent = new Category { Name = "TestFoodGroup", IsDeleted = false };
+            var activeSub = new Category { Name = "TestActiveSub", IsDeleted = false, ParentCategory = parent };
+            var archivedSub = new Category { Name = "TestArchivedSub", IsDeleted = true, ParentCategory = parent };
             _wrapper.Context.Categories.AddRange(parent, activeSub, archivedSub);
             await _wrapper.Context.SaveChangesAsync();
 

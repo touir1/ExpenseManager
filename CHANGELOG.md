@@ -3,6 +3,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.89.0] - 2026-05-09
+### Changed
+- **Expenses service — soft-delete for `Category` and `Family`:** replaced `IsArchived` (bool) with `IsDeleted` (bool, default false) + `DeletedAt` (DateTime?) on both models; `CategoryRepository.GetAllActiveAsync` filters `!c.IsDeleted`; `CategoryService.GetAllAsync` filters subcategories by `!s.IsDeleted`
+- **Migration `ReplaceCategoryFamilyIsArchivedWithSoftDelete`:** adds `IsDeleted`/`DeletedAt` to `Categories` and `Families`, data-migrates `IsArchived → IsDeleted` (with `DeletedAt = CURRENT_TIMESTAMP` for previously archived rows), then drops `IsArchived`; uses `CURRENT_TIMESTAMP` (works on both PostgreSQL and SQLite test runner)
+- **`implementation-plan.md` Phase 3:** `DeleteAsync` updated from "hard delete" to soft-delete (`IsDeleted = true`, `DeletedAt = UtcNow`) with `!IsDeleted` filter on all queries
+- **Tests:** all `IsArchived` references replaced with `IsDeleted` across `CategoryRepositoryTests`, `CategoryServiceTests`, `ExpensesDbContextSchemaTests`
+
 ## [0.88.0] - 2026-05-09
 ### Changed
 - **Users service — soft-delete for `User`:** `DeleteUserAsync` now sets `IsDeleted = true` + `DeletedAt = UtcNow` instead of `EF Core .Remove()`; all `UserRepository` queries (`GetUserByEmailAsync`, `GetUserByIdAsync`, `GetUsedEmailValidationHashesAsync`, `ValidateEmail`, `ValidateEmailAsync`) filter `!IsDeleted` — deleted users are invisible to the app layer

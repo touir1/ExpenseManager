@@ -233,7 +233,7 @@ Replace current model with:
 - [ ] `ExpenseService`
   - `AddAsync(request, userId, source)` → writes expense + audit log (operation: `add`, 1 `after` snapshot)
   - `UpdateAsync(id, request, userId, source)` → writes audit log (operation: `update`, `before` + `after` snapshots)
-  - `DeleteAsync(id, userId)` → hard delete + audit log (operation: `delete`, 1 `before` snapshot)
+  - `DeleteAsync(id, userId)` → soft delete (`IsDeleted = true`, `DeletedAt = UtcNow`) + audit log (operation: `delete`, 1 `before` snapshot); all queries filter `!IsDeleted`
   - `GetByIdAsync(id, userId)` — enforces ownership
   - `GetPagedAsync(filters, userId)` — paginated, filtered list (own expenses only for now)
 - [ ] `ExpenseController`

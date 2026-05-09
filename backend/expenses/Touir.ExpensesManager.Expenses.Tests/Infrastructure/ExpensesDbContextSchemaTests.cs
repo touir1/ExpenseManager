@@ -43,7 +43,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
 
         private async Task<Category> SeedCategoryAsync(int id = 2000, int? parentId = null)
         {
-            var category = new Category { Id = id, Name = $"TestCategory {id}", IsArchived = false, ParentCategoryId = parentId };
+            var category = new Category { Id = id, Name = $"TestCategory {id}", IsDeleted = false, ParentCategoryId = parentId };
             _ctx.Categories.Add(category);
             await _ctx.SaveChangesAsync();
             return category;
@@ -51,7 +51,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
 
         private async Task<Family> SeedFamilyAsync(int createdById, int id = 1)
         {
-            var family = new Family { Id = id, Name = "Test Family", IsDefault = true, IsArchived = false, CreatedAt = DateTime.UtcNow, CreatedById = createdById };
+            var family = new Family { Id = id, Name = "Test Family", IsDefault = true, IsDeleted = false, CreatedAt = DateTime.UtcNow, CreatedById = createdById };
             _ctx.Families.Add(family);
             await _ctx.SaveChangesAsync();
             return family;
@@ -96,23 +96,23 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
         // ── Category ──────────────────────────────────────────────────────────
 
         [Fact]
-        public async Task Category_CanPersist_WithIsArchived()
+        public async Task Category_CanPersist_WithIsDeleted()
         {
-            var category = new Category { Id = 2000, Name = "TestFood", IsArchived = true };
+            var category = new Category { Id = 2000, Name = "TestFood", IsDeleted = true };
             _ctx.Categories.Add(category);
             await _ctx.SaveChangesAsync();
 
             _ctx.ChangeTracker.Clear();
             var saved = await _ctx.Categories.FindAsync(2000);
             Assert.NotNull(saved);
-            Assert.True(saved.IsArchived);
+            Assert.True(saved.IsDeleted);
         }
 
         [Fact]
         public async Task Category_CanPersist_ParentChildHierarchy()
         {
-            var parent = new Category { Id = 2000, Name = "TestFood", IsArchived = false };
-            var child = new Category { Id = 2001, Name = "TestGroceries", IsArchived = false, ParentCategoryId = 2000 };
+            var parent = new Category { Id = 2000, Name = "TestFood", IsDeleted = false };
+            var child = new Category { Id = 2001, Name = "TestGroceries", IsDeleted = false, ParentCategoryId = 2000 };
             _ctx.Categories.AddRange(parent, child);
             await _ctx.SaveChangesAsync();
 
@@ -222,7 +222,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
         public async Task Family_CanPersist_WithDefaultFlag()
         {
             var user = await SeedUserAsync();
-            var family = new Family { Id = 1, Name = "My Family", IsDefault = true, IsArchived = false, CreatedAt = DateTime.UtcNow, CreatedById = user.Id };
+            var family = new Family { Id = 1, Name = "My Family", IsDefault = true, IsDeleted = false, CreatedAt = DateTime.UtcNow, CreatedById = user.Id };
             _ctx.Families.Add(family);
             await _ctx.SaveChangesAsync();
 
@@ -230,7 +230,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
             var saved = await _ctx.Families.FindAsync(1);
             Assert.NotNull(saved);
             Assert.True(saved.IsDefault);
-            Assert.False(saved.IsArchived);
+            Assert.False(saved.IsDeleted);
         }
 
         // ── FamilyMembership ──────────────────────────────────────────────────

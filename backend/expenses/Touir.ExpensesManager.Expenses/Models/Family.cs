@@ -5,7 +5,8 @@ namespace Touir.ExpensesManager.Expenses.Models
         public int Id { get; set; }
         public string Name { get; set; } = null!;
         public bool IsDefault { get; set; }
-        public bool IsArchived { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime? DeletedAt { get; set; }
         public DateTime CreatedAt { get; set; }
         public int CreatedById { get; set; }
     }

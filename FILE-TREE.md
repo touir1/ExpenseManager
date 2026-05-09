@@ -86,10 +86,10 @@ ExpenseManager/
 │   │   │   │   └── Responses/
 │   │   │   │       └── ErrorResponse.cs     — Uniform error envelope (matches users service pattern)
 │   │   │   ├── Models/
-│   │   │   │   ├── Category.cs              — Updated: IsArchived, ParentCategoryId, Children
+│   │   │   │   ├── Category.cs              — IsDeleted + DeletedAt (soft-delete); ParentCategoryId, Children
 │   │   │   │   ├── Currency.cs
 │   │   │   │   ├── Expense.cs               — Rewritten: owner, amount, date, category, audit fields; FK int columns
-│   │   │   │   ├── Family.cs
+│   │   │   │   ├── Family.cs                — IsDeleted + DeletedAt (soft-delete)
 │   │   │   │   ├── FamilyMembership.cs      — RoleId (int FK) instead of enum
 │   │   │   │   ├── ExpenseFamilyAttribution.cs
 │   │   │   │   ├── Tag.cs
@@ -147,6 +147,8 @@ ExpenseManager/
 │   │   │       ├── 20260506204543_SeedCategories.Designer.cs
 │   │   │       ├── 20260506224942_AddInboxEvents.cs     — InboxEvents table (MessageId PK, index on ReceivedAt)
 │   │   │       ├── 20260506224942_AddInboxEvents.Designer.cs
+│   │   │       ├── 20260509155613_ReplaceCategoryFamilyIsArchivedWithSoftDelete.cs — IsDeleted + DeletedAt on Categories + Families; data-migrates IsArchived; drops IsArchived
+│   │   │       ├── 20260509155613_ReplaceCategoryFamilyIsArchivedWithSoftDelete.Designer.cs
 │   │   │       └── ExpensesDbContextModelSnapshot.cs
 │   │   └── Touir.ExpensesManager.Expenses.Tests/
 │   │       ├── Touir.ExpensesManager.Expenses.Tests.csproj

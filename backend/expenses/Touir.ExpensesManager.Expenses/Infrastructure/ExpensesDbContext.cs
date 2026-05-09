@@ -157,6 +157,8 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.IsDeleted).HasDefaultValue(false);
+                entity.Property(e => e.DeletedAt).IsRequired(false);
                 entity.HasOne(e => e.ParentCategory)
                       .WithMany(e => e.Children)
                       .HasForeignKey(e => e.ParentCategoryId)
@@ -215,6 +217,8 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.IsDeleted).HasDefaultValue(false);
+                entity.Property(e => e.DeletedAt).IsRequired(false);
                 entity.HasOne<User>()
                       .WithMany()
                       .HasForeignKey(e => e.CreatedById)

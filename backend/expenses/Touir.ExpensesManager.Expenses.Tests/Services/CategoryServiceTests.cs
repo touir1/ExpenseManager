@@ -16,7 +16,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         [Fact]
         public async Task GetAllAsync_ReturnsOnlyTopLevelCategories()
         {
-            var parent = new Category { Id = 1, Name = "Food", IsArchived = false, Children = [] };
+            var parent = new Category { Id = 1, Name = "Food", IsDeleted = false, Children = [] };
             var mockRepo = new Mock<ICategoryRepository>();
             mockRepo.Setup(r => r.GetAllActiveAsync()).ReturnsAsync([parent]);
 
@@ -29,9 +29,9 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         [Fact]
         public async Task GetAllAsync_IncludesActiveSubcategories()
         {
-            var child1 = new Category { Id = 2, Name = "Car", IsArchived = false };
-            var child2 = new Category { Id = 3, Name = "Bus", IsArchived = false };
-            var parent = new Category { Id = 1, Name = "Transport", IsArchived = false, Children = [child1, child2] };
+            var child1 = new Category { Id = 2, Name = "Car", IsDeleted = false };
+            var child2 = new Category { Id = 3, Name = "Bus", IsDeleted = false };
+            var parent = new Category { Id = 1, Name = "Transport", IsDeleted = false, Children = [child1, child2] };
             var mockRepo = new Mock<ICategoryRepository>();
             mockRepo.Setup(r => r.GetAllActiveAsync()).ReturnsAsync([parent]);
 
@@ -44,7 +44,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         [Fact]
         public async Task GetAllAsync_ExcludesArchivedTopLevelCategories()
         {
-            var active = new Category { Id = 1, Name = "Active", IsArchived = false, Children = [] };
+            var active = new Category { Id = 1, Name = "Active", IsDeleted = false, Children = [] };
             var mockRepo = new Mock<ICategoryRepository>();
             mockRepo.Setup(r => r.GetAllActiveAsync()).ReturnsAsync([active]);
 
@@ -57,9 +57,9 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         [Fact]
         public async Task GetAllAsync_ExcludesArchivedSubcategories()
         {
-            var activeSub = new Category { Id = 2, Name = "Active Sub", IsArchived = false };
-            var archivedSub = new Category { Id = 3, Name = "Archived Sub", IsArchived = true };
-            var parent = new Category { Id = 1, Name = "Food", IsArchived = false, Children = [activeSub, archivedSub] };
+            var activeSub = new Category { Id = 2, Name = "Active Sub", IsDeleted = false };
+            var archivedSub = new Category { Id = 3, Name = "Archived Sub", IsDeleted = true };
+            var parent = new Category { Id = 1, Name = "Food", IsDeleted = false, Children = [activeSub, archivedSub] };
             var mockRepo = new Mock<ICategoryRepository>();
             mockRepo.Setup(r => r.GetAllActiveAsync()).ReturnsAsync([parent]);
 
@@ -84,7 +84,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         [Fact]
         public async Task GetAllAsync_MapsDescriptionCorrectly()
         {
-            var cat = new Category { Id = 1, Name = "Health", Description = "Health expenses", IsArchived = false, Children = [] };
+            var cat = new Category { Id = 1, Name = "Health", Description = "Health expenses", IsDeleted = false, Children = [] };
             var mockRepo = new Mock<ICategoryRepository>();
             mockRepo.Setup(r => r.GetAllActiveAsync()).ReturnsAsync([cat]);
 
@@ -96,8 +96,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         [Fact]
         public async Task GetAllAsync_SubcategoriesAreSubcategoryDtoType()
         {
-            var child = new Category { Id = 2, Name = "Child", IsArchived = false };
-            var parent = new Category { Id = 1, Name = "Parent", IsArchived = false, Children = [child] };
+            var child = new Category { Id = 2, Name = "Child", IsDeleted = false };
+            var parent = new Category { Id = 1, Name = "Parent", IsDeleted = false, Children = [child] };
             var mockRepo = new Mock<ICategoryRepository>();
             mockRepo.Setup(r => r.GetAllActiveAsync()).ReturnsAsync([parent]);
 
