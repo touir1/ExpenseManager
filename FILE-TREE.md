@@ -88,7 +88,8 @@ ExpenseManager/
 │   │   │   │   │   ├── ExpenseDto.cs        — Id, Amount, Currency: CurrencyDto?, Date, Category: SubcategoryDto?, Subcategory: SubcategoryDto?, Description?, CreatedAt, ModifiedAt?, ModifiedFrom?
 │   │   │   │   │   └── ExpenseFilterDto.cs  — DateFrom?, DateTo?, CategoryId?, SubcategoryId?, CurrencyId?, AmountMin?, AmountMax?, Description?, Page (default 1), PageSize (default 20)
 │   │   │   │   ├── Requests/
-│   │   │   │   │   ├── CreateExpenseRequest.cs — Amount, CurrencyId, Date, CategoryId?, SubcategoryId?, Description?
+│   │   │   │   │   ├── IExpenseRequest.cs      — Shared interface (Amount, CurrencyId, Date, CategoryId?, SubcategoryId?, Description?) implemented by Create + Update DTOs
+│   │   │   │   │   ├── CreateExpenseRequest.cs — Amount (required), CurrencyId (required), Date (required), CategoryId?, SubcategoryId?, Description?
 │   │   │   │   │   └── UpdateExpenseRequest.cs — same fields as Create
 │   │   │   │   └── Responses/
 │   │   │   │       ├── ErrorResponse.cs     — Uniform error envelope (matches users service pattern)
@@ -121,8 +122,9 @@ ExpenseManager/
 │   │   │   │   └── External/
 │   │   │   │       └── User.cs              — Read-only mapping of users DB entity
 │   │   │   ├── Validators/
-│   │   │   │   ├── CreateExpenseRequestValidator.cs — Amount > 0, CurrencyId > 0, Date required + not future, Description ≤ 500, SubcategoryId requires CategoryId
-│   │   │   │   └── UpdateExpenseRequestValidator.cs — same rules as Create
+│   │   │   │   ├── ExpenseRequestValidatorBase.cs   — Abstract base AbstractValidator<T> where T : IExpenseRequest; holds all shared rules (amount, currency, date, description, subcategory-requires-category)
+│   │   │   │   ├── CreateExpenseRequestValidator.cs — Inherits ExpenseRequestValidatorBase<CreateExpenseRequest>
+│   │   │   │   └── UpdateExpenseRequestValidator.cs — Inherits ExpenseRequestValidatorBase<UpdateExpenseRequest>
 │   │   │   ├── Repositories/
 │   │   │   │   ├── CategoryRepository.cs    — GetAllActiveAsync(): top-level non-archived categories with Include(Children), AsNoTracking
 │   │   │   │   ├── CurrencyRepository.cs    — GetAllAsync(): all currencies, AsNoTracking
@@ -184,10 +186,12 @@ ExpenseManager/
 │   │       │   │   └── UserRepositoryTests.cs
 │   │       │   ├── CategoryRepositoryTests.cs       — 5 tests: top-level only, children included, archived excluded, empty, archived subs
 │   │       │   ├── CurrencyRepositoryTests.cs       — 4 tests: all currencies, field mapping, empty set, positive IDs
-│   │       │   ├── ExpenseRepositoryTests.cs        — 8 tests: AddAsync, GetByIdAsync (owned/wrong-user/soft-deleted), SoftDeleteAsync, GetPagedAsync (excludes deleted/other-users, pagination, UpdateAsync)
+│   │       │   ├── ExpenseRepositoryTests.cs        — 8 tests: AddAsync, GetByIdAsync (owned/wrong-user/soft-deleted), SoftDeleteAsync, GetPagedAsync (excludes deleted/other-users, pagination, UpdateAsync); BuildExpense static
 │   │       │   └── InboxRepositoryTests.cs          — 7 tests: ExistsAsync×3, AddAsync×4
 │   │       ├── Infrastructure/
 │   │       │   └── ExpensesDbContextSchemaTests.cs  — 23 tests: all Phase 1 entities, composite PKs, unique constraints, cascades
+│   │       ├── Validators/
+│   │       │   └── ExpenseRequestValidatorTests.cs  — 13 tests: valid pass, amount/currency/date/description/subcategory rules for both Create and Update validators
 │   │       └── Services/
 │   │           ├── RabbitMQServiceTests.cs
 │   │           ├── LookupCacheServiceTests.cs       — 7 tests: GetId/Name, KeyNotFoundException, cache hit, all 8 types

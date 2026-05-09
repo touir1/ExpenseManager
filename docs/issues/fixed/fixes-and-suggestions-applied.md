@@ -140,6 +140,21 @@ These four items were raised before the SRP split (v0.60.0) and are no longer ac
 |---|---|
 | VAL-02: `firstName`, `lastName`, `email` max-length on registration | `RegisterRequestValidator`: `.MaximumLength(100).WithMessage("FIELD_TOO_LONG")` on all three fields; 3 new backend tests. `registerSchema` in `auth.schemas.ts`: `.max(100, ...)` on all three fields. `RegisterPage.tsx`: `maxLength={100}` on all three inputs. 3 new frontend tests. |
 
+### Expenses CRUD + Pagination — 2026-05-09 (v0.91.0)
+
+| Item | Resolution |
+|---|---|
+| Implement expenses CRUD | `POST/PUT/DELETE/GET /expenses` + paged `GET /expenses` live; `ExpenseService`, `ExpenseRepository`, `ExpenseAuditService` with soft-delete, ownership enforcement, full audit trail |
+| Pagination from day one | `GetPagedAsync` supports offset pagination (`Page`/`PageSize`) with full filter set: date range, category, subcategory, currency, amount range, description substring; descending by date |
+
+### SonarQube quality — expenses validators — 2026-05-09 (v0.91.1)
+
+| Item | Resolution |
+|---|---|
+| Duplicated validator code | `ExpenseRequestValidatorBase<T> where T : IExpenseRequest` extracted; both concrete validators (`CreateExpenseRequestValidator`, `UpdateExpenseRequestValidator`) are single-line subclasses |
+| Value-type DTO properties nullable | Added `required` modifier to `Amount`, `CurrencyId`, `Date` on both request DTOs |
+| 0% validator coverage | `ExpenseRequestValidatorTests`: 13 tests covering all rules for both validators |
+
 ---
 
 ## Infrastructure

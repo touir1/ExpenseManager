@@ -30,7 +30,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
             await _wrapper.Context.SaveChangesAsync();
         }
 
-        private Expense BuildExpense(int userId = 1, long id = 0) => new()
+        private static Expense BuildExpense(int userId = 1, long id = 0) => new()
         {
             UserId = userId,
             Amount = 99m,

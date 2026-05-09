@@ -3,6 +3,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.91.1] - 2026-05-09
+### Changed
+- **SonarQube quality fixes — expenses backend:**
+  - Extracted `IExpenseRequest` interface (shared by `CreateExpenseRequest` + `UpdateExpenseRequest`); `ExpenseRequestValidatorBase<T>` holds all shared validation rules — both concrete validators are now one-liners eliminating code duplication
+  - Added `required` modifier to value-type properties (`Amount`, `CurrencyId`, `Date`) on both request DTOs to prevent under-posting
+  - `BuildExpense` helper in `ExpenseRepositoryTests` marked `static` (no instance data access)
+  - **13 new tests** in `ExpenseRequestValidatorTests` covering all validation rules for both `CreateExpenseRequestValidator` and `UpdateExpenseRequestValidator`
+- **Coverage — expenses backend:** 177 → 190 tests
+
 ## [0.91.0] - 2026-05-09
 ### Added
 - **Phase 3 — Core Expense CRUD (expenses service):**
