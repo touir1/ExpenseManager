@@ -38,7 +38,9 @@ ExpenseManager/
 │   │           └── 2026-03-22-frontend-dashboard-fixes.md  — Resolved issues from the 2026-03-22 QA session
 │   └── plans/
 │       ├── application-description.md  — Full product specification (roles, families, audit, rate resolution, all screens)
-│       └── implementation-plan.md      — 15-phase implementation plan
+│       ├── implementation-plan.md      — 15-phase implementation plan
+│       └── done/
+│           └── nexus-proxy-integration.md  — Completed plan: Nexus Repository Manager integration
 │
 ├── backend/
 │   ├── dashboard/
@@ -225,7 +227,7 @@ ExpenseManager/
 │       │   │   ├── RequestAccess.cs
 │       │   │   ├── Role.cs
 │       │   │   ├── RoleRequestAccess.cs
-│       │   │   ├── User.cs
+│       │   │   ├── User.cs                      — IsDeleted + DeletedAt for soft-delete; IsDisabled for suspension
 │       │   │   └── UserRole.cs
 │       │   ├── Controllers/
 │       │   │   ├── AuthenticationController.cs  — Login, logout, session, refresh, auth check (token ops via IJwtTokenService)
@@ -298,10 +300,12 @@ ExpenseManager/
 │       │       ├── 20260101174904_SetResetPasswordUrlApplication.cs
 │       │       ├── 20260323120000_UpdateApplicationUrls.cs — Updates APP_UrlPath and APP_ResetPasswordUrlPath from localhost:5173 to localhost (nginx)
 │       │       ├── 20260412165435_FixResetPasswordUrl.cs — Sets APP_ResetPasswordUrlPath to host-agnostic relative path /reset-password
-│       │       ├── AddRefreshTokens.cs          — Creates RTK_RefreshTokens table
+│       │       ├── 20260427220653_AddRefreshTokens.cs — Creates RTK_RefreshTokens table
 │       │       ├── 20260429200824_AddVerifyEmailErrorUrlPath.cs — Adds APP_VerifyEmailErrorUrlPath; seeds /verify-error for EXPENSES_MANAGER app
 │       │       ├── 20260506224929_AddOutboxEvents.cs — MSG_OutboxEvents table (bigint PK); unique index on MessageId; composite index on (PublishedAt, RetryCount)
 │       │       ├── 20260506224929_AddOutboxEvents.Designer.cs
+│       │       ├── 20260509140937_AddUserSoftDelete.cs — USR_IsDeleted + USR_DeletedAt columns; partial unique index ux_usr_email_active (email unique among non-deleted)
+│       │       ├── 20260509140937_AddUserSoftDelete.Designer.cs
 │       │       └── UsersAppDbContextModelSnapshot.cs
 │       └── Touir.ExpensesManager.Users.Tests/
 │           ├── Touir.ExpensesManager.Users.Tests.csproj

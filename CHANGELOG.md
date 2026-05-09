@@ -3,6 +3,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.88.0] - 2026-05-09
+### Changed
+- **Users service — soft-delete for `User`:** `DeleteUserAsync` now sets `IsDeleted = true` + `DeletedAt = UtcNow` instead of `EF Core .Remove()`; all `UserRepository` queries (`GetUserByEmailAsync`, `GetUserByIdAsync`, `GetUsedEmailValidationHashesAsync`, `ValidateEmail`, `ValidateEmailAsync`) filter `!IsDeleted` — deleted users are invisible to the app layer
+- **`User` model:** added `IsDeleted` (bool, default false) and `DeletedAt` (DateTime?) properties; mapped to `USR_IsDeleted` / `USR_DeletedAt` in `UsersAppDbContext`
+- **Migration `AddUserSoftDelete`:** adds `USR_IsDeleted` + `USR_DeletedAt` columns; creates partial unique index `ux_usr_email_active` on `USR_Email WHERE USR_IsDeleted = FALSE` — enforces email uniqueness among active users only, allowing re-registration after deletion
+- **Re-registration after deletion:** `RegisterNewUserAsync` uses `GetUserByEmailAsync` which filters soft-deleted rows — same email can be reused after a user is deleted without DB constraint violations
+- **Tests — `UserRepositoryTests`:** replaced 3 hard-delete assertions with soft-delete equivalents; added 2 new tests (`HidesUserFromGetByEmail_AfterSoftDelete`, `HidesUserFromGetById_AfterSoftDelete`)
+- **Tests — `RegistrationServiceTests`:** added `RegisterNewUserAsync_AllowsRegistration_WhenEmailBelongsToSoftDeletedUser`
+
 ## [0.87.0] - 2026-05-08
 ### Added
 - **Nexus Repository Manager** (`infrastructure/configs/nexus/`): custom Docker image built on `sonatype/nexus3:latest` with `curl`+`jq`+`bash` installed; `provision.sh` runs at container startup via `docker-entrypoint.sh` wrapper — polls REST API until ready, changes admin password, creates all proxy/group repos from `repos.json`, creates CI user; idempotent via `/nexus-data/.provisioned` flag file

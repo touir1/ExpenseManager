@@ -92,6 +92,21 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         }
 
         [Fact]
+        public async Task RegisterNewUserAsync_AllowsRegistration_WhenEmailBelongsToSoftDeletedUser()
+        {
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("test@test.com")).ReturnsAsync((User?)null);
+            userRepo.Setup(r => r.GetUsedEmailValidationHashesAsync()).ReturnsAsync(new List<string>());
+            userRepo.Setup(r => r.CreateUserAsync(It.IsAny<User>())).ReturnsAsync((User u) => { u.Id = 2; return u; });
+
+            var service = CreateService(userRepo);
+            var errors = await service.RegisterNewUserAsync("Jane", "Doe", "test@test.com", null);
+
+            Assert.Empty(errors);
+            userRepo.Verify(r => r.CreateUserAsync(It.Is<User>(u => u.Email == "test@test.com")), Times.Once);
+        }
+
+        [Fact]
         public async Task RegisterNewUserAsync_AssignsDefaultRole_WhenApplicationCodeProvided()
         {
             var user = new User { Id = 1, Email = "test@test.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };

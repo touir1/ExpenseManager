@@ -15,12 +15,12 @@ namespace Touir.ExpensesManager.Users.Repositories
         public async Task<User?> GetUserByEmailAsync(string email)
         {
             var lowerEmail = email.ToLowerInvariant();
-            return await _context.Users.FirstOrDefaultAsync(u => u.Email == lowerEmail);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == lowerEmail && !u.IsDeleted);
         }
 
         public async Task<User?> GetUserByIdAsync(int id)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted);
         }
 
         public async Task<User> CreateUserAsync(User user)
@@ -33,7 +33,8 @@ namespace Touir.ExpensesManager.Users.Repositories
 
         public async Task<bool?> DeleteUserAsync(User user)
         {
-            _context.Users.Remove(user);
+            user.IsDeleted = true;
+            user.DeletedAt = DateTime.UtcNow;
             return await _context.SaveChangesAsync() > 0;
         }
 
@@ -41,7 +42,7 @@ namespace Touir.ExpensesManager.Users.Repositories
         {
             return await _context.Users
                 .AsNoTracking()
-                .Where(u => u.EmailValidationHash != null && !u.IsEmailValidated)
+                .Where(u => u.EmailValidationHash != null && !u.IsEmailValidated && !u.IsDeleted)
                 .Select(s => s.EmailValidationHash!)
                 .ToListAsync();
         }
@@ -52,7 +53,8 @@ namespace Touir.ExpensesManager.Users.Repositories
             var user = await _context.Users
                 .FirstOrDefaultAsync(u =>
                     u.Email == lowerEmail &&
-                    u.EmailValidationHash == emailVerificationHash);
+                    u.EmailValidationHash == emailVerificationHash &&
+                    !u.IsDeleted);
             if (user != null)
             {
                 user.IsEmailValidated = true;

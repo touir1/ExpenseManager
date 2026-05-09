@@ -12,6 +12,8 @@
         public bool IsEmailValidated { get; set; }
         public string? EmailValidationHash { get; set; }
         public bool IsDisabled { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime? DeletedAt { get; set; }
 
         public int? CreatedById { get; set; }
         public User CreatedBy { get; set; }

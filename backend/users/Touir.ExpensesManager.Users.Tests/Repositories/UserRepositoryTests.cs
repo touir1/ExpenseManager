@@ -140,19 +140,21 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
         #region DeleteUserAsync Tests
 
         [Fact]
-        public async Task DeleteUserAsync_DeletesUser_WhenUserExists()
+        public async Task DeleteUserAsync_SoftDeletesUser_WhenUserExists()
         {
             using var db = new TestDbContextWrapper();
             var user = new User { FirstName = "Mark", LastName = "Twain", Email = "mark@twain.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
             db.Context.Users.Add(user);
             db.Context.SaveChanges();
-            
+
             var repo = new UserRepository(db.Context);
             var dbUser = db.Context.Users.First();
             var result = await repo.DeleteUserAsync(dbUser);
-            
+
             Assert.True(result);
-            Assert.Empty(db.Context.Users);
+            var deletedUser = db.Context.Users.First(u => u.Id == dbUser.Id);
+            Assert.True(deletedUser.IsDeleted);
+            Assert.NotNull(deletedUser.DeletedAt);
         }
 
         [Fact]
@@ -162,27 +164,59 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
             var user = new User { FirstName = "Bob", LastName = "Builder", Email = "bob@builder.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
             db.Context.Users.Add(user);
             db.Context.SaveChanges();
-            
+
             var repo = new UserRepository(db.Context);
             var result = await repo.DeleteUserAsync(user);
-            
+
             Assert.True(result);
         }
 
         [Fact]
-        public async Task DeleteUserAsync_RemovesUserFromDatabase()
+        public async Task DeleteUserAsync_UserStillExistsInDatabase_AfterSoftDelete()
         {
             using var db = new TestDbContextWrapper();
             var user = new User { FirstName = "Charlie", LastName = "Brown", Email = "charlie@brown.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
             db.Context.Users.Add(user);
             db.Context.SaveChanges();
             var userId = user.Id;
-            
+
             var repo = new UserRepository(db.Context);
             await repo.DeleteUserAsync(user);
-            
+
             var deletedUser = db.Context.Users.FirstOrDefault(u => u.Id == userId);
-            Assert.Null(deletedUser);
+            Assert.NotNull(deletedUser);
+            Assert.True(deletedUser.IsDeleted);
+        }
+
+        [Fact]
+        public async Task DeleteUserAsync_HidesUserFromGetByEmail_AfterSoftDelete()
+        {
+            using var db = new TestDbContextWrapper();
+            var user = new User { FirstName = "Dave", LastName = "Deleted", Email = "dave@deleted.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            db.Context.Users.Add(user);
+            db.Context.SaveChanges();
+
+            var repo = new UserRepository(db.Context);
+            await repo.DeleteUserAsync(user);
+
+            var found = await repo.GetUserByEmailAsync("dave@deleted.com");
+            Assert.Null(found);
+        }
+
+        [Fact]
+        public async Task DeleteUserAsync_HidesUserFromGetById_AfterSoftDelete()
+        {
+            using var db = new TestDbContextWrapper();
+            var user = new User { FirstName = "Eve", LastName = "Erased", Email = "eve@erased.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            db.Context.Users.Add(user);
+            db.Context.SaveChanges();
+            var userId = user.Id;
+
+            var repo = new UserRepository(db.Context);
+            await repo.DeleteUserAsync(user);
+
+            var found = await repo.GetUserByIdAsync(userId);
+            Assert.Null(found);
         }
 
         #endregion
