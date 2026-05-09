@@ -206,6 +206,9 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
                       .HasForeignKey(e => e.ModifiedFromId)
                       .OnDelete(DeleteBehavior.Restrict);
 
+                entity.Property(e => e.IsDeleted).HasDefaultValue(false);
+                entity.Property(e => e.DeletedAt).IsRequired(false);
+
                 entity.HasIndex(e => new { e.UserId, e.Date });
                 entity.HasIndex(e => e.CategoryId);
                 entity.HasIndex(e => e.CurrencyId);

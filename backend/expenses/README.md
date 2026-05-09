@@ -26,6 +26,11 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 |--------|------|-------------|
 | `GET` | `/categories` | Active category tree (top-level + subcategories, archived excluded) → `CategoryDto[]` |
 | `GET` | `/currencies` | All currencies → `CurrencyDto[]` |
+| `POST` | `/expenses` | Create expense → `ExpenseDto` (201) |
+| `PUT` | `/expenses/{id}` | Update expense → `ExpenseDto` (200) or 404 |
+| `DELETE` | `/expenses/{id}` | Soft-delete expense → 204 or 404 |
+| `GET` | `/expenses/{id}` | Get expense by id → `ExpenseDto` (200) or 404 |
+| `GET` | `/expenses` | Paged + filtered expense list → `ExpensePagedResponse` |
 | `GET` | `/health` | Liveness/readiness probe |
 
 All endpoints (except `/health`) require authentication, enforced by nginx's `auth_request` subrequest to the users service before forwarding.
@@ -34,7 +39,11 @@ All endpoints (except `/health`) require authentication, enforced by nginx's `au
 
 **`CategoryDto`** — `{ id, name, description?, subcategories: SubcategoryDto[] }`  
 **`SubcategoryDto`** — `{ id, name, description? }`  
-**`CurrencyDto`** — `{ id, code, name, symbol, decimals }`
+**`CurrencyDto`** — `{ id, code, name, symbol, decimals }`  
+**`ExpenseDto`** — `{ id, amount, currencyId, currencyCode?, currencySymbol?, date, categoryId?, categoryName?, subcategoryId?, subcategoryName?, description?, createdAt, modifiedAt?, modifiedFrom? }`  
+**`ExpensePagedResponse`** — `{ items: ExpenseDto[], totalCount, page, pageSize, totalPages }`
+
+**Query params for `GET /expenses`:** `dateFrom`, `dateTo`, `categoryId`, `subcategoryId`, `currencyId`, `amountMin`, `amountMax`, `description` (substring), `page` (default 1), `pageSize` (default 20)
 
 DTOs live in `Controllers/DTO/`; error envelopes (`{ message }`) in `Controllers/Responses/`.
 

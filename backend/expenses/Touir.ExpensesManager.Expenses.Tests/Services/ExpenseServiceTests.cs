@@ -1,0 +1,261 @@
+using Moq;
+using Touir.ExpensesManager.Expenses.Controllers.DTO;
+using Touir.ExpensesManager.Expenses.Controllers.Requests;
+using Touir.ExpensesManager.Expenses.Models;
+using Touir.ExpensesManager.Expenses.Repositories.Contracts;
+using Touir.ExpensesManager.Expenses.Services;
+using Touir.ExpensesManager.Expenses.Services.Contracts;
+
+namespace Touir.ExpensesManager.Expenses.Tests.Services
+{
+    public class ExpenseServiceTests
+    {
+        private static ExpenseService CreateService(
+            IExpenseRepository? repo = null,
+            IExpenseAuditService? audit = null)
+        {
+            return new ExpenseService(
+                repo ?? Mock.Of<IExpenseRepository>(),
+                audit ?? Mock.Of<IExpenseAuditService>());
+        }
+
+        private static Expense MakeExpense(long id = 1, int userId = 42) => new()
+        {
+            Id = id,
+            UserId = userId,
+            Amount = 100m,
+            CurrencyId = 1,
+            Date = DateOnly.FromDateTime(DateTime.UtcNow),
+            CreatedAt = DateTime.UtcNow,
+            CreatedById = userId,
+            CreatedFromId = 1
+        };
+
+        // ── AddAsync ─────────────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task AddAsync_CallsRepositoryAdd()
+        {
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.AddAsync(It.IsAny<Expense>()))
+                .ReturnsAsync((Expense e) => e);
+
+            await CreateService(repo.Object).AddAsync(
+                new CreateExpenseRequest { Amount = 50m, CurrencyId = 1, Date = DateOnly.FromDateTime(DateTime.UtcNow) },
+                userId: 1, sourceId: 1);
+
+            repo.Verify(r => r.AddAsync(It.IsAny<Expense>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task AddAsync_WritesAudit()
+        {
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.AddAsync(It.IsAny<Expense>()))
+                .ReturnsAsync((Expense e) => e);
+            var audit = new Mock<IExpenseAuditService>();
+
+            await CreateService(repo.Object, audit.Object).AddAsync(
+                new CreateExpenseRequest { Amount = 50m, CurrencyId = 1, Date = DateOnly.FromDateTime(DateTime.UtcNow) },
+                userId: 1, sourceId: 1);
+
+            audit.Verify(a => a.WriteAddAuditAsync(It.IsAny<Expense>(), 1, 1), Times.Once);
+        }
+
+        [Fact]
+        public async Task AddAsync_ReturnsDtoWithCorrectAmount()
+        {
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.AddAsync(It.IsAny<Expense>()))
+                .ReturnsAsync((Expense e) =>
+                {
+                    e.Currency = new Currency { Id = e.CurrencyId, Code = "X", Name = "X", Symbol = "X", Decimals = 2 };
+                    return e;
+                });
+
+            var result = await CreateService(repo.Object).AddAsync(
+                new CreateExpenseRequest { Amount = 75.50m, CurrencyId = 2, Date = DateOnly.FromDateTime(DateTime.UtcNow) },
+                userId: 5, sourceId: 1);
+
+            Assert.Equal(75.50m, result.Amount);
+            Assert.Equal(2, result.Currency?.Id);
+        }
+
+        // ── UpdateAsync ──────────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task UpdateAsync_ReturnsNull_WhenExpenseNotFound()
+        {
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.GetByIdAsync(It.IsAny<long>(), It.IsAny<int>()))
+                .ReturnsAsync((Expense?)null);
+
+            var result = await CreateService(repo.Object).UpdateAsync(
+                1,
+                new UpdateExpenseRequest { Amount = 10m, CurrencyId = 1, Date = DateOnly.FromDateTime(DateTime.UtcNow) },
+                userId: 1, sourceId: 1);
+
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_CallsRepositoryUpdate_WhenFound()
+        {
+            var expense = MakeExpense();
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.GetByIdAsync(1, 42)).ReturnsAsync(expense);
+
+            await CreateService(repo.Object).UpdateAsync(
+                1,
+                new UpdateExpenseRequest { Amount = 200m, CurrencyId = 1, Date = DateOnly.FromDateTime(DateTime.UtcNow) },
+                userId: 42, sourceId: 1);
+
+            repo.Verify(r => r.UpdateAsync(It.IsAny<Expense>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_WritesUpdateAudit()
+        {
+            var expense = MakeExpense();
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.GetByIdAsync(1, 42)).ReturnsAsync(expense);
+            var audit = new Mock<IExpenseAuditService>();
+
+            await CreateService(repo.Object, audit.Object).UpdateAsync(
+                1,
+                new UpdateExpenseRequest { Amount = 200m, CurrencyId = 1, Date = DateOnly.FromDateTime(DateTime.UtcNow) },
+                userId: 42, sourceId: 1);
+
+            audit.Verify(a => a.WriteUpdateAuditAsync(
+                It.IsAny<Expense>(), It.IsAny<Expense>(), 42, 1), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_UpdatesModifiedFields()
+        {
+            var expense = MakeExpense();
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.GetByIdAsync(1, 42)).ReturnsAsync(expense);
+
+            var result = await CreateService(repo.Object).UpdateAsync(
+                1,
+                new UpdateExpenseRequest { Amount = 999m, CurrencyId = 3, Date = new DateOnly(2025, 1, 1) },
+                userId: 42, sourceId: 1);
+
+            Assert.NotNull(result);
+            Assert.Equal(999m, result!.Amount);
+        }
+
+        // ── DeleteAsync ──────────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task DeleteAsync_ReturnsFalse_WhenNotFound()
+        {
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.GetByIdAsync(It.IsAny<long>(), It.IsAny<int>()))
+                .ReturnsAsync((Expense?)null);
+
+            var result = await CreateService(repo.Object).DeleteAsync(1, userId: 1, sourceId: 1);
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task DeleteAsync_ReturnsTrue_WhenFound()
+        {
+            var expense = MakeExpense();
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.GetByIdAsync(1, 42)).ReturnsAsync(expense);
+
+            var result = await CreateService(repo.Object).DeleteAsync(1, userId: 42, sourceId: 1);
+
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task DeleteAsync_CallsSoftDelete()
+        {
+            var expense = MakeExpense();
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.GetByIdAsync(1, 42)).ReturnsAsync(expense);
+
+            await CreateService(repo.Object).DeleteAsync(1, userId: 42, sourceId: 1);
+
+            repo.Verify(r => r.SoftDeleteAsync(expense), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteAsync_WritesDeleteAudit()
+        {
+            var expense = MakeExpense();
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.GetByIdAsync(1, 42)).ReturnsAsync(expense);
+            var audit = new Mock<IExpenseAuditService>();
+
+            await CreateService(repo.Object, audit.Object).DeleteAsync(1, userId: 42, sourceId: 1);
+
+            audit.Verify(a => a.WriteDeleteAuditAsync(expense, 42, 1), Times.Once);
+        }
+
+        // ── GetByIdAsync ─────────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task GetByIdAsync_ReturnsNull_WhenNotFound()
+        {
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.GetByIdAsync(It.IsAny<long>(), It.IsAny<int>()))
+                .ReturnsAsync((Expense?)null);
+
+            var result = await CreateService(repo.Object).GetByIdAsync(1, userId: 1);
+
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_ReturnsMappedDto()
+        {
+            var expense = MakeExpense(id: 7);
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.GetByIdAsync(7, 42)).ReturnsAsync(expense);
+
+            var result = await CreateService(repo.Object).GetByIdAsync(7, userId: 42);
+
+            Assert.NotNull(result);
+            Assert.Equal(7, result!.Id);
+            Assert.Equal(100m, result.Amount);
+        }
+
+        // ── GetPagedAsync ────────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task GetPagedAsync_ReturnsPagedResult()
+        {
+            var items = new[] { MakeExpense(1), MakeExpense(2) };
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.GetPagedAsync(It.IsAny<ExpenseFilterDto>(), 42))
+                .ReturnsAsync((items.AsEnumerable(), 2));
+
+            var result = await CreateService(repo.Object).GetPagedAsync(
+                new ExpenseFilterDto { Page = 1, PageSize = 10 }, userId: 42);
+
+            Assert.Equal(2, result.TotalCount);
+            Assert.Equal(2, result.Items.Count());
+            Assert.Equal(1, result.TotalPages);
+        }
+
+        [Fact]
+        public async Task GetPagedAsync_CalculatesTotalPagesCorrectly()
+        {
+            var items = Enumerable.Range(1, 5).Select(i => MakeExpense(i)).ToArray();
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.GetPagedAsync(It.IsAny<ExpenseFilterDto>(), It.IsAny<int>()))
+                .ReturnsAsync((items.AsEnumerable(), 11));
+
+            var result = await CreateService(repo.Object).GetPagedAsync(
+                new ExpenseFilterDto { Page = 1, PageSize = 5 }, userId: 1);
+
+            Assert.Equal(11, result.TotalCount);
+            Assert.Equal(3, result.TotalPages);
+        }
+    }
+}

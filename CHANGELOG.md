@@ -3,6 +3,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.91.0] - 2026-05-09
+### Added
+- **Phase 3 — Core Expense CRUD (expenses service):**
+  - `Expense` model: added `IsDeleted` (bool, default false) + `DeletedAt` (DateTime?) soft-delete fields; migration `AddExpenseSoftDelete` applied
+  - `ExpenseRepository` (`IExpenseRepository`): `AddAsync`, `UpdateAsync`, `SoftDeleteAsync`, `GetByIdAsync` (ownership + !IsDeleted filter), `GetPagedAsync` (filter by date range, category, currency, amount range, description substring; paginated, descending by date)
+  - `ExpenseAuditService` (`IExpenseAuditService`): writes `ExpenseAuditLog` + `ExpenseAuditSnapshot(s)` for add (1 `after`), update (`before` + `after`), delete (1 `before`)
+  - `ExpenseService` (`IExpenseService`): `AddAsync`, `UpdateAsync`, `DeleteAsync`, `GetByIdAsync`, `GetPagedAsync`; maps to `ExpenseDto`; calls audit service on every mutation
+  - `ExpenseController`: `POST /expenses`, `PUT /expenses/{id}`, `DELETE /expenses/{id}`, `GET /expenses/{id}`, `GET /expenses` (paged + filtered); reads `userId` from `auth_token` JWT cookie (nginx already validated; controller only decodes)
+  - `JwtCookieReader`: static helper that base64url-decodes JWT payload and extracts `sub` claim — no extra NuGet dependency
+  - `CreateExpenseRequest` / `UpdateExpenseRequest` DTOs with `CreateExpenseRequestValidator` / `UpdateExpenseRequestValidator` (FluentValidation; validate amount > 0, date not in future, description ≤ 500 chars, subcategory requires category)
+  - `ExpenseDto` — nested `CurrencyDto? Currency`, `SubcategoryDto? Category`, `SubcategoryDto? Subcategory` (not flat IDs/names); `SubcategoryDto` reused for both category and subcategory slots since it has no children collection
+  - `ExpenseFilterDto`, `ExpensePagedResponse` DTOs
+  - **37 new tests**: `ExpenseServiceTests` (16), `ExpenseAuditServiceTests` (3), `ExpenseRepositoryTests` (8), `ExpenseControllerTests` (10)
+### Changed
+- **Coverage — expenses backend:** 140 → 177 tests
+
 ## [0.90.0] - 2026-05-09
 ### Added
 - **Tests — expenses `UserEventConsumer`:** 24 new tests covering constructor, `ExecuteAsync` (happy path, cancellation, `BrokerUnreachableException` retry), `Dispose`, `OnMessageReceivedAsync` (null message, duplicate inbox deduplication, `Created`/`Updated`/`Deleted`/unknown event types, exception → nack, null/missing `MessageId` → generated GUID), and `HandleMessageAsync` (all 4 branches); `UserEventMessage` + `UserEventType` constants also covered

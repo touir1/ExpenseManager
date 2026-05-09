@@ -4,9 +4,9 @@ using Touir.ExpensesManager.Expenses.Infrastructure.Options;
 using Touir.ExpensesManager.Expenses.Messaging.Consumers;
 using Touir.ExpensesManager.Expenses.Repositories;
 using Touir.ExpensesManager.Expenses.Repositories.Contracts;
+using Touir.ExpensesManager.Expenses.Services;
 using Touir.ExpensesManager.Expenses.Repositories.External;
 using Touir.ExpensesManager.Expenses.Repositories.External.Contracts;
-using Touir.ExpensesManager.Expenses.Services;
 using Touir.ExpensesManager.Expenses.Services.Contracts;
 using Microsoft.Extensions.Caching.Memory;
 using FluentValidation;
@@ -105,6 +105,8 @@ builder.Services.AddSingleton<IRabbitMQService, RabbitMQService>();
 builder.Services.AddScoped<ILookupCacheService, LookupCacheService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICurrencyService, CurrencyService>();
+builder.Services.AddScoped<IExpenseAuditService, ExpenseAuditService>();
+builder.Services.AddScoped<IExpenseService, ExpenseService>();
 #endregion
 
 #region Messaging
@@ -116,6 +118,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICurrencyRepository, CurrencyRepository>();
 builder.Services.AddScoped<IInboxRepository, InboxRepository>();
+builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 #endregion
 
 #region Database

@@ -73,22 +73,30 @@ ExpenseManager/
 │   │   │   │       └── UserEventConsumer.cs — BackgroundService; binds expenses.users.sync → users.events; inbox deduplication via IInboxRepository.ExistsAsync; calls IUserRepository.SaveOrUpdateUserAsync / DeleteUserAsync
 │   │   │   ├── Infrastructure/
 │   │   │   │   ├── ExpensesDbContext.cs     — EF Core context; all 13 DbSets with full Fluent API config
+│   │   │   │   ├── JwtCookieReader.cs       — Decodes auth_token cookie (base64url payload) to extract sub claim; no signature validation (nginx validates upstream)
 │   │   │   │   └── Options/
 │   │   │   │       ├── PostgresOptions.cs
 │   │   │   │       └── RabbitMQOptions.cs
 │   │   │   ├── Controllers/
 │   │   │   │   ├── CategoryController.cs    — GET /categories → IEnumerable<CategoryDto>
 │   │   │   │   ├── CurrencyController.cs    — GET /currencies → IEnumerable<CurrencyDto>
+│   │   │   │   ├── ExpenseController.cs     — POST/PUT/DELETE/GET/GET(paged) /expenses; reads userId from auth_token JWT cookie via JwtCookieReader
 │   │   │   │   ├── DTO/
 │   │   │   │   │   ├── CategoryDto.cs       — Id, Name, Description?, Subcategories: IEnumerable<SubcategoryDto>
-│   │   │   │   │   ├── SubcategoryDto.cs    — Id, Name, Description? (no nested subcategories)
-│   │   │   │   │   └── CurrencyDto.cs       — Id, Code, Name, Symbol, Decimals
+│   │   │   │   │   ├── SubcategoryDto.cs    — Id, Name, Description? (reused for category + subcategory slots in ExpenseDto)
+│   │   │   │   │   ├── CurrencyDto.cs       — Id, Code, Name, Symbol, Decimals
+│   │   │   │   │   ├── ExpenseDto.cs        — Id, Amount, Currency: CurrencyDto?, Date, Category: SubcategoryDto?, Subcategory: SubcategoryDto?, Description?, CreatedAt, ModifiedAt?, ModifiedFrom?
+│   │   │   │   │   └── ExpenseFilterDto.cs  — DateFrom?, DateTo?, CategoryId?, SubcategoryId?, CurrencyId?, AmountMin?, AmountMax?, Description?, Page (default 1), PageSize (default 20)
+│   │   │   │   ├── Requests/
+│   │   │   │   │   ├── CreateExpenseRequest.cs — Amount, CurrencyId, Date, CategoryId?, SubcategoryId?, Description?
+│   │   │   │   │   └── UpdateExpenseRequest.cs — same fields as Create
 │   │   │   │   └── Responses/
-│   │   │   │       └── ErrorResponse.cs     — Uniform error envelope (matches users service pattern)
+│   │   │   │       ├── ErrorResponse.cs     — Uniform error envelope (matches users service pattern)
+│   │   │   │       └── ExpensePagedResponse.cs — Items: ExpenseDto[], TotalCount, Page, PageSize, TotalPages
 │   │   │   ├── Models/
 │   │   │   │   ├── Category.cs              — IsDeleted + DeletedAt (soft-delete); ParentCategoryId, Children
 │   │   │   │   ├── Currency.cs
-│   │   │   │   ├── Expense.cs               — Rewritten: owner, amount, date, category, audit fields; FK int columns
+│   │   │   │   ├── Expense.cs               — IsDeleted + DeletedAt (soft-delete); owner, amount, date, category, audit fields; FK int columns
 │   │   │   │   ├── Family.cs                — IsDeleted + DeletedAt (soft-delete)
 │   │   │   │   ├── FamilyMembership.cs      — RoleId (int FK) instead of enum
 │   │   │   │   ├── ExpenseFamilyAttribution.cs
@@ -112,13 +120,18 @@ ExpenseManager/
 │   │   │   │   ├── InboxEvent.cs            — MessageId (PK), EventType, ReceivedAt, Status, Error?; InboxEventStatus constants
 │   │   │   │   └── External/
 │   │   │   │       └── User.cs              — Read-only mapping of users DB entity
+│   │   │   ├── Validators/
+│   │   │   │   ├── CreateExpenseRequestValidator.cs — Amount > 0, CurrencyId > 0, Date required + not future, Description ≤ 500, SubcategoryId requires CategoryId
+│   │   │   │   └── UpdateExpenseRequestValidator.cs — same rules as Create
 │   │   │   ├── Repositories/
 │   │   │   │   ├── CategoryRepository.cs    — GetAllActiveAsync(): top-level non-archived categories with Include(Children), AsNoTracking
 │   │   │   │   ├── CurrencyRepository.cs    — GetAllAsync(): all currencies, AsNoTracking
+│   │   │   │   ├── ExpenseRepository.cs     — AddAsync, UpdateAsync, SoftDeleteAsync, GetByIdAsync (ownership + !IsDeleted), GetPagedAsync (filtered + paginated, desc by date)
 │   │   │   │   ├── InboxRepository.cs       — ExistsAsync(messageId), AddAsync(InboxEvent) for deduplication
 │   │   │   │   ├── Contracts/
 │   │   │   │   │   ├── ICategoryRepository.cs
 │   │   │   │   │   ├── ICurrencyRepository.cs
+│   │   │   │   │   ├── IExpenseRepository.cs — AddAsync, UpdateAsync, SoftDeleteAsync, GetByIdAsync, GetPagedAsync
 │   │   │   │   │   └── IInboxRepository.cs  — ExistsAsync, AddAsync
 │   │   │   │   └── External/
 │   │   │   │       ├── Contracts/
@@ -129,11 +142,15 @@ ExpenseManager/
 │   │   │   │   │   ├── IRabbitMQService.cs
 │   │   │   │   │   ├── ILookupCacheService.cs — GetIdAsync<T>(name) / GetNameAsync<T>(id)
 │   │   │   │   │   ├── ICategoryService.cs  — GetAllAsync() → active category tree
-│   │   │   │   │   └── ICurrencyService.cs  — GetAllAsync() → all currencies
+│   │   │   │   │   ├── ICurrencyService.cs  — GetAllAsync() → all currencies
+│   │   │   │   │   ├── IExpenseService.cs   — AddAsync, UpdateAsync, DeleteAsync, GetByIdAsync, GetPagedAsync
+│   │   │   │   │   └── IExpenseAuditService.cs — WriteAddAuditAsync, WriteUpdateAuditAsync, WriteDeleteAuditAsync
 │   │   │   │   ├── RabbitMQService.cs       — RabbitMQ connection and messaging
 │   │   │   │   ├── LookupCacheService.cs    — IMemoryCache-backed lookup; NeverRemove priority; loads entire table on first access
 │   │   │   │   ├── CategoryService.cs       — Injects ICategoryRepository; projects Category → CategoryDto (filters archived children)
-│   │   │   │   └── CurrencyService.cs       — Injects ICurrencyRepository; projects Currency → CurrencyDto
+│   │   │   │   ├── CurrencyService.cs       — Injects ICurrencyRepository; projects Currency → CurrencyDto
+│   │   │   │   ├── ExpenseService.cs        — Orchestrates IExpenseRepository + IExpenseAuditService; maps Expense → ExpenseDto with nested CurrencyDto/SubcategoryDto
+│   │   │   │   └── ExpenseAuditService.cs   — Writes ExpenseAuditLog + ExpenseAuditSnapshot(s): add→1 after, update→before+after, delete→1 before
 │   │   │   └── Migrations/
 │   │   │       ├── 20260217225816_InitialCreate.cs
 │   │   │       ├── 20260217225816_InitialCreate.Designer.cs
@@ -149,6 +166,8 @@ ExpenseManager/
 │   │   │       ├── 20260506224942_AddInboxEvents.Designer.cs
 │   │   │       ├── 20260509155613_ReplaceCategoryFamilyIsArchivedWithSoftDelete.cs — IsDeleted + DeletedAt on Categories + Families; data-migrates IsArchived; drops IsArchived
 │   │   │       ├── 20260509155613_ReplaceCategoryFamilyIsArchivedWithSoftDelete.Designer.cs
+│   │   │       ├── 20260509163919_AddExpenseSoftDelete.cs — IsDeleted (default false) + DeletedAt? on Expenses
+│   │   │       ├── 20260509163919_AddExpenseSoftDelete.Designer.cs
 │   │   │       └── ExpensesDbContextModelSnapshot.cs
 │   │   └── Touir.ExpensesManager.Expenses.Tests/
 │   │       ├── Touir.ExpensesManager.Expenses.Tests.csproj
@@ -156,7 +175,8 @@ ExpenseManager/
 │   │       │   └── TestExpensesDbContext.cs  — In-memory DB wrapper for tests
 │   │       ├── Controllers/
 │   │       │   ├── CategoryControllerTests.cs
-│   │       │   └── CurrencyControllerTests.cs
+│   │       │   ├── CurrencyControllerTests.cs
+│   │       │   └── ExpenseControllerTests.cs        — 10 tests: 401 no-cookie, 201/400 create, 404/200 update, 404/204 delete, 404/200 getById, 200 getPaged
 │   │       ├── Messaging/
 │   │       │   └── UserEventConsumerTests.cs        — 24 tests: constructor, ExecuteAsync, Dispose, OnMessageReceivedAsync (null msg, dedup, Created/Updated/Deleted/unknown/exception), HandleMessageAsync, UserEventMessage/UserEventType
 │   │       ├── Repositories/
@@ -164,6 +184,7 @@ ExpenseManager/
 │   │       │   │   └── UserRepositoryTests.cs
 │   │       │   ├── CategoryRepositoryTests.cs       — 5 tests: top-level only, children included, archived excluded, empty, archived subs
 │   │       │   ├── CurrencyRepositoryTests.cs       — 4 tests: all currencies, field mapping, empty set, positive IDs
+│   │       │   ├── ExpenseRepositoryTests.cs        — 8 tests: AddAsync, GetByIdAsync (owned/wrong-user/soft-deleted), SoftDeleteAsync, GetPagedAsync (excludes deleted/other-users, pagination, UpdateAsync)
 │   │       │   └── InboxRepositoryTests.cs          — 7 tests: ExistsAsync×3, AddAsync×4
 │   │       ├── Infrastructure/
 │   │       │   └── ExpensesDbContextSchemaTests.cs  — 23 tests: all Phase 1 entities, composite PKs, unique constraints, cascades
@@ -171,7 +192,9 @@ ExpenseManager/
 │   │           ├── RabbitMQServiceTests.cs
 │   │           ├── LookupCacheServiceTests.cs       — 7 tests: GetId/Name, KeyNotFoundException, cache hit, all 8 types
 │   │           ├── CategoryServiceTests.cs          — 8 tests: Mock<ICategoryRepository>; top-level, subcategories, archived exclusion, field mapping, call count
-│   │           └── CurrencyServiceTests.cs          — 5 tests: Mock<ICurrencyRepository>; all currencies, field mapping, empty set, ID mapping, call count
+│   │           ├── CurrencyServiceTests.cs          — 5 tests: Mock<ICurrencyRepository>; all currencies, field mapping, empty set, ID mapping, call count
+│   │           ├── ExpenseServiceTests.cs           — 16 tests: AddAsync (repo called, audit written, DTO amount/currency), UpdateAsync (null when not found, repo called, audit written, fields updated), DeleteAsync (false/true/soft-delete/audit), GetByIdAsync (null/mapped), GetPagedAsync (result, total pages)
+│   │           └── ExpenseAuditServiceTests.cs      — 3 tests: WriteAddAuditAsync (log + after snapshot), WriteUpdateAuditAsync (log + before+after snapshots), WriteDeleteAuditAsync (log + before snapshot)
 │   │
 │   └── users/
 │       ├── .config/

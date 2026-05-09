@@ -230,21 +230,21 @@ Replace current model with:
 
 ### Backend
 
-- [ ] `ExpenseService`
+- [x] `ExpenseService`
   - `AddAsync(request, userId, source)` → writes expense + audit log (operation: `add`, 1 `after` snapshot)
   - `UpdateAsync(id, request, userId, source)` → writes audit log (operation: `update`, `before` + `after` snapshots)
   - `DeleteAsync(id, userId)` → soft delete (`IsDeleted = true`, `DeletedAt = UtcNow`) + audit log (operation: `delete`, 1 `before` snapshot); all queries filter `!IsDeleted`
   - `GetByIdAsync(id, userId)` — enforces ownership
   - `GetPagedAsync(filters, userId)` — paginated, filtered list (own expenses only for now)
-- [ ] `ExpenseController`
+- [x] `ExpenseController`
   - `POST /expenses`
   - `PUT /expenses/{id}`
   - `DELETE /expenses/{id}`
   - `GET /expenses/{id}`
   - `GET /expenses` (paged + filtered)
-- [ ] `ExpenseAuditService` — internal, called by `ExpenseService`; never exposed directly
-- [ ] FluentValidation for create/update request DTOs
-- [ ] Unit tests for service logic and audit writes
+- [x] `ExpenseAuditService` — internal, called by `ExpenseService`; never exposed directly
+- [x] FluentValidation for create/update request DTOs
+- [x] Unit tests for service logic and audit writes
 
 ### Notes
 - No family attribution yet (Phase 4); all expenses implicitly owned by user
