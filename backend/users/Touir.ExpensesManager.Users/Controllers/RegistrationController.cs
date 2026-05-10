@@ -26,9 +26,16 @@ namespace Touir.ExpensesManager.Users.Controllers
             _applicationService = applicationService;
         }
 
+        /// <summary>
+        /// Register a new user account. Sends a verification email on success.
+        /// Re-registering an unverified email silently resends the verification link.
+        /// </summary>
+        /// <param name="request">First name, last name, email, and application code.</param>
         [Route("register")]
         [HttpPost]
         [EnableRateLimiting("register")]
+        [ProducesResponseType(typeof(RegisterResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RegisterAsync(RegisterRequest request)
         {
             try
@@ -48,14 +55,18 @@ namespace Touir.ExpensesManager.Users.Controllers
         }
 
         /// <summary>
-        /// Verify email after registration
+        /// Verify email after registration. Redirects to the app's success or error URL on completion.
+        /// Hash expires 24 hours after issue; expired links return 401.
         /// </summary>
-        /// <param name="emailVerificationHash">verification hash</param>
-        /// <param name="email">email source</param>
-        /// <param name="appCode">application code</param>
+        /// <param name="emailVerificationHash">Verification hash from the email link (query param "h").</param>
+        /// <param name="email">User email address (query param "s").</param>
+        /// <param name="appCode">Application code identifying the redirect targets (query param "app_code").</param>
         [Route("validate-email")]
         [HttpGet]
         [EnableRateLimiting("validate_email")]
+        [ProducesResponseType(StatusCodes.Status302Found)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> ValidateEmail(
             [FromQuery(Name = "h")] string emailVerificationHash,
             [FromQuery(Name = "s")] string email,
@@ -89,9 +100,16 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
         }
 
+        /// <summary>
+        /// Resend the email verification link. Always returns 200 regardless of account existence.
+        /// Resets the 24-hour expiry window; any previously issued link becomes invalid.
+        /// </summary>
+        /// <param name="request">Email and application code.</param>
         [Route("resend-verification")]
         [HttpPost]
         [EnableRateLimiting("resend_verification")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> ResendVerification(ResendVerificationRequest request)
         {
             try

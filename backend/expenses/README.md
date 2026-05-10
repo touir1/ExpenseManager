@@ -47,6 +47,16 @@ All endpoints (except `/health`) require authentication, enforced by nginx's `au
 
 DTOs live in `Controllers/DTO/`; error envelopes (`{ message }`) in `Controllers/Responses/`.
 
+## API Documentation
+
+Swagger UI is available in development or when `ENABLE_SWAGGER=true`:
+
+```
+http://localhost:9200/swagger
+```
+
+All 7 endpoints have XML `<summary>` docs and full `[ProducesResponseType]` coverage.
+
 ## Architecture
 
 Layered structure: **Controllers → Services → Repositories → DbContext**

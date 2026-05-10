@@ -19,9 +19,16 @@ namespace Touir.ExpensesManager.Users.Controllers
             _passwordManagementService = passwordManagementService;
         }
 
+        /// <summary>
+        /// Change the authenticated user's password by providing the current password.
+        /// </summary>
+        /// <param name="request">Email, old password, and new password.</param>
         [Route("change-password")]
         [HttpPost]
         [EnableRateLimiting("change_password")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
         {
             try
@@ -38,9 +45,17 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
         }
 
+        /// <summary>
+        /// Send a password reset email to the given address.
+        /// Always returns 200 to avoid user enumeration.
+        /// </summary>
+        /// <param name="request">Email and application code.</param>
         [Route("request-password-reset")]
         [HttpPost]
         [EnableRateLimiting("request_password_reset")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RequestPasswordReset(RequestPasswordResetRequest request)
         {
             try
@@ -56,9 +71,16 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
         }
 
+        /// <summary>
+        /// Set a new password using the verification hash from the registration email.
+        /// </summary>
+        /// <param name="request">Email, verification hash, and new password.</param>
         [Route("create-password")]
         [HttpPost]
         [EnableRateLimiting("create_password")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreatePassword(CreatePasswordRequest request)
         {
             try
@@ -75,9 +97,16 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
         }
 
+        /// <summary>
+        /// Set a new password using the verification hash from a password reset email.
+        /// </summary>
+        /// <param name="request">Email, verification hash, and new password.</param>
         [Route("change-password-reset")]
         [HttpPost]
         [EnableRateLimiting("change_password_reset")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> ChangePasswordReset(ChangePasswordResetRequest request)
         {
             try

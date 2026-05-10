@@ -40,6 +40,16 @@ Protected:
 - `GET/POST/PUT/DELETE /users` — User CRUD
 - `GET /health` — Liveness/readiness probe
 
+## API Documentation
+
+Swagger UI is available in development or when `ENABLE_SWAGGER=true`:
+
+```
+http://localhost:9100/swagger
+```
+
+All 14 endpoints have XML `<summary>` docs and full `[ProducesResponseType]` coverage.
+
 ## Email Configuration
 
 Configured via environment variables:

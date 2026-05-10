@@ -19,6 +19,9 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             _categoryService = categoryService;
         }
 
+        /// <summary>
+        /// Return all active categories with their active subcategories.
+        /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<CategoryDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]

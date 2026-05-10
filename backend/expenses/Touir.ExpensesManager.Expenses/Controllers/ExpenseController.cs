@@ -27,6 +27,10 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             _expenseService = expenseService;
         }
 
+        /// <summary>
+        /// Create a new expense for the authenticated user.
+        /// </summary>
+        /// <param name="request">Expense details including amount, currency, category, and date.</param>
         [HttpPost]
         [ProducesResponseType(typeof(ExpenseDto), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
@@ -48,6 +52,11 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             }
         }
 
+        /// <summary>
+        /// Update an existing expense owned by the authenticated user.
+        /// </summary>
+        /// <param name="id">Expense ID.</param>
+        /// <param name="request">Updated expense fields.</param>
         [HttpPut("{id:long}")]
         [ProducesResponseType(typeof(ExpenseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
@@ -73,6 +82,10 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             }
         }
 
+        /// <summary>
+        /// Soft-delete an expense owned by the authenticated user.
+        /// </summary>
+        /// <param name="id">Expense ID.</param>
         [HttpDelete("{id:long}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
@@ -98,6 +111,10 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             }
         }
 
+        /// <summary>
+        /// Get a single expense by ID. Only returns expenses owned by the authenticated user.
+        /// </summary>
+        /// <param name="id">Expense ID.</param>
         [HttpGet("{id:long}")]
         [ProducesResponseType(typeof(ExpenseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
@@ -123,6 +140,10 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             }
         }
 
+        /// <summary>
+        /// Return a paginated, filtered list of expenses for the authenticated user.
+        /// </summary>
+        /// <param name="filter">Pagination and filter parameters (page, pageSize, date range, category, etc.).</param>
         [HttpGet]
         [ProducesResponseType(typeof(ExpensePagedResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]

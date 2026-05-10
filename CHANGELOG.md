@@ -3,6 +3,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.92.1] - 2026-05-10
+### Added
+- **Swagger documentation — users service:** XML `<summary>` and `<param>` doc comments added to all 14 controller actions; added missing `[ProducesResponseType]` attributes across `AuthenticationController`, `PasswordController`, and `RegistrationController` so every route shows complete request/response shapes in Swagger UI
+- **Swagger documentation — expenses service:** XML `<summary>` and `<param>` doc comments added to all 5 `ExpenseController` actions, `CategoryController.GetAllAsync`, and `CurrencyController.GetAllAsync`; no missing `[ProducesResponseType]` attributes found
+
 ## [0.92.0] - 2026-05-10
 ### Added
 - **Verification link expiry (users service):**

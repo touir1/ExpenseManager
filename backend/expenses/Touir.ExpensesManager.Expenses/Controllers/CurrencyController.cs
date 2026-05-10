@@ -19,6 +19,9 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             _currencyService = currencyService;
         }
 
+        /// <summary>
+        /// Return all supported currencies.
+        /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<CurrencyDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]

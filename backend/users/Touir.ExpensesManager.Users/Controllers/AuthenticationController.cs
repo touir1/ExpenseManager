@@ -43,9 +43,16 @@ namespace Touir.ExpensesManager.Users.Controllers
             _jwtAuthOptions = jwtAuthOptions.Value;
         }
 
+        /// <summary>
+        /// Authenticate user and issue access + refresh token cookies.
+        /// </summary>
+        /// <param name="request">Login credentials and application code.</param>
         [Route("login")]
         [HttpPost]
         [EnableRateLimiting("login")]
+        [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> LoginAsync(LoginRequest request)
         {
             try
@@ -91,8 +98,15 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
         }
 
+        /// <summary>
+        /// Validate a JWT token from the Authorization header or auth_token cookie.
+        /// Used by nginx as an auth subrequest before proxying requests.
+        /// </summary>
         [Route("check")]
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         public IActionResult Check()
         {
             try
@@ -121,9 +135,14 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
         }
 
+        /// <summary>
+        /// Return the authenticated user's profile from the auth_token cookie.
+        /// </summary>
         [Route("session")]
         [HttpGet]
         [ProducesResponseType(typeof(SessionResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         public IActionResult Session()
         {
             try
@@ -149,9 +168,16 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
         }
 
+        /// <summary>
+        /// Rotate the refresh token and issue a new access token cookie.
+        /// Reads the refresh_token cookie; rotates it on success.
+        /// </summary>
         [Route("refresh")]
         [HttpPost]
         [EnableRateLimiting("refresh")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RefreshAsync()
         {
             try
@@ -186,8 +212,12 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
         }
 
+        /// <summary>
+        /// Revoke the refresh token and clear auth cookies.
+        /// </summary>
         [Route("logout")]
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Logout()
         {
             if (Request.Cookies.TryGetValue(RefreshTokenCookie, out var refreshToken) && !string.IsNullOrWhiteSpace(refreshToken))
