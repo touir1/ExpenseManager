@@ -136,8 +136,10 @@
     "verifyError": {
       "pageTitle": "Verificación fallida",
       "title": "Enlace de verificación expirado",
-      "description": "Este enlace de verificación ya ha sido utilizado o ha expirado. Por favor, regístrate de nuevo para recibir un nuevo correo de verificación.",
-      "backToRegister": "Volver al registro"
+      "description": "Este enlace de verificación ya ha sido utilizado o ha expirado. Por favor, regístrate de nuevo o solicita un nuevo correo de verificación.",
+      "backToRegister": "Volver al registro",
+      "resend": "Reenviar correo de verificación",
+      "resendSent": "Un nuevo enlace de verificación se enviará en breve. Revisa tu bandeja de entrada."
     }
   },
   "passwordStrength": {

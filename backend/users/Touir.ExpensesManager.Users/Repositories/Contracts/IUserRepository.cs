@@ -11,5 +11,6 @@ namespace Touir.ExpensesManager.Users.Repositories.Contracts
         Task<IList<string>> GetUsedEmailValidationHashesAsync();
         Task<bool> ValidateEmail(string emailVerificationHash, string email);
         Task<User?> ValidateEmailAsync(string emailVerificationHash, string email);
+        Task UpdateEmailValidationHashAsync(int userId, string newHash, DateTime expiresAt);
     }
 }

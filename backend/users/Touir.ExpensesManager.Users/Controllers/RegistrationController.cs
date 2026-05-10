@@ -1,8 +1,10 @@
 using Touir.ExpensesManager.Users.Controllers.DTO;
 using Touir.ExpensesManager.Users.Controllers.Requests;
 using Touir.ExpensesManager.Users.Controllers.Responses;
+using Touir.ExpensesManager.Users.Services;
 using Touir.ExpensesManager.Users.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Touir.ExpensesManager.Users.Controllers
 {
@@ -26,6 +28,7 @@ namespace Touir.ExpensesManager.Users.Controllers
 
         [Route("register")]
         [HttpPost]
+        [EnableRateLimiting("register")]
         public async Task<IActionResult> RegisterAsync(RegisterRequest request)
         {
             try
@@ -52,6 +55,7 @@ namespace Touir.ExpensesManager.Users.Controllers
         /// <param name="appCode">application code</param>
         [Route("validate-email")]
         [HttpGet]
+        [EnableRateLimiting("validate_email")]
         public async Task<IActionResult> ValidateEmail(
             [FromQuery(Name = "h")] string emailVerificationHash,
             [FromQuery(Name = "s")] string email,
@@ -71,13 +75,30 @@ namespace Touir.ExpensesManager.Users.Controllers
                 if (!result)
                 {
                     var errorPath = !string.IsNullOrWhiteSpace(app.VerifyEmailErrorUrlPath)
-                        ? $"{app.UrlPath}{app.VerifyEmailErrorUrlPath}"
+                        ? $"{app.UrlPath}{app.VerifyEmailErrorUrlPath}?email={Uri.EscapeDataString(emailLower)}&app_code={Uri.EscapeDataString(appCode)}"
                         : null;
                     if (errorPath != null)
                         return Redirect(errorPath);
                     return Unauthorized(new ErrorResponse { Message = "EMAIL_VERIFICATION_FAILED" });
                 }
                 return Redirect($"{app.ResetPasswordUrlPath}?email={Uri.EscapeDataString(emailLower)}&h={emailVerificationHash}&mode=create");
+            }
+            catch (Exception)
+            {
+                return BadRequest(new ErrorResponse { Message = ServerError });
+            }
+        }
+
+        [Route("resend-verification")]
+        [HttpPost]
+        [EnableRateLimiting("resend_verification")]
+        public async Task<IActionResult> ResendVerification(ResendVerificationRequest request)
+        {
+            try
+            {
+                var email = request.Email.ToLowerInvariant();
+                await _registrationService.ResendVerificationEmailAsync(email, request.ApplicationCode);
+                return Ok(new { Message = "a new verification link will be sent shortly" });
             }
             catch (Exception)
             {

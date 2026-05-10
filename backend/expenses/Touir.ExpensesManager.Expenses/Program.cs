@@ -12,12 +12,14 @@ using Microsoft.Extensions.Caching.Memory;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -152,6 +154,23 @@ builder.Services.AddHealthChecks()
     .AddDbContextCheck<ExpensesDbContext>("database", tags: ReadyDb);
 #endregion
 
+#region Rate Limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("expenses_global", ctx => RateLimitPartition.GetSlidingWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new SlidingWindowRateLimiterOptions
+        {
+            PermitLimit = 100,
+            Window = TimeSpan.FromSeconds(60),
+            SegmentsPerWindow = 6,
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 0
+        }));
+});
+#endregion
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -171,6 +190,8 @@ if (app.Environment.IsDevelopment() || string.Equals(Environment.GetEnvironmentV
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseRateLimiter();
 
 app.UseAuthorization();
 app.MapControllers();

@@ -136,8 +136,10 @@
     "verifyError": {
       "pageTitle": "Vérification échouée",
       "title": "Lien de vérification expiré",
-      "description": "Ce lien de vérification a déjà été utilisé ou a expiré. Veuillez vous réinscrire pour recevoir un nouvel e-mail de vérification.",
-      "backToRegister": "Retour à l'inscription"
+      "description": "Ce lien de vérification a déjà été utilisé ou a expiré. Veuillez vous réinscrire ou demander un nouvel e-mail de vérification.",
+      "backToRegister": "Retour à l'inscription",
+      "resend": "Renvoyer l'e-mail de vérification",
+      "resendSent": "Un nouveau lien de vérification vous sera envoyé sous peu. Vérifiez votre boîte de réception."
     }
   },
   "passwordStrength": {

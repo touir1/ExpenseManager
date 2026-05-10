@@ -70,14 +70,24 @@ namespace Touir.ExpensesManager.Users.Repositories
             var user = await _context.Users
                 .FirstOrDefaultAsync(u =>
                     u.Email == lowerEmail &&
-                    u.EmailValidationHash == emailVerificationHash);
-            if (user != null)
-            {
-                user.IsEmailValidated = true;
-                await _context.SaveChangesAsync();
-            }
-
+                    u.EmailValidationHash == emailVerificationHash &&
+                    !u.IsDeleted);
+            if (user == null)
+                return null;
+            if (user.EmailValidationHashExpiresAt.HasValue && user.EmailValidationHashExpiresAt.Value < DateTime.UtcNow)
+                return null;
+            user.IsEmailValidated = true;
+            await _context.SaveChangesAsync();
             return user;
+        }
+
+        public async Task UpdateEmailValidationHashAsync(int userId, string newHash, DateTime expiresAt)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted);
+            if (user == null) return;
+            user.EmailValidationHash = newHash;
+            user.EmailValidationHashExpiresAt = expiresAt;
+            await _context.SaveChangesAsync();
         }
     }
 }

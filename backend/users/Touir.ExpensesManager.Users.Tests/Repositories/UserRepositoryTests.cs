@@ -398,6 +398,69 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
 
         #endregion
 
+        #region UpdateEmailValidationHashAsync Tests
+
+        [Fact]
+        public async Task UpdateEmailValidationHashAsync_UpdatesHash_WhenUserExists()
+        {
+            using var db = new TestDbContextWrapper();
+            var user = new User { FirstName = "A", LastName = "B", Email = "a@b.com", EmailValidationHash = "oldhash", IsEmailValidated = false, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            db.Context.Users.Add(user);
+            db.Context.SaveChanges();
+
+            var repo = new UserRepository(db.Context);
+            var expiry = DateTime.UtcNow.AddHours(24);
+            await repo.UpdateEmailValidationHashAsync(user.Id, "newhash", expiry);
+
+            var updated = db.Context.Users.First(u => u.Email == "a@b.com");
+            Assert.Equal("newhash", updated.EmailValidationHash);
+        }
+
+        [Fact]
+        public async Task UpdateEmailValidationHashAsync_UpdatesExpiresAt_WhenUserExists()
+        {
+            using var db = new TestDbContextWrapper();
+            var user = new User { FirstName = "C", LastName = "D", Email = "c@d.com", EmailValidationHash = "oldhash", IsEmailValidated = false, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            db.Context.Users.Add(user);
+            db.Context.SaveChanges();
+
+            var repo = new UserRepository(db.Context);
+            var expiry = DateTime.UtcNow.AddHours(24);
+            await repo.UpdateEmailValidationHashAsync(user.Id, "newhash", expiry);
+
+            var updated = db.Context.Users.First(u => u.Email == "c@d.com");
+            Assert.NotNull(updated.EmailValidationHashExpiresAt);
+            Assert.True(updated.EmailValidationHashExpiresAt >= expiry.AddSeconds(-1) && updated.EmailValidationHashExpiresAt <= expiry.AddSeconds(1));
+        }
+
+        [Fact]
+        public async Task UpdateEmailValidationHashAsync_DoesNothing_WhenUserNotFound()
+        {
+            using var db = new TestDbContextWrapper();
+            var repo = new UserRepository(db.Context);
+
+            await repo.UpdateEmailValidationHashAsync(9999, "newhash", DateTime.UtcNow.AddHours(24));
+
+            Assert.Empty(db.Context.Users.ToList());
+        }
+
+        [Fact]
+        public async Task UpdateEmailValidationHashAsync_DoesNothing_WhenUserSoftDeleted()
+        {
+            using var db = new TestDbContextWrapper();
+            var user = new User { FirstName = "E", LastName = "F", Email = "e@f.com", EmailValidationHash = "oldhash", IsEmailValidated = false, IsDeleted = true, DeletedAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            db.Context.Users.Add(user);
+            db.Context.SaveChanges();
+
+            var repo = new UserRepository(db.Context);
+            await repo.UpdateEmailValidationHashAsync(user.Id, "newhash", DateTime.UtcNow.AddHours(24));
+
+            var unchanged = db.Context.Users.First(u => u.Email == "e@f.com");
+            Assert.Equal("oldhash", unchanged.EmailValidationHash);
+        }
+
+        #endregion
+
         #region ValidateEmailAsync Tests
 
         [Fact]
@@ -461,6 +524,45 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
 
             var repo = new UserRepository(db.Context);
             var user = await repo.ValidateEmailAsync("hash-y", "Y@Z.COM");
+
+            Assert.NotNull(user);
+        }
+
+        [Fact]
+        public async Task ValidateEmailAsync_ReturnsNull_WhenHashIsExpired()
+        {
+            using var db = new TestDbContextWrapper();
+            db.Context.Users.Add(new User { FirstName = "A", LastName = "B", Email = "a@b.com", EmailValidationHash = "expiredhash", EmailValidationHashExpiresAt = DateTime.UtcNow.AddHours(-1), IsEmailValidated = false, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow });
+            db.Context.SaveChanges();
+
+            var repo = new UserRepository(db.Context);
+            var user = await repo.ValidateEmailAsync("expiredhash", "a@b.com");
+
+            Assert.Null(user);
+        }
+
+        [Fact]
+        public async Task ValidateEmailAsync_ReturnsUser_WhenHashNotYetExpired()
+        {
+            using var db = new TestDbContextWrapper();
+            db.Context.Users.Add(new User { FirstName = "C", LastName = "D", Email = "c@d.com", EmailValidationHash = "validhash", EmailValidationHashExpiresAt = DateTime.UtcNow.AddHours(23), IsEmailValidated = false, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow });
+            db.Context.SaveChanges();
+
+            var repo = new UserRepository(db.Context);
+            var user = await repo.ValidateEmailAsync("validhash", "c@d.com");
+
+            Assert.NotNull(user);
+        }
+
+        [Fact]
+        public async Task ValidateEmailAsync_ReturnsUser_WhenNoExpirySet()
+        {
+            using var db = new TestDbContextWrapper();
+            db.Context.Users.Add(new User { FirstName = "E", LastName = "F", Email = "e@f.com", EmailValidationHash = "nolimithash", EmailValidationHashExpiresAt = null, IsEmailValidated = false, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow });
+            db.Context.SaveChanges();
+
+            var repo = new UserRepository(db.Context);
+            var user = await repo.ValidateEmailAsync("nolimithash", "e@f.com");
 
             Assert.NotNull(user);
         }

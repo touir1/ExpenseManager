@@ -136,8 +136,10 @@
     "verifyError": {
       "pageTitle": "Verification Failed",
       "title": "Verification link expired",
-      "description": "This email verification link has already been used or has expired. Please register again to receive a new verification email.",
-      "backToRegister": "Back to register"
+      "description": "This email verification link has already been used or has expired. Please register again or request a new verification email.",
+      "backToRegister": "Back to register",
+      "resend": "Resend verification email",
+      "resendSent": "A new verification link will be sent shortly. Check your inbox."
     }
   },
   "passwordStrength": {

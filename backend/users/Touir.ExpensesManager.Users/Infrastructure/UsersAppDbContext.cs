@@ -36,6 +36,7 @@ namespace Touir.ExpensesManager.Users.Infrastructure
                 entity.Property(u => u.LastUpdatedById).HasColumnName("USR_LastUpdatedBy");
                 entity.Property(u => u.IsEmailValidated).HasColumnName("USR_IsEmailValidated");
                 entity.Property(u => u.EmailValidationHash).HasColumnName("USR_EmailValidationHash");
+                entity.Property(u => u.EmailValidationHashExpiresAt).HasColumnName("USR_EmailValidationHashExpiresAt");
                 entity.Property(u => u.IsDisabled).HasColumnName("USR_IsDisabled");
                 entity.Property(u => u.IsDeleted).HasColumnName("USR_IsDeleted").HasDefaultValue(false);
                 entity.Property(u => u.DeletedAt).HasColumnName("USR_DeletedAt");

@@ -5,6 +5,7 @@ using Touir.ExpensesManager.Users.Infrastructure.Options;
 using Touir.ExpensesManager.Users.Repositories.Contracts;
 using Touir.ExpensesManager.Users.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -44,6 +45,7 @@ namespace Touir.ExpensesManager.Users.Controllers
 
         [Route("login")]
         [HttpPost]
+        [EnableRateLimiting("login")]
         public async Task<IActionResult> LoginAsync(LoginRequest request)
         {
             try
@@ -149,6 +151,7 @@ namespace Touir.ExpensesManager.Users.Controllers
 
         [Route("refresh")]
         [HttpPost]
+        [EnableRateLimiting("refresh")]
         public async Task<IActionResult> RefreshAsync()
         {
             try

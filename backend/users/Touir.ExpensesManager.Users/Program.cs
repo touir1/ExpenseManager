@@ -11,11 +11,13 @@ using Touir.ExpensesManager.Users.Services.Contracts;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -228,6 +230,40 @@ builder.Services.AddHealthChecks()
 
 #endregion
 
+#region Rate Limiting
+
+static string GetClientIp(HttpContext ctx) =>
+    ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    void AddFixedWindow(string name, int permitLimit, int windowSeconds) =>
+        options.AddPolicy(name, ctx => RateLimitPartition.GetFixedWindowLimiter(
+            GetClientIp(ctx),
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = permitLimit,
+                Window = TimeSpan.FromSeconds(windowSeconds),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }));
+
+    AddFixedWindow("login",                 10,  60);
+    AddFixedWindow("register",               5, 600);
+    AddFixedWindow("resend_verification",    3, 600);
+    AddFixedWindow("validate_email",        10, 300);
+    AddFixedWindow("request_password_reset", 5, 600);
+    AddFixedWindow("change_password_reset",  5, 600);
+    AddFixedWindow("refresh",               20,  60);
+    AddFixedWindow("change_password",       10, 300);
+    AddFixedWindow("create_password",        5, 600);
+    AddFixedWindow("messaging_replay",       5,  60);
+});
+
+#endregion
+
 var app = builder.Build();
 
 // Apply pending migrations at startup
@@ -251,6 +287,8 @@ if(app.Environment.IsDevelopment() || string.Equals(Environment.GetEnvironmentVa
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseRateLimiter();
 
 app.UseAuthorization();
 

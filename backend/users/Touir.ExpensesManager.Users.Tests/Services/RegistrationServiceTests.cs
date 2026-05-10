@@ -63,17 +63,19 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         }
 
         [Fact]
-        public async Task RegisterNewUserAsync_ReturnsError_WhenRegistrationOngoing()
+        public async Task RegisterNewUserAsync_ResendsVerificationEmail_WhenRegistrationOngoing()
         {
             var user = new User { Id = 1, Email = "test@test.com", IsEmailValidated = false, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
             var userRepo = new Mock<IUserRepository>();
             userRepo.Setup(r => r.GetUserByEmailAsync("test@test.com")).ReturnsAsync(user);
+            userRepo.Setup(r => r.GetUsedEmailValidationHashesAsync()).ReturnsAsync(new List<string>());
+            userRepo.Setup(r => r.UpdateEmailValidationHashAsync(user.Id, It.IsAny<string>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
 
             var service = CreateService(userRepo);
             var errors = await service.RegisterNewUserAsync("John", "Doe", "test@test.com", "APP1");
 
-            Assert.Single(errors);
-            Assert.Contains("there's already a registration process ongoing, please check you mailbox to validate the email", errors);
+            Assert.Empty(errors);
+            userRepo.Verify(r => r.UpdateEmailValidationHashAsync(user.Id, It.IsAny<string>(), It.IsAny<DateTime>()), Times.Once);
         }
 
         [Fact]
@@ -151,6 +153,102 @@ namespace Touir.ExpensesManager.Users.Tests.Services
                 await service.RegisterNewUserAsync("John", "Doe", "test@test.com", null));
 
             userRepo.Verify(r => r.DeleteUserAsync(user), Times.Once);
+        }
+
+        #endregion
+
+        #region ResendVerificationEmailAsync Tests
+
+        [Fact]
+        public async Task ResendVerificationEmailAsync_ReturnsNotFound_WhenUserDoesNotExist()
+        {
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("nobody@test.com")).ReturnsAsync((User?)null);
+
+            var service = CreateService(userRepo);
+            var result = await service.ResendVerificationEmailAsync("nobody@test.com", "APP1");
+
+            Assert.Equal(ResendResult.NotFound, result);
+        }
+
+        [Fact]
+        public async Task ResendVerificationEmailAsync_ReturnsNotFound_WhenEmailAlreadyValidated()
+        {
+            var user = new User { Id = 1, Email = "done@test.com", IsEmailValidated = true, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("done@test.com")).ReturnsAsync(user);
+
+            var service = CreateService(userRepo);
+            var result = await service.ResendVerificationEmailAsync("done@test.com", "APP1");
+
+            Assert.Equal(ResendResult.NotFound, result);
+        }
+
+        [Fact]
+        public async Task ResendVerificationEmailAsync_ReturnsSent_WhenUserIsUnverified()
+        {
+            var user = new User { Id = 1, Email = "pending@test.com", IsEmailValidated = false, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("pending@test.com")).ReturnsAsync(user);
+            userRepo.Setup(r => r.GetUsedEmailValidationHashesAsync()).ReturnsAsync(new List<string>());
+            userRepo.Setup(r => r.UpdateEmailValidationHashAsync(1, It.IsAny<string>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+
+            var service = CreateService(userRepo);
+            var result = await service.ResendVerificationEmailAsync("pending@test.com", "APP1");
+
+            Assert.Equal(ResendResult.Sent, result);
+        }
+
+        [Fact]
+        public async Task ResendVerificationEmailAsync_UpdatesHashWithExpiry()
+        {
+            var user = new User { Id = 1, Email = "pending@test.com", IsEmailValidated = false, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("pending@test.com")).ReturnsAsync(user);
+            userRepo.Setup(r => r.GetUsedEmailValidationHashesAsync()).ReturnsAsync(new List<string>());
+            userRepo.Setup(r => r.UpdateEmailValidationHashAsync(1, It.IsAny<string>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+
+            var before = DateTime.UtcNow;
+            var service = CreateService(userRepo);
+            await service.ResendVerificationEmailAsync("pending@test.com", "APP1");
+
+            userRepo.Verify(r => r.UpdateEmailValidationHashAsync(
+                1,
+                It.IsAny<string>(),
+                It.Is<DateTime>(d => d >= before.AddHours(23) && d <= before.AddHours(25))),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task ResendVerificationEmailAsync_SendsVerificationEmail()
+        {
+            var user = new User { Id = 1, Email = "pending@test.com", IsEmailValidated = false, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("pending@test.com")).ReturnsAsync(user);
+            userRepo.Setup(r => r.GetUsedEmailValidationHashesAsync()).ReturnsAsync(new List<string>());
+            userRepo.Setup(r => r.UpdateEmailValidationHashAsync(1, It.IsAny<string>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+
+            var emailHelper = CreateEmailHelperMock();
+            var service = CreateService(userRepo, emailHelper: emailHelper);
+            await service.ResendVerificationEmailAsync("pending@test.com", "APP1");
+
+            emailHelper.Verify(e => e.SendEmail(
+                It.Is<string>(to => to == "pending@test.com"),
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<ICollection<string>>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task ResendVerificationEmailAsync_DoesNotUpdateRepo_WhenUserNotFound()
+        {
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("nobody@test.com")).ReturnsAsync((User?)null);
+
+            var service = CreateService(userRepo);
+            await service.ResendVerificationEmailAsync("nobody@test.com", "APP1");
+
+            userRepo.Verify(r => r.UpdateEmailValidationHashAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>()), Times.Never);
         }
 
         #endregion

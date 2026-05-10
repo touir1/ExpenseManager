@@ -83,3 +83,7 @@ export function resetPasswordRequest(
 export function requestPasswordResetRequest(email: string, applicationCode: string): Promise<ApiResponse<unknown>> {
   return post<unknown>(`${AUTH_BASE}/request-password-reset`, { email, appCode: applicationCode }, { skipUnauthorized: true })
 }
+
+export function resendVerificationRequest(email: string, applicationCode: string): Promise<ApiResponse<{ message: string }>> {
+  return post<{ message: string }>(`${AUTH_BASE}/resend-verification`, { email, applicationCode }, { skipUnauthorized: true, silent: true })
+}

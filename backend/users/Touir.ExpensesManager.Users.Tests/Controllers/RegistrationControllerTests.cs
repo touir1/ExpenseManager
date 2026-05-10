@@ -2,6 +2,7 @@ using Touir.ExpensesManager.Users.Controllers;
 using Touir.ExpensesManager.Users.Controllers.Requests;
 using Touir.ExpensesManager.Users.Controllers.Responses;
 using Touir.ExpensesManager.Users.Controllers.DTO;
+using Touir.ExpensesManager.Users.Services;
 using Touir.ExpensesManager.Users.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -146,7 +147,9 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var result = await controller.ValidateEmail("hash", "john@doe.com", "APP1");
 
             var redirectResult = Assert.IsType<RedirectResult>(result);
-            Assert.Equal("https://localhost/verify-error", redirectResult.Url);
+            Assert.StartsWith("https://localhost/verify-error", redirectResult.Url);
+            Assert.Contains("email=john%40doe.com", redirectResult.Url);
+            Assert.Contains("app_code=APP1", redirectResult.Url);
         }
 
         [Fact]
@@ -174,6 +177,64 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
                 .ThrowsAsync(new Exception("Database error"));
             var controller = CreateController(appService: mockAppService.Object);
             var result = await controller.ValidateEmail("hash", "john@doe.com", "APP1");
+
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            var response = Assert.IsType<ErrorResponse>(badRequestResult.Value);
+            Assert.Equal("SERVER_ERROR", response.Message);
+        }
+
+        #endregion
+
+        #region ResendVerification Tests
+
+        [Fact]
+        public async Task ResendVerification_ReturnsOk_WhenValid()
+        {
+            var mockService = new Mock<IRegistrationService>();
+            mockService.Setup(s => s.ResendVerificationEmailAsync("john@doe.com", "APP1"))
+                .ReturnsAsync(ResendResult.Sent);
+            var controller = CreateController(registrationService: mockService.Object);
+            var request = new ResendVerificationRequest { Email = "john@doe.com", ApplicationCode = "APP1" };
+            var result = await controller.ResendVerification(request);
+
+            Assert.IsType<OkObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task ResendVerification_CallsServiceWithLowercaseEmail()
+        {
+            var mockService = new Mock<IRegistrationService>();
+            mockService.Setup(s => s.ResendVerificationEmailAsync("john@doe.com", "APP1"))
+                .ReturnsAsync(ResendResult.Sent);
+            var controller = CreateController(registrationService: mockService.Object);
+            var request = new ResendVerificationRequest { Email = "JOHN@DOE.COM", ApplicationCode = "APP1" };
+            await controller.ResendVerification(request);
+
+            mockService.Verify(s => s.ResendVerificationEmailAsync("john@doe.com", "APP1"), Times.Once);
+        }
+
+        [Fact]
+        public async Task ResendVerification_ReturnsOk_WhenServiceReturnsNotFound()
+        {
+            var mockService = new Mock<IRegistrationService>();
+            mockService.Setup(s => s.ResendVerificationEmailAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(ResendResult.NotFound);
+            var controller = CreateController(registrationService: mockService.Object);
+            var request = new ResendVerificationRequest { Email = "unknown@example.com", ApplicationCode = "APP1" };
+            var result = await controller.ResendVerification(request);
+
+            Assert.IsType<OkObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task ResendVerification_ReturnsBadRequest_WhenExceptionThrown()
+        {
+            var mockService = new Mock<IRegistrationService>();
+            mockService.Setup(s => s.ResendVerificationEmailAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ThrowsAsync(new Exception("Service error"));
+            var controller = CreateController(registrationService: mockService.Object);
+            var request = new ResendVerificationRequest { Email = "john@doe.com", ApplicationCode = "APP1" };
+            var result = await controller.ResendVerification(request);
 
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             var response = Assert.IsType<ErrorResponse>(badRequestResult.Value);

@@ -18,6 +18,7 @@ namespace Touir.ExpensesManager.Users.Services
         private readonly IOutboxRepository _outboxRepository;
         private readonly IUserRoleAssignmentService _userRoleAssignmentService;
         private readonly string _verifyEmailUrl;
+        private const int VerificationExpiryHours = 24;
 
         public RegistrationService(
             IOptions<AuthenticationServiceOptions> authServiceOptions,
@@ -40,9 +41,14 @@ namespace Touir.ExpensesManager.Users.Services
             User? user = await _userRepository.GetUserByEmailAsync(email);
             if (user != null)
             {
-                errors.Add(user.IsEmailValidated
-                    ? "email is already used"
-                    : "there's already a registration process ongoing, please check you mailbox to validate the email");
+                if (user.IsEmailValidated)
+                {
+                    errors.Add("email is already used");
+                }
+                else
+                {
+                    await ResendVerificationEmailAsync(email, applicationCode);
+                }
             }
             else
             {
@@ -83,6 +89,21 @@ namespace Touir.ExpensesManager.Users.Services
             return true;
         }
 
+        public async Task<ResendResult> ResendVerificationEmailAsync(string email, string? applicationCode)
+        {
+            var user = await _userRepository.GetUserByEmailAsync(email);
+            if (user == null || user.IsEmailValidated)
+                return ResendResult.NotFound;
+
+            var newHash = await GenerateUniqueEmailValidationHashAsync();
+            var expiresAt = DateTime.UtcNow.AddHours(VerificationExpiryHours);
+            await _userRepository.UpdateEmailValidationHashAsync(user.Id, newHash, expiresAt);
+
+            SendVerificationEmail(email, newHash, applicationCode);
+
+            return ResendResult.Sent;
+        }
+
         private async Task<string> GenerateUniqueEmailValidationHashAsync()
         {
             HashSet<string> existingHashes = new(await _userRepository.GetUsedEmailValidationHashesAsync());
@@ -108,19 +129,15 @@ namespace Touir.ExpensesManager.Users.Services
                 IsEmailValidated = false,
                 IsDisabled = false,
                 LastUpdatedAt = DateTime.UtcNow,
-                EmailValidationHash = emailValidationHash
+                EmailValidationHash = emailValidationHash,
+                EmailValidationHashExpiresAt = DateTime.UtcNow.AddHours(VerificationExpiryHours)
             });
 
             await _userRoleAssignmentService.TryAssignDefaultRoleAsync(applicationCode, user);
 
             try
             {
-                string verificationLink = $"{_verifyEmailUrl.TrimEnd('/')}?h={HttpUtility.UrlEncode(emailValidationHash)}&s={HttpUtility.UrlEncode(email)}&app_code={HttpUtility.UrlEncode(applicationCode)}";
-                Console.WriteLine($"user: {user.FirstName} {user.LastName}, verifLink: {verificationLink}");
-                string emailVerificationHtml = _emailHelper.GetEmailTemplate(EmailHtmlTemplate.EmailVerification.Key, new Dictionary<string, string> {
-                    { EmailHtmlTemplate.EmailVerification.Variables.VerificationLink, verificationLink },
-                });
-                _emailHelper.SendEmail(recipientTo: email, emailSubject: "[Expenses Manager] Email Verification", isHTML: true, emailBody: emailVerificationHtml);
+                SendVerificationEmail(email, emailValidationHash, applicationCode);
             }
             catch (Exception exception)
             {
@@ -128,6 +145,16 @@ namespace Touir.ExpensesManager.Users.Services
                 Console.WriteLine(exception.ToString()); // to change later: logging implementation
                 throw;
             }
+        }
+
+        private void SendVerificationEmail(string email, string emailValidationHash, string? applicationCode)
+        {
+            string verificationLink = $"{_verifyEmailUrl.TrimEnd('/')}?h={HttpUtility.UrlEncode(emailValidationHash)}&s={HttpUtility.UrlEncode(email)}&app_code={HttpUtility.UrlEncode(applicationCode)}";
+            Console.WriteLine($"email: {email}, verifLink: {verificationLink}");
+            string emailVerificationHtml = _emailHelper.GetEmailTemplate(EmailHtmlTemplate.EmailVerification.Key, new Dictionary<string, string> {
+                { EmailHtmlTemplate.EmailVerification.Variables.VerificationLink, verificationLink },
+            });
+            _emailHelper.SendEmail(recipientTo: email, emailSubject: "[Expenses Manager] Email Verification", isHTML: true, emailBody: emailVerificationHtml);
         }
     }
 }

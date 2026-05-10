@@ -258,13 +258,13 @@ ExpenseManager/
 │       │   │   ├── RequestAccess.cs
 │       │   │   ├── Role.cs
 │       │   │   ├── RoleRequestAccess.cs
-│       │   │   ├── User.cs                      — IsDeleted + DeletedAt for soft-delete; IsDisabled for suspension
+│       │   │   ├── User.cs                      — IsDeleted + DeletedAt for soft-delete; IsDisabled for suspension; EmailValidationHashExpiresAt? for link expiry
 │       │   │   └── UserRole.cs
 │       │   ├── Controllers/
 │       │   │   ├── AuthenticationController.cs  — Login, logout, session, refresh, auth check (token ops via IJwtTokenService)
-│       │   │   ├── RegistrationController.cs    — Register, validate-email
-│       │   │   ├── PasswordController.cs        — Change-password, request-password-reset, change-password-reset
-│       │   │   ├── MessagingController.cs       — POST /messaging/replay (requeue outbox events); GET /messaging/outbox/stats
+│       │   │   ├── RegistrationController.cs    — Register, validate-email, resend-verification; error redirect appends ?email=…&app_code=…; rate limited
+│       │   │   ├── PasswordController.cs        — Change-password, request-password-reset, change-password-reset; rate limited
+│       │   │   ├── MessagingController.cs       — POST /messaging/replay (requeue outbox events); GET /messaging/outbox/stats; replay rate limited
 │       │   │   ├── DTO/
 │       │   │   │   ├── ApplicationDto.cs
 │       │   │   │   ├── RoleDto.cs
@@ -275,7 +275,8 @@ ExpenseManager/
 │       │   │   │   ├── CreatePasswordRequest.cs
 │       │   │   │   ├── LoginRequest.cs          — Email, Password, ApplicationCode, RememberMe
 │       │   │   │   ├── RegisterRequest.cs
-│       │   │   │   └── RequestPasswordResetRequest.cs
+│       │   │   │   ├── RequestPasswordResetRequest.cs
+│       │   │   │   └── ResendVerificationRequest.cs    — Email, ApplicationCode (resend verification link)
 │       │   │   └── Responses/
 │       │   │       ├── ErrorResponse.cs
 │       │   │       ├── LoginResponse.cs        — Returns User (UserDto) and Roles (token is cookie-only)
@@ -287,7 +288,8 @@ ExpenseManager/
 │       │   │   ├── ChangePasswordRequestValidator.cs    — Email, OldPassword NotEmpty; NewPassword NotEmpty + MinLength(8) → PASSWORD_TOO_SHORT
 │       │   │   ├── ChangePasswordResetRequestValidator.cs — Email, VerificationHash NotEmpty; NewPassword NotEmpty + MinLength(8)
 │       │   │   ├── CreatePasswordRequestValidator.cs    — Email, VerificationHash NotEmpty; NewPassword NotEmpty + MinLength(8)
-│       │   │   └── RequestPasswordResetRequestValidator.cs — Email, AppCode NotEmpty → MISSING_PARAMETERS
+│       │   │   ├── RequestPasswordResetRequestValidator.cs — Email, AppCode NotEmpty → MISSING_PARAMETERS
+│       │   │   └── ResendVerificationRequestValidator.cs — Email, ApplicationCode NotEmpty → MISSING_PARAMETERS
 │       │   ├── Repositories/
 │       │   │   ├── ApplicationRepository.cs
 │       │   │   ├── AuthenticationRepository.cs
@@ -301,13 +303,14 @@ ExpenseManager/
 │       │   │       ├── IOutboxRepository.cs     — EnqueueAsync, GetPendingAsync, MarkPublishedAsync, MarkFailedAsync, RequeueAsync
 │       │   │       ├── IRefreshTokenRepository.cs
 │       │   │       ├── IRoleRepository.cs
-│       │   │       └── IUserRepository.cs
+│       │   │       └── IUserRepository.cs          — includes UpdateEmailValidationHashAsync(userId, newHash, expiresAt)
 │       │   ├── Services/
 │       │   │   ├── ApplicationService.cs
 │       │   │   ├── AuthenticationService.cs        — Credential verification only (AuthenticateAsync)
 │       │   │   ├── JwtTokenService.cs              — JWT generation (claims: sub, email, givenName, surname, jti) and validation
 │       │   │   ├── RabbitMQService.cs              — Singleton RabbitMQ connection
-│       │   │   ├── RegistrationService.cs          — User registration, email validation; on success enqueues user.created outbox event via IOutboxRepository
+│       │   │   ├── RegistrationService.cs          — Registration, email validation, resend verification; re-register with unverified email silently resends; hash expiry 24 h
+│       │   │   ├── ResendResult.cs                 — Enum: Sent, NotFound
 │       │   │   ├── PasswordManagementService.cs    — Change password, reset password, request password reset
 │       │   │   ├── RefreshTokenService.cs          — Generates and validates opaque refresh tokens (DB-backed)
 │       │   │   ├── RoleService.cs
@@ -319,7 +322,7 @@ ExpenseManager/
 │       │   │       ├── IPasswordManagementService.cs
 │       │   │       ├── IRabbitMQService.cs
 │       │   │       ├── IRefreshTokenService.cs
-│       │   │       ├── IRegistrationService.cs
+│       │   │       ├── IRegistrationService.cs     — includes ResendVerificationEmailAsync(email, appCode)
 │       │   │       ├── IRoleService.cs
 │       │   │       └── IUserRoleAssignmentService.cs
 │       │   └── Migrations/
@@ -337,6 +340,8 @@ ExpenseManager/
 │       │       ├── 20260506224929_AddOutboxEvents.Designer.cs
 │       │       ├── 20260509140937_AddUserSoftDelete.cs — USR_IsDeleted + USR_DeletedAt columns; partial unique index ux_usr_email_active (email unique among non-deleted)
 │       │       ├── 20260509140937_AddUserSoftDelete.Designer.cs
+│       │       ├── 20260510122007_AddEmailValidationHashExpiry.cs — USR_EmailValidationHashExpiresAt nullable DateTime column on USR_Users
+│       │       ├── 20260510122007_AddEmailValidationHashExpiry.Designer.cs
 │       │       └── UsersAppDbContextModelSnapshot.cs
 │       └── Touir.ExpensesManager.Users.Tests/
 │           ├── Touir.ExpensesManager.Users.Tests.csproj
@@ -347,7 +352,7 @@ ExpenseManager/
 │           │   ├── AuthenticationControllerTests.cs
 │           │   ├── MessagingControllerTests.cs      — 6 tests: Replay×4, Stats×2
 │           │   ├── PasswordControllerTests.cs
-│           │   └── RegistrationControllerTests.cs
+│           │   └── RegistrationControllerTests.cs   — includes 4 ResendVerification tests
 │           ├── Messaging/
 │           │   ├── UserEventPublisherTests.cs       — 15 tests: Publish (serialisation, unique MessageId, channel lifecycle, properties), PublishRaw (exchange declare, UTF-8, MessageId, all event types)
 │           │   └── OutboxPublisherServiceTests.cs   — 9 tests: constructor, ExecuteAsync cancellation, ProcessPendingAsync (no events, single, multiple, publish failure → MarkFailed, mixed, max-retries=5, exception propagation)
@@ -357,7 +362,8 @@ ExpenseManager/
 │           │   ├── ChangePasswordRequestValidatorTests.cs
 │           │   ├── ChangePasswordResetRequestValidatorTests.cs
 │           │   ├── CreatePasswordRequestValidatorTests.cs
-│           │   └── RequestPasswordResetRequestValidatorTests.cs
+│           │   ├── RequestPasswordResetRequestValidatorTests.cs
+│           │   └── ResendVerificationRequestValidatorTests.cs — 3 tests: email empty, appCode empty, valid
 │           ├── Infrastructure/
 │           │   ├── CryptographyHelperTests.cs
 │           │   ├── EmailHelperTests.cs
@@ -368,14 +374,14 @@ ExpenseManager/
 │           │   ├── OutboxRepositoryTests.cs         — 15 tests: EnqueueAsync×2, GetPendingAsync×3, MarkPublishedAsync×2, MarkFailedAsync×4, RequeueAsync×4
 │           │   ├── RefreshTokenRepositoryTests.cs
 │           │   ├── RoleRepositoryTests.cs
-│           │   └── UserRepositoryTests.cs
+│           │   └── UserRepositoryTests.cs           — includes UpdateEmailValidationHashAsync×4 + ValidateEmailAsync expiry×3
 │           └── Services/
 │               ├── ApplicationServiceTests.cs
 │               ├── AuthenticationServiceTests.cs
 │               ├── JwtTokenServiceTests.cs
 │               ├── PasswordManagementServiceTests.cs
 │               ├── RefreshTokenServiceTests.cs
-│               ├── RegistrationServiceTests.cs
+│               ├── RegistrationServiceTests.cs      — includes ResendVerificationEmailAsync×6
 │               ├── RoleServiceTests.cs
 │               └── UserRoleAssignmentServiceTests.cs
 │

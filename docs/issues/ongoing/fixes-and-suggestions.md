@@ -11,7 +11,7 @@ These are the remaining unfixed issues from the [2026-03-22 QA report](qa_test_r
 | # | Priority | Area | Item |
 |---|----------|------|------|
 | QA-11 | 🟡 Moderate | Feature | Core "Expenses" feature is "Coming soon…" — the app's primary purpose is unimplemented |
-| QA-28 | ⚙️ Security | Feature | No brute-force / rate-limit protection on the Login form — no lockout, CAPTCHA, or progressive delay |
+| ~~QA-28~~ | ~~⚙️ Security~~ | ~~Feature~~ | ~~No brute-force / rate-limit protection on the Login form~~ — ✅ resolved in v0.92.0: backend rate limiting (10 req/1 min per IP) on login + all sensitive auth routes via .NET 8 `Microsoft.AspNetCore.RateLimiting` |
 
 ---
 
@@ -109,5 +109,5 @@ Discrepancies found by cross-checking Zod schemas (`auth.schemas.ts`) against co
 - **Health-check endpoints**: ⚠️ Partial — both services now expose `GET /health` (liveness + DB readiness). Remaining: wire into Docker Compose `healthcheck` stanza and nginx upstream checks.
 - **Structured logging**: Replace default ASP.NET console logging with Serilog + JSON output. Forward logs to a centralised sink (e.g., Loki) for querying via Grafana.
 - **Secret management**: Credentials (DB passwords, JWT signing key, SMTP credentials) are currently passed as plain environment variables. Migrate to Docker Secrets or a vault solution for production deployments.
-- **nginx rate limiting**: Add `limit_req_zone` / `limit_req` directives in `expenses-manager.conf` to protect the auth endpoints from brute-force traffic at the proxy layer.
+- **nginx rate limiting**: ⚠️ Partial — backend rate limiting implemented in v0.92.0 via .NET 8 `Microsoft.AspNetCore.RateLimiting` on all sensitive routes. Remaining: add `limit_req_zone` / `limit_req` directives in `expenses-manager.conf` as an additional proxy-layer defense.
 - **Automated DB backups**: No backup job is configured for the PostgreSQL instances. Add a scheduled backup script (e.g., `pg_dump` via the jobs container) with remote storage.

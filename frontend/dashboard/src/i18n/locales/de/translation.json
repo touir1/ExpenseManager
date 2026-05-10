@@ -136,8 +136,10 @@
     "verifyError": {
       "pageTitle": "Verifizierung fehlgeschlagen",
       "title": "Verifizierungslink abgelaufen",
-      "description": "Dieser Verifizierungslink wurde bereits verwendet oder ist abgelaufen. Bitte registriere dich erneut, um eine neue Bestätigungs-E-Mail zu erhalten.",
-      "backToRegister": "Zurück zur Registrierung"
+      "description": "Dieser Verifizierungslink wurde bereits verwendet oder ist abgelaufen. Bitte registriere dich erneut oder fordere eine neue Bestätigungs-E-Mail an.",
+      "backToRegister": "Zurück zur Registrierung",
+      "resend": "Bestätigungs-E-Mail erneut senden",
+      "resendSent": "Ein neuer Verifizierungslink wird in Kürze gesendet. Prüfe deinen Posteingang."
     }
   },
   "passwordStrength": {

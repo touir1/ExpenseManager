@@ -2,6 +2,7 @@ using Touir.ExpensesManager.Users.Controllers.Requests;
 using Touir.ExpensesManager.Users.Controllers.Responses;
 using Touir.ExpensesManager.Users.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Touir.ExpensesManager.Users.Controllers
 {
@@ -20,6 +21,7 @@ namespace Touir.ExpensesManager.Users.Controllers
 
         [Route("change-password")]
         [HttpPost]
+        [EnableRateLimiting("change_password")]
         public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
         {
             try
@@ -38,6 +40,7 @@ namespace Touir.ExpensesManager.Users.Controllers
 
         [Route("request-password-reset")]
         [HttpPost]
+        [EnableRateLimiting("request_password_reset")]
         public async Task<IActionResult> RequestPasswordReset(RequestPasswordResetRequest request)
         {
             try
@@ -55,6 +58,7 @@ namespace Touir.ExpensesManager.Users.Controllers
 
         [Route("create-password")]
         [HttpPost]
+        [EnableRateLimiting("create_password")]
         public async Task<IActionResult> CreatePassword(CreatePasswordRequest request)
         {
             try
@@ -73,6 +77,7 @@ namespace Touir.ExpensesManager.Users.Controllers
 
         [Route("change-password-reset")]
         [HttpPost]
+        [EnableRateLimiting("change_password_reset")]
         public async Task<IActionResult> ChangePasswordReset(ChangePasswordResetRequest request)
         {
             try

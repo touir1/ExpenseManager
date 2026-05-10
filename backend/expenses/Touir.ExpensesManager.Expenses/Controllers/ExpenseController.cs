@@ -9,6 +9,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers
 {
     [Route("expenses")]
     [ApiController]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("expenses_global")]
     public class ExpenseController : ControllerBase
     {
         private const string ServerError = "SERVER_ERROR";

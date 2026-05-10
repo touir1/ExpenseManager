@@ -3,6 +3,37 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.92.0] - 2026-05-10
+### Added
+- **Verification link expiry (users service):**
+  - `User.EmailValidationHashExpiresAt` (`DateTime?`) — stored in `USR_EmailValidationHashExpiresAt`
+  - Migration `AddEmailValidationHashExpiry` — adds nullable column to `USR_Users`
+  - `ValidateEmailAsync` returns `null` (→ redirect to `/verify-error`) when hash exists but is past its expiry time
+  - Expiry window: 24 hours (consistent with password reset tokens)
+- **Resend verification email:**
+  - `IUserRepository.UpdateEmailValidationHashAsync(userId, newHash, expiresAt)` — atomically replaces the old hash + expiry in one DB write; old link immediately invalid
+  - `ResendResult` enum (`Sent`, `NotFound`) in `Services/ResendResult.cs`
+  - `IRegistrationService.ResendVerificationEmailAsync(email, applicationCode)` — finds user, generates new hash, calls `UpdateEmailValidationHashAsync`, sends email; returns `NotFound` for unknown or already-validated emails
+  - `POST /auth/resend-verification` endpoint — always returns `200 OK` regardless of result to prevent account-existence leaks; validated by `ResendVerificationRequestValidator`
+  - `ResendVerificationRequest` DTO (`Email`, `ApplicationCode`)
+  - Re-registration with an unverified-email account silently triggers resend + hash rotation (no error returned to caller)
+  - `/verify-error` redirect now includes `?email=…&app_code=…` query params so the frontend can surface the resend button
+- **Rate limiting — users service (built-in .NET 8 `Microsoft.AspNetCore.RateLimiting`):**
+  - `login`: 10 req / 1 min per IP (fixed window)
+  - `register`: 5 req / 10 min per IP
+  - `resend_verification`: 3 req / 10 min per IP
+  - `validate_email`: 10 req / 5 min per IP
+  - `request_password_reset`, `change_password_reset`, `create_password`: 5 req / 10 min per IP
+  - `change_password`: 10 req / 5 min per IP
+  - `refresh`: 20 req / 1 min per IP
+  - `messaging_replay`: 5 req / 1 min per IP
+- **Rate limiting — expenses service:** sliding window 100 req / 60 s per IP applied globally to all expenses routes via `[EnableRateLimiting("expenses_global")]`
+- **Frontend — `VerifyErrorPage`:** reads `email` + `app_code` from `useSearchParams()`; shows "Resend verification email" button when both params present; on click calls `resendVerificationRequest` and replaces button with success message
+- **Frontend — `authApi.service.ts`:** `resendVerificationRequest(email, appCode)` — `POST /auth/resend-verification` with `skipUnauthorized + silent` flags
+- **i18n:** added `public.verifyError.resend` and `public.verifyError.resendSent` keys in all 4 locales (en, fr, es, de); updated `description` to mention requesting a new link
+### Changed
+- **Coverage — users backend:** 296 → 316 tests (+20: `RegistrationServiceTests` +6, `RegistrationControllerTests` +4, `UserRepositoryTests` +7, `ResendVerificationRequestValidatorTests` +3)
+
 ## [0.91.1] - 2026-05-09
 ### Changed
 - **SonarQube quality fixes — expenses backend:**

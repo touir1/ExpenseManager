@@ -27,8 +27,9 @@ Public (no auth required, accessible via `/api/users/auth/` through nginx):
 - `POST /auth/logout` — Revoke refresh token and delete both `auth_token` + `refresh_token` cookies
 - `GET  /auth/session` — Validate `auth_token` cookie; returns `{ email, firstName, lastName }` from JWT claims if valid, 401 otherwise (used for session restore on page load)
 - `POST /auth/refresh` — Validate `refresh_token` cookie, issue new `auth_token`, rotate `refresh_token` (used transparently by the frontend on 401)
-- `POST /auth/register` — User registration
-- `GET  /auth/validate-email` — Verify email from link; on success redirects to `{app.ResetPasswordUrlPath}?email=…&h=…&mode=create`; on failure redirects to `{app.UrlPath}{app.VerifyEmailErrorUrlPath}` (e.g. `/verify-error`) if configured, otherwise returns `{"message":"EMAIL_VERIFICATION_FAILED"}`
+- `POST /auth/register` — User registration; if email exists but is unverified, silently resends a new verification link (old link invalidated) and returns success
+- `GET  /auth/validate-email` — Verify email from link; link expires after 24 h; on success redirects to `{app.ResetPasswordUrlPath}?email=…&h=…&mode=create`; on failure redirects to `{app.UrlPath}{app.VerifyEmailErrorUrlPath}?email=…&app_code=…` if configured, otherwise returns `{"message":"EMAIL_VERIFICATION_FAILED"}`
+- `POST /auth/resend-verification` — Resend verification email; generates new hash (invalidates old link); always returns `200 OK` regardless of account existence; body: `{ email, applicationCode }`
 - `POST /auth/create-password` — Initial password setup after email verification; body: `{ email, verificationHash, newPassword }` — validates via `EmailValidationHash`; creates auth record if none exists
 - `POST /auth/request-password-reset` — Send reset email; body: `{ email, appCode }` — link points to `ResetPasswordBaseUrl?email=…&h=…`
 - `POST /auth/change-password-reset` — Reset password using a `PasswordResetHash` from `request-password-reset`; body: `{ email, verificationHash, newPassword }` — hash must be valid and issued within the last 24 hours
@@ -72,6 +73,25 @@ Config via `EXPENSES_MANAGEMENT_USERS_RABBITMQ_*` env vars (HostName, Port, User
 |--------|------|-------------|
 | `POST` | `/messaging/replay` | Requeue failed/undelivered outbox events; query params: `eventType`, `from` (ISO datetime), `forceAll` (bool) |
 | `GET`  | `/messaging/outbox/stats` | Counts of pending, published, and failed outbox events |
+
+## Rate Limiting
+
+All sensitive routes are protected by built-in .NET 8 `Microsoft.AspNetCore.RateLimiting` (fixed window, per client IP):
+
+| Route | Limit | Window |
+|-------|-------|--------|
+| `POST /auth/login` | 10 req | 1 min |
+| `POST /auth/register` | 5 req | 10 min |
+| `POST /auth/resend-verification` | 3 req | 10 min |
+| `GET  /auth/validate-email` | 10 req | 5 min |
+| `POST /auth/request-password-reset` | 5 req | 10 min |
+| `POST /auth/change-password-reset` | 5 req | 10 min |
+| `POST /auth/create-password` | 5 req | 10 min |
+| `POST /auth/change-password` | 10 req | 5 min |
+| `POST /auth/refresh` | 20 req | 1 min |
+| `POST /messaging/replay` | 5 req | 1 min |
+
+Exceeding the limit returns `429 Too Many Requests`.
 
 ## Database Schema
 

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Touir.ExpensesManager.Users.Repositories.Contracts;
 
 namespace Touir.ExpensesManager.Users.Controllers
@@ -22,6 +23,7 @@ namespace Touir.ExpensesManager.Users.Controllers
         /// <param name="from">Optional filter: only events created at or after this UTC datetime.</param>
         /// <param name="forceAll">If true, also requeue already-published events (full resync).</param>
         [HttpPost("replay")]
+        [EnableRateLimiting("messaging_replay")]
         public async Task<IActionResult> Replay(
             [FromQuery] string? eventType,
             [FromQuery] DateTime? from,

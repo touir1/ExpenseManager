@@ -1,10 +1,29 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { resendVerificationRequest } from '@/features/auth/services/authApi.service'
+
+const APPLICATION_CODE = import.meta.env.VITE_APPLICATION_CODE ?? 'EXPENSES_MANAGER'
 
 export default function VerifyErrorPage() {
   const { t } = useTranslation()
   usePageTitle(t('public.verifyError.pageTitle'))
+  const [searchParams] = useSearchParams()
+  const email = searchParams.get('email') ?? ''
+  const appCode = searchParams.get('app_code') ?? APPLICATION_CODE
+  const canResend = !!email
+
+  const [resendSent, setResendSent] = useState(false)
+  const [isResending, setIsResending] = useState(false)
+
+  const handleResend = async () => {
+    setIsResending(true)
+    await resendVerificationRequest(email, appCode)
+    setResendSent(true)
+    setIsResending(false)
+  }
+
   return (
     <div className="auth-page">
       <div className="text-center max-w-lg px-4">
@@ -33,12 +52,30 @@ export default function VerifyErrorPage() {
           {t('public.verifyError.description')}
         </p>
 
-        <Link
-          to="/register"
-          className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium transition-colors duration-150 shadow-sm"
-        >
-          {t('public.verifyError.backToRegister')}
-        </Link>
+        <div className="flex flex-col items-center gap-3">
+          {canResend && !resendSent && (
+            <button
+              onClick={handleResend}
+              disabled={isResending}
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-medium transition-colors duration-150 shadow-sm"
+            >
+              {isResending ? '…' : t('public.verifyError.resend')}
+            </button>
+          )}
+
+          {resendSent && (
+            <p className="msg-success" role="alert">
+              {t('public.verifyError.resendSent')}
+            </p>
+          )}
+
+          <Link
+            to="/register"
+            className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium transition-colors duration-150 shadow-sm"
+          >
+            {t('public.verifyError.backToRegister')}
+          </Link>
+        </div>
       </div>
     </div>
   )
