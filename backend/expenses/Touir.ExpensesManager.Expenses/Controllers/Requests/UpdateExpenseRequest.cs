@@ -8,5 +8,6 @@ namespace Touir.ExpensesManager.Expenses.Controllers.Requests
         public int? CategoryId { get; set; }
         public int? SubcategoryId { get; set; }
         public string? Description { get; set; }
+        public int[]? FamilyIds { get; set; }
     }
 }

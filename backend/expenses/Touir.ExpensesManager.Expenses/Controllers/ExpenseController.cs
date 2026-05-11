@@ -3,6 +3,7 @@ using Touir.ExpensesManager.Expenses.Controllers.DTO;
 using Touir.ExpensesManager.Expenses.Controllers.Requests;
 using Touir.ExpensesManager.Expenses.Controllers.Responses;
 using Touir.ExpensesManager.Expenses.Infrastructure;
+using Touir.ExpensesManager.Expenses.Services;
 using Touir.ExpensesManager.Expenses.Services.Contracts;
 
 namespace Touir.ExpensesManager.Expenses.Controllers
@@ -12,10 +13,6 @@ namespace Touir.ExpensesManager.Expenses.Controllers
     [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("expenses_global")]
     public class ExpenseController : ControllerBase
     {
-        private const string ServerError = "SERVER_ERROR";
-        private const string ExpenseNotFound = "EXPENSE_NOT_FOUND";
-        private const string MissingUser = "UNAUTHORIZED";
-
         // OperationSource seed: 1=SingleWeb, ModifiedSource seed: 1=Web (constraints.md)
         private const int SourceSingleWeb = 1;
         private const int ModifiedSourceWeb = 1;
@@ -34,6 +31,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(ExpenseDto), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateAsync(CreateExpenseRequest request)
         {
@@ -41,14 +39,18 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             {
                 var userId = JwtCookieReader.GetUserId(Request);
                 if (userId is null)
-                    return Unauthorized(new ErrorResponse { Message = MissingUser });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingUser });
 
                 var dto = await _expenseService.AddAsync(request, userId.Value, SourceSingleWeb);
                 return CreatedAtAction(nameof(GetByIdAsync), new { id = dto.Id }, dto);
             }
+            catch (FamilyForbiddenException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponse { Message = ex.Message });
+            }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = ServerError });
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
 
@@ -61,6 +63,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers
         [ProducesResponseType(typeof(ExpenseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateAsync(long id, UpdateExpenseRequest request)
         {
@@ -68,17 +71,21 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             {
                 var userId = JwtCookieReader.GetUserId(Request);
                 if (userId is null)
-                    return Unauthorized(new ErrorResponse { Message = MissingUser });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingUser });
 
                 var dto = await _expenseService.UpdateAsync(id, request, userId.Value, ModifiedSourceWeb);
                 if (dto is null)
-                    return NotFound(new ErrorResponse { Message = ExpenseNotFound });
+                    return NotFound(new ErrorResponse { Message = ControllerErrors.ExpenseNotFound });
 
                 return Ok(dto);
             }
+            catch (FamilyForbiddenException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponse { Message = ex.Message });
+            }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = ServerError });
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
 
@@ -97,17 +104,17 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             {
                 var userId = JwtCookieReader.GetUserId(Request);
                 if (userId is null)
-                    return Unauthorized(new ErrorResponse { Message = MissingUser });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingUser });
 
                 var deleted = await _expenseService.DeleteAsync(id, userId.Value, SourceSingleWeb);
                 if (!deleted)
-                    return NotFound(new ErrorResponse { Message = ExpenseNotFound });
+                    return NotFound(new ErrorResponse { Message = ControllerErrors.ExpenseNotFound });
 
                 return NoContent();
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = ServerError });
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
 
@@ -126,17 +133,17 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             {
                 var userId = JwtCookieReader.GetUserId(Request);
                 if (userId is null)
-                    return Unauthorized(new ErrorResponse { Message = MissingUser });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingUser });
 
                 var dto = await _expenseService.GetByIdAsync(id, userId.Value);
                 if (dto is null)
-                    return NotFound(new ErrorResponse { Message = ExpenseNotFound });
+                    return NotFound(new ErrorResponse { Message = ControllerErrors.ExpenseNotFound });
 
                 return Ok(dto);
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = ServerError });
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
 
@@ -154,7 +161,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             {
                 var userId = JwtCookieReader.GetUserId(Request);
                 if (userId is null)
-                    return Unauthorized(new ErrorResponse { Message = MissingUser });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingUser });
 
                 var result = await _expenseService.GetPagedAsync(filter, userId.Value);
                 return Ok(new ExpensePagedResponse
@@ -168,7 +175,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = ServerError });
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
     }

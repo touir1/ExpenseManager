@@ -102,6 +102,8 @@ builder.Services.Configure<JwtAuthOptions>(c =>
                     Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_JWT_AUDIENCE")) ?? "https://localhost";
     c.Issuer = builder.Configuration.GetValue("JwtAuth:Issuer",
                     Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_JWT_ISSUER")) ?? "https://localhost";
+    c.ShortLivedRefreshExpiryInDays = int.Parse(builder.Configuration.GetValue("JwtAuth:ShortLivedRefreshExpiryInDays",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_JWT_SHORT_REFRESH_EXPIRY_IN_DAYS")) ?? "1");
 });
 
 builder.Services.Configure<EmailOptions>(c =>
@@ -124,6 +126,10 @@ builder.Services.Configure<AuthenticationServiceOptions>(c =>
                 Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_VERIFY_EMAIL_URL")) ?? "https://localhost:7114/api/auth/verifyEmail";
     c.ResetPasswordBaseUrl = builder.Configuration.GetValue("AuthenticationService:ResetPasswordBaseUrl",
                 Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_RESET_PASSWORD_URL")) ?? "https://localhost/reset-password";
+    c.EmailVerificationExpiryInHours = int.Parse(builder.Configuration.GetValue("AuthenticationService:EmailVerificationExpiryInHours",
+                Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_EMAIL_VERIFICATION_EXPIRY_IN_HOURS")) ?? "24");
+    c.PasswordResetExpiryInHours = int.Parse(builder.Configuration.GetValue("AuthenticationService:PasswordResetExpiryInHours",
+                Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_PASSWORD_RESET_EXPIRY_IN_HOURS")) ?? "24");
 });
 
 builder.Services.Configure<CryptographyOptions>(c =>

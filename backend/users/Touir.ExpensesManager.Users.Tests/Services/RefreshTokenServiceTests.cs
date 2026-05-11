@@ -17,7 +17,8 @@ namespace Touir.ExpensesManager.Users.Tests.Services
                 Issuer = "issuer",
                 Audience = "audience",
                 ExpiryInMinutes = 60,
-                RefreshExpiryInDays = refreshExpiryInDays
+                RefreshExpiryInDays = refreshExpiryInDays,
+                ShortLivedRefreshExpiryInDays = 1
             });
             return new RefreshTokenService(repo?.Object ?? new Mock<IRefreshTokenRepository>().Object, options);
         }

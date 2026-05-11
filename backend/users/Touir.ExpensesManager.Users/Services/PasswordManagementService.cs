@@ -16,6 +16,7 @@ namespace Touir.ExpensesManager.Users.Services
         private readonly IUserRepository _userRepository;
         private readonly IAuthenticationRepository _authenticationRepository;
         private readonly string _resetPasswordBaseUrl;
+        private readonly int _passwordResetExpiryInHours;
 
         public PasswordManagementService(
             IOptions<AuthenticationServiceOptions> authServiceOptions,
@@ -29,6 +30,7 @@ namespace Touir.ExpensesManager.Users.Services
             _userRepository = userRepository;
             _authenticationRepository = authenticationRepository;
             _resetPasswordBaseUrl = authServiceOptions.Value.ResetPasswordBaseUrl;
+            _passwordResetExpiryInHours = authServiceOptions.Value.PasswordResetExpiryInHours;
         }
 
         public async Task<bool> ChangePasswordAsync(string email, string oldPassword, string newPassword)
@@ -101,7 +103,7 @@ namespace Touir.ExpensesManager.Users.Services
 
             if (auth.PasswordResetHash != resetHash ||
                 !auth.PasswordResetRequestedAt.HasValue ||
-                (DateTime.UtcNow - auth.PasswordResetRequestedAt.Value).TotalHours > 24)
+                (DateTime.UtcNow - auth.PasswordResetRequestedAt.Value).TotalHours > _passwordResetExpiryInHours)
                 return false;
 
             byte[] salt = _cryptographyHelper.GenerateRandomSalt();

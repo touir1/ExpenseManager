@@ -117,6 +117,18 @@ namespace Touir.ExpensesManager.Expenses.Messaging.Consumers
             switch (message.EventType)
             {
                 case UserEventType.Created:
+                    await userRepository.SaveOrUpdateUserAsync(new User
+                    {
+                        Id = message.UserId,
+                        FirstName = message.FirstName,
+                        LastName = message.LastName,
+                        Email = message.Email,
+                        FamilyId = message.FamilyId
+                    });
+                    var familyService = scope.ServiceProvider.GetRequiredService<IFamilyService>();
+                    await familyService.CreateDefaultAsync(message.UserId);
+                    break;
+
                 case UserEventType.Updated:
                     await userRepository.SaveOrUpdateUserAsync(new User
                     {

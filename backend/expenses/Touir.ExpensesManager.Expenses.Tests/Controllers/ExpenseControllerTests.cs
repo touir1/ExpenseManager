@@ -5,6 +5,7 @@ using Touir.ExpensesManager.Expenses.Controllers;
 using Touir.ExpensesManager.Expenses.Controllers.DTO;
 using Touir.ExpensesManager.Expenses.Controllers.Requests;
 using Touir.ExpensesManager.Expenses.Controllers.Responses;
+using Touir.ExpensesManager.Expenses.Services;
 using Touir.ExpensesManager.Expenses.Services.Contracts;
 
 namespace Touir.ExpensesManager.Expenses.Tests.Controllers
@@ -79,6 +80,22 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
             Assert.Equal("SERVER_ERROR", err.Message);
         }
 
+        [Fact]
+        public async Task CreateAsync_Returns403_WhenNotFamilyMember()
+        {
+            var service = new Mock<IExpenseService>();
+            service.Setup(s => s.AddAsync(It.IsAny<CreateExpenseRequest>(), It.IsAny<int>(), It.IsAny<int>()))
+                   .ThrowsAsync(new FamilyForbiddenException());
+
+            var result = await CreateController(service.Object).CreateAsync(
+                new CreateExpenseRequest { Amount = 50m, CurrencyId = 1, Date = DateOnly.FromDateTime(DateTime.UtcNow) });
+
+            var obj = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(403, obj.StatusCode);
+            var err = Assert.IsType<ErrorResponse>(obj.Value);
+            Assert.Equal("FAMILY_FORBIDDEN", err.Message);
+        }
+
         // ── UpdateAsync ──────────────────────────────────────────────────────────
 
         [Fact]
@@ -107,6 +124,22 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
 
             var ok = Assert.IsType<OkObjectResult>(result);
             Assert.IsType<ExpenseDto>(ok.Value);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_Returns403_WhenNotFamilyMember()
+        {
+            var service = new Mock<IExpenseService>();
+            service.Setup(s => s.UpdateAsync(It.IsAny<long>(), It.IsAny<UpdateExpenseRequest>(), It.IsAny<int>(), It.IsAny<int>()))
+                   .ThrowsAsync(new FamilyForbiddenException());
+
+            var result = await CreateController(service.Object).UpdateAsync(
+                1, new UpdateExpenseRequest { Amount = 50m, CurrencyId = 1, Date = DateOnly.FromDateTime(DateTime.UtcNow) });
+
+            var obj = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(403, obj.StatusCode);
+            var err = Assert.IsType<ErrorResponse>(obj.Value);
+            Assert.Equal("FAMILY_FORBIDDEN", err.Message);
         }
 
         // ── DeleteAsync ──────────────────────────────────────────────────────────

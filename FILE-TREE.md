@@ -75,12 +75,15 @@ ExpenseManager/
 │   │   │   │   ├── ExpensesDbContext.cs     — EF Core context; all 13 DbSets with full Fluent API config
 │   │   │   │   ├── JwtCookieReader.cs       — Decodes auth_token cookie (base64url payload) to extract sub claim; no signature validation (nginx validates upstream)
 │   │   │   │   └── Options/
+│   │   │   │       ├── FamilyOptions.cs     — InviteExpiryInDays (env: EXPENSES_MANAGEMENT_EXPENSES_FAMILY_INVITE_EXPIRY_IN_DAYS, default 7)
 │   │   │   │       ├── PostgresOptions.cs
 │   │   │   │       └── RabbitMQOptions.cs
 │   │   │   ├── Controllers/
 │   │   │   │   ├── CategoryController.cs    — GET /categories → IEnumerable<CategoryDto>
+│   │   │   │   ├── ControllerErrors.cs      — Shared internal static class: SERVER_ERROR, UNAUTHORIZED, EXPENSE_NOT_FOUND, MISSING_PARAMETERS
 │   │   │   │   ├── CurrencyController.cs    — GET /currencies → IEnumerable<CurrencyDto>
-│   │   │   │   ├── ExpenseController.cs     — POST/PUT/DELETE/GET/GET(paged) /expenses; reads userId from auth_token JWT cookie via JwtCookieReader
+│   │   │   │   ├── ExpenseController.cs     — POST/PUT/DELETE/GET/GET(paged) /expenses; FamilyForbiddenException → 403 on create/update
+│   │   │   │   ├── FamilyController.cs      — 10 endpoints: list, detail, create, rename, archive, unarchive, invite, accept-invite, remove-member, change-role
 │   │   │   │   ├── DTO/
 │   │   │   │   │   ├── CategoryDto.cs       — Id, Name, Description?, Subcategories: IEnumerable<SubcategoryDto>
 │   │   │   │   │   ├── SubcategoryDto.cs    — Id, Name, Description? (reused for category + subcategory slots in ExpenseDto)
@@ -99,6 +102,7 @@ ExpenseManager/
 │   │   │   │   ├── Currency.cs
 │   │   │   │   ├── Expense.cs               — IsDeleted + DeletedAt (soft-delete); owner, amount, date, category, audit fields; FK int columns
 │   │   │   │   ├── Family.cs                — IsDeleted + DeletedAt (soft-delete)
+│   │   │   │   ├── FamilyInvitation.cs      — GUID token, ExpiresAt, InviteeEmail, AcceptedAt?, AcceptedByUserId?
 │   │   │   │   ├── FamilyMembership.cs      — RoleId (int FK) instead of enum
 │   │   │   │   ├── ExpenseFamilyAttribution.cs
 │   │   │   │   ├── Tag.cs
@@ -124,20 +128,26 @@ ExpenseManager/
 │   │   │   ├── Validators/
 │   │   │   │   ├── ExpenseRequestValidatorBase.cs   — Abstract base AbstractValidator<T> where T : IExpenseRequest; holds all shared rules (amount, currency, date, description, subcategory-requires-category)
 │   │   │   │   ├── CreateExpenseRequestValidator.cs — Inherits ExpenseRequestValidatorBase<CreateExpenseRequest>
-│   │   │   │   └── UpdateExpenseRequestValidator.cs — Inherits ExpenseRequestValidatorBase<UpdateExpenseRequest>
+│   │   │   │   ├── UpdateExpenseRequestValidator.cs — Inherits ExpenseRequestValidatorBase<UpdateExpenseRequest>
+│   │   │   │   ├── CreateFamilyRequestValidator.cs  — Name NotEmpty + MaxLength(100)
+│   │   │   │   ├── RenameFamilyRequestValidator.cs  — Name NotEmpty + MaxLength(100)
+│   │   │   │   ├── InviteMemberRequestValidator.cs  — Email NotEmpty + EmailAddress + MaxLength(255)
+│   │   │   │   └── ChangeMemberRoleRequestValidator.cs — Role Must be "Head" or "Member" (case-insensitive)
 │   │   │   ├── Repositories/
 │   │   │   │   ├── CategoryRepository.cs    — GetAllActiveAsync(): top-level non-archived categories with Include(Children), AsNoTracking
 │   │   │   │   ├── CurrencyRepository.cs    — GetAllAsync(): all currencies, AsNoTracking
 │   │   │   │   ├── ExpenseRepository.cs     — AddAsync, UpdateAsync, SoftDeleteAsync, GetByIdAsync (ownership + !IsDeleted), GetPagedAsync (filtered + paginated, desc by date)
+│   │   │   │   ├── FamilyRepository.cs      — family CRUD, membership CRUD, invitation CRUD, attribution helpers (AddAttributionsAsync, ClearAttributionsAsync, RemoveMemberAttributionsAsync)
 │   │   │   │   ├── InboxRepository.cs       — ExistsAsync(messageId), AddAsync(InboxEvent) for deduplication
 │   │   │   │   ├── Contracts/
 │   │   │   │   │   ├── ICategoryRepository.cs
 │   │   │   │   │   ├── ICurrencyRepository.cs
 │   │   │   │   │   ├── IExpenseRepository.cs — AddAsync, UpdateAsync, SoftDeleteAsync, GetByIdAsync, GetPagedAsync
+│   │   │   │   │   ├── IFamilyRepository.cs  — family/membership/invitation/attribution methods; IsMemberAsync, HasDefaultFamilyAsync
 │   │   │   │   │   └── IInboxRepository.cs  — ExistsAsync, AddAsync
 │   │   │   │   └── External/
 │   │   │   │       ├── Contracts/
-│   │   │   │       │   └── IUserRepository.cs
+│   │   │   │       │   └── IUserRepository.cs — GetUserByEmailAsync (invite flow), GetUserByIdAsync (filters !IsDeleted)
 │   │   │   │       └── UserRepository.cs    — Read-only cross-service user access
 │   │   │   ├── Services/
 │   │   │   │   ├── Contracts/
@@ -146,12 +156,15 @@ ExpenseManager/
 │   │   │   │   │   ├── ICategoryService.cs  — GetAllAsync() → active category tree
 │   │   │   │   │   ├── ICurrencyService.cs  — GetAllAsync() → all currencies
 │   │   │   │   │   ├── IExpenseService.cs   — AddAsync, UpdateAsync, DeleteAsync, GetByIdAsync, GetPagedAsync
-│   │   │   │   │   └── IExpenseAuditService.cs — WriteAddAuditAsync, WriteUpdateAuditAsync, WriteDeleteAuditAsync
+│   │   │   │   │   ├── IExpenseAuditService.cs — WriteAddAuditAsync, WriteUpdateAuditAsync, WriteDeleteAuditAsync
+│   │   │   │   │   └── IFamilyService.cs    — CreateDefaultAsync, CreateAsync, GetByUserAsync, GetByIdAsync, RenameAsync, InviteAsync, AcceptInviteAsync, RemoveMemberAsync, ChangeRoleAsync, ArchiveAsync, UnarchiveAsync
+│   │   │   │   ├── FamilyExceptions.cs      — FamilyNotFoundException (→404), FamilyForbiddenException (→403), FamilyConflictException (→409), FamilyInvitationException (→400)
+│   │   │   │   ├── FamilyService.cs         — Implements IFamilyService; uses ILookupCacheService for role ID resolution; invite expiry from FamilyOptions
 │   │   │   │   ├── RabbitMQService.cs       — RabbitMQ connection and messaging
 │   │   │   │   ├── LookupCacheService.cs    — IMemoryCache-backed lookup; NeverRemove priority; loads entire table on first access
 │   │   │   │   ├── CategoryService.cs       — Injects ICategoryRepository; projects Category → CategoryDto (filters archived children)
 │   │   │   │   ├── CurrencyService.cs       — Injects ICurrencyRepository; projects Currency → CurrencyDto
-│   │   │   │   ├── ExpenseService.cs        — Orchestrates IExpenseRepository + IExpenseAuditService; maps Expense → ExpenseDto with nested CurrencyDto/SubcategoryDto
+│   │   │   │   ├── ExpenseService.cs        — Orchestrates IExpenseRepository + IExpenseAuditService; maps Expense → ExpenseDto with nested CurrencyDto/SubcategoryDto; throws FamilyForbiddenException if familyId provided without membership
 │   │   │   │   └── ExpenseAuditService.cs   — Writes ExpenseAuditLog + ExpenseAuditSnapshot(s): add→1 after, update→before+after, delete→1 before
 │   │   │   └── Migrations/
 │   │   │       ├── 20260217225816_InitialCreate.cs
@@ -178,7 +191,8 @@ ExpenseManager/
 │   │       ├── Controllers/
 │   │       │   ├── CategoryControllerTests.cs
 │   │       │   ├── CurrencyControllerTests.cs
-│   │       │   └── ExpenseControllerTests.cs        — 10 tests: 401 no-cookie, 201/400 create, 404/200 update, 404/204 delete, 404/200 getById, 200 getPaged
+│   │       │   ├── ExpenseControllerTests.cs        — 12 tests: 401 no-cookie, 201/400/403 create, 404/200/403 update, 404/204 delete, 404/200 getById, 200 getPaged
+│   │       │   └── FamilyControllerTests.cs         — 30+ tests: 401 no-cookie paths, all 10 family endpoints (200/201/204/403/404/409 per action)
 │   │       ├── Messaging/
 │   │       │   └── UserEventConsumerTests.cs        — 24 tests: constructor, ExecuteAsync, Dispose, OnMessageReceivedAsync (null msg, dedup, Created/Updated/Deleted/unknown/exception), HandleMessageAsync, UserEventMessage/UserEventType
 │   │       ├── Repositories/
@@ -187,18 +201,21 @@ ExpenseManager/
 │   │       │   ├── CategoryRepositoryTests.cs       — 5 tests: top-level only, children included, archived excluded, empty, archived subs
 │   │       │   ├── CurrencyRepositoryTests.cs       — 4 tests: all currencies, field mapping, empty set, positive IDs
 │   │       │   ├── ExpenseRepositoryTests.cs        — 8 tests: AddAsync, GetByIdAsync (owned/wrong-user/soft-deleted), SoftDeleteAsync, GetPagedAsync (excludes deleted/other-users, pagination, UpdateAsync); BuildExpense static
+│   │       │   ├── FamilyRepositoryTests.cs         — family CRUD, membership, invitation, attribution, IsMemberAsync, HasDefaultFamilyAsync
 │   │       │   └── InboxRepositoryTests.cs          — 7 tests: ExistsAsync×3, AddAsync×4
 │   │       ├── Infrastructure/
 │   │       │   └── ExpensesDbContextSchemaTests.cs  — 23 tests: all Phase 1 entities, composite PKs, unique constraints, cascades
 │   │       ├── Validators/
-│   │       │   └── ExpenseRequestValidatorTests.cs  — 13 tests: valid pass, amount/currency/date/description/subcategory rules for both Create and Update validators
+│   │       │   ├── ExpenseRequestValidatorTests.cs  — 13 tests: valid pass, amount/currency/date/description/subcategory rules for both Create and Update validators
+│   │       │   └── FamilyValidatorTests.cs          — 15 tests: CreateFamily, RenameFamily, InviteMember (incl. email case + length), ChangeMemberRole
 │   │       └── Services/
 │   │           ├── RabbitMQServiceTests.cs
 │   │           ├── LookupCacheServiceTests.cs       — 7 tests: GetId/Name, KeyNotFoundException, cache hit, all 8 types
 │   │           ├── CategoryServiceTests.cs          — 8 tests: Mock<ICategoryRepository>; top-level, subcategories, archived exclusion, field mapping, call count
 │   │           ├── CurrencyServiceTests.cs          — 5 tests: Mock<ICurrencyRepository>; all currencies, field mapping, empty set, ID mapping, call count
 │   │           ├── ExpenseServiceTests.cs           — 16 tests: AddAsync (repo called, audit written, DTO amount/currency), UpdateAsync (null when not found, repo called, audit written, fields updated), DeleteAsync (false/true/soft-delete/audit), GetByIdAsync (null/mapped), GetPagedAsync (result, total pages)
-│   │           └── ExpenseAuditServiceTests.cs      — 3 tests: WriteAddAuditAsync (log + after snapshot), WriteUpdateAuditAsync (log + before+after snapshots), WriteDeleteAuditAsync (log + before snapshot)
+│   │           ├── ExpenseAuditServiceTests.cs      — 3 tests: WriteAddAuditAsync (log + after snapshot), WriteUpdateAuditAsync (log + before+after snapshots), WriteDeleteAuditAsync (log + before snapshot)
+│   │           └── FamilyServiceTests.cs            — 42+ tests: CreateDefault, Create, GetByUser, GetById, Rename, Invite, AcceptInvite, RemoveMember, ChangeRole, Archive, Unarchive (success + forbidden/not-found paths)
 │   │
 │   └── users/
 │       ├── .config/
@@ -243,10 +260,10 @@ ExpenseManager/
 │       │   │   │   ├── IEmailHelper.cs
 │       │   │   │   └── IEmailService.cs      — Abstraction for email dispatch (OCP boundary)
 │       │   │   └── Options/
-│       │   │       ├── AuthenticationServiceOptions.cs
+│       │   │       ├── AuthenticationServiceOptions.cs — VerifyEmailBaseUrl, ResetPasswordBaseUrl, EmailVerificationExpiryInHours, PasswordResetExpiryInHours
 │       │   │       ├── CryptographyOptions.cs
 │       │   │       ├── EmailOptions.cs
-│       │   │       ├── JwtAuthOptions.cs
+│       │   │       ├── JwtAuthOptions.cs            — SecretKey, ExpiryInMinutes, Audience, Issuer, RefreshExpiryInDays, ShortLivedRefreshExpiryInDays
 │       │   │       ├── PostgresOptions.cs
 │       │   │       └── RabbitMQOptions.cs
 │       │   ├── Models/
@@ -262,6 +279,7 @@ ExpenseManager/
 │       │   │   └── UserRole.cs
 │       │   ├── Controllers/
 │       │   │   ├── AuthenticationController.cs  — Login, logout, session, refresh, auth check (token ops via IJwtTokenService)
+│       │   │   ├── ControllerErrors.cs          — Shared internal static class: SERVER_ERROR, MISSING_PARAMETERS, INVALID_USERNAME_OR_PASSWORD, NO_ASSIGNED_ROLE, MISSING_TOKEN, INVALID_TOKEN, USER_NOT_FOUND, EMAIL_VERIFICATION_FAILED, SET_NEW_PASSWORD_FAILED, REQUEST_PASSWORD_RESET_FAILED, CREATE_PASSWORD_FAILED, RESET_PASSWORD_FAILED
 │       │   │   ├── RegistrationController.cs    — Register, validate-email, resend-verification; error redirect appends ?email=…&app_code=…; rate limited
 │       │   │   ├── PasswordController.cs        — Change-password, request-password-reset, change-password-reset; rate limited
 │       │   │   ├── MessagingController.cs       — POST /messaging/replay (requeue outbox events); GET /messaging/outbox/stats; replay rate limited

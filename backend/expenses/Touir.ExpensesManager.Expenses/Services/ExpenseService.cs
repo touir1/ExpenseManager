@@ -10,11 +10,16 @@ namespace Touir.ExpensesManager.Expenses.Services
     {
         private readonly IExpenseRepository _expenseRepository;
         private readonly IExpenseAuditService _auditService;
+        private readonly IFamilyRepository _familyRepository;
 
-        public ExpenseService(IExpenseRepository expenseRepository, IExpenseAuditService auditService)
+        public ExpenseService(
+            IExpenseRepository expenseRepository,
+            IExpenseAuditService auditService,
+            IFamilyRepository familyRepository)
         {
             _expenseRepository = expenseRepository;
             _auditService = auditService;
+            _familyRepository = familyRepository;
         }
 
         public async Task<ExpenseDto> AddAsync(CreateExpenseRequest request, int userId, int sourceId)
@@ -35,6 +40,7 @@ namespace Touir.ExpensesManager.Expenses.Services
 
             await _expenseRepository.AddAsync(expense);
             await _auditService.WriteAddAuditAsync(expense, userId, sourceId);
+            await WriteAttributionsAsync(expense.Id, request.FamilyIds, userId);
 
             return MapToDto(expense);
         }
@@ -59,6 +65,9 @@ namespace Touir.ExpensesManager.Expenses.Services
 
             await _expenseRepository.UpdateAsync(existing);
             await _auditService.WriteUpdateAuditAsync(before, existing, userId, sourceId);
+
+            await _familyRepository.ClearAttributionsAsync(existing.Id);
+            await WriteAttributionsAsync(existing.Id, request.FamilyIds, userId);
 
             return MapToDto(existing);
         }
@@ -95,6 +104,43 @@ namespace Touir.ExpensesManager.Expenses.Services
                 PageSize = pageSize,
                 TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
             };
+        }
+
+        private async Task WriteAttributionsAsync(long expenseId, int[]? familyIds, int userId)
+        {
+            IEnumerable<int> targetIds;
+
+            if (familyIds == null)
+            {
+                var defaultFamily = await _familyRepository.GetDefaultFamilyForUserAsync(userId);
+                if (defaultFamily is null)
+                    return;
+                targetIds = [defaultFamily.Id];
+            }
+            else
+            {
+                targetIds = familyIds;
+            }
+
+            var now = DateTime.UtcNow;
+            var attributions = new List<ExpenseFamilyAttribution>();
+
+            foreach (var familyId in targetIds)
+            {
+                if (!await _familyRepository.IsMemberAsync(familyId, userId))
+                    throw new FamilyForbiddenException("FAMILY_FORBIDDEN");
+
+                attributions.Add(new ExpenseFamilyAttribution
+                {
+                    ExpenseId = expenseId,
+                    FamilyId = familyId,
+                    AttributedAt = now,
+                    AttributedById = userId
+                });
+            }
+
+            if (attributions.Count > 0)
+                await _familyRepository.AddAttributionsAsync(attributions);
         }
 
         private static ExpenseDto MapToDto(Expense e) => new()

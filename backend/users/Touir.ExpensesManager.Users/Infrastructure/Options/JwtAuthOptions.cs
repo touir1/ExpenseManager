@@ -7,5 +7,6 @@
         public string Audience { get; set; }
         public int ExpiryInMinutes { get; set; }
         public int RefreshExpiryInDays { get; set; }
+        public int ShortLivedRefreshExpiryInDays { get; set; }
     }
 }

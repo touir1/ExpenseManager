@@ -31,9 +31,21 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 | `DELETE` | `/expenses/{id}` | Soft-delete expense → 204 or 404 |
 | `GET` | `/expenses/{id}` | Get expense by id → `ExpenseDto` (200) or 404 |
 | `GET` | `/expenses` | Paged + filtered expense list → `ExpensePagedResponse` |
+| `GET` | `/families` | List families for authenticated user → `FamilyDto[]` |
+| `POST` | `/families` | Create a new family → `FamilyDto` (201) |
+| `GET` | `/families/{id}` | Family detail with members → `FamilyDetailDto` (200) or 403/404 |
+| `PUT` | `/families/{id}` | Rename family (head only) → `FamilyDto` (200) or 403/404 |
+| `POST` | `/families/{id}/archive` | Archive non-default family (head only) → 204 or 403/404 |
+| `POST` | `/families/{id}/unarchive` | Unarchive family (head only) → 204 or 403/404 |
+| `POST` | `/families/{id}/invite` | Invite user by email (head only) → `{ token }` (200) or 403/404/409 |
+| `POST` | `/families/accept-invite` | Accept invitation by token → 204 or 400/403/409 |
+| `DELETE` | `/families/{id}/members/{userId}` | Remove member (head only, not self) → 204 or 403/404 |
+| `PUT` | `/families/{id}/members/{userId}/role` | Change member role (head only) → 204 or 403/404 |
 | `GET` | `/health` | Liveness/readiness probe |
 
 All endpoints (except `/health`) require authentication, enforced by nginx's `auth_request` subrequest to the users service before forwarding.
+
+`POST /expenses` and `PUT /expenses/{id}` return `403 Forbidden` if a provided `familyId` does not match a family the user belongs to.
 
 ### Response DTOs
 

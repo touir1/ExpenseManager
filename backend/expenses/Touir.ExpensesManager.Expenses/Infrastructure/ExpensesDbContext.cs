@@ -16,6 +16,7 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
         public DbSet<Expense> Expenses { get; set; }
         public DbSet<Family> Families { get; set; }
         public DbSet<FamilyMembership> FamilyMemberships { get; set; }
+        public DbSet<FamilyInvitation> FamilyInvitations { get; set; }
         public DbSet<ExpenseFamilyAttribution> ExpenseFamilyAttributions { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<ExpenseTag> ExpenseTags { get; set; }
@@ -247,6 +248,29 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
                       .OnDelete(DeleteBehavior.Restrict);
                 entity.HasIndex(e => e.UserId);
                 entity.HasIndex(e => e.FamilyId);
+            });
+
+            // ── FamilyInvitation ──────────────────────────────────────────────
+
+            modelBuilder.Entity<FamilyInvitation>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.InviteeEmail).HasMaxLength(256).IsRequired();
+                entity.Property(e => e.Token).HasMaxLength(36).IsRequired();
+                entity.HasIndex(e => e.Token).IsUnique();
+                entity.HasOne(e => e.Family)
+                      .WithMany()
+                      .HasForeignKey(e => e.FamilyId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne<User>()
+                      .WithMany()
+                      .HasForeignKey(e => e.InvitedById)
+                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne<User>()
+                      .WithMany()
+                      .HasForeignKey(e => e.AcceptedByUserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(e => new { e.FamilyId, e.InviteeEmail });
             });
 
             // ── ExpenseFamilyAttribution ──────────────────────────────────────

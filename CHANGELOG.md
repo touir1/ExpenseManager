@@ -3,6 +3,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.93.1] - 2026-05-11
+### Changed
+- **Hardcoded expiry values → configurable options (both services):**
+  - `FamilyService` invite expiry (`InviteExpiry = TimeSpan.FromDays(7)`) → `FamilyOptions.InviteExpiryInDays` via `IOptions<FamilyOptions>`; env var `EXPENSES_MANAGEMENT_EXPENSES_FAMILY_INVITE_EXPIRY_IN_DAYS` (default 7)
+  - `RegistrationService` email verification expiry (hardcoded 24 h) → `AuthenticationServiceOptions.EmailVerificationExpiryInHours`; env var `EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_EMAIL_VERIFICATION_EXPIRY_IN_HOURS` (default 24)
+  - `PasswordManagementService` password reset expiry (hardcoded 24 h) → `AuthenticationServiceOptions.PasswordResetExpiryInHours`; env var `EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_PASSWORD_RESET_EXPIRY_IN_HOURS` (default 24)
+  - `RefreshTokenService` short-lived refresh expiry (hardcoded 1 day) → `JwtAuthOptions.ShortLivedRefreshExpiryInDays`; env var `EXPENSES_MANAGEMENT_USERS_JWT_SHORT_REFRESH_EXPIRY_IN_DAYS` (default 1)
+  - `PasswordManagementService` reset-password base URL (hardcoded) → `AuthenticationServiceOptions.ResetPasswordBaseUrl`; env var `EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_RESET_PASSWORD_URL`
+  - All 5 env vars added to `infrastructure/.env`, `.env.example`, and `docker-compose-apps.yml`
+- **FamilyController — removed `RoleNameToId` hardcoded dictionary**: role name→ID resolution moved into `FamilyService.ChangeRoleAsync(string roleName)` via `ILookupCacheService.GetIdAsync<FamilyRole>`; `ChangeRoleAsync` signature changed from `int newRoleId` to `string roleName`
+- **FamilyService — removed hardcoded `RoleHead = 1` / `RoleMember = 2` constants**: all usages replaced with `await _lookupCache.GetIdAsync<FamilyRole>("Head")` / `("Member")` per method; normalised via `char.ToUpperInvariant + ToLowerInvariant` before lookup
+- **Shared error constants — `ControllerErrors` static class** added to both services (`Controllers/ControllerErrors.cs`): all inline `private const string` error codes consolidated; controllers reference `ControllerErrors.ServerError`, `ControllerErrors.MissingUser`, etc. — no using directive needed (same namespace)
+- **`ExpenseController` — `FamilyForbiddenException` now returns 403**: previously caught by generic `catch (Exception)` → `400 SERVER_ERROR`; now caught specifically → `403 Forbidden` with `ex.Message`; applies to `POST /expenses` and `PUT /expenses/{id}`; `[ProducesResponseType(403)]` added to both actions
+### Fixed
+- `RefreshTokenServiceTests`, `RegistrationServiceTests`, `PasswordManagementServiceTests`, `FamilyServiceTests` — test option factories updated with newly required fields (`ShortLivedRefreshExpiryInDays`, `EmailVerificationExpiryInHours`, `PasswordResetExpiryInHours`, `InviteExpiryInDays`); previously defaulted to 0 causing expiry-check tests to fail
+- 2 new `ExpenseControllerTests` covering 403 path for Create and Update when user is not a family member; 299 expenses tests / 316 users tests — all pass
+
+## [0.93.0] - 2026-05-11
+### Added
+- **Phase 4 — Family System (expenses service):**
+  - `FamilyInvitation` model + `Phase4_FamilyInvitation` EF Core migration
+  - `IFamilyRepository` / `FamilyRepository` — family CRUD, membership CRUD, invitation CRUD, expense attribution helpers (`AddAttributionsAsync`, `ClearAttributionsAsync`, `RemoveMemberAttributionsAsync`)
+  - `IFamilyService` / `FamilyService` — `CreateDefaultAsync` (idempotent), `CreateAsync`, `GetByUserAsync`, `GetByIdAsync`, `RenameAsync`, `InviteAsync` (GUID token, 7-day expiry), `AcceptInviteAsync`, `RemoveMemberAsync`, `ChangeRoleAsync`, `ArchiveAsync`, `UnarchiveAsync`
+  - `FamilyController` — 10 endpoints: list, detail, create, rename, archive, unarchive, invite, accept-invite, remove-member, change-role; head-only guards via custom exceptions (403/404/409)
+  - FluentValidation for `CreateFamilyRequest`, `RenameFamilyRequest`, `InviteMemberRequest`, `ChangeMemberRoleRequest`
+  - `FamilyIds int[]?` added to `CreateExpenseRequest` / `UpdateExpenseRequest`; null → auto-attribute to user's default family; empty → no attribution; provided → validate membership + write `ExpenseFamilyAttribution` rows
+  - `UserEventConsumer` extended: `user.created` now calls `CreateDefaultAsync` after `SaveOrUpdateUserAsync` (idempotent — safe to replay)
+  - `IUserRepository.GetUserByEmailAsync` added for invite lookup; `GetUserByIdAsync` now filters soft-deleted users
+  - 42 unit tests for `FamilyService`, 30+ controller tests (`FamilyControllerTests`), repository tests (`FamilyRepositoryTests`), validator tests (`FamilyValidatorTests`); all 298 tests pass
+
 ## [0.92.1] - 2026-05-10
 ### Added
 - **Swagger documentation — users service:** XML `<summary>` and `<param>` doc comments added to all 14 controller actions; added missing `[ProducesResponseType]` attributes across `AuthenticationController`, `PasswordController`, and `RegistrationController` so every route shows complete request/response shapes in Swagger UI

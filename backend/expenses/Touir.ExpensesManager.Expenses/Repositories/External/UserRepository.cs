@@ -25,9 +25,10 @@ namespace Touir.ExpensesManager.Expenses.Repositories.External
         }
 
         public async Task<User?> GetUserByIdAsync(int id)
-        {
-            return await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
-        }
+            => await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted);
+
+        public async Task<User?> GetUserByEmailAsync(string email)
+            => await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
 
         public async Task<IEnumerable<User>> GetUsersByFamilyIdAsync(int familyId)
         {

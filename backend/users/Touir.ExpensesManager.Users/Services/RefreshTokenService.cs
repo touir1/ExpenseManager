@@ -10,11 +10,13 @@ namespace Touir.ExpensesManager.Users.Services
     {
         private readonly IRefreshTokenRepository _repository;
         private readonly int _refreshExpiryInDays;
+        private readonly int _shortLivedRefreshExpiryInDays;
 
         public RefreshTokenService(IRefreshTokenRepository repository, IOptions<JwtAuthOptions> jwtAuthOptions)
         {
             _repository = repository;
             _refreshExpiryInDays = jwtAuthOptions.Value.RefreshExpiryInDays;
+            _shortLivedRefreshExpiryInDays = jwtAuthOptions.Value.ShortLivedRefreshExpiryInDays;
         }
 
         public async Task<string> GenerateAsync(int userId, bool rememberMe)
@@ -22,7 +24,7 @@ namespace Touir.ExpensesManager.Users.Services
             var tokenValue = Guid.NewGuid().ToString("N");
             var expiresAt = rememberMe
                 ? DateTime.UtcNow.AddDays(_refreshExpiryInDays)
-                : DateTime.UtcNow.AddDays(1);
+                : DateTime.UtcNow.AddDays(_shortLivedRefreshExpiryInDays);
 
             var refreshToken = new RefreshToken
             {

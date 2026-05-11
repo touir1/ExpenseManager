@@ -10,8 +10,6 @@ namespace Touir.ExpensesManager.Expenses.Controllers
     [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("expenses_global")]
     public class CurrencyController : ControllerBase
     {
-        private const string ServerError = "SERVER_ERROR";
-
         private readonly ICurrencyService _currencyService;
 
         public CurrencyController(ICurrencyService currencyService)
@@ -34,7 +32,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = ServerError });
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
     }

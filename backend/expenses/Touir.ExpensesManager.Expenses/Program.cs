@@ -99,6 +99,12 @@ builder.Services.Configure<PostgresOptions>(c =>
     c.Database = builder.Configuration.GetValue("Postgres:Database",
                     Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_DATABASE_DATABASE")) ?? "expenses";
 });
+
+builder.Services.Configure<FamilyOptions>(c =>
+{
+    c.InviteExpiryInDays = int.Parse(builder.Configuration.GetValue("Family:InviteExpiryInDays",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_FAMILY_INVITE_EXPIRY_IN_DAYS")) ?? "7");
+});
 #endregion
 
 #region Services
@@ -109,6 +115,7 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICurrencyService, CurrencyService>();
 builder.Services.AddScoped<IExpenseAuditService, ExpenseAuditService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
+builder.Services.AddScoped<IFamilyService, FamilyService>();
 #endregion
 
 #region Messaging
@@ -121,6 +128,7 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICurrencyRepository, CurrencyRepository>();
 builder.Services.AddScoped<IInboxRepository, InboxRepository>();
 builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
+builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
 #endregion
 
 #region Database

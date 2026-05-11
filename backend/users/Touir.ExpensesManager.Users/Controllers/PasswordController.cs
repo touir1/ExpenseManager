@@ -10,8 +10,6 @@ namespace Touir.ExpensesManager.Users.Controllers
     [ApiController]
     public class PasswordController : ControllerBase
     {
-        private const string ServerError = "SERVER_ERROR";
-
         private readonly IPasswordManagementService _passwordManagementService;
 
         public PasswordController(IPasswordManagementService passwordManagementService)
@@ -35,13 +33,13 @@ namespace Touir.ExpensesManager.Users.Controllers
             {
                 var email = request.Email.ToLowerInvariant();
                 if (!(await _passwordManagementService.ChangePasswordAsync(email, request.OldPassword, request.NewPassword)))
-                    return Unauthorized(new ErrorResponse { Message = "SET_NEW_PASSWORD_FAILED" });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.SetNewPasswordFailed });
 
                 return Ok();
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = ServerError });
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
 
@@ -62,12 +60,12 @@ namespace Touir.ExpensesManager.Users.Controllers
             {
                 var email = request.Email.ToLowerInvariant();
                 if (!(await _passwordManagementService.RequestPasswordResetAsync(email, request.AppCode)))
-                    return Unauthorized(new ErrorResponse { Message = "REQUEST_PASSWORD_RESET_FAILED" });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.RequestPasswordResetFailed });
                 return Ok();
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = ServerError });
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
 
@@ -87,13 +85,13 @@ namespace Touir.ExpensesManager.Users.Controllers
             {
                 var email = request.Email.ToLowerInvariant();
                 if (!(await _passwordManagementService.CreatePasswordAsync(email, request.VerificationHash, request.NewPassword)))
-                    return Unauthorized(new ErrorResponse { Message = "CREATE_PASSWORD_FAILED" });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.CreatePasswordFailed });
 
                 return Ok();
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = ServerError });
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
 
@@ -113,13 +111,13 @@ namespace Touir.ExpensesManager.Users.Controllers
             {
                 var email = request.Email.ToLowerInvariant();
                 if (!(await _passwordManagementService.ResetPasswordAsync(email, request.VerificationHash, request.NewPassword)))
-                    return Unauthorized(new ErrorResponse { Message = "RESET_PASSWORD_FAILED" });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.ResetPasswordFailed });
 
                 return Ok();
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = ServerError });
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
     }

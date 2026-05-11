@@ -257,31 +257,32 @@ Replace current model with:
 
 ## Phase 4 — Family System
 
-**Goal:** Default family created on user registration. Users can create and manage families. Expenses attributed to one or more families.
+**Goal:** Default family created when email validation succeeds (`user.created` event). Users can create and manage families. Expenses attributed to one or more families.
 
 ### Backend (expenses service)
 
-- [ ] `FamilyService`
-  - `CreateDefaultAsync(userId)` — called by RabbitMQ consumer when new user registered
+- [x] `FamilyService`
+  - `CreateDefaultAsync(userId)` — called by RabbitMQ consumer on `user.created`
   - `CreateAsync(name, userId)`
   - `GetByUserAsync(userId)` — returns active + archived, with role per family
-  - `InviteAsync(familyId, inviteeEmail, invitedBy)` — creates pending membership
-  - `AcceptInviteAsync(token, userId)`
+  - `InviteAsync(familyId, inviteeEmail, invitedBy)` — creates `FamilyInvitation` with GUID token (7-day expiry)
+  - `AcceptInviteAsync(token, userId)` — validates token, creates `FamilyMembership` as Member
   - `RemoveMemberAsync(familyId, targetUserId, removedBy)` — head only
   - `ChangeRoleAsync(familyId, targetUserId, newRole, changedBy)` — head only
-  - `RenameAsync(familyId, name, userId)` — head or default family owner
-  - `ArchiveAsync(familyId, userId)` — head only, non-default
+  - `RenameAsync(familyId, name, userId)` — head only
+  - `ArchiveAsync(familyId, userId)` — head only, non-default (soft delete)
   - `UnarchiveAsync(familyId, userId)` — head only
-- [ ] RabbitMQ consumer — listens for `user.registered` event from users service → calls `CreateDefaultAsync`
-- [ ] Expense attribution: update `ExpenseService` to accept `familyIds[]`; validate user is member of each; Default family always included
-- [ ] Head "remove from family" → deletes `ExpenseFamilyAttribution` rows for that family (not the expense)
-- [ ] `FamilyController` — full CRUD + membership endpoints
-- [ ] FluentValidation for all request DTOs
-- [ ] Unit + integration tests
+- [x] `FamilyInvitation` model + `Phase4_FamilyInvitation` EF migration
+- [x] `UserEventConsumer` — on `user.created` → `SaveOrUpdateUserAsync` then `CreateDefaultAsync` (idempotent)
+- [x] Expense attribution: `FamilyIds int[]?` on Create/Update requests; null = auto-attribute to default family; empty = no attribution; provided = validate membership + write `ExpenseFamilyAttribution` rows
+- [x] Head "remove from family" → deletes `ExpenseFamilyAttribution` rows via `RemoveMemberAttributionsAsync`
+- [x] `FamilyController` — `GET /families`, `GET /families/{id}`, `POST /families`, `PUT /families/{id}/name`, `POST /families/{id}/archive`, `POST /families/{id}/unarchive`, `POST /families/{id}/invite`, `POST /families/accept-invite/{token}`, `DELETE /families/{id}/members/{userId}`, `PUT /families/{id}/members/{userId}/role`
+- [x] FluentValidation for all request DTOs
+- [x] Unit tests — FamilyService (42 cases), UserEventConsumer updated
 
 ### Backend (users service)
 
-- [ ] Publish `user.registered` event to RabbitMQ on successful registration
+- No changes needed — `user.created` already published on `GET /auth/validate-email` success
 
 ### Frontend
 

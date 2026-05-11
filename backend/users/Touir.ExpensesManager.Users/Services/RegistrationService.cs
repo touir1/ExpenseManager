@@ -18,7 +18,7 @@ namespace Touir.ExpensesManager.Users.Services
         private readonly IOutboxRepository _outboxRepository;
         private readonly IUserRoleAssignmentService _userRoleAssignmentService;
         private readonly string _verifyEmailUrl;
-        private const int VerificationExpiryHours = 24;
+        private readonly int _verificationExpiryHours;
 
         public RegistrationService(
             IOptions<AuthenticationServiceOptions> authServiceOptions,
@@ -32,6 +32,7 @@ namespace Touir.ExpensesManager.Users.Services
             _outboxRepository = outboxRepository;
             _userRoleAssignmentService = userRoleAssignmentService;
             _verifyEmailUrl = authServiceOptions.Value.VerifyEmailBaseUrl;
+            _verificationExpiryHours = authServiceOptions.Value.EmailVerificationExpiryInHours;
         }
 
         public async Task<IEnumerable<string>> RegisterNewUserAsync(string firstname, string lastname, string email, string? applicationCode)
@@ -96,7 +97,7 @@ namespace Touir.ExpensesManager.Users.Services
                 return ResendResult.NotFound;
 
             var newHash = await GenerateUniqueEmailValidationHashAsync();
-            var expiresAt = DateTime.UtcNow.AddHours(VerificationExpiryHours);
+            var expiresAt = DateTime.UtcNow.AddHours(_verificationExpiryHours);
             await _userRepository.UpdateEmailValidationHashAsync(user.Id, newHash, expiresAt);
 
             SendVerificationEmail(email, newHash, applicationCode);
@@ -130,7 +131,7 @@ namespace Touir.ExpensesManager.Users.Services
                 IsDisabled = false,
                 LastUpdatedAt = DateTime.UtcNow,
                 EmailValidationHash = emailValidationHash,
-                EmailValidationHashExpiresAt = DateTime.UtcNow.AddHours(VerificationExpiryHours)
+                EmailValidationHashExpiresAt = DateTime.UtcNow.AddHours(_verificationExpiryHours)
             });
 
             await _userRoleAssignmentService.TryAssignDefaultRoleAsync(applicationCode, user);

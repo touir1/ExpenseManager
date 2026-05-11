@@ -18,7 +18,6 @@ namespace Touir.ExpensesManager.Users.Controllers
     {
         private const string AuthTokenCookie = "auth_token";
         private const string RefreshTokenCookie = "refresh_token";
-        private const string ServerError = "SERVER_ERROR";
 
         private readonly IAuthenticationService _authenticationService;
         private readonly IJwtTokenService _jwtTokenService;
@@ -60,11 +59,11 @@ namespace Touir.ExpensesManager.Users.Controllers
                 var email = request.Email!.ToLowerInvariant();
                 var user = await _authenticationService.AuthenticateAsync(email, request.Password);
                 if (user == null)
-                    return Unauthorized(new ErrorResponse { Message = "INVALID_USERNAME_OR_PASSWORD" });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.InvalidUsernameOrPassword });
 
                 var roles = await _roleService.GetUserRolesByApplicationCodeAsync(request.ApplicationCode, user.Id!.Value);
                 if (!roles.Any())
-                    return Unauthorized(new ErrorResponse { Message = "NO_ASSIGNED_ROLE" });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.NoAssignedRole });
 
                 var accessToken = _jwtTokenService.GenerateJwtToken(user.Id!.Value, user.Email, user.FirstName, user.LastName);
                 var rememberMe = request.RememberMe ?? false;
@@ -94,7 +93,7 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = ServerError });
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
 
@@ -120,18 +119,18 @@ namespace Touir.ExpensesManager.Users.Controllers
                     Request.Cookies.TryGetValue(AuthTokenCookie, out token);
 
                 if (string.IsNullOrWhiteSpace(token))
-                    return Unauthorized(new ErrorResponse { Message = "MISSING_TOKEN" });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingToken });
 
                 var validationResult = _jwtTokenService.ValidateToken(token);
 
                 if (!validationResult.IsValid)
-                    return Unauthorized(new ErrorResponse { Message = "INVALID_TOKEN" });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.InvalidToken });
 
                 return Ok();
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = ServerError });
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
 
@@ -148,12 +147,12 @@ namespace Touir.ExpensesManager.Users.Controllers
             try
             {
                 if (!Request.Cookies.TryGetValue(AuthTokenCookie, out var token) || string.IsNullOrWhiteSpace(token))
-                    return Unauthorized(new ErrorResponse { Message = "MISSING_TOKEN" });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingToken });
 
                 var validationResult = _jwtTokenService.ValidateToken(token);
 
                 if (!validationResult.IsValid)
-                    return Unauthorized(new ErrorResponse { Message = "INVALID_TOKEN" });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.InvalidToken });
 
                 var jwtToken = validationResult.SecurityToken as JwtSecurityToken;
                 var email = jwtToken?.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? string.Empty;
@@ -164,7 +163,7 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = ServerError });
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
 
@@ -183,15 +182,15 @@ namespace Touir.ExpensesManager.Users.Controllers
             try
             {
                 if (!Request.Cookies.TryGetValue(RefreshTokenCookie, out var refreshToken) || string.IsNullOrWhiteSpace(refreshToken))
-                    return Unauthorized(new ErrorResponse { Message = "MISSING_TOKEN" });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingToken });
 
                 var (isValid, userId) = await _refreshTokenService.ValidateAsync(refreshToken);
                 if (!isValid)
-                    return Unauthorized(new ErrorResponse { Message = "INVALID_TOKEN" });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.InvalidToken });
 
                 var user = await _userRepository.GetUserByIdAsync(userId);
                 if (user == null)
-                    return Unauthorized(new ErrorResponse { Message = "USER_NOT_FOUND" });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.UserNotFound });
 
                 // Rotate refresh token
                 await _refreshTokenService.RevokeAsync(refreshToken);
@@ -208,7 +207,7 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = ServerError });
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
 

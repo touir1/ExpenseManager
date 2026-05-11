@@ -38,7 +38,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             Mock<IOutboxRepository>? outboxRepo = null)
         {
             return new RegistrationService(
-                Options.Create(new AuthenticationServiceOptions { VerifyEmailBaseUrl = "http://localhost/verify" }),
+                Options.Create(new AuthenticationServiceOptions { VerifyEmailBaseUrl = "http://localhost/verify", EmailVerificationExpiryInHours = 24 }),
                 emailHelper?.Object ?? CreateEmailHelperMock().Object,
                 userRepo?.Object ?? new Mock<IUserRepository>().Object,
                 outboxRepo?.Object ?? new Mock<IOutboxRepository>().Object,

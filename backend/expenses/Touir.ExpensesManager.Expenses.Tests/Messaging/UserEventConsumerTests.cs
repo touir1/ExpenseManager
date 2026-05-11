@@ -13,6 +13,7 @@ using Touir.ExpensesManager.Expenses.Models;
 using Touir.ExpensesManager.Expenses.Models.External;
 using Touir.ExpensesManager.Expenses.Repositories.Contracts;
 using Touir.ExpensesManager.Expenses.Repositories.External.Contracts;
+using Touir.ExpensesManager.Expenses.Services;
 using Touir.ExpensesManager.Expenses.Services.Contracts;
 
 namespace Touir.ExpensesManager.Expenses.Tests.Messaging
@@ -61,19 +62,22 @@ namespace Touir.ExpensesManager.Expenses.Tests.Messaging
             return (Task)method.Invoke(consumer, [message, scope])!;
         }
 
-        private (Mock<IServiceScope>, Mock<IInboxRepository>, Mock<IUserRepository>) SetupScope()
+        private (Mock<IServiceScope>, Mock<IInboxRepository>, Mock<IUserRepository>, Mock<IFamilyService>) SetupScope()
         {
             var scopeMock = new Mock<IServiceScope>();
             var inboxRepoMock = new Mock<IInboxRepository>();
             var userRepoMock = new Mock<IUserRepository>();
+            var familyServiceMock = new Mock<IFamilyService>();
+            familyServiceMock.Setup(f => f.CreateDefaultAsync(It.IsAny<int>())).Returns(Task.CompletedTask);
 
             var serviceProviderMock = new Mock<IServiceProvider>();
             serviceProviderMock.Setup(sp => sp.GetService(typeof(IInboxRepository))).Returns(inboxRepoMock.Object);
             serviceProviderMock.Setup(sp => sp.GetService(typeof(IUserRepository))).Returns(userRepoMock.Object);
+            serviceProviderMock.Setup(sp => sp.GetService(typeof(IFamilyService))).Returns(familyServiceMock.Object);
             scopeMock.Setup(s => s.ServiceProvider).Returns(serviceProviderMock.Object);
             _scopeFactoryMock.Setup(f => f.CreateScope()).Returns(scopeMock.Object);
 
-            return (scopeMock, inboxRepoMock, userRepoMock);
+            return (scopeMock, inboxRepoMock, userRepoMock, familyServiceMock);
         }
 
         private static BasicDeliverEventArgs CreateEventArgs(object body, string? messageId = "test-msg-id", ulong deliveryTag = 1)
@@ -200,7 +204,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Messaging
         [Fact]
         public async Task OnMessageReceived_DuplicateMessage_AcksWithoutProcessing()
         {
-            var (_, inboxRepoMock, userRepoMock) = SetupScope();
+            var (_, inboxRepoMock, userRepoMock, _) = SetupScope();
             inboxRepoMock.Setup(r => r.ExistsAsync("dup-id")).ReturnsAsync(true);
 
             var consumer = CreateConsumer();
@@ -218,7 +222,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Messaging
         [Fact]
         public async Task OnMessageReceived_CreatedEvent_SavesUserAndAcks()
         {
-            var (_, inboxRepoMock, userRepoMock) = SetupScope();
+            var (_, inboxRepoMock, userRepoMock, _) = SetupScope();
             inboxRepoMock.Setup(r => r.ExistsAsync("msg-c1")).ReturnsAsync(false);
             userRepoMock.Setup(r => r.SaveOrUpdateUserAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
             inboxRepoMock.Setup(r => r.AddAsync(It.IsAny<InboxEvent>())).Returns(Task.CompletedTask);
@@ -251,7 +255,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Messaging
         [Fact]
         public async Task OnMessageReceived_UpdatedEvent_SavesUserAndAcks()
         {
-            var (_, inboxRepoMock, userRepoMock) = SetupScope();
+            var (_, inboxRepoMock, userRepoMock, _) = SetupScope();
             inboxRepoMock.Setup(r => r.ExistsAsync("msg-u1")).ReturnsAsync(false);
             userRepoMock.Setup(r => r.SaveOrUpdateUserAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
             inboxRepoMock.Setup(r => r.AddAsync(It.IsAny<InboxEvent>())).Returns(Task.CompletedTask);
@@ -276,7 +280,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Messaging
         [Fact]
         public async Task OnMessageReceived_DeletedEvent_ExistingUser_DeletesAndAcks()
         {
-            var (_, inboxRepoMock, userRepoMock) = SetupScope();
+            var (_, inboxRepoMock, userRepoMock, _) = SetupScope();
             inboxRepoMock.Setup(r => r.ExistsAsync("msg-d1")).ReturnsAsync(false);
             var existingUser = new User { Id = 7 };
             userRepoMock.Setup(r => r.GetUserByIdAsync(7)).ReturnsAsync(existingUser);
@@ -298,7 +302,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Messaging
         [Fact]
         public async Task OnMessageReceived_DeletedEvent_NonExistingUser_SkipsDeleteAndAcks()
         {
-            var (_, inboxRepoMock, userRepoMock) = SetupScope();
+            var (_, inboxRepoMock, userRepoMock, _) = SetupScope();
             inboxRepoMock.Setup(r => r.ExistsAsync("msg-d2")).ReturnsAsync(false);
             userRepoMock.Setup(r => r.GetUserByIdAsync(99)).ReturnsAsync((User?)null);
             inboxRepoMock.Setup(r => r.AddAsync(It.IsAny<InboxEvent>())).Returns(Task.CompletedTask);
@@ -318,7 +322,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Messaging
         [Fact]
         public async Task OnMessageReceived_UnknownEventType_LogsWarningAndAcks()
         {
-            var (_, inboxRepoMock, _) = SetupScope();
+            var (_, inboxRepoMock, _, _) = SetupScope();
             inboxRepoMock.Setup(r => r.ExistsAsync("msg-x1")).ReturnsAsync(false);
             inboxRepoMock.Setup(r => r.AddAsync(It.IsAny<InboxEvent>())).Returns(Task.CompletedTask);
 
@@ -336,7 +340,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Messaging
         [Fact]
         public async Task OnMessageReceived_Exception_NacksMessage()
         {
-            var (_, inboxRepoMock, _) = SetupScope();
+            var (_, inboxRepoMock, _, _) = SetupScope();
             inboxRepoMock.Setup(r => r.ExistsAsync(It.IsAny<string>()))
                 .ThrowsAsync(new InvalidOperationException("DB error"));
 
@@ -355,7 +359,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Messaging
         [Fact]
         public async Task OnMessageReceived_NullMessageId_UsesGeneratedGuid()
         {
-            var (_, inboxRepoMock, userRepoMock) = SetupScope();
+            var (_, inboxRepoMock, userRepoMock, _) = SetupScope();
             inboxRepoMock.Setup(r => r.ExistsAsync(It.IsAny<string>())).ReturnsAsync(false);
             userRepoMock.Setup(r => r.SaveOrUpdateUserAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
             inboxRepoMock.Setup(r => r.AddAsync(It.IsAny<InboxEvent>())).Returns(Task.CompletedTask);
@@ -381,7 +385,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Messaging
         [Fact]
         public async Task OnMessageReceived_NullBasicProperties_UsesGeneratedGuid()
         {
-            var (_, inboxRepoMock, userRepoMock) = SetupScope();
+            var (_, inboxRepoMock, userRepoMock, _) = SetupScope();
             inboxRepoMock.Setup(r => r.ExistsAsync(It.IsAny<string>())).ReturnsAsync(false);
             userRepoMock.Setup(r => r.SaveOrUpdateUserAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
             inboxRepoMock.Setup(r => r.AddAsync(It.IsAny<InboxEvent>())).Returns(Task.CompletedTask);
@@ -411,10 +415,13 @@ namespace Touir.ExpensesManager.Expenses.Tests.Messaging
         {
             var userRepoMock = new Mock<IUserRepository>();
             userRepoMock.Setup(r => r.SaveOrUpdateUserAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
+            var familyServiceMock = new Mock<IFamilyService>();
+            familyServiceMock.Setup(f => f.CreateDefaultAsync(It.IsAny<int>())).Returns(Task.CompletedTask);
 
             var scopeMock = new Mock<IServiceScope>();
             var serviceProviderMock = new Mock<IServiceProvider>();
             serviceProviderMock.Setup(sp => sp.GetService(typeof(IUserRepository))).Returns(userRepoMock.Object);
+            serviceProviderMock.Setup(sp => sp.GetService(typeof(IFamilyService))).Returns(familyServiceMock.Object);
             scopeMock.Setup(s => s.ServiceProvider).Returns(serviceProviderMock.Object);
 
             var consumer = CreateConsumer();
@@ -433,6 +440,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Messaging
             userRepoMock.Verify(r => r.SaveOrUpdateUserAsync(It.Is<User>(u =>
                 u.Id == 11 && u.FirstName == "Alice" && u.LastName == "Smith"
                 && u.Email == "alice@example.com" && u.FamilyId == 3)), Times.Once);
+            familyServiceMock.Verify(f => f.CreateDefaultAsync(11), Times.Once);
         }
 
         [Fact]

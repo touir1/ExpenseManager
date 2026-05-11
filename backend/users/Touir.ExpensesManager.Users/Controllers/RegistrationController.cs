@@ -12,9 +12,6 @@ namespace Touir.ExpensesManager.Users.Controllers
     [ApiController]
     public class RegistrationController : ControllerBase
     {
-        private const string MissingParameters = "MISSING_PARAMETERS";
-        private const string ServerError = "SERVER_ERROR";
-
         private readonly IRegistrationService _registrationService;
         private readonly IApplicationService _applicationService;
 
@@ -50,7 +47,7 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = ServerError });
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
 
@@ -73,13 +70,13 @@ namespace Touir.ExpensesManager.Users.Controllers
             [FromQuery(Name = "app_code")] string appCode)
         {
             if (string.IsNullOrWhiteSpace(emailVerificationHash) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(appCode))
-                return Unauthorized(new ErrorResponse { Message = MissingParameters });
+                return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingParameters });
 
             try
             {
                 ApplicationDto? app = await _applicationService.GetApplicationByCodeAsync(appCode);
                 if (app == null)
-                    return Unauthorized(new ErrorResponse { Message = "EMAIL_VERIFICATION_FAILED" });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.EmailVerificationFailed });
 
                 var emailLower = email.ToLowerInvariant();
                 bool result = await _registrationService.ValidateEmailAsync(emailVerificationHash, emailLower);
@@ -90,13 +87,13 @@ namespace Touir.ExpensesManager.Users.Controllers
                         : null;
                     if (errorPath != null)
                         return Redirect(errorPath);
-                    return Unauthorized(new ErrorResponse { Message = "EMAIL_VERIFICATION_FAILED" });
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.EmailVerificationFailed });
                 }
                 return Redirect($"{app.ResetPasswordUrlPath}?email={Uri.EscapeDataString(emailLower)}&h={emailVerificationHash}&mode=create");
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = ServerError });
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
 
@@ -120,7 +117,7 @@ namespace Touir.ExpensesManager.Users.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new ErrorResponse { Message = ServerError });
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
     }

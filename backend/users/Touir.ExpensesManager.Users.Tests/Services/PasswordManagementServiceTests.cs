@@ -34,7 +34,8 @@ namespace Touir.ExpensesManager.Users.Tests.Services
                 Options.Create(new AuthenticationServiceOptions
                 {
                     VerifyEmailBaseUrl = "http://localhost/verify",
-                    ResetPasswordBaseUrl = "http://localhost/reset-password"
+                    ResetPasswordBaseUrl = "http://localhost/reset-password",
+                    PasswordResetExpiryInHours = 24
                 }),
                 emailHelper?.Object ?? CreateEmailHelperMock().Object,
                 crypto?.Object ?? new Mock<ICryptographyHelper>().Object,
