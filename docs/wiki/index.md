@@ -10,12 +10,15 @@
 |---|---|
 | [Architecture](./architecture.md) | System design, service topology, request flow, deployment model |
 | [Use Cases](./use-cases.md) | User-facing workflows and functional scope |
-| [Backend — Users Service](./backend-users-service.md) | Auth, registration, password management, JWT, email |
-| [Backend — Expenses Service](./backend-expenses-service.md) | Expense CRUD, categories, currencies, RabbitMQ |
+| [Backend — Users Service](./backend-users-service.md) | Auth, registration, password management, JWT, email, outbox |
+| [Backend — Expenses Service](./backend-expenses-service.md) | Expense CRUD, categories, currencies, families, audit |
+| [Family System](./family-system.md) | Family management — creation, invitations, roles, expense attribution |
+| [Messaging](./messaging.md) | RabbitMQ topology, outbox pattern, inbox deduplication, event payloads |
 | [Frontend Dashboard](./frontend.md) | React SPA, routing, auth context, component library |
-| [Infrastructure & CI/CD](./infrastructure.md) | Docker Compose, nginx, CI/CD pipeline, monitoring |
-| [Data Models](./data-models.md) | Database schema, entity relationships |
+| [Infrastructure & CI/CD](./infrastructure.md) | Docker Compose, nginx, Nexus, CI/CD pipeline, monitoring |
+| [Data Models](./data-models.md) | Database schema, entity relationships, migration history |
 | [API Reference](./api-reference.md) | Full endpoint listing with request/response shapes |
+| [Testing Guide](./testing.md) | Test setup, helpers, patterns for all three codebases |
 
 ---
 
@@ -62,11 +65,10 @@
 
 ---
 
-## Current Status (v0.71.0)
+## Current Status (v0.93.1)
 
-The project is in active development. The users service (auth, registration, password management) and the frontend auth flow are production-ready. The expenses feature is under development — the core CRUD domain models and database schema exist in the backend, but the frontend expenses UI is still a placeholder.
+The project is in active development. The users service (auth, registration, password management, outbox messaging) and the frontend auth flow are production-ready. The expenses backend is fully implemented — CRUD for expenses, categories, currencies, and a complete family management system with invitations, role management, and expense attributions. The frontend expenses UI is still a placeholder.
 
 **Open issues:**
 - `QA-11` — Expenses feature UI not yet implemented
-- `S-1` — No rate limiting on the login endpoint (nginx fix pending)
 - `S-2` — Missing CSP and security headers (nginx fix pending)

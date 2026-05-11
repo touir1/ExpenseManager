@@ -226,13 +226,114 @@ This flow is silent and transparent to the user unless the refresh token itself 
 ## UC-14 — Email Verification Error Page
 
 **Actor:** User with expired/invalid verification link  
-**Precondition:** Verification link clicked after it expired
+**Precondition:** Verification link clicked after it expired (TTL: configurable, default 24 h)
 
 **Flow:**
-1. `GET /api/users/auth/validate-email?h=…` fails (hash invalid or already used)
+1. `GET /api/users/auth/validate-email?h=…` fails (hash invalid, already used, or expired)
 2. Backend redirects to `/verify-error`
 3. Frontend renders a friendly error page: "Verification link expired" with a "Back to register" CTA
-4. User can re-register or request a new verification email
+4. User can request a new verification email (UC-15)
+
+---
+
+## UC-15 — Resend Verification Email
+
+**Actor:** Registered user (email unverified) whose link has expired  
+**Precondition:** Account exists, email not yet verified
+
+**Flow:**
+1. User is on the `/verify-error` page or the registration success page
+2. User submits their email address to request a new link
+3. `POST /api/users/auth/resend-verification` with `{ email, applicationCode }`
+4. Backend atomically rotates `EmailValidationHash` + resets `EmailValidationHashExpiresAt` — the old link is immediately invalid
+5. New verification email sent (if account exists; always returns 200 to prevent email enumeration)
+6. User clicks new link → UC-02
+
+**Rate limit:** `resend_verification` — 3 req / 10 min
+
+---
+
+## UC-16 — Create a Family
+
+**Actor:** Authenticated user  
+**Precondition:** Logged in
+
+**Flow:**
+1. `POST /api/expenses/families` with `{ "name": "Smith Family" }`
+2. `FamilyService.CreateAsync` creates the family with the user as Head
+3. Returns the new family object
+
+**Notes:**
+- Every user already has a default family (auto-provisioned on registration)
+- Non-default families are for shared expense tracking with other users
+
+---
+
+## UC-17 — Invite a Member to a Family
+
+**Actor:** Family Head  
+**Precondition:** Logged in, is Head of the family
+
+**Flow:**
+1. `POST /api/expenses/families/{id}/invite` with `{ "email": "friend@example.com" }`
+2. Backend generates a GUID token; creates `FamilyInvitation` with expiry (default 7 days)
+3. Token returned to caller (delivery to invitee is out-of-band in current implementation)
+
+---
+
+## UC-18 — Accept a Family Invitation
+
+**Actor:** User who received an invitation  
+**Precondition:** Has a valid invitation token, logged in with the invited email address
+
+**Flow:**
+1. `POST /api/expenses/families/{id}/accept-invite` with `{ "token": "<guid>" }`
+2. Backend validates: token not expired, not already accepted, acceptor's email matches `InviteeEmail`
+3. User added as Member of the family
+4. `FamilyInvitationException` (400) if any validation fails
+
+---
+
+## UC-19 — Remove a Family Member
+
+**Actor:** Family Head  
+**Precondition:** Logged in, is Head of the family
+
+**Flow:**
+1. `DELETE /api/expenses/families/{id}/members/{memberId}`
+2. `FamilyService.RemoveMemberAsync` removes the `FamilyMember` row
+3. `RemoveMemberAttributionsAsync` deletes all `ExpenseFamilyAttribution` rows for that member in this family
+4. Member's expense attributions for the family are permanently purged
+
+---
+
+## UC-20 — Archive a Family
+
+**Actor:** Family Head  
+**Precondition:** Family is not the default family
+
+**Flow:**
+1. `POST /api/expenses/families/{id}/archive`
+2. Sets `IsDeleted=true`, `DeletedAt` on the family
+3. `FamilyConflictException` (409) if attempted on the default family
+4. Attributions and members are preserved — archive is reversible via `POST /families/{id}/unarchive`
+
+---
+
+## UC-21 — Attribute an Expense to a Family
+
+**Actor:** Authenticated user  
+**Precondition:** Logged in, is a member of the target family
+
+**Flow:**
+1. Create or update expense with `"familyIds": [3]` in the request body
+2. Backend validates user is a member of each provided family ID
+3. `FamilyForbiddenException` (403) if user is not a member
+4. One `ExpenseFamilyAttribution` row created per family ID
+
+**Special values:**
+- `"familyIds": null` → auto-attribute to user's default family
+- `"familyIds": []` → no family attribution (personal expense only)
 
 ---
 
@@ -242,6 +343,7 @@ This flow is silent and transparent to the user unless the refresh token itself 
 |---|---|---|---|
 | User registration | ✅ | ✅ | Production-ready |
 | Email verification | ✅ | ✅ | Production-ready |
+| Resend verification email | ✅ | ⏳ | Backend done; frontend pending |
 | Initial password creation | ✅ | ✅ | Production-ready |
 | Login / logout | ✅ | ✅ | Production-ready |
 | Session restore + token refresh | ✅ | ✅ | Production-ready |
@@ -250,5 +352,10 @@ This flow is silent and transparent to the user unless the refresh token itself 
 | Expense CRUD | ✅ | ⏳ | Backend done; frontend pending |
 | Category management | ✅ | ⏳ | Backend done; frontend pending |
 | Currency management | ✅ | ⏳ | Backend done; frontend pending |
+| Family management | ✅ | ⏳ | Backend done; frontend pending |
+| Family invitations | ✅ | ⏳ | Backend done; frontend pending |
+| Expense family attribution | ✅ | ⏳ | Backend done; frontend pending |
+| Expense audit log | ✅ | — | Backend done; no UI planned yet |
+| User event messaging (outbox/inbox) | ✅ | — | Production-ready |
 | Expense charts | — | ⏳ | Planned (Recharts) |
 | Mobile app | — | — | Reserved (folder exists) |

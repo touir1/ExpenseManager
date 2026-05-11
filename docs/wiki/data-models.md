@@ -21,13 +21,16 @@ Core user account table.
 | `Id` | `int` | PK, identity | User identifier |
 | `FirstName` | `varchar` | NOT NULL | User's first name (max 100) |
 | `LastName` | `varchar` | NOT NULL | User's last name (max 100) |
-| `Email` | `varchar` | NOT NULL, unique | Email address (stored lowercase) |
+| `Email` | `varchar` | NOT NULL | Email address (stored lowercase) |
 | `FamilyId` | `int?` | FK, nullable | Family group (reserved for future use) |
 | `CreatedAt` | `datetime` | NOT NULL | Account creation timestamp |
 | `LastUpdatedAt` | `datetime` | NOT NULL | Last update timestamp |
 | `IsEmailValidated` | `bool` | NOT NULL, default false | Whether email has been verified |
 | `EmailValidationHash` | `varchar?` | nullable | Hash sent in verification email |
-| `IsDisabled` | `bool` | NOT NULL, default false | Soft-delete / account disable flag |
+| `EmailValidationHashExpiresAt` | `datetime?` | nullable | Expiry for verification link (null = no expiry for legacy rows); set to UtcNow + 24 h on register/resend |
+| `IsDisabled` | `bool` | NOT NULL, default false | Account suspension flag (separate from soft delete) |
+| `IsDeleted` | `bool` | NOT NULL, default false | Soft-delete flag |
+| `DeletedAt` | `datetime?` | nullable | Soft-delete timestamp |
 | `CreatedById` | `int?` | FK → USR_Users, nullable | Who created this user |
 | `LastUpdatedById` | `int?` | FK → USR_Users, nullable | Who last updated this user |
 
@@ -38,7 +41,9 @@ Core user account table.
 **Notes:**
 - Email is always stored lowercase (`ToLowerInvariant()` applied in controllers)
 - `IsEmailValidated` must be `true` before a user can log in
-- `EmailValidationHash` is cleared after use
+- `EmailValidationHash` is cleared after use; old link immediately invalidated when `UpdateEmailValidationHashAsync` is called
+- Partial unique index `ux_usr_email_active` on `USR_Email WHERE USR_IsDeleted = FALSE` — same email can be reused after soft delete
+- `UserRepository.DeleteUserAsync` sets `IsDeleted`/`DeletedAt` — never calls `.Remove()`; all query methods filter `!u.IsDeleted`
 
 ---
 
@@ -165,6 +170,29 @@ Allowed CORS origins per application.
 
 ---
 
+### MSG_OutboxEvents
+
+Outbox pattern — stores unpublished events before RabbitMQ delivery.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `Id` | `long` | PK, GENERATED ALWAYS (Postgres) / INTEGER PK (SQLite) | Event identifier |
+| `EventType` | `varchar` | NOT NULL | e.g. `user.created`, `user.updated`, `user.deleted` |
+| `Payload` | `text` | NOT NULL | JSON payload |
+| `MessageId` | `varchar` | NOT NULL, unique | Idempotency key for inbox deduplication |
+| `Status` | `varchar` | NOT NULL | `Pending` / `Sent` / `Failed` |
+| `RetryCount` | `int` | NOT NULL, default 0 | Publish attempt count (max 5) |
+| `CreatedAt` | `datetime` | NOT NULL | Event creation timestamp |
+| `PublishedAt` | `datetime?` | nullable | When successfully published |
+
+**Notes:**
+- Written by `IOutboxRepository.EnqueueAsync` — no shared transaction with the user insert
+- `OutboxPublisherService` polls every 5 s, max 5 retries, then publishes via `IUserEventPublisher`
+- `OutboxEvent.Id` uses `UseIdentityAlwaysColumn()` only when `Database.IsNpgsql()` so SQLite test runner emits `INTEGER PRIMARY KEY` (auto-increment). Never call `Migrate()` for `OutboxRepositoryTests` — use `EnsureCreated`.
+- Replay via `POST /messaging/replay?eventType=&from=&forceAll=`; stats via `GET /messaging/outbox/stats`
+
+---
+
 ## Users Service — Entity Relationship Diagram
 
 ```
@@ -196,41 +224,165 @@ RLE_Roles
 
 ### EXP_Expenses
 
-Core expense table.
-
 | Column | Type | Constraints | Description |
 |---|---|---|---|
-| `Id` | `int` | PK | Expense identifier |
+| `Id` | `long` | PK, identity | Expense identifier |
 | `Description` | `varchar?` | nullable | Optional description |
 | `CreatedDate` | `datetime?` | nullable | When expense occurred |
-| `IsHidden` | `bool` | NOT NULL | Soft-hide flag |
-| `Amount` | `double` | NOT NULL | Monetary amount |
-| `UserId` | `int` | FK → ext.USR_Users | Owner (read from users DB) |
-| `CategoryId` | `int` | FK → CAT_Categories | Expense category |
+| `IsHidden` | `bool` | NOT NULL | Hide flag |
+| `Amount` | `decimal` | NOT NULL | Monetary amount |
+| `IsDeleted` | `bool` | NOT NULL, default false | Soft-delete flag |
+| `DeletedAt` | `datetime?` | nullable | Soft-delete timestamp |
+| `UserId` | `int` | FK → ext.USR_Users | Owner |
+| `CategoryId` | `int` | FK → CAT_Categories | Top-level category |
+| `SubcategoryId` | `int?` | FK → CAT_Categories, nullable | Subcategory (requires CategoryId) |
 | `CurrencyId` | `int` | FK → CUR_Currencies | Currency |
+| `CreatedFromId` | `int` | FK → OperationSource | How expense was created (1=SingleWeb) |
+
+`ExpenseRepository` filters `!e.IsDeleted` in both `GetByIdAsync` and `GetPagedAsync`.
 
 ---
 
 ### CAT_Categories
 
-Expense categories.
+Hierarchical — top-level categories have subcategories via self-referential `ParentId`.
 
-| Column | Type | Description |
-|---|---|---|
-| `Id` | `int` | PK |
-| `Name` | `varchar` | Category name (e.g. "Food", "Transport") |
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `Id` | `int` | PK | |
+| `Name` | `varchar` | NOT NULL | Category name |
+| `Description` | `varchar?` | nullable | Optional description |
+| `ParentId` | `int?` | FK → CAT_Categories, nullable | Null = top-level |
+| `IsDeleted` | `bool` | NOT NULL, default false | Soft-delete flag |
+| `DeletedAt` | `datetime?` | nullable | Soft-delete timestamp |
+
+`CategoryRepository.GetAllActiveAsync` filters `!c.IsDeleted` at top level; `CategoryService.GetAllAsync` also filters subcategories.
 
 ---
 
 ### CUR_Currencies
 
-Currencies.
+Seeded at migration time.
 
 | Column | Type | Description |
 |---|---|---|
 | `Id` | `int` | PK |
-| `Code` | `varchar` | ISO currency code (e.g. `USD`, `EUR`) |
+| `Code` | `varchar` | ISO code (e.g. `USD`, `EUR`) |
 | `Name` | `varchar` | Full name (e.g. "US Dollar") |
+
+---
+
+### FAM_Families
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `Id` | `int` | PK | |
+| `Name` | `varchar` | NOT NULL | Family display name |
+| `IsDefault` | `bool` | NOT NULL | Created automatically on `user.created` |
+| `IsDeleted` | `bool` | NOT NULL, default false | Soft-delete (archive) |
+| `DeletedAt` | `datetime?` | nullable | Archive timestamp |
+| `OwnerId` | `int` | FK → ext.USR_Users | Family owner (Head role) |
+
+Only non-default families can be archived. `FamilyService.CreateDefaultAsync` is idempotent.
+
+---
+
+### FAM_FamilyMembers
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `Id` | `int` | PK | |
+| `FamilyId` | `int` | FK → FAM_Families | |
+| `UserId` | `int` | FK → ext.USR_Users | |
+| `RoleId` | `int` | FK → FamilyRole lookup | Head (1) or Member (2) |
+| `JoinedAt` | `datetime` | NOT NULL | |
+
+---
+
+### FAM_FamilyInvitations
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `Id` | `int` | PK | |
+| `FamilyId` | `int` | FK → FAM_Families | |
+| `InviteeEmail` | `varchar` | NOT NULL | Must match acceptor's email |
+| `Token` | `varchar` | NOT NULL, unique | GUID token sent to invitee |
+| `ExpiresAt` | `datetime` | NOT NULL | Configurable via `FamilyOptions.InviteExpiryInDays` (default 7 days) |
+| `IsAccepted` | `bool` | NOT NULL, default false | |
+| `CreatedAt` | `datetime` | NOT NULL | |
+
+`AcceptInviteAsync` validates: token not expired, not already accepted, acceptor email = `InviteeEmail`.
+
+---
+
+### FAM_ExpenseFamilyAttributions
+
+Join table — expense to family associations.
+
+| Column | Type | Description |
+|---|---|---|
+| `ExpenseId` | `long` | FK → EXP_Expenses |
+| `FamilyId` | `int` | FK → FAM_Families |
+
+`RemoveMemberAsync` calls `RemoveMemberAttributionsAsync(familyId, ownerId)` to purge that member's expense attributions.
+
+---
+
+### EXP_AuditLog
+
+| Column | Type | Description |
+|---|---|---|
+| `Id` | `long` | PK, identity |
+| `ExpenseId` | `long` | FK → EXP_Expenses |
+| `OperationId` | `int` | FK → AuditOperation lookup |
+| `PerformedById` | `int` | User who made the change |
+| `PerformedFromId` | `int` | FK → OperationSource lookup |
+| `PerformedAt` | `datetime` | Timestamp |
+
+---
+
+### EXP_AuditSnapshots
+
+| Column | Type | Description |
+|---|---|---|
+| `Id` | `long` | PK, identity |
+| `AuditLogId` | `long` | FK → EXP_AuditLog |
+| `SnapshotTypeId` | `int` | FK → SnapshotType lookup (1=Before, 2=After) |
+| `FieldName` | `varchar` | Field that changed |
+| `OldValue` | `varchar?` | Value before (null for After snapshots on Add) |
+| `NewValue` | `varchar?` | Value after (null for Before snapshots on Delete) |
+| `TagIds` | `varchar` | Comma-separated tag IDs (empty currently) |
+| `FamilyIds` | `varchar` | Comma-separated family IDs (empty currently) |
+
+---
+
+### InboxEvents
+
+RabbitMQ message deduplication for the expenses consumer.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `Id` | `int` | PK | |
+| `MessageId` | `varchar` | NOT NULL, unique | From `ea.BasicProperties.MessageId` (fallback: new GUID) |
+| `Status` | `varchar` | NOT NULL | `Processed` |
+| `ProcessedAt` | `datetime` | NOT NULL | |
+
+---
+
+### Lookup Tables
+
+All seeded at migration time. Accessed via `ILookupCacheService` — never hardcode IDs.
+
+| Table | Values |
+|---|---|
+| `OperationSource` | 1=SingleWeb, 2=SingleMobile, 3=BulkWeb |
+| `ModifiedSource` | 1=Web, 2=Mobile |
+| `FamilyRole` | 1=Head, 2=Member |
+| `RateSource` | 1=Auto, 2=Manual |
+| `ConflictStatus` | 1=Pending, 2=Resolved |
+| `ConflictResolution` | 1=AcceptAuto, 2=KeepManual, 3=Custom |
+| `AuditOperation` | 1=Add, 2=Update, 3=Delete |
+| `SnapshotType` | 1=Before, 2=After |
 
 ---
 
@@ -263,8 +415,24 @@ This is mapped in `ExpensesDbContext` and accessed via `External/UserRepository`
 | `20260427220653_AddRefreshTokens` | 2026-04-27 | Add `RTK_RefreshTokens` table |
 | `20260429200824_AddVerifyEmailErrorUrlPath` | 2026-04-29 | Add `VerifyEmailErrorUrlPath` to `APP_Applications` |
 
+### Users Service Migrations (continued)
+
+| Migration | Date | Description |
+|---|---|---|
+| `20260506224929_AddOutboxEvents` | 2026-05-06 | Add `MSG_OutboxEvents` table |
+| `20260509140937_AddUserSoftDelete` | 2026-05-09 | Add `IsDeleted`, `DeletedAt` to `USR_Users`; partial unique index |
+| `20260510122007_AddEmailValidationHashExpiry` | 2026-05-10 | Add `EmailValidationHashExpiresAt` to `USR_Users` |
+
 ### Expenses Service Migrations
 
 | Migration | Date | Description |
 |---|---|---|
 | `20260217225816_InitialCreate` | 2026-02-17 | Initial schema: expenses, categories, currencies |
+| `20260505144220_SchemaFoundation` | 2026-05-05 | Full schema rebuild: families, members, attributions, audit, lookups |
+| `20260505145359_LongIdsForExpenseAndAudit` | 2026-05-05 | Change `EXP_Expenses.Id` and audit IDs to `long` |
+| `20260506203552_SeedCurrencies` | 2026-05-06 | Seed currency lookup data |
+| `20260506204543_SeedCategories` | 2026-05-06 | Seed category data |
+| `20260506224942_AddInboxEvents` | 2026-05-06 | Add `InboxEvents` table |
+| `20260509155613_ReplaceCategoryFamilyIsArchivedWithSoftDelete` | 2026-05-09 | Replace `IsArchived` with `IsDeleted`/`DeletedAt` on Category and Family |
+| `20260509163919_AddExpenseSoftDelete` | 2026-05-09 | Add `IsDeleted`/`DeletedAt` to `EXP_Expenses` |
+| `20260511130345_Phase4_FamilyInvitation` | 2026-05-11 | Add `FAM_FamilyInvitations` table |

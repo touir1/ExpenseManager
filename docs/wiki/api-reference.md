@@ -278,6 +278,66 @@ Revokes the refresh token and clears both cookies.
 
 ---
 
+### POST /auth/resend-verification
+
+Resend the email verification link. Atomically rotates the hash and resets the 24 h expiry window — the old link is immediately invalidated.
+
+**Access:** Public
+
+**Request body:**
+
+```json
+{
+  "email": "jane@example.com",
+  "applicationCode": "EXPENSES_MANAGER"
+}
+```
+
+**Response: 200 OK** — Always (no email enumeration)
+
+---
+
+## Users Service — Messaging Endpoints
+
+Base path: `/messaging` (direct) or `/api/users/messaging` (via nginx)
+
+### POST /messaging/replay
+
+Replay outbox events. Re-publishes events from `MSG_OutboxEvents` that match the given filters.
+
+**Access:** Protected (nginx `auth_request`)  
+**Rate limit:** `messaging_replay` — 5 req / 1 min
+
+**Query parameters:**
+
+| Parameter | Type | Description |
+|---|---|---|
+| `eventType` | string? | Filter by event type (e.g. `user.created`) |
+| `from` | datetime? | Include events created at or after this timestamp |
+| `forceAll` | bool? | When `true`, re-publish events already in `Sent` state |
+
+**Response: 200 OK** — Replay triggered
+
+---
+
+### GET /messaging/outbox/stats
+
+Returns counts of outbox events by status.
+
+**Access:** Public (no rate limit)
+
+**Response: 200 OK**
+
+```json
+{
+  "pending": 3,
+  "sent": 142,
+  "failed": 1
+}
+```
+
+---
+
 ### POST /auth/change-password
 
 Change password for an authenticated user by supplying the current password.
@@ -357,26 +417,286 @@ Reset password using the hash from the reset email.
 
 ## Expenses Service — Endpoints
 
-> **Status:** The expenses service backend is scaffolded with domain models, EF Core, and RabbitMQ infrastructure but does not yet expose REST controllers. Endpoints will be documented here as they are implemented.
+All expenses endpoints require authentication (nginx `auth_request`). User identity extracted from `auth_token` cookie by `JwtCookieReader`. Rate limit: `expenses_global` — 100 req / 60 s sliding window per IP, applied to all three resource controllers.
 
-The frontend currently shows a placeholder expenses page (`QA-11` tracking item). The intended API design:
+Base path: `/expenses` (direct port 9200) or `/api/expenses` (via nginx)
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/expenses/` | List expenses for authenticated user |
-| `POST` | `/api/expenses/` | Create a new expense |
-| `PUT` | `/api/expenses/{id}` | Update an expense |
-| `DELETE` | `/api/expenses/{id}` | Delete (or hide) an expense |
-| `GET` | `/api/expenses/categories` | List available categories |
-| `GET` | `/api/expenses/currencies` | List available currencies |
+---
 
-All expenses endpoints will require authentication (nginx `auth_request` gate already configured for `/api/expenses/*`).
+### GET /expenses
+
+Paginated list of expenses for the authenticated user.
+
+**Access:** Protected
+
+**Query parameters:** pagination (`page`, `pageSize`), date range, etc.
+
+**Response: 200 OK**
+
+```json
+{
+  "items": [
+    {
+      "id": 1,
+      "description": "Coffee",
+      "amount": 3.50,
+      "createdDate": "2026-05-01T08:00:00Z",
+      "isHidden": false,
+      "currency": { "id": 1, "code": "USD", "name": "US Dollar" },
+      "category": { "id": 2, "name": "Food", "description": null },
+      "subcategory": { "id": 5, "name": "Beverages", "description": null }
+    }
+  ],
+  "totalCount": 42,
+  "page": 1,
+  "pageSize": 20
+}
+```
+
+**Response: 401** — Missing/invalid `auth_token` cookie
+
+---
+
+### POST /expenses
+
+Create a new expense.
+
+**Access:** Protected
+
+**Request body:**
+
+```json
+{
+  "description": "Lunch",
+  "amount": 12.00,
+  "createdDate": "2026-05-11T12:00:00Z",
+  "currencyId": 1,
+  "categoryId": 2,
+  "subcategoryId": 5,
+  "familyIds": null
+}
+```
+
+| Field | Notes |
+|---|---|
+| `familyIds` | `null` = auto-attribute to user's default family; `[]` = no attribution; `[id1]` = validate membership |
+
+**Response: 201 Created** — Created expense  
+**Response: 400** — Validation failure  
+**Response: 401** — Auth failure  
+**Response: 403** — `FamilyForbiddenException` (user not a member of a provided familyId)
+
+---
+
+### PUT /expenses/{id}
+
+Update an existing expense.
+
+**Access:** Protected
+
+**Request body:** Same shape as POST.
+
+**Response: 200 OK** — Updated expense  
+**Response: 400** — Validation failure  
+**Response: 401** — Auth failure  
+**Response: 403** — FamilyForbiddenException  
+**Response: 404** — Expense not found or belongs to another user
+
+---
+
+### DELETE /expenses/{id}
+
+Soft-delete an expense (`IsDeleted=true`, `DeletedAt` set).
+
+**Access:** Protected
+
+**Response: 204 No Content**  
+**Response: 404** — Not found
+
+---
+
+### GET /categories
+
+List all active top-level categories with active subcategories.
+
+**Access:** Protected
+
+**Response: 200 OK**
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Food",
+    "description": null,
+    "subcategories": [
+      { "id": 5, "name": "Beverages", "description": null }
+    ]
+  }
+]
+```
+
+---
+
+### POST /categories
+
+Create a category (or subcategory if `parentId` provided).
+
+**Access:** Protected
+
+**Response: 201 Created**  
+**Response: 400** — Validation failure
+
+---
+
+### PUT /categories/{id}
+
+Update a category.
+
+**Response: 200 OK** | **404** | **400**
+
+---
+
+### DELETE /categories/{id}
+
+Soft-delete a category.
+
+**Response: 204** | **404**
+
+---
+
+### GET /currencies
+
+List all currencies.
+
+**Access:** Protected
+
+**Response: 200 OK**
+
+```json
+[
+  { "id": 1, "code": "USD", "name": "US Dollar" },
+  { "id": 2, "code": "EUR", "name": "Euro" }
+]
+```
+
+---
+
+## Expenses Service — Family Endpoints
+
+### GET /families
+
+List all families for the authenticated user (as member or owner).
+
+**Response: 200 OK** — Array of family objects
+
+---
+
+### GET /families/{id}
+
+Get family detail including members and their roles.
+
+**Response: 200 OK** | **404** | **403**
+
+---
+
+### POST /families
+
+Create a named family. The creator becomes the Head member.
+
+**Request body:**
+
+```json
+{ "name": "Smith Family" }
+```
+
+**Response: 201 Created** | **400** | **409** (conflict)
+
+---
+
+### PUT /families/{id}/rename
+
+**Request body:** `{ "name": "New Name" }`
+
+**Response: 200 OK** | **403** (not Head) | **404**
+
+---
+
+### POST /families/{id}/archive
+
+Soft-delete (archive) a non-default family.
+
+**Response: 200 OK** | **403** | **404** | **409** (default family cannot be archived)
+
+---
+
+### POST /families/{id}/unarchive
+
+Restore an archived family.
+
+**Response: 200 OK** | **403** | **404**
+
+---
+
+### POST /families/{id}/invite
+
+Send an invitation to a user by email.
+
+**Request body:**
+
+```json
+{ "email": "friend@example.com" }
+```
+
+**Response: 200 OK** — Invitation token created  
+**Response: 400** — Validation / `FamilyInvitationException`  
+**Response: 403** | **404**
+
+---
+
+### POST /families/{id}/accept-invite
+
+Accept an invitation by token.
+
+**Request body:**
+
+```json
+{ "token": "<guid>" }
+```
+
+**Response: 200 OK** — User added as Member  
+**Response: 400** — Token expired, already accepted, or email mismatch (`FamilyInvitationException`)  
+**Response: 404**
+
+---
+
+### DELETE /families/{id}/members/{memberId}
+
+Remove a member. Purges their expense attributions for this family via `RemoveMemberAttributionsAsync`.
+
+**Response: 204** | **403** (not Head) | **404**
+
+---
+
+### PUT /families/{id}/members/{memberId}/role
+
+Change a member's role (Head/Member).
+
+**Request body:**
+
+```json
+{ "roleName": "Head" }
+```
+
+Role name normalised to title case before lookup via `ILookupCacheService.GetIdAsync<FamilyRole>`.
+
+**Response: 200 OK** | **403** | **404** | **400**
 
 ---
 
 ## Validation Rules
 
-FluentValidation auto-validation middleware rejects requests with `400 Bad Request` before reaching controller logic.
+FluentValidation auto-validation middleware rejects requests with `401 UnauthorizedObjectResult` (preserves existing wire format via `InvalidModelStateResponseFactory`) before reaching controller logic. The response body is `{ "message": "FIRST_ERROR_CODE" }`.
 
 **Password rules (from `PasswordValidator`):**
 

@@ -188,7 +188,17 @@ nginx enforces auth by proxying auth checks to the users service. The expenses s
 The expenses service reads user data via `Repositories/External/UserRepository`, which queries the `ext.USR_Users` view in the shared PostgreSQL instance. This is a **read-only, schema-isolated** dependency — the expenses service never writes to the users database.
 
 ### Asynchronous (RabbitMQ)
-The expenses service uses `IRabbitMQService` to publish/consume events. The specific events and consumers are not yet fully implemented in the current version.
+
+**Outbox pattern (users → RabbitMQ):**  
+`OutboxPublisherService` (BackgroundService) polls `MSG_OutboxEvents` every 5 s, retries up to 5 times, then publishes to the `users.events` topic exchange (routing keys: `user.created`, `user.updated`, `user.deleted`) via `IUserEventPublisher`. This guarantees at-least-once delivery even if RabbitMQ is temporarily down at write time.
+
+**Inbox pattern (RabbitMQ → expenses):**  
+`UserEventConsumer` (BackgroundService) subscribes to queue `expenses.users.sync` (binding `user.#`). Before processing each message it checks `InboxEvents` for the `MessageId` to deduplicate; on success writes an `InboxEvent { Status="Processed" }` and acks; on failure nacks without an inbox write.
+
+**Consumer startup resilience:**  
+`UserEventConsumer.ExecuteAsync` retries on `BrokerUnreachableException` every 5 s so both services can start while RabbitMQ is still initializing.
+
+**On `user.created`:** consumer calls `SaveOrUpdateUserAsync` then `FamilyService.CreateDefaultAsync` (idempotent) to provision the user's default family.
 
 ---
 
@@ -237,8 +247,25 @@ Frontend static assets are zipped, versioned, and uploaded to MinIO (artifact st
 | Dependency audit | OWASP Dependency Check |
 | Image scanning | Trivy |
 
+**Rate limiting (built-in .NET 8 `Microsoft.AspNetCore.RateLimiting`):**
+
+*Users service — fixed-window per client IP:*
+
+| Policy | Limit | Window |
+|---|---|---|
+| `login` | 10 req | 1 min |
+| `register` | 5 req | 10 min |
+| `resend_verification` | 3 req | 10 min |
+| `validate_email` | 10 req | 5 min |
+| `request_password_reset` / `change_password_reset` / `create_password` | 5 req | 10 min |
+| `change_password` | 10 req | 5 min |
+| `refresh` | 20 req | 1 min |
+| `messaging_replay` | 5 req | 1 min |
+
+*Expenses service — sliding window per client IP:*  
+`expenses_global` — 100 req / 60 s, 6 segments, applied at class level on all three controllers.
+
 **Known open issues:**
-- `S-1` — No `limit_req` on the login endpoint in nginx
 - `S-2` — CSP and security headers not yet set in nginx config
 
 ---
@@ -260,3 +287,8 @@ PostgreSQL
 ```
 
 Abstractions (interfaces) exist at every layer boundary, enabling Moq-based unit testing throughout.
+
+**Expenses service additions:**
+- `JwtCookieReader.GetUserId(Request)` — reads `auth_token` cookie, base64url-decodes JWT payload, extracts `sub` claim as `int`; no signature validation (nginx already validated). Returns `null` on missing/invalid cookie → controller returns 401.
+- `ILookupCacheService` — resolves enum-like domain values (operation source, family role, rate source, etc.) from DB lookup tables via `IMemoryCache` with `NeverRemove` priority. Never hardcode IDs; always use `GetIdAsync<T>(name)` / `GetNameAsync<T>(id)`.
+- `ExpenseAuditService` — writes `ExpenseAuditLog` + `ExpenseAuditSnapshot(s)` on every add/update/delete; injected into `ExpenseService`, never exposed via controller.

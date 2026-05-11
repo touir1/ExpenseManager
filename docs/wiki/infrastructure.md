@@ -102,7 +102,6 @@ The main virtual host configuration (`sites-available/expenses-manager.conf`):
 **CORS:** `map` blocks derive `Access-Control-Allow-Origin`, `Access-Control-Allow-Methods`, `Access-Control-Allow-Headers` from the request `Origin` header. Credentials allowed. `OPTIONS` preflight returns `204`.
 
 **Open issues:**
-- `S-1` — `limit_req` zone not configured for `/api/users/auth/login`
 - `S-2` — `Content-Security-Policy` header not yet added
 
 ---
@@ -249,6 +248,37 @@ All service data is persisted in `infrastructure/volumes/`:
 | `dind/` | Docker-in-Docker for GitLab CI |
 | `jobs-runner/` | jobs-runner container data |
 | `mailpit/` | Mailpit email storage |
+
+---
+
+## Nexus Repository Manager
+
+**Location:** `infrastructure/configs/nexus/`
+
+Sonatype Nexus Repository Manager is used as a caching proxy for Docker images and npm packages, reducing CI/CD dependency on external registries.
+
+### Startup
+
+Nexus uses a custom Docker image. `provision.sh` runs in the background at container startup via `docker-entrypoint.sh`. The script is idempotent — it checks for a `/nexus-data/.provisioned` flag before running.
+
+Repository definitions are in `repos.json` and applied via direct REST API calls (no Groovy scripts).
+
+### Repositories
+
+| Type | Purpose |
+|---|---|
+| Docker proxy | Proxies `mcr.microsoft.com`, `docker.io`, etc. |
+| Docker group | Aggregates Docker proxies; exposed on port `8082` |
+| npm proxy | Proxies `registry.npmjs.org` |
+| npm group | Aggregates npm proxies |
+
+### CI/CD Integration
+
+- Docker builds: `ARG REGISTRY=mcr.microsoft.com` in Dockerfiles — CI passes `--build-arg REGISTRY=$NEXUS_DOCKER_REGISTRY` to redirect pulls through Nexus
+- Docker DinD `command` array: `nexus:8082` hardcoded (shell variable expansion is not available in `command` arrays)
+- npm builds: `NEXUS_NPM_TOKEN` CI/CD secret used for npm auth against the Nexus npm group
+- Secrets: `NEXUS_USER`, `NEXUS_PASSWORD`, `NEXUS_NPM_TOKEN` are GitLab CI/CD secrets — not in any yml file
+- `forceBasicAuth: true` set on both proxy and group repos
 
 ---
 
