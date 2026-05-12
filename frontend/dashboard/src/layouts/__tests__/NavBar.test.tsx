@@ -5,10 +5,15 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import NavBar from '@/layouts/NavBar'
 
 const mockUseAuth = vi.fn()
+const mockUseFamilies = vi.fn()
 const mockNavigate = vi.fn()
 
 vi.mock('@/features/auth/AuthContext', () => ({
   useAuth: () => mockUseAuth(),
+}))
+
+vi.mock('@/features/families/FamilyContext', () => ({
+  useFamilies: () => mockUseFamilies(),
 }))
 
 vi.mock('react-router-dom', async () => {
@@ -29,6 +34,13 @@ function renderNavBar(path = '/') {
 describe('NavBar', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockUseFamilies.mockReturnValue({
+      families: [],
+      activeFamilyId: null,
+      setActiveFamilyId: vi.fn(),
+      isLoading: false,
+      refresh: vi.fn(),
+    })
   })
 
   // ── Unauthenticated ──────────────────────────────────────────────────────
@@ -294,6 +306,19 @@ describe('NavBar', () => {
       const [, mobileSettings] = screen.getAllByText('Settings')
       await user.click(mobileSettings)
       expect(screen.getAllByText('Settings')).toHaveLength(1)
+    })
+
+    it('closes mobile menu when mobile Families link is clicked', async () => {
+      mockUseAuth.mockReturnValue({ isAuthenticated: true, logout: vi.fn() })
+      const user = userEvent.setup()
+      renderNavBar('/dashboard')
+
+      await user.click(screen.getByRole('button', { name: /toggle menu/i }))
+      expect(screen.getAllByText('Families')).toHaveLength(2)
+
+      const [, mobileFamilies] = screen.getAllByText('Families')
+      await user.click(mobileFamilies)
+      expect(screen.getAllByText('Families')).toHaveLength(1)
     })
 
     it('closes mobile menu when mobile Home link is clicked', async () => {

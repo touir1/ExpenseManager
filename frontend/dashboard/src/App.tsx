@@ -1,34 +1,31 @@
-import { useEffect } from 'react'
 import { BrowserRouter } from 'react-router-dom'
-import { AuthProvider } from '@/features/auth/AuthContext'
-import { ExpensesDataProvider } from '@/features/expenses/ExpensesDataContext'
-import { ToastProvider, useToast } from '@/components/Toast'
-import { onError } from '@/services/api.service'
+import { AppProviders } from '@/providers/AppProviders'
 import NavBar from '@/layouts/NavBar'
 import AppRoutes from '@/router'
-
-export default function App() {
-  return (
-    <div className="min-h-screen flex flex-col bg-slate-50 font-sans">
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <ToastProvider>
-          <ErrorBinder />
-          <AuthProvider>
-            <ExpensesDataProvider>
-              <NavBar />
-              <main className="flex-1 flex flex-col">
-                <AppRoutes />
-              </main>
-            </ExpensesDataProvider>
-          </AuthProvider>
-        </ToastProvider>
-      </BrowserRouter>
-    </div>
-  )
-}
+import { onError } from '@/services/api.service'
+import { useEffect } from 'react'
+import { ToastProvider, useToast } from '@/components/Toast'
 
 function ErrorBinder() {
   const { show } = useToast()
   useEffect(() => { onError((msg) => show(msg, 'error')) }, [show])
   return null
+}
+
+export default function App() {
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-50 font-sans">
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <ToastProvider>
+          <ErrorBinder />
+          <AppProviders>
+            <NavBar />
+            <main className="flex-1 flex flex-col">
+              <AppRoutes />
+            </main>
+          </AppProviders>
+      </ToastProvider>
+      </BrowserRouter>
+    </div>
+  )
 }

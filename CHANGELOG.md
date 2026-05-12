@@ -3,6 +3,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.94.1] - 2026-05-12
+### Added
+- **Frontend test coverage — family system + auth API:**
+  - `FamilySelector.test.tsx` — 19 tests: null-render (no active / all-archived families), toggle button, label, dropdown open/close, option list, `setActiveFamilyId` calls, aria attributes, click-outside via `fireEvent.mouseDown`
+  - `FamilyContext.test.tsx` — full coverage of `FamilyProvider`: load on auth, loading state, unauthenticated clear, `activeFamilyId` localStorage persistence, stale/archived ID eviction, `setActiveFamilyId`, `refresh`
+  - `FamiliesPage.test.tsx` — 51 tests: layout, loading/empty states, active/archived tabs, `FamilyCard` actions (expand, rename, archive, unarchive, invite), `FamilyDetailPanel` (member list, remove, role change), `CreateFamilyModal` submit/error, Head-only button gating
+  - `authApi.service.test.ts` — 10 tests covering all auth service functions including previously uncovered `resendVerificationRequest`
+  - `NavBar.test.tsx` — added test for mobile Families link closing the mobile menu (line 185 coverage)
+  - Total frontend test suite: **478 tests** (up from 427)
+
+## [0.94.0] - 2026-05-12
+### Added
+- **Phase 4 frontend — family system:**
+  - `familyApi.service.ts` — full CRUD for families, invitations, and member management
+  - `FamilyContext` (`FamilyProvider` / `useFamilies`) — loads family list on auth, persists active family to `localStorage`
+  - `FamiliesPage` — management screen with active/archived tabs, family cards, inline member list, create/rename/archive/invite modals
+  - `FamilySelector` — NavBar dropdown to switch active family scope; hidden when no non-default active families
+  - `family.schemas.ts` — Zod schemas for create-family and invite-member forms
+  - `family.type.ts` — `Family`, `FamilyDetail`, `FamilyMember`, `FamilyRole` TypeScript types
+  - Full i18n — `families.*` and `validation.familyName*` keys added to all 4 locales (en, fr, es, de)
+  - `/families` route wired into router and protected
+
 ## [0.93.1] - 2026-05-11
 ### Changed
 - **Hardcoded expiry values → configurable options (both services):**

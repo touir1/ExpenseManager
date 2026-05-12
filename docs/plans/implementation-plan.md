@@ -286,10 +286,10 @@ Replace current model with:
 
 ### Frontend
 
-- [ ] `familyApi.service.ts`
-- [ ] Family selector component (sidebar / top bar) — switch active family scope
-- [ ] Family management screen (list, create, invite, archive, member management)
-- [ ] Update expense add/edit form — family multi-select (Default always checked)
+- [x] `familyApi.service.ts`
+- [x] Family selector component (sidebar / top bar) — switch active family scope
+- [x] Family management screen (list, create, invite, archive, member management)
+- [ ] Update expense add/edit form — family multi-select (Default always checked) — deferred to Phase 8 (expense form not yet built)
 
 **Depends on:** Phase 3
 

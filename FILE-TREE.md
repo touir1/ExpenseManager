@@ -473,7 +473,9 @@ ExpenseManager/
 │           │   │   │       ├── ResetPasswordPage.test.tsx
 │           │   │   │       └── RequestPasswordResetPage.test.tsx
 │           │   │   ├── services/
-│           │   │   │   └── authApi.service.ts   — Auth HTTP functions (login, logout, register, create/change/reset password)
+│           │   │   │   ├── authApi.service.ts   — Auth HTTP functions (login, logout, register, create/change/reset password)
+│           │   │   │   └── __tests__/
+│           │   │   │       └── authApi.service.test.ts
 │           │   │   ├── types/
 │           │   │   │   └── auth.type.ts         — User, AuthResult, AuthContextValue
 │           │   │   ├── AuthContext.tsx           — Cookie-based auth state; session restored via GET /auth/session (falls back to POST /auth/refresh); no localStorage/sessionStorage
@@ -482,6 +484,23 @@ ExpenseManager/
 │           │   │       ├── AuthContext.test.tsx
 │           │   │       ├── ProtectedRoute.test.tsx
 │           │   │       └── PublicOnlyRoute.test.tsx
+│           │   ├── families/          — Family management feature
+│           │   │   ├── components/
+│           │   │   │   ├── FamilySelector.tsx   — NavBar dropdown to switch active family scope; hidden when no non-default active families
+│           │   │   │   └── __tests__/
+│           │   │   │       └── FamilySelector.test.tsx
+│           │   │   ├── pages/
+│           │   │   │   ├── FamiliesPage.tsx      — Family management screen: active/archived tabs, cards, create/rename/archive/invite modals, inline member panel
+│           │   │   │   └── __tests__/
+│           │   │   │       └── FamiliesPage.test.tsx
+│           │   │   ├── services/
+│           │   │   │   └── familyApi.service.ts  — All family CRUD + invitation + member management calls
+│           │   │   ├── types/
+│           │   │   │   └── family.type.ts        — Family, FamilyDetail, FamilyMember, FamilyRole
+│           │   │   ├── FamilyContext.tsx          — FamilyProvider / useFamilies(); loads list on auth, persists activeFamilyId to localStorage
+│           │   │   ├── family.schemas.ts          — Zod schemas for create-family and invite-member forms
+│           │   │   └── __tests__/
+│           │   │       └── FamilyContext.test.tsx
 │           │   ├── expenses/          — Expense management feature
 │           │   │   ├── types/
 │           │   │   │   └── expenses.type.ts     — Category, Subcategory, Currency types
@@ -504,10 +523,12 @@ ExpenseManager/
 │           │           └── __tests__/
 │           │               ├── HomePublicPage.test.tsx
 │           │               └── NotFoundPage.test.tsx
+│           ├── providers/             — Composed provider tree
+│           │   └── AppProviders.tsx   — Nests ToastProvider → AuthProvider → ExpensesDataProvider → FamilyProvider; mounts ErrorBinder
 │           ├── hooks/                 — Shared hooks
 │           │   └── usePageTitle.ts    — Sets document.title per page
 │           ├── layouts/               — App-wide layout components
-│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive
+│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive; includes FamilySelector for authenticated users
 │           │   └── __tests__/
 │           │       └── NavBar.test.tsx
 │           ├── services/              — Shared base services

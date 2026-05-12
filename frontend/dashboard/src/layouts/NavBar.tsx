@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import FamilySelector from '@/features/families/components/FamilySelector'
 
 const baseNavClass = 'text-sm font-medium px-3 py-1.5 rounded-lg transition-colors duration-150'
 const activeNavClass = `${baseNavClass} bg-brand-50 text-brand-700`
@@ -27,7 +28,8 @@ export default function NavBar() {
     navigate('/')
   }
 
-  // Settings is active on both /settings and /change-password
+  // Settings is active on /settings, /change-password; families on /families
+  const familiesClass = pathname === '/families' ? activeNavClass : inactiveNavClass
   const settingsClass = pathname === '/settings' || pathname === '/change-password'
     ? activeNavClass
     : inactiveNavClass
@@ -99,9 +101,13 @@ export default function NavBar() {
               <NavLink to="/dashboard" className={navLinkClass}>
                 {t('nav.dashboard')}
               </NavLink>
+              <NavLink to="/families" className={() => familiesClass}>
+                {t('nav.families')}
+              </NavLink>
               <NavLink to="/settings" className={() => settingsClass}>
                 {t('nav.settings')}
               </NavLink>
+              <FamilySelector />
               <button
                 onClick={handleLogout}
                 className="ml-2 text-sm font-medium px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors duration-150 cursor-pointer"
@@ -172,6 +178,13 @@ export default function NavBar() {
                 onClick={() => setMobileOpen(false)}
               >
                 {t('nav.dashboard')}
+              </NavLink>
+              <NavLink
+                to="/families"
+                className={() => familiesClass}
+                onClick={() => setMobileOpen(false)}
+              >
+                {t('nav.families')}
               </NavLink>
               <NavLink
                 to="/settings"
