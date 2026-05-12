@@ -3,6 +3,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.94.2] - 2026-05-12
+### Fixed
+- **`FamilyController.CreateAsync` / `ExpenseController.CreateAsync` — 500 on 201 response**: `CreatedAtAction(nameof(GetByIdAsync), ...)` passed `"GetByIdAsync"` to the URL helper, but `MvcOptions.SuppressAsyncSuffixInActionNames` (default `true`) registers action descriptors without the "Async" suffix → `"GetById"`. URL helper returned `null` → `InvalidOperationException: No route matches the supplied values` during response formatting. Fixed by switching to `CreatedAtRoute` with named routes: `[HttpGet("{id:int}", Name = "GetFamilyById")]` / `[HttpGet("{id:long}", Name = "GetExpenseById")]` and returning `CreatedAtRoute("GetFamilyById", ...)` / `CreatedAtRoute("GetExpenseById", ...)` — route name lookup is unaffected by `SuppressAsyncSuffixInActionNames`.
+- Updated `ExpenseControllerTests` and `FamilyControllerTests`: `Assert.IsType<CreatedAtActionResult>` → `Assert.IsType<CreatedAtRouteResult>`.
+
 ## [0.94.1] - 2026-05-12
 ### Added
 - **Frontend test coverage — family system + auth API:**

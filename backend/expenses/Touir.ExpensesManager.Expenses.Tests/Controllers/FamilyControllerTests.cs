@@ -133,7 +133,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
 
             var result = await CreateController(service.Object).CreateAsync(new CreateFamilyRequest { Name = "My Family" });
 
-            Assert.IsType<CreatedAtActionResult>(result);
+            Assert.IsType<CreatedAtRouteResult>(result);
         }
 
         [Fact]

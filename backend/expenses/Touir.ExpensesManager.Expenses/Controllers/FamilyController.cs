@@ -42,7 +42,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers
         }
 
         /// <summary>Get a family by ID with its member list. User must be a member.</summary>
-        [HttpGet("{id:int}")]
+        [HttpGet("{id:int}", Name = "GetFamilyById")]
         [ProducesResponseType(typeof(FamilyDetailDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
@@ -86,7 +86,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers
                     return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingUser });
 
                 var dto = await _familyService.CreateAsync(request.Name, userId.Value);
-                return CreatedAtAction(nameof(GetByIdAsync), new { id = dto.Id }, dto);
+                return CreatedAtRoute("GetFamilyById", new { id = dto.Id }, dto);
             }
             catch (Exception)
             {

@@ -62,7 +62,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
             var result = await CreateController(service.Object).CreateAsync(
                 new CreateExpenseRequest { Amount = 50m, CurrencyId = 1, Date = DateOnly.FromDateTime(DateTime.UtcNow) });
 
-            Assert.IsType<CreatedAtActionResult>(result);
+            Assert.IsType<CreatedAtRouteResult>(result);
         }
 
         [Fact]

@@ -42,7 +42,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers
                     return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingUser });
 
                 var dto = await _expenseService.AddAsync(request, userId.Value, SourceSingleWeb);
-                return CreatedAtAction(nameof(GetByIdAsync), new { id = dto.Id }, dto);
+                return CreatedAtRoute("GetExpenseById", new { id = dto.Id }, dto);
             }
             catch (FamilyForbiddenException ex)
             {
@@ -122,7 +122,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers
         /// Get a single expense by ID. Only returns expenses owned by the authenticated user.
         /// </summary>
         /// <param name="id">Expense ID.</param>
-        [HttpGet("{id:long}")]
+        [HttpGet("{id:long}", Name = "GetExpenseById")]
         [ProducesResponseType(typeof(ExpenseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
