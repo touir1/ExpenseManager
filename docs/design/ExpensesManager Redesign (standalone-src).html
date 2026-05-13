@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ExpensesManager · Hearth Redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #efece6; }
+  body { font-family: 'Manrope', system-ui, sans-serif; }
+  * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<template id="__bundler_thumbnail" data-bg-color="#FAF6EE">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#FAF6EE"/>
+    <!-- Hearth mark -->
+    <rect x="510" y="280" width="180" height="180" rx="58" fill="#C8623E"/>
+    <path d="M555 430V330c0-8 7-15 15-15h15c10 0 17 7 17 17v32h16v-32c0-10 7-17 17-17h15c8 0 15 7 15 15v100" stroke="#FFFCF6" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <!-- wordmark -->
+    <text x="600" y="540" font-family="Georgia, serif" font-size="64" fill="#23170E" text-anchor="middle" font-style="italic">Hearth.</text>
+    <text x="600" y="580" font-family="system-ui, sans-serif" font-size="20" fill="#8E8170" text-anchor="middle" letter-spacing="4">A WARMER WAY TO KEEP THE BOOKS</text>
+  </svg>
+</template>
+<div id="root"></div>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="tokens.jsx"></script>
+<script type="text/babel" src="system.jsx"></script>
+<script type="text/babel" src="marketing.jsx"></script>
+<script type="text/babel" src="auth.jsx"></script>
+<script type="text/babel" src="dashboard-a.jsx"></script>
+<script type="text/babel" src="dashboard-b.jsx"></script>
+<script type="text/babel" src="dashboard-c.jsx"></script>
+<script type="text/babel" src="app-flow.jsx"></script>
+<script type="text/babel" src="mobile.jsx"></script>
+
+<script type="text/babel" data-presets="react">
+function Placeholder({ label, height = 600, width = 1280 }) {
+  return (
+    <div style={{
+      width: '100%', height: '100%', minHeight: height,
+      background: 'repeating-linear-gradient(135deg, #f3ecdd 0 12px, #efe5d2 12px 24px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: '"JetBrains Mono", monospace', color: '#8E8170', fontSize: 13,
+    }}>{label}</div>
+  );
+}
+
+function App() {
+  return (
+    <DesignCanvas>
+      <DCSection id="brand" title="01 · Brand system" subtitle="Direction, palette, type, voice">
+        <DCArtboard id="system" label="Hearth — overview" width={1480} height={1080}>
+          <BrandSystemArtboard />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="marketing" title="02 · Marketing" subtitle="Public landing page — first impression">
+        <DCArtboard id="landing" label="Landing page" width={1280} height={2680}>
+          {window.MarketingArtboard ? <MarketingArtboard /> : <Placeholder label="marketing.jsx — coming up" height={2680} />}
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="auth" title="03 · Auth" subtitle="Sign in, register">
+        <DCArtboard id="signin" label="Sign in" width={1100} height={760}>
+          {window.SignInArtboard ? <SignInArtboard /> : <Placeholder label="auth.jsx — sign in" height={760} />}
+        </DCArtboard>
+        <DCArtboard id="register" label="Register" width={1100} height={760}>
+          {window.RegisterArtboard ? <RegisterArtboard /> : <Placeholder label="auth.jsx — register" height={760} />}
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="dash" title="04 · Dashboard — three directions" subtitle="A: Hearth (recommended) · B: Soft cards · C: Editorial">
+        <DCArtboard id="dashA" label="A · Hearth (recommended)" width={1440} height={1380}>
+          {window.DashboardA ? <DashboardA /> : <Placeholder label="dashboard-a.jsx" height={1380} />}
+        </DCArtboard>
+        <DCArtboard id="dashB" label="B · Soft cards" width={1440} height={1380}>
+          {window.DashboardB ? <DashboardB /> : <Placeholder label="dashboard-b.jsx" height={1380} />}
+        </DCArtboard>
+        <DCArtboard id="dashC" label="C · Editorial" width={1440} height={1380}>
+          {window.DashboardC ? <DashboardC /> : <Placeholder label="dashboard-c.jsx" height={1380} />}
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="flow" title="05 · Inside the app" subtitle="Expenses list, quick-add, family">
+        <DCArtboard id="expenses" label="Expenses list" width={1440} height={1100}>
+          {window.ExpensesArtboard ? <ExpensesArtboard /> : <Placeholder label="app-flow.jsx — expenses" height={1100} />}
+        </DCArtboard>
+        <DCArtboard id="add" label="Quick-add expense" width={620} height={780}>
+          {window.QuickAddArtboard ? <QuickAddArtboard /> : <Placeholder label="app-flow.jsx — quick-add" height={780} />}
+        </DCArtboard>
+        <DCArtboard id="family" label="Family & members" width={1100} height={900}>
+          {window.FamilyArtboard ? <FamilyArtboard /> : <Placeholder label="app-flow.jsx — family" height={900} />}
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="mobile" title="06 · Mobile" subtitle="The phone is where most expenses get logged">
+        <DCArtboard id="mhome" label="Mobile dashboard" width={420} height={900}>
+          {window.MobileHome ? <MobileHome /> : <Placeholder label="mobile.jsx — home" height={900} />}
+        </DCArtboard>
+        <DCArtboard id="madd" label="Mobile quick-add" width={420} height={900}>
+          {window.MobileAdd ? <MobileAdd /> : <Placeholder label="mobile.jsx — add" height={900} />}
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
