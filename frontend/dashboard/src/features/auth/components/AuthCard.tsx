@@ -5,3 +5,4 @@ export default function AuthCard({ children }: Readonly<{ children: React.ReactN
     </div>
   )
 }
+

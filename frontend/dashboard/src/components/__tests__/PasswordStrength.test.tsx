@@ -61,34 +61,34 @@ describe('PasswordStrength', () => {
     render(<PasswordStrength password="abcdefgh" />) // exactly 8 chars
     const items = screen.getAllByRole('listitem')
     const lengthItem = items.find(li => li.textContent?.includes('At least 8 characters'))!
-    expect(lengthItem).toHaveClass('text-emerald-600')
+    expect(lengthItem).toHaveClass('text-sage')
   })
 
   it('marks the length criterion as unmet when password is under 8 characters', () => {
     render(<PasswordStrength password="abc" />)
     const items = screen.getAllByRole('listitem')
     const lengthItem = items.find(li => li.textContent?.includes('At least 8 characters'))!
-    expect(lengthItem).toHaveClass('text-slate-400')
+    expect(lengthItem).toHaveClass('text-ink-faint')
   })
 
   it('marks the uppercase criterion as met', () => {
     render(<PasswordStrength password="A" />)
     const items = screen.getAllByRole('listitem')
     const item = items.find(li => li.textContent?.includes('Uppercase letter'))!
-    expect(item).toHaveClass('text-emerald-600')
+    expect(item).toHaveClass('text-sage')
   })
 
   it('marks the number criterion as met', () => {
     render(<PasswordStrength password="1" />)
     const items = screen.getAllByRole('listitem')
     const item = items.find(li => li.textContent?.includes('Number'))!
-    expect(item).toHaveClass('text-emerald-600')
+    expect(item).toHaveClass('text-sage')
   })
 
   it('marks the special character criterion as met', () => {
     render(<PasswordStrength password="!" />)
     const items = screen.getAllByRole('listitem')
     const item = items.find(li => li.textContent?.includes('Special character'))!
-    expect(item).toHaveClass('text-emerald-600')
+    expect(item).toHaveClass('text-sage')
   })
 })

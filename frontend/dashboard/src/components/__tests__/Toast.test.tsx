@@ -38,7 +38,7 @@ describe('ToastProvider', () => {
     await user.click(screen.getByRole('button', { name: /show toast/i }))
     const toast = screen.getByText('Success!').closest('div')
     expect(toast).toBeInTheDocument()
-    expect(toast).toHaveClass('bg-emerald-50')
+    expect(toast).toHaveClass('bg-sage-soft')
   })
 
   it('shows an error toast with correct styling', async () => {
@@ -53,7 +53,7 @@ describe('ToastProvider', () => {
     await user.click(screen.getByRole('button', { name: /show toast/i }))
     const toast = screen.getByText('Error!').closest('div')
     expect(toast).toBeInTheDocument()
-    expect(toast).toHaveClass('bg-rose-50')
+    expect(toast).toHaveClass('bg-berry-soft')
   })
 
   it('shows an info toast with correct styling', async () => {
@@ -147,7 +147,7 @@ describe('ToastProvider', () => {
     await user.click(screen.getByRole('button', { name: /show/i }))
     const toast = screen.getByText('Default Type').closest('div')
     expect(toast).toBeInTheDocument()
-    expect(toast).toHaveClass('bg-rose-50')
+    expect(toast).toHaveClass('bg-berry-soft')
   })
 
   it('dismisses toasts independently', () => {

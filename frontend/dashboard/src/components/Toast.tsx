@@ -5,14 +5,14 @@ export type Toast = { id: string; message: string; type?: 'info' | 'success' | '
 const ToastContext = createContext<{ show: (message: string, type?: Toast['type']) => void } | null>(null)
 
 const toastStyles: Record<NonNullable<Toast['type']>, string> = {
-  success: 'bg-emerald-50 border-emerald-200 text-emerald-800',
-  info:    'bg-sky-50    border-sky-200    text-sky-800',
-  error:   'bg-rose-50   border-rose-200   text-rose-800',
+  success: 'bg-sage-soft  border-sage/30  text-ink-body',
+  info:    'bg-sky-50     border-sky-200  text-sky-800',
+  error:   'bg-berry-soft border-berry/30 text-ink-body',
 }
 
 const toastIcons: Record<NonNullable<Toast['type']>, JSX.Element> = {
   success: (
-    <svg className="h-4 w-4 shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2} aria-hidden="true">
+    <svg className="h-4 w-4 shrink-0 text-sage" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2} aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
     </svg>
   ),
@@ -22,7 +22,7 @@ const toastIcons: Record<NonNullable<Toast['type']>, JSX.Element> = {
     </svg>
   ),
   error: (
-    <svg className="h-4 w-4 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2} aria-hidden="true">
+    <svg className="h-4 w-4 shrink-0 text-berry" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2} aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
   ),

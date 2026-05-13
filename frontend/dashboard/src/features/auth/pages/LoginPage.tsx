@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useToast } from '@/components/Toast'
 import PasswordInput from '@/components/PasswordInput'
-import AuthCard from '@/features/auth/components/AuthCard'
+import AuthBrandPanel from '@/features/auth/components/AuthBrandPanel'
 import AuthPageHeader from '@/features/auth/components/AuthPageHeader'
 import EmailField from '@/features/auth/components/EmailField'
 import SubmitButton from '@/components/SubmitButton'
@@ -37,62 +37,69 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthCard>
-      <AuthPageHeader title={t('auth.login.title')} subtitle={t('auth.login.subtitle')} />
+    <div className="flex-1 flex">
+      <AuthBrandPanel />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-        <EmailField
-          registration={register('email')}
-          error={errors.email?.message}
-          isSubmitting={isSubmitting}
-          autoFocus
-        />
+      {/* Form area */}
+      <div className="flex-1 flex items-center justify-center p-6 bg-surface-page">
+        <div className="w-full max-w-[400px]">
+          <AuthPageHeader title={t('auth.login.title')} subtitle={t('auth.login.subtitle')} />
 
-        <div>
-          <label htmlFor="password" className="field-label">{t('auth.login.password')}</label>
-          <PasswordInput
-            id="password"
-            autoComplete="current-password"
-            {...register('password')}
-            required
-            disabled={isSubmitting}
-            className="field-input"
-            aria-describedby={errors.password ? 'password-error' : undefined}
-            aria-invalid={!!errors.password}
-          />
-          <FieldError id="password-error" message={errors.password?.message} />
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+            <EmailField
+              registration={register('email')}
+              error={errors.email?.message}
+              isSubmitting={isSubmitting}
+              autoFocus
+            />
+
+            <div>
+              <label htmlFor="password" className="field-label">{t('auth.login.password')}</label>
+              <PasswordInput
+                id="password"
+                autoComplete="current-password"
+                {...register('password')}
+                required
+                disabled={isSubmitting}
+                className="field-input"
+                aria-describedby={errors.password ? 'password-error' : undefined}
+                aria-invalid={!!errors.password}
+              />
+              <FieldError id="password-error" message={errors.password?.message} />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                id="rememberMe"
+                type="checkbox"
+                {...register('rememberMe')}
+                disabled={isSubmitting}
+                className="h-4 w-4 rounded border-surface-border text-brand-500 focus:ring-brand-500 cursor-pointer accent-brand-500"
+              />
+              <label htmlFor="rememberMe" className="text-sm text-ink-body cursor-pointer select-none">
+                {t('auth.login.rememberMe')}
+              </label>
+            </div>
+
+            <SubmitButton isSubmitting={isSubmitting} label={t('auth.login.submit')} loadingLabel={t('auth.login.submitting')} />
+          </form>
+
+          <div className="mt-6 pt-5 border-t border-surface-border flex flex-col gap-2 text-center">
+            <Link to="/register" className="text-sm text-brand-600 hover:text-brand-500 transition-colors duration-150">
+              {t('auth.login.noAccount')} <span className="font-semibold">{t('auth.login.register')}</span>
+            </Link>
+            <Link to="/request-password-reset" className="text-sm text-ink-mute hover:text-ink-body transition-colors duration-150">
+              {t('auth.login.forgotPassword')}
+            </Link>
+            <Link to="/reset-password" className="text-sm text-ink-faint hover:text-ink-mute transition-colors duration-150">
+              {t('auth.login.haveVerificationLink')}
+            </Link>
+            <Link to="/" className="text-sm text-ink-faint hover:text-ink-mute transition-colors duration-150">
+              {t('auth.login.backToHome')}
+            </Link>
+          </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <input
-            id="rememberMe"
-            type="checkbox"
-            {...register('rememberMe')}
-            disabled={isSubmitting}
-            className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
-          />
-          <label htmlFor="rememberMe" className="text-sm text-slate-600 cursor-pointer select-none">
-            {t('auth.login.rememberMe')}
-          </label>
-        </div>
-
-        <SubmitButton isSubmitting={isSubmitting} label={t('auth.login.submit')} loadingLabel={t('auth.login.submitting')} />
-      </form>
-
-      <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col gap-2 text-center">
-        <Link to="/register" className="text-sm text-brand-600 hover:text-brand-700 transition-colors duration-150">
-          {t('auth.login.noAccount')} <span className="font-medium">{t('auth.login.register')}</span>
-        </Link>
-        <Link to="/request-password-reset" className="text-sm text-slate-500 hover:text-slate-700 transition-colors duration-150">
-          {t('auth.login.forgotPassword')}
-        </Link>
-        <Link to="/reset-password" className="text-sm text-slate-400 hover:text-slate-600 transition-colors duration-150">
-          {t('auth.login.haveVerificationLink')}
-        </Link>
-        <Link to="/" className="text-sm text-slate-400 hover:text-slate-600 transition-colors duration-150">
-          {t('auth.login.backToHome')}
-        </Link>
       </div>
-    </AuthCard>
+    </div>
   )
 }

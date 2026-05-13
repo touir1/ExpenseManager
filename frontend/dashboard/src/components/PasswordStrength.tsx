@@ -3,11 +3,11 @@ import { useTranslation } from 'react-i18next'
 
 const LEVELS = [
   null,
-  { key: 'weak',   barColor: 'bg-rose-500',    textColor: 'text-rose-600' },
-  { key: 'weak',   barColor: 'bg-rose-500',    textColor: 'text-rose-600' },
-  { key: 'fair',   barColor: 'bg-amber-500',   textColor: 'text-amber-600' },
-  { key: 'good',   barColor: 'bg-lime-500',    textColor: 'text-lime-600' },
-  { key: 'strong', barColor: 'bg-emerald-500', textColor: 'text-emerald-600' },
+  { key: 'weak',   barColor: 'bg-berry',     textColor: 'text-berry' },
+  { key: 'weak',   barColor: 'bg-berry',     textColor: 'text-berry' },
+  { key: 'fair',   barColor: 'bg-mustard',   textColor: 'text-mustard' },
+  { key: 'good',   barColor: 'bg-sage',      textColor: 'text-sage' },
+  { key: 'strong', barColor: 'bg-sage',      textColor: 'text-sage' },
 ]
 
 const PasswordStrength: FC<{ password: string }> = ({ password }) => {
@@ -35,14 +35,14 @@ const PasswordStrength: FC<{ password: string }> = ({ password }) => {
             key={c.key}
             className={`h-1 flex-1 rounded-full transition-colors duration-200 ${
               /* c8 ignore next */
-              i < score ? (level?.barColor ?? 'bg-slate-200') : 'bg-slate-200'
+              i < score ? (level?.barColor ?? 'bg-surface-muted') : 'bg-surface-muted'
             }`}
           />
         ))}
       </div>
 
       {level && (
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-ink-mute">
           {t('passwordStrength.label')}:{' '}
           <span className={`font-semibold ${level.textColor}`} data-testid="strength-label">
             {t(`passwordStrength.levels.${level.key}`)}
@@ -54,7 +54,7 @@ const PasswordStrength: FC<{ password: string }> = ({ password }) => {
         {results.map(c => (
           <li
             key={c.key}
-            className={`text-xs flex items-center gap-1.5 ${c.met ? 'text-emerald-600' : 'text-slate-400'}`}
+            className={`text-xs flex items-center gap-1.5 ${c.met ? 'text-sage' : 'text-ink-faint'}`}
           >
             <span aria-hidden="true">{c.met ? '✓' : '○'}</span>
             {c.label}

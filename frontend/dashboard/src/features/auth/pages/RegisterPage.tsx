@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
 import AuthCard from '@/features/auth/components/AuthCard'
+import AuthBrandPanel from '@/features/auth/components/AuthBrandPanel'
 import AuthPageHeader from '@/features/auth/components/AuthPageHeader'
 import SubmitButton from '@/components/SubmitButton'
 import FieldError from '@/components/FieldError'
@@ -37,8 +38,8 @@ export default function RegisterPage() {
     return (
       <AuthCard>
         <p className="msg-success" role="alert">{successMsg}</p>
-        <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-          <Link to="/login" className="text-sm text-brand-600 hover:text-brand-700 transition-colors duration-150 font-medium">
+        <div className="mt-6 pt-5 border-t border-surface-border text-center">
+          <Link to="/login" className="text-sm text-brand-600 hover:text-brand-500 transition-colors duration-150 font-semibold">
             {t('auth.register.goToLogin')}
           </Link>
         </div>
@@ -47,76 +48,83 @@ export default function RegisterPage() {
   }
 
   return (
-    <AuthCard>
-      <AuthPageHeader title={t('auth.register.title')} subtitle={t('auth.register.subtitle')} />
+    <div className="flex-1 flex">
+      {/* Form area — left */}
+      <div className="flex-1 flex items-center justify-center p-6 bg-surface-page">
+        <div className="w-full max-w-[400px]">
+          <AuthPageHeader title={t('auth.register.title')} subtitle={t('auth.register.subtitle')} />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label htmlFor="firstName" className="field-label">{t('auth.register.firstName')}</label>
-            <input
-              id="firstName"
-              autoFocus
-              {...register('firstName')}
-              required
-              maxLength={100}
-              disabled={isSubmitting}
-              className="field-input"
-              placeholder="Jane"
-              aria-describedby={errors.firstName ? 'firstName-error' : undefined}
-              aria-invalid={!!errors.firstName}
-            />
-            <FieldError id="firstName-error" message={errors.firstName?.message} />
-          </div>
-          <div>
-            <label htmlFor="lastName" className="field-label">{t('auth.register.lastName')}</label>
-            <input
-              id="lastName"
-              {...register('lastName')}
-              required
-              maxLength={100}
-              disabled={isSubmitting}
-              className="field-input"
-              placeholder="Doe"
-              aria-describedby={errors.lastName ? 'lastName-error' : undefined}
-              aria-invalid={!!errors.lastName}
-            />
-            <FieldError id="lastName-error" message={errors.lastName?.message} />
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="firstName" className="field-label">{t('auth.register.firstName')}</label>
+                <input
+                  id="firstName"
+                  autoFocus
+                  {...register('firstName')}
+                  required
+                  maxLength={100}
+                  disabled={isSubmitting}
+                  className="field-input"
+                  placeholder="Jane"
+                  aria-describedby={errors.firstName ? 'firstName-error' : undefined}
+                  aria-invalid={!!errors.firstName}
+                />
+                <FieldError id="firstName-error" message={errors.firstName?.message} />
+              </div>
+              <div>
+                <label htmlFor="lastName" className="field-label">{t('auth.register.lastName')}</label>
+                <input
+                  id="lastName"
+                  {...register('lastName')}
+                  required
+                  maxLength={100}
+                  disabled={isSubmitting}
+                  className="field-input"
+                  placeholder="Doe"
+                  aria-describedby={errors.lastName ? 'lastName-error' : undefined}
+                  aria-invalid={!!errors.lastName}
+                />
+                <FieldError id="lastName-error" message={errors.lastName?.message} />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="email" className="field-label">{t('auth.register.emailAddress')}</label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                {...register('email')}
+                required
+                maxLength={100}
+                disabled={isSubmitting}
+                className="field-input"
+                placeholder="you@example.com"
+                aria-describedby={errors.email ? 'email-error' : undefined}
+                aria-invalid={!!errors.email}
+              />
+              <FieldError id="email-error" message={errors.email?.message} />
+            </div>
+
+            <SubmitButton isSubmitting={isSubmitting} label={t('auth.register.submit')} loadingLabel={t('auth.register.submitting')} />
+          </form>
+
+          {errors.root && (
+            <p className="mt-4 msg-error" role="alert">
+              {errors.root.message}
+            </p>
+          )}
+
+          <div className="mt-6 pt-5 border-t border-surface-border text-center">
+            <Link to="/login" className="text-sm text-brand-600 hover:text-brand-500 transition-colors duration-150">
+              {t('auth.register.alreadyHaveAccount')} <span className="font-semibold">{t('auth.register.goToLoginLink')}</span>
+            </Link>
           </div>
         </div>
-
-        <div>
-          <label htmlFor="email" className="field-label">{t('auth.register.emailAddress')}</label>
-          <input
-            id="email"
-            type="email"
-            autoComplete="email"
-            {...register('email')}
-            required
-            maxLength={100}
-            disabled={isSubmitting}
-            className="field-input"
-            placeholder="you@example.com"
-            aria-describedby={errors.email ? 'email-error' : undefined}
-            aria-invalid={!!errors.email}
-          />
-          <FieldError id="email-error" message={errors.email?.message} />
-        </div>
-
-        <SubmitButton isSubmitting={isSubmitting} label={t('auth.register.submit')} loadingLabel={t('auth.register.submitting')} />
-      </form>
-
-      {errors.root && (
-        <p className="mt-4 msg-error" role="alert">
-          {errors.root.message}
-        </p>
-      )}
-
-      <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-        <Link to="/login" className="text-sm text-brand-600 hover:text-brand-700 transition-colors duration-150">
-          {t('auth.register.alreadyHaveAccount')} <span className="font-medium">{t('auth.register.goToLoginLink')}</span>
-        </Link>
       </div>
-    </AuthCard>
+
+      <AuthBrandPanel />
+    </div>
   )
 }

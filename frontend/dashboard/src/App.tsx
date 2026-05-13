@@ -14,7 +14,7 @@ function ErrorBinder() {
 
 export default function App() {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 font-sans">
+    <div className="min-h-screen flex flex-col bg-surface-page font-sans">
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ToastProvider>
           <ErrorBinder />

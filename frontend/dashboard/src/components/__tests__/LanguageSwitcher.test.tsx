@@ -97,10 +97,10 @@ describe('LanguageSwitcher', () => {
     const select = screen.getByRole('combobox')
     expect(select).toHaveClass(
       'text-sm',
-      'text-slate-600',
+      'text-ink-mute',
       'bg-transparent',
       'border',
-      'border-slate-200',
+      'border-surface-border',
       'rounded-lg',
       'px-2',
       'py-1',
@@ -112,7 +112,7 @@ describe('LanguageSwitcher', () => {
     render(<LanguageSwitcher />)
     const select = screen.getByRole('combobox')
     expect(select).toHaveClass(
-      'hover:border-slate-300',
+      'hover:border-surface-muted',
       'focus:outline-none',
       'focus:ring-2',
       'focus:ring-brand-500'

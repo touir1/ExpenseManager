@@ -1,24 +1,12 @@
 import type { Config } from 'tailwindcss'
 
-/**
- * Expenses Manager – Tailwind CSS v3 Configuration
- *
- * Palette: soft neutral base (slate) + muted indigo accent.
- * All colors are perceptually gentle – no harsh/poppy hues.
- *
- * Alternative palettes to swap in:
- *  A) Warm stone + teal accent  → replace brand with teal-* values, surface with stone-*
- *  B) Cool zinc + violet accent → replace brand with violet-* values, surface with zinc-*
- *  C) Slate + sky accent        → replace brand with sky-* values (already softer than indigo)
- */
 const config: Config = {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       fontFamily: {
-        // Inter first, with full system-ui fallback chain
         sans: [
-          'Inter',
+          'Manrope',
           'ui-sans-serif',
           'system-ui',
           '-apple-system',
@@ -29,39 +17,77 @@ const config: Config = {
           'Arial',
           'sans-serif',
         ],
+        serif: [
+          '"Instrument Serif"',
+          '"Iowan Old Style"',
+          'Georgia',
+          'serif',
+        ],
+        mono: [
+          '"JetBrains Mono"',
+          'ui-monospace',
+          '"SF Mono"',
+          'Menlo',
+          'monospace',
+        ],
       },
       colors: {
-        // ── Brand (muted indigo) ───────────────────────────────────────
+        // Clay/Terracotta — primary brand accent
         brand: {
-          50:  '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4f46e5',   // primary action colour
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
-          950: '#1e1b4b',
+          50:  '#FDF4EF',
+          100: '#F9E8DD',
+          200: '#F2D6C4',
+          300: '#E8B89A',
+          400: '#D97D60',
+          500: '#C8623E',  // clay — primary
+          600: '#A24B2A',  // clayDeep
+          700: '#7D3820',
+          800: '#5E2817',
+          900: '#3E1A0F',
+          950: '#1E0C06',
         },
-        // ── Surface neutrals (slate) ───────────────────────────────────
+        // Warm cream surfaces
         surface: {
-          page:   '#f8fafc',   // slate-50  – page background
-          card:   '#ffffff',   // white     – card / modal background
-          subtle: '#f1f5f9',   // slate-100 – subtle fills, hover states
-          border: '#e2e8f0',   // slate-200 – default borders
-          muted:  '#cbd5e1',   // slate-300 – dividers, disabled borders
+          page:   '#FAF6EE',
+          card:   '#FFFCF6',
+          subtle: '#F3ECDD',
+          border: '#E8DECB',
+          muted:  '#EFE6D3',
+        },
+        // Deep cocoa ink hierarchy
+        ink: {
+          DEFAULT: '#23170E',
+          body:    '#574A3D',
+          mute:    '#8E8170',
+          faint:   '#B8AB99',
+        },
+        // Signal palette
+        sage: {
+          DEFAULT: '#6B8E5A',
+          soft:    '#DCE7CF',
+        },
+        berry: {
+          DEFAULT: '#B5443F',
+          soft:    '#F2D2CB',
+        },
+        mustard: {
+          DEFAULT: '#D6A23F',
+          soft:    '#F4E1B5',
+        },
+        sky: {
+          DEFAULT: '#5C8C9E',
+          soft:    '#CFE0E6',
         },
       },
       borderRadius: {
-        xl:  '0.75rem',
+        xl:    '0.75rem',
         '2xl': '1rem',
         '3xl': '1.5rem',
       },
       boxShadow: {
-        card: '0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06)',
-        'card-md': '0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07)',
+        card:      '0 1px 0 rgba(0,0,0,0.02), 0 12px 28px -22px rgba(60,30,10,0.18)',
+        'card-md': '0 4px 6px -1px rgba(60,30,10,0.10), 0 2px 4px -2px rgba(60,30,10,0.08)',
+        warm:      '0 8px 20px -10px rgba(30,20,10,0.5)',
       },
     },
   },

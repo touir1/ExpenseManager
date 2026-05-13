@@ -15,7 +15,7 @@ export default function LanguageSwitcher() {
       value={i18n.resolvedLanguage ?? i18n.language}
       onChange={e => i18n.changeLanguage(e.target.value)}
       aria-label={t('language.label')}
-      className="text-sm text-slate-600 bg-transparent border border-slate-200 rounded-lg px-2 py-1 cursor-pointer hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors duration-150"
+      className="text-sm text-ink-mute bg-transparent border border-surface-border rounded-lg px-2 py-1 cursor-pointer hover:border-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors duration-150"
     >
       {LANGUAGES.map(({ code, key }) => (
         <option key={code} value={code}>{t(key)}</option>

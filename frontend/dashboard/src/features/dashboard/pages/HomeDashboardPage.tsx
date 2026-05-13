@@ -8,18 +8,18 @@ function DashboardSkeleton() {
   return (
     <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-8" aria-busy="true" aria-label={t('dashboard.loading')}>
       <div className="mb-8 animate-pulse">
-        <div className="h-7 bg-slate-200 rounded-lg w-32 mb-2" />
-        <div className="h-4 bg-slate-100 rounded w-64" />
+        <div className="h-7 bg-surface-muted rounded-lg w-32 mb-2" />
+        <div className="h-4 bg-surface-subtle rounded w-64" />
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[0, 1, 2].map(i => (
-          <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-card p-6 animate-pulse">
+          <div key={i} className="bg-surface-card rounded-2xl border border-surface-border shadow-card p-6 animate-pulse">
             <div className="flex items-center gap-3 mb-4">
-              <div className="h-9 w-9 rounded-xl bg-slate-100 shrink-0" />
-              <div className="h-4 bg-slate-200 rounded w-20" />
+              <div className="h-9 w-9 rounded-xl bg-surface-subtle shrink-0" />
+              <div className="h-4 bg-surface-muted rounded w-20" />
             </div>
-            <div className="h-3 bg-slate-100 rounded w-full mb-2" />
-            <div className="h-4 bg-slate-200 rounded w-32" />
+            <div className="h-3 bg-surface-subtle rounded w-full mb-2" />
+            <div className="h-4 bg-surface-muted rounded w-32" />
           </div>
         ))}
       </div>
@@ -37,17 +37,17 @@ export default function HomeDashboardPage() {
   return (
     <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">{t('dashboard.title')}</h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <h1 className="text-2xl font-semibold text-ink tracking-tight">{t('dashboard.title')}</h1>
+        <p className="text-sm text-ink-mute mt-1">
           {t('dashboard.welcome', { name: user?.firstName ?? user?.email ?? 'user' })}
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Account card */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-card p-6">
+        <div className="bg-surface-card rounded-2xl border border-surface-border shadow-card p-6">
           <div className="flex items-center gap-3 mb-4">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100">
               <svg
                 className="h-4.5 w-4.5 text-brand-600"
                 fill="none"
@@ -59,18 +59,18 @@ export default function HomeDashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </span>
-            <h2 className="text-sm font-semibold text-slate-900">{t('dashboard.account.title')}</h2>
+            <h2 className="text-sm font-semibold text-ink">{t('dashboard.account.title')}</h2>
           </div>
-          <p className="text-xs text-slate-500 mb-0.5">{t('dashboard.account.signedInAs')}</p>
-          <p className="text-sm font-medium text-slate-800 truncate">{user?.email ?? '—'}</p>
+          <p className="text-xs text-ink-mute mb-0.5">{t('dashboard.account.signedInAs')}</p>
+          <p className="text-sm font-medium text-ink-body truncate">{user?.email ?? '—'}</p>
         </div>
 
         {/* Quick actions card */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-card p-6">
+        <div className="bg-surface-card rounded-2xl border border-surface-border shadow-card p-6">
           <div className="flex items-center gap-3 mb-4">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-subtle">
               <svg
-                className="h-4.5 w-4.5 text-slate-600"
+                className="h-4.5 w-4.5 text-ink-mute"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -81,7 +81,7 @@ export default function HomeDashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </span>
-            <h2 className="text-sm font-semibold text-slate-900">{t('dashboard.settings.title')}</h2>
+            <h2 className="text-sm font-semibold text-ink">{t('dashboard.settings.title')}</h2>
           </div>
           <Link
             to="/change-password"
@@ -95,11 +95,11 @@ export default function HomeDashboardPage() {
         </div>
 
         {/* Coming soon card */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-card p-6 sm:col-span-2 lg:col-span-1">
+        <div className="bg-surface-card rounded-2xl border border-surface-border shadow-card p-6 sm:col-span-2 lg:col-span-1">
           <div className="flex items-center gap-3 mb-4">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-mustard-soft">
               <svg
-                className="h-4.5 w-4.5 text-amber-500"
+                className="h-4.5 w-4.5 text-mustard"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -109,9 +109,9 @@ export default function HomeDashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
               </svg>
             </span>
-            <h2 className="text-sm font-semibold text-slate-900">{t('dashboard.expenses.title')}</h2>
+            <h2 className="text-sm font-semibold text-ink">{t('dashboard.expenses.title')}</h2>
           </div>
-          <p className="text-sm text-slate-400 italic">{t('dashboard.expenses.comingSoon')}</p>
+          <p className="text-sm text-ink-faint italic">{t('dashboard.expenses.comingSoon')}</p>
         </div>
       </div>
 

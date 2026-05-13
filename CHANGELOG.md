@@ -3,6 +3,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.95.0] - 2026-05-13
+### Changed
+- **Frontend UI redesign — Hearth design system**: Applied warm terracotta/cream palette throughout the dashboard; no functionality changed.
+  - **Design tokens** (`tailwind.config.ts`): Full Hearth palette — `brand` (clay #C8623E), `surface` (page/card/subtle/border/muted), `ink` (DEFAULT/body/mute/faint), `sage`, `berry`, `mustard` with semantic variants; font families Manrope (sans), Instrument Serif (serif), JetBrains Mono (mono); custom `shadow-card` / `shadow-card-md` tokens
+  - **Google Fonts** (`index.html`): Manrope 400–700, Instrument Serif regular/italic, JetBrains Mono regular
+  - **Component CSS** (`src/styles/index.css`): `@layer components` primitives — `.field-label`, `.field-input`, `.btn-primary`, `.msg-error`, `.msg-success`, `.auth-card`
+  - **Split-screen auth layout** (`AuthBrandPanel.tsx` NEW): Terracotta gradient brand panel (46% width, `hidden lg:flex`); Login uses brand-left/form-right, Register uses form-left/brand-right
+  - **NavBar**: `bg-surface-card`, active nav = `bg-brand-100 text-brand-600`, inactive = `text-ink-mute hover:bg-surface-subtle`
+  - **HomeDashboardPage / SettingsPage**: Cards `bg-surface-card border-surface-border`; headings `text-ink`; skeleton loaders `bg-surface-muted`; icon bg `bg-brand-100`; coming-soon = `text-mustard` / `bg-mustard-soft`
+  - **PasswordStrength**: weak/met bars `bg-berry`/`bg-sage`; fair `bg-mustard`; met criteria `text-sage`; unmet `text-ink-faint`
+  - **Toast**: success `bg-sage-soft border-sage/30`; error `bg-berry-soft border-berry/30`; info unchanged (`bg-sky-50`)
+  - **BackLink**: `text-ink-mute hover:text-ink-body`
+  - **LanguageSwitcher**: `text-ink-mute border-surface-border hover:border-surface-muted focus:ring-brand-500`
+  - Test assertions updated across `NavBar.test.tsx`, `PasswordStrength.test.tsx`, `Toast.test.tsx`, `LanguageSwitcher.test.tsx` to match new class names; 478 tests pass
+
 ## [0.94.2] - 2026-05-12
 ### Fixed
 - **`FamilyController.CreateAsync` / `ExpenseController.CreateAsync` — 500 on 201 response**: `CreatedAtAction(nameof(GetByIdAsync), ...)` passed `"GetByIdAsync"` to the URL helper, but `MvcOptions.SuppressAsyncSuffixInActionNames` (default `true`) registers action descriptors without the "Async" suffix → `"GetById"`. URL helper returned `null` → `InvalidOperationException: No route matches the supplied values` during response formatting. Fixed by switching to `CreatedAtRoute` with named routes: `[HttpGet("{id:int}", Name = "GetFamilyById")]` / `[HttpGet("{id:long}", Name = "GetExpenseById")]` and returning `CreatedAtRoute("GetFamilyById", ...)` / `CreatedAtRoute("GetExpenseById", ...)` — route name lookup is unaffected by `SuppressAsyncSuffixInActionNames`.

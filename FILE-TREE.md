@@ -18,9 +18,12 @@ ExpenseManager/
 ├── .vscode/
 │   ├── extensions.json                — Recommended VS Code extensions
 │   └── settings.json                  — VS Code workspace settings
+├── .github/
+│   └── copilot-instructions.md        — GitHub Copilot workspace instructions
 ├── .gitignore                         — Root Git ignore patterns
 ├── .gitlab-ci.yml                     — Root GitLab CI pipeline
 ├── .gitleaks.toml                     — Gitleaks secret scanning config
+├── .graphifyignore                    — Files excluded from graphify knowledge graph
 ├── CHANGELOG.md                       — Version history and release notes
 ├── CLAUDE.md                          — Claude Code instructions
 ├── FILE-TREE.md                       — Project file tree (this file)
@@ -36,6 +39,45 @@ ExpenseManager/
 │   │       ├── fixes-and-suggestions-applied.md  — Applied suggestions (moved here from ongoing once shipped)
 │   │       └── qa/
 │   │           └── 2026-03-22-frontend-dashboard-fixes.md  — Resolved issues from the 2026-03-22 QA session
+│   ├── design/                        — UI design reference files (generated with Claude)
+│   │   ├── ExpensesManager Redesign.html             — Full-page design mockup
+│   │   ├── ExpensesManager Redesign (standalone).html — Standalone design (minified)
+│   │   ├── ExpensesManager Redesign (standalone-src).html — Standalone design (source)
+│   │   ├── app-flow.jsx               — App navigation flow diagram
+│   │   ├── auth.jsx                   — Auth screens design
+│   │   ├── dashboard-a.jsx            — Dashboard variant A
+│   │   ├── dashboard-b.jsx            — Dashboard variant B
+│   │   ├── dashboard-c.jsx            — Dashboard variant C
+│   │   ├── design-canvas.jsx          — Free-form design canvas
+│   │   ├── ios-frame.jsx              — iOS device frame wrapper
+│   │   ├── marketing.jsx              — Marketing/landing page design
+│   │   ├── mobile.jsx                 — Mobile layout design
+│   │   ├── system.jsx                 — Design system overview
+│   │   └── tokens.jsx                 — Design token reference
+│   ├── wiki/                          — Project knowledge base
+│   │   ├── index.md                   — Wiki home and navigation
+│   │   ├── api-reference.md           — API endpoint reference
+│   │   ├── architecture.md            — System architecture overview
+│   │   ├── backend-expenses-service.md — Expenses service internals
+│   │   ├── backend-users-service.md   — Users service internals
+│   │   ├── data-models.md             — Database schema and models
+│   │   ├── family-system.md           — Family management feature guide
+│   │   ├── frontend.md                — Frontend architecture guide
+│   │   ├── infrastructure.md          — Infrastructure and deployment guide
+│   │   ├── messaging.md               — RabbitMQ messaging guide
+│   │   ├── testing.md                 — Testing strategy and conventions
+│   │   └── use-cases.md               — User stories and use cases
+│   ├── issues/
+│   │   ├── ongoing/
+│   │   │   ├── fixes-and-suggestions.md          — Open improvement ideas and technical debt backlog
+│   │   │   └── qa_test_results/
+│   │   │       ├── 2026-03-22-frontend-dashboard-qa.md  — Frontend dashboard QA (open items only)
+│   │   │       └── 2026-04-29-frontend-dashboard-qa.md  — Frontend dashboard QA session 2 (open items)
+│   │   └── fixed/
+│   │       ├── fixes-and-suggestions-applied.md  — Applied suggestions (moved here from ongoing once shipped)
+│   │       └── qa/
+│   │           ├── 2026-03-22-frontend-dashboard-fixes.md  — Resolved issues from the 2026-03-22 QA session
+│   │           └── 2026-04-29-frontend-dashboard-fixes.md  — Resolved issues from the 2026-04-29 QA session
 │   └── plans/
 │       ├── application-description.md  — Full product specification (roles, families, audit, rate resolution, all screens)
 │       ├── implementation-plan.md      — 15-phase implementation plan
@@ -89,7 +131,8 @@ ExpenseManager/
 │   │   │   │   │   ├── SubcategoryDto.cs    — Id, Name, Description? (reused for category + subcategory slots in ExpenseDto)
 │   │   │   │   │   ├── CurrencyDto.cs       — Id, Code, Name, Symbol, Decimals
 │   │   │   │   │   ├── ExpenseDto.cs        — Id, Amount, Currency: CurrencyDto?, Date, Category: SubcategoryDto?, Subcategory: SubcategoryDto?, Description?, CreatedAt, ModifiedAt?, ModifiedFrom?
-│   │   │   │   │   └── ExpenseFilterDto.cs  — DateFrom?, DateTo?, CategoryId?, SubcategoryId?, CurrencyId?, AmountMin?, AmountMax?, Description?, Page (default 1), PageSize (default 20)
+│   │   │   │   │   ├── ExpenseFilterDto.cs  — DateFrom?, DateTo?, CategoryId?, SubcategoryId?, CurrencyId?, AmountMin?, AmountMax?, Description?, Page (default 1), PageSize (default 20)
+│   │   │   │   │   └── FamilyDto.cs         — Family response shape: Id, Name, IsDefault, IsDeleted, Members: FamilyMemberDto[]
 │   │   │   │   ├── Requests/
 │   │   │   │   │   ├── IExpenseRequest.cs      — Shared interface (Amount, CurrencyId, Date, CategoryId?, SubcategoryId?, Description?) implemented by Create + Update DTOs
 │   │   │   │   │   ├── CreateExpenseRequest.cs — Amount (required), CurrencyId (required), Date (required), CategoryId?, SubcategoryId?, Description?
@@ -183,6 +226,8 @@ ExpenseManager/
 │   │   │       ├── 20260509155613_ReplaceCategoryFamilyIsArchivedWithSoftDelete.Designer.cs
 │   │   │       ├── 20260509163919_AddExpenseSoftDelete.cs — IsDeleted (default false) + DeletedAt? on Expenses
 │   │   │       ├── 20260509163919_AddExpenseSoftDelete.Designer.cs
+│   │   │       ├── 20260511130345_Phase4_FamilyInvitation.cs — FamilyInvitation table (token, ExpiresAt, InviteeEmail, AcceptedAt?, AcceptedByUserId?)
+│   │   │       ├── 20260511130345_Phase4_FamilyInvitation.Designer.cs
 │   │   │       └── ExpensesDbContextModelSnapshot.cs
 │   │   └── Touir.ExpensesManager.Expenses.Tests/
 │   │       ├── Touir.ExpensesManager.Expenses.Tests.csproj
@@ -254,7 +299,7 @@ ExpenseManager/
 │       │   │   ├── CryptographyHelper.cs     — Password hashing and HMAC utilities
 │       │   │   ├── EmailHelper.cs            — Email helper: validation, template loading; delegates send to IEmailService
 │       │   │   ├── SmtpEmailService.cs       — IEmailService implementation using System.Net.Mail SMTP
-│       │   │   ├── EmailHtmlTemplate.cs      — HTML email template keys and variable name constants
+│       │   │   ├── EmailHTMLTemplate.cs      — HTML email template keys and variable name constants
 │       │   │   ├── Contracts/
 │       │   │   │   ├── ICryptographyHelper.cs
 │       │   │   │   ├── IEmailHelper.cs
@@ -416,7 +461,7 @@ ExpenseManager/
 │       ├── postcss.config.cjs         — PostCSS pipeline for Tailwind
 │       ├── setupTests.ts              — Vitest global test setup
 │       ├── sonar-project.properties   — SonarQube project settings
-│       ├── tailwind.config.ts         — Custom design system tokens
+│       ├── tailwind.config.ts         — Hearth design system tokens (brand/surface/ink/sage/berry/mustard palette, custom fonts, shadows)
 │       ├── tsconfig.json
 │       ├── tsconfig.app.json
 │       ├── tsconfig.node.json
@@ -455,6 +500,7 @@ ExpenseManager/
 │           ├── features/
 │           │   ├── auth/              — Authentication feature
 │           │   │   ├── components/
+│           │   │   │   ├── AuthBrandPanel.tsx   — Terracotta gradient brand panel for split-screen auth layout (hidden on mobile)
 │           │   │   │   ├── AuthCard.tsx         — Wraps auth pages in auth-page/auth-card divs
 │           │   │   │   ├── AuthPageHeader.tsx   — Page title + subtitle header
 │           │   │   │   ├── EmailField.tsx       — Shared email input field for auth forms
@@ -483,7 +529,8 @@ ExpenseManager/
 │           │   │   └── __tests__/
 │           │   │       ├── AuthContext.test.tsx
 │           │   │       ├── ProtectedRoute.test.tsx
-│           │   │       └── PublicOnlyRoute.test.tsx
+│           │   │       ├── PublicOnlyRoute.test.tsx
+│           │   │       └── authApi.service.test.ts
 │           │   ├── families/          — Family management feature
 │           │   │   ├── components/
 │           │   │   │   ├── FamilySelector.tsx   — NavBar dropdown to switch active family scope; hidden when no non-default active families
@@ -500,14 +547,21 @@ ExpenseManager/
 │           │   │   ├── FamilyContext.tsx          — FamilyProvider / useFamilies(); loads list on auth, persists activeFamilyId to localStorage
 │           │   │   ├── family.schemas.ts          — Zod schemas for create-family and invite-member forms
 │           │   │   └── __tests__/
-│           │   │       └── FamilyContext.test.tsx
+│           │   │       ├── FamilyContext.test.tsx
+│           │   │       ├── family.schemas.test.ts
+│           │   │       └── familyApi.service.test.ts
 │           │   ├── expenses/          — Expense management feature
 │           │   │   ├── types/
 │           │   │   │   └── expenses.type.ts     — Category, Subcategory, Currency types
 │           │   │   ├── services/
 │           │   │   │   ├── categoriesApi.service.ts — getCategories() → GET /api/expenses/categories
-│           │   │   │   └── currenciesApi.service.ts — getCurrencies() → GET /api/expenses/currencies
-│           │   │   └── ExpensesDataContext.tsx  — ExpensesDataProvider / useExpensesData(); fetches categories + currencies on mount
+│           │   │   │   ├── currenciesApi.service.ts — getCurrencies() → GET /api/expenses/currencies
+│           │   │   │   └── __tests__/
+│           │   │   │       ├── categoriesApi.service.test.ts
+│           │   │   │       └── currenciesApi.service.test.ts
+│           │   │   ├── ExpensesDataContext.tsx  — ExpensesDataProvider / useExpensesData(); fetches categories + currencies on mount
+│           │   │   └── __tests__/
+│           │   │       └── ExpensesDataContext.test.tsx
 │           │   ├── dashboard/         — Authenticated dashboard feature
 │           │   │   └── pages/
 │           │   │       ├── HomeDashboardPage.tsx — Dashboard home; shows user greeting and cards
@@ -522,9 +576,12 @@ ExpenseManager/
 │           │           ├── VerifyErrorPage.tsx   — Friendly error page for expired/used email verification links (/verify-error)
 │           │           └── __tests__/
 │           │               ├── HomePublicPage.test.tsx
-│           │               └── NotFoundPage.test.tsx
+│           │               ├── NotFoundPage.test.tsx
+│           │               └── VerifyErrorPage.test.tsx
 │           ├── providers/             — Composed provider tree
-│           │   └── AppProviders.tsx   — Nests ToastProvider → AuthProvider → ExpensesDataProvider → FamilyProvider; mounts ErrorBinder
+│           │   ├── AppProviders.tsx   — Nests ToastProvider → AuthProvider → ExpensesDataProvider → FamilyProvider; mounts ErrorBinder
+│           │   └── __tests__/
+│           │       └── AppProviders.test.tsx
 │           ├── hooks/                 — Shared hooks
 │           │   └── usePageTitle.ts    — Sets document.title per page
 │           ├── layouts/               — App-wide layout components

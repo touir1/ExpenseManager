@@ -5,9 +5,9 @@ import { useAuth } from '@/features/auth/AuthContext'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import FamilySelector from '@/features/families/components/FamilySelector'
 
-const baseNavClass = 'text-sm font-medium px-3 py-1.5 rounded-lg transition-colors duration-150'
-const activeNavClass = `${baseNavClass} bg-brand-50 text-brand-700`
-const inactiveNavClass = `${baseNavClass} text-slate-600 hover:text-slate-900 hover:bg-slate-100`
+const baseNavClass = 'text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors duration-150'
+const activeNavClass = `${baseNavClass} bg-brand-100 text-brand-600`
+const inactiveNavClass = `${baseNavClass} text-ink-mute hover:text-ink hover:bg-surface-subtle`
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   isActive ? activeNavClass : inactiveNavClass
@@ -66,31 +66,32 @@ export default function NavBar() {
   }, [mobileOpen])
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+    <header className="sticky top-0 z-40 bg-surface-card border-b border-surface-border" style={{ boxShadow: '0 1px 0 rgba(60,30,10,0.06)' }}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
         {/* Logo */}
         <Link
           to={isAuthenticated ? '/dashboard' : '/'}
-          className="flex items-center gap-1.5 shrink-0"
+          className="flex items-center gap-2 shrink-0"
         >
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600">
+          <span className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-brand-500">
             <svg
-              className="h-4 w-4 text-white"
-              fill="none"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.2}
+              fill="none"
               aria-hidden="true"
             >
               <path
+                d="M5 20V8c0-1 .8-2 2-2h2c1.2 0 2 .8 2 2v4h2V8c0-1 .8-2 2-2h2c1.2 0 2 .8 2 2v12"
+                stroke="white"
+                strokeWidth="2.2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
               />
             </svg>
           </span>
-          <span className="font-semibold text-slate-900 text-[15px] tracking-tight">
-            Expenses<span className="text-brand-600">Manager</span>
+          <span className="font-bold text-ink text-[15px] tracking-tight">
+            Expense<span className="text-brand-500">Manager.</span>
           </span>
         </Link>
 
@@ -110,7 +111,7 @@ export default function NavBar() {
               <FamilySelector />
               <button
                 onClick={handleLogout}
-                className="ml-2 text-sm font-medium px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors duration-150 cursor-pointer"
+                className="ml-2 text-sm font-semibold px-3.5 py-1.5 rounded-lg bg-surface-subtle hover:bg-surface-border text-ink-body transition-colors duration-150 cursor-pointer"
               >
                 {t('nav.signOut')}
               </button>
@@ -125,7 +126,8 @@ export default function NavBar() {
               </NavLink>
               <Link
                 to="/register"
-                className="ml-2 text-sm font-medium px-3.5 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white transition-colors duration-150"
+                className="ml-2 text-sm font-semibold px-3.5 py-1.5 rounded-full bg-brand-500 hover:bg-brand-600 text-white transition-colors duration-150"
+                style={{ boxShadow: '0 6px 16px -6px rgba(200,98,62,0.6)' }}
               >
                 {t('nav.getStarted')}
               </Link>
@@ -139,7 +141,7 @@ export default function NavBar() {
         {/* Mobile hamburger */}
         <button
           ref={hamburgerRef}
-          className="sm:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors duration-150 cursor-pointer"
+          className="sm:hidden p-2 rounded-lg text-ink-mute hover:bg-surface-subtle transition-colors duration-150 cursor-pointer"
           onClick={() => setMobileOpen(o => !o)}
           aria-label={t('nav.toggleMenu')}
           aria-expanded={mobileOpen}
@@ -168,7 +170,7 @@ export default function NavBar() {
           id="mobile-menu"
           ref={menuRef}
           aria-label={t('nav.mobileNav')}
-          className="sm:hidden border-t border-slate-200 bg-white px-4 py-3 flex flex-col gap-1"
+          className="sm:hidden border-t border-surface-border bg-surface-card px-4 py-3 flex flex-col gap-1"
         >
           {isAuthenticated ? (
             <>
@@ -195,7 +197,7 @@ export default function NavBar() {
               </NavLink>
               <button
                 onClick={handleLogout}
-                className="text-left text-sm font-medium px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors duration-150 cursor-pointer"
+                className="text-left text-sm font-semibold px-3 py-1.5 rounded-lg text-ink-body hover:text-ink hover:bg-surface-subtle transition-colors duration-150 cursor-pointer"
               >
                 {t('nav.signOut')}
               </button>
@@ -219,7 +221,7 @@ export default function NavBar() {
               </NavLink>
               <Link
                 to="/register"
-                className="text-sm font-medium px-3 py-1.5 rounded-lg text-brand-600 hover:bg-brand-50 transition-colors duration-150"
+                className="text-sm font-semibold px-3 py-1.5 rounded-lg text-brand-500 hover:bg-brand-100 transition-colors duration-150"
                 onClick={() => setMobileOpen(false)}
               >
                 {t('nav.getStarted')}

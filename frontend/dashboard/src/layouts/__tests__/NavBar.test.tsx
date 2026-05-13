@@ -69,7 +69,7 @@ describe('NavBar', () => {
 
     it('links logo to /', () => {
       renderNavBar('/')
-      const logo = screen.getByRole('link', { name: /expensesmanager/i })
+      const logo = screen.getByRole('link', { name: /expensemanager/i })
       expect(logo).toHaveAttribute('href', '/')
     })
   })
@@ -99,7 +99,7 @@ describe('NavBar', () => {
 
     it('links logo to /dashboard', () => {
       renderNavBar('/dashboard')
-      const logo = screen.getByRole('link', { name: /expensesmanager/i })
+      const logo = screen.getByRole('link', { name: /expensemanager/i })
       expect(logo).toHaveAttribute('href', '/dashboard')
     })
   })
@@ -133,7 +133,7 @@ describe('NavBar', () => {
       const dashboardLink = Array.from(nav.querySelectorAll('a')).find(
         a => a.textContent === 'Dashboard'
       )
-      expect(dashboardLink).toHaveClass('bg-brand-50', 'text-brand-700')
+      expect(dashboardLink).toHaveClass('bg-brand-100', 'text-brand-600')
     })
 
     it('applies active class to Sign in when on /login', () => {
@@ -144,7 +144,7 @@ describe('NavBar', () => {
       const signInLink = Array.from(nav.querySelectorAll('a')).find(
         a => a.textContent === 'Sign in'
       )
-      expect(signInLink).toHaveClass('bg-brand-50', 'text-brand-700')
+      expect(signInLink).toHaveClass('bg-brand-100', 'text-brand-600')
     })
 
     it('applies inactive class to Settings when on /dashboard', () => {
@@ -155,8 +155,8 @@ describe('NavBar', () => {
       const settingsLink = Array.from(nav.querySelectorAll('a')).find(
         a => a.textContent === 'Settings'
       )
-      expect(settingsLink).toHaveClass('text-slate-600')
-      expect(settingsLink).not.toHaveClass('bg-brand-50')
+      expect(settingsLink).toHaveClass('text-ink-mute')
+      expect(settingsLink).not.toHaveClass('bg-brand-100')
     })
 
     it('applies active class to Settings when on /settings', () => {
@@ -167,7 +167,7 @@ describe('NavBar', () => {
       const settingsLink = Array.from(nav.querySelectorAll('a')).find(
         a => a.textContent === 'Settings'
       )
-      expect(settingsLink).toHaveClass('bg-brand-50', 'text-brand-700')
+      expect(settingsLink).toHaveClass('bg-brand-100', 'text-brand-600')
     })
 
     it('applies active class to Settings when on /change-password', () => {
@@ -178,7 +178,7 @@ describe('NavBar', () => {
       const settingsLink = Array.from(nav.querySelectorAll('a')).find(
         a => a.textContent === 'Settings'
       )
-      expect(settingsLink).toHaveClass('bg-brand-50', 'text-brand-700')
+      expect(settingsLink).toHaveClass('bg-brand-100', 'text-brand-600')
     })
   })
 
