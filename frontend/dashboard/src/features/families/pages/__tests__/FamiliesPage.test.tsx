@@ -212,6 +212,17 @@ describe('FamiliesPage', () => {
       expect(activeTab).toHaveClass('bg-brand-50', 'text-brand-700')
       expect(archivedTab).not.toHaveClass('bg-brand-50')
     })
+
+    it('clicking active tab after viewing archived switches back to active families', async () => {
+      makeCtx({ families: [mockFamily, mockArchivedFamily] })
+      const user = userEvent.setup()
+      render(<FamiliesPage />)
+      await user.click(screen.getByRole('button', { name: /tabArchived/i }))
+      expect(screen.queryByText('Smith household')).not.toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: /tabActive/i }))
+      expect(screen.getByText('Smith household')).toBeInTheDocument()
+      expect(screen.queryByText('Old group')).not.toBeInTheDocument()
+    })
   })
 
   // ── FamilyCard ─────────────────────────────────────────────────────────────
@@ -278,6 +289,16 @@ describe('FamiliesPage', () => {
       expect(screen.queryByText('families.members')).not.toBeInTheDocument()
     })
 
+    it('shows no detail panel when getFamilyById fails', async () => {
+      makeCtx()
+      vi.mocked(familyApi.getFamilyById).mockResolvedValue({ ok: false, status: 500 })
+      const user = userEvent.setup()
+      render(<FamiliesPage />)
+      await user.click(screen.getByRole('button', { name: /families\.expand/i }))
+      await waitFor(() => expect(familyApi.getFamilyById).toHaveBeenCalledWith(1))
+      expect(screen.queryByText('families.members')).not.toBeInTheDocument()
+    })
+
     it('does not reload detail on second expand if already loaded', async () => {
       makeCtx()
       vi.mocked(familyApi.getFamilyById).mockResolvedValue({ ok: true, status: 200, data: { ...mockFamily, members: [] } })
@@ -322,6 +343,18 @@ describe('FamiliesPage', () => {
       expect(refresh).toHaveBeenCalledTimes(2) // once on mount, once after archive
     })
 
+    it('does not show toast or refresh when archive fails', async () => {
+      const refresh = vi.fn()
+      makeCtx({ families: [mockFamily2], refresh })
+      vi.mocked(familyApi.archiveFamily).mockResolvedValue({ ok: false, status: 422 })
+      const user = userEvent.setup()
+      render(<FamiliesPage />)
+      await user.click(screen.getByRole('button', { name: /families\.archiveAction/i }))
+      await waitFor(() => expect(familyApi.archiveFamily).toHaveBeenCalledWith(2))
+      expect(mockShow).not.toHaveBeenCalled()
+      expect(refresh).toHaveBeenCalledTimes(1) // mount only
+    })
+
     it('shows rename button for Head + non-default + non-archived family', () => {
       makeCtx({ families: [mockFamily2] })
       render(<FamiliesPage />)
@@ -362,6 +395,33 @@ describe('FamiliesPage', () => {
       await waitFor(() => expect(screen.queryByText('families.renameTitle')).not.toBeInTheDocument())
       expect(mockShow).toHaveBeenCalledWith('families.renameSuccess', 'success')
     })
+
+    it('shows validation error when rename name is empty', async () => {
+      makeCtx({ families: [mockFamily2] })
+      const user = userEvent.setup()
+      render(<FamiliesPage />)
+      await user.click(screen.getByRole('button', { name: /families\.renameAction/i }))
+      const input = screen.getByRole('textbox')
+      await user.clear(input)
+      await user.click(screen.getByRole('button', { name: /families\.renameSubmit/i }))
+      await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
+      expect(familyApi.renameFamily).not.toHaveBeenCalled()
+    })
+
+    it('does not close rename modal when rename API fails', async () => {
+      makeCtx({ families: [mockFamily2] })
+      vi.mocked(familyApi.renameFamily).mockResolvedValue({ ok: false, status: 400 })
+      const user = userEvent.setup()
+      render(<FamiliesPage />)
+      await user.click(screen.getByRole('button', { name: /families\.renameAction/i }))
+      const input = screen.getByRole('textbox')
+      await user.clear(input)
+      await user.type(input, 'New Name')
+      await user.click(screen.getByRole('button', { name: /families\.renameSubmit/i }))
+      await waitFor(() => expect(familyApi.renameFamily).toHaveBeenCalled())
+      expect(screen.getByText('families.renameTitle')).toBeInTheDocument()
+      expect(mockShow).not.toHaveBeenCalled()
+    })
   })
 
   // ── Archived FamilyCard ────────────────────────────────────────────────────
@@ -400,6 +460,19 @@ describe('FamiliesPage', () => {
       await user.click(screen.getByRole('button', { name: /families\.unarchiveAction/i }))
       await waitFor(() => expect(mockShow).toHaveBeenCalledWith('families.unarchiveSuccess', 'success'))
       expect(refresh).toHaveBeenCalledTimes(2)
+    })
+
+    it('does not show toast or refresh when unarchive fails', async () => {
+      const refresh = vi.fn()
+      mockUseFamilies.mockReturnValue({ families: [mockArchivedFamily], isLoading: false, refresh })
+      vi.mocked(familyApi.unarchiveFamily).mockResolvedValue({ ok: false, status: 422 })
+      const user = userEvent.setup()
+      render(<FamiliesPage />)
+      await user.click(screen.getByRole('button', { name: /tabArchived/i }))
+      await user.click(screen.getByRole('button', { name: /families\.unarchiveAction/i }))
+      await waitFor(() => expect(familyApi.unarchiveFamily).toHaveBeenCalledWith(3))
+      expect(mockShow).not.toHaveBeenCalled()
+      expect(refresh).toHaveBeenCalledTimes(1) // mount only
     })
   })
 
@@ -538,6 +611,14 @@ describe('FamiliesPage', () => {
       await waitFor(() => expect(mockShow).toHaveBeenCalledWith(expect.stringContaining('families.memberRemoved'), 'success'))
     })
 
+    it('does not show toast when removeMember fails', async () => {
+      vi.mocked(familyApi.removeMember).mockResolvedValue({ ok: false, status: 422 })
+      const user = await renderExpanded()
+      await user.click(screen.getAllByTitle('families.removeMember')[0])
+      await waitFor(() => expect(familyApi.removeMember).toHaveBeenCalled())
+      expect(mockShow).not.toHaveBeenCalled()
+    })
+
     it('calls changeMemberRole Head→Member when toggle clicked', async () => {
       vi.mocked(familyApi.changeMemberRole).mockResolvedValue({ ok: true, status: 200 })
       vi.mocked(familyApi.getFamilyById).mockResolvedValue({ ok: true, status: 200, data: mockDetail })
@@ -564,6 +645,15 @@ describe('FamiliesPage', () => {
       await waitFor(() => expect(mockShow).toHaveBeenCalledWith('families.roleChanged', 'success'))
     })
 
+    it('does not show toast when changeMemberRole fails', async () => {
+      vi.mocked(familyApi.changeMemberRole).mockResolvedValue({ ok: false, status: 422 })
+      vi.mocked(familyApi.getFamilyById).mockResolvedValue({ ok: true, status: 200, data: mockDetail })
+      const user = await renderExpanded()
+      await user.click(screen.getAllByTitle('families.changeRole')[0])
+      await waitFor(() => expect(familyApi.changeMemberRole).toHaveBeenCalled())
+      expect(mockShow).not.toHaveBeenCalled()
+    })
+
     it('opens InviteMemberModal when invite button clicked', async () => {
       const user = await renderExpanded()
       await user.click(screen.getByRole('button', { name: /inviteAction/i }))
@@ -587,6 +677,25 @@ describe('FamiliesPage', () => {
       await user.click(screen.getByRole('button', { name: /families\.inviteSubmit/i }))
       await waitFor(() => expect(screen.queryByText('families.inviteTitle')).not.toBeInTheDocument())
       expect(mockShow).toHaveBeenCalledWith('families.inviteSuccess', 'success')
+    })
+
+    it('shows validation error when invite email is empty', async () => {
+      const user = await renderExpanded()
+      await user.click(screen.getByRole('button', { name: /inviteAction/i }))
+      await user.click(screen.getByRole('button', { name: /families\.inviteSubmit/i }))
+      await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
+      expect(familyApi.inviteMember).not.toHaveBeenCalled()
+    })
+
+    it('does not close invite modal when inviteMember fails', async () => {
+      vi.mocked(familyApi.inviteMember).mockResolvedValue({ ok: false, status: 400 })
+      const user = await renderExpanded()
+      await user.click(screen.getByRole('button', { name: /inviteAction/i }))
+      await user.type(screen.getByRole('textbox', { name: /auth\.email\.label/i }), 'new@example.com')
+      await user.click(screen.getByRole('button', { name: /families\.inviteSubmit/i }))
+      await waitFor(() => expect(familyApi.inviteMember).toHaveBeenCalled())
+      expect(screen.getByText('families.inviteTitle')).toBeInTheDocument()
+      expect(mockShow).not.toHaveBeenCalled()
     })
   })
 

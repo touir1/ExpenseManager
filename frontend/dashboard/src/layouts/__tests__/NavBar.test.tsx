@@ -103,6 +103,62 @@ describe('NavBar', () => {
     })
   })
 
+  // ── User menu ────────────────────────────────────────────────────────────
+
+  describe('user menu', () => {
+    beforeEach(() => {
+      mockUseAuth.mockReturnValue({
+        isAuthenticated: true,
+        logout: vi.fn(),
+        user: { firstName: 'John', lastName: 'Doe' },
+      })
+    })
+
+    it('avatar button toggles user menu aria-expanded', async () => {
+      const user = userEvent.setup()
+      renderNavBar('/dashboard')
+
+      const avatarBtn = screen.getByRole('button', { name: /user menu/i })
+      expect(avatarBtn).toHaveAttribute('aria-expanded', 'false')
+      await user.click(avatarBtn)
+      expect(avatarBtn).toHaveAttribute('aria-expanded', 'true')
+      await user.click(avatarBtn)
+      expect(avatarBtn).toHaveAttribute('aria-expanded', 'false')
+    })
+
+    it('closes user menu when clicking outside', async () => {
+      const user = userEvent.setup()
+      renderNavBar('/dashboard')
+
+      const avatarBtn = screen.getByRole('button', { name: /user menu/i })
+      await user.click(avatarBtn)
+      expect(avatarBtn).toHaveAttribute('aria-expanded', 'true')
+
+      fireEvent.mouseDown(document.body)
+      expect(avatarBtn).toHaveAttribute('aria-expanded', 'false')
+    })
+
+    it('closes user menu when Settings link is clicked', async () => {
+      const user = userEvent.setup()
+      renderNavBar('/dashboard')
+
+      await user.click(screen.getByRole('button', { name: /user menu/i }))
+      const settingsLinks = screen.getAllByRole('link', { name: /^settings$/i })
+      await user.click(settingsLinks[0])
+      expect(screen.getByRole('button', { name: /user menu/i })).toHaveAttribute('aria-expanded', 'false')
+    })
+
+    it('shows ? initials when user has no name', () => {
+      mockUseAuth.mockReturnValue({
+        isAuthenticated: true,
+        logout: vi.fn(),
+        user: { firstName: '', lastName: '' },
+      })
+      renderNavBar('/dashboard')
+      expect(screen.getByRole('button', { name: /user menu/i })).toHaveTextContent('?')
+    })
+  })
+
   // ── Logout ───────────────────────────────────────────────────────────────
 
   describe('logout', () => {

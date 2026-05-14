@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { resendVerificationRequest } from '@/features/auth/services/authApi.service'
 
+/* c8 ignore next */
 const APPLICATION_CODE = import.meta.env.VITE_APPLICATION_CODE ?? 'EXPENSES_MANAGER'
 
 export default function VerifyErrorPage() {

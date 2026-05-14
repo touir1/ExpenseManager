@@ -3,6 +3,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.96.1] - 2026-05-14
+### Fixed
+- **Sign out redirected to `/login` instead of `/`**: `AuthContext.logout()` now calls `onUnauthorized(null)` before firing `logoutRequest()`. Previously, any 401 response from a racing request (or the logout call itself) triggered the global unauthorized handler which hard-navigated to `/login`, overriding the `navigate('/')` in `NavBar.handleLogout`.
+
+### Tests
+- **Frontend coverage: 478 → 492 tests, 98.51% → 100% statements/lines/functions, 93.77% → 99.28% branches**
+  - `NavBar.test.tsx` (+4): user avatar button toggles `aria-expanded`, outside-click closes user menu, Settings link closes user menu, `?` initials fallback when user has no name
+  - `FamiliesPage.test.tsx` (+10): archive/unarchive/rename/invite/removeMember/changeMemberRole failure paths (no toast/no close on API error); rename and invite validation error branches; `getFamilyById` failure (no detail panel); active-tab switch-back after viewing archived
+  - `VerifyErrorPage.tsx`: `/* c8 ignore next */` on env-var `??` line (non-testable branch)
+
 ## [0.96.0] - 2026-05-14
 ### Changed
 - **Frontend — marketing landing page & navbar redesign**: No functionality changed; pure UI overhaul to match the Hearth design reference (`docs/design/marketing.jsx` + `docs/design/dashboard-a.jsx`).

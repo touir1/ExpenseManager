@@ -67,6 +67,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   }, [])
 
   const logout = useCallback(() => {
+    onUnauthorized(null)
     logoutRequest().catch(() => {})
     setUser(null)
     setIsAuthenticated(false)
