@@ -218,12 +218,13 @@ describe('api.service', () => {
     expect(handler).toHaveBeenCalledOnce()
   })
 
-  it('calls location.assign on 401 when refresh fails and no unauthorizedHandler', async () => {
+  it('does not redirect on 401 when refresh fails and no unauthorizedHandler', async () => {
     mockFetch
       .mockResolvedValueOnce(makeResponse(401)) // original request
       .mockResolvedValueOnce(makeResponse(401)) // refresh fails
-    await get('/protected')
-    expect(mockLocationAssign).toHaveBeenCalledWith('/login')
+    const result = await get('/protected')
+    expect(mockLocationAssign).not.toHaveBeenCalled()
+    expect(result).toEqual({ ok: false, status: 401, error: API_ERRORS.UNAUTHORIZED })
   })
 
   // ── Refresh + retry (covers lines 41, 60–69) ──────────────────────────────
@@ -251,13 +252,14 @@ describe('api.service', () => {
       expect(result).toEqual({ ok: false, status: 401, error: API_ERRORS.UNAUTHORIZED })
     })
 
-    it('calls location.assign when refresh succeeds, retry returns 401, and no handler', async () => {
+    it('does not redirect when refresh succeeds, retry returns 401, and no handler', async () => {
       mockFetch
         .mockResolvedValueOnce(makeResponse(401)) // original → 401
         .mockResolvedValueOnce(makeResponse(200)) // refresh → ok
         .mockResolvedValueOnce(makeResponse(401)) // retry → 401
-      await get('/protected')
-      expect(mockLocationAssign).toHaveBeenCalledWith('/login')
+      const result = await get('/protected')
+      expect(mockLocationAssign).not.toHaveBeenCalled()
+      expect(result).toEqual({ ok: false, status: 401, error: API_ERRORS.UNAUTHORIZED })
     })
 
     it('returns error when refresh succeeds but retry returns a non-401 error', async () => {

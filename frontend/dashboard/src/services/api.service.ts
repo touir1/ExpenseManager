@@ -44,8 +44,7 @@ async function attemptTokenRefresh(): Promise<boolean> {
 }
 
 function redirectToLogin(): void {
-  if (unauthorizedHandler) unauthorizedHandler()
-  else globalThis.location.assign('/login')
+  unauthorizedHandler?.()
 }
 
 function buildErrorResponse<T>(status: number, data: unknown, statusText: string, silent = false): ApiResponse<T> {

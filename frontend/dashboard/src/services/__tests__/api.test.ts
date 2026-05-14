@@ -100,7 +100,7 @@ describe('API utilities', () => {
       expect(result.status).toBe(401)
     })
 
-    it('redirects to /login on 401 when no unauthorized handler is set', async () => {
+    it('does not redirect on 401 when no unauthorized handler is set', async () => {
       const mockAssign = vi.fn()
       Object.defineProperty(window, 'location', { value: { assign: mockAssign }, writable: true })
 
@@ -112,7 +112,7 @@ describe('API utilities', () => {
 
       const result = await request('/protected')
 
-      expect(mockAssign).toHaveBeenCalledWith('/login')
+      expect(mockAssign).not.toHaveBeenCalled()
       expect(result.ok).toBe(false)
       expect(result.status).toBe(401)
     })

@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 
 ## [0.96.1] - 2026-05-14
 ### Fixed
-- **Sign out redirected to `/login` instead of `/`**: `AuthContext.logout()` now calls `onUnauthorized(null)` before firing `logoutRequest()`. Previously, any 401 response from a racing request (or the logout call itself) triggered the global unauthorized handler which hard-navigated to `/login`, overriding the `navigate('/')` in `NavBar.handleLogout`.
+- **Sign out redirected to `/login` instead of `/`**: Two-layer fix.
+  1. `api.service.ts` — `redirectToLogin()` changed from `if (handler) handler(); else location.assign('/login')` to `handler?.()`. The `else` fallback was firing for any racing 401 after logout cleared the handler, hard-navigating to `/login` regardless of app state.
+  2. `AuthContext.logout()` — calls `onUnauthorized(null)` before `logoutRequest()` so the handler is already cleared when any in-flight request resolves with 401.
 
 ### Tests
 - **Frontend coverage: 478 → 492 tests, 98.51% → 100% statements/lines/functions, 93.77% → 99.28% branches**
