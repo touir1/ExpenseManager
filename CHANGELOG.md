@@ -3,6 +3,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.96.0] - 2026-05-14
+### Changed
+- **Frontend — marketing landing page & navbar redesign**: No functionality changed; pure UI overhaul to match the Hearth design reference (`docs/design/marketing.jsx` + `docs/design/dashboard-a.jsx`).
+  - **`HomePublicPage.tsx`**: Replaced minimal placeholder with full marketing hero — 2-col grid layout (`lg:grid-cols-2`), large Instrument Serif headline with italic brand accent, two CTA pills (Sign in dark / Create account light), social-proof avatar row, and an animated `HeroReceipt` card (rotated receipt with tape decoration, line items, total, split avatars) visible on `lg:` screens only.
+  - **`NavBar.tsx`** (public/unauthenticated state): Desktop nav now shows marketing anchor links (How it works, For families, Pricing, Help) + Sign in NavLink + Get started pill button; mobile menu keeps Home + Sign in + Get started.
+  - **`NavBar.tsx`** (authenticated state): Added user-avatar button (initials pill, `bg-brand-500`) with dropdown containing Settings NavLink, LanguageSwitcher, divider, and Sign out button. Dropdown is always rendered (CSS `hidden` toggled) for test stability. Outside-click closes it via `mousedown` listener.
+  - **`SettingsPage.tsx`**: Added language card (globe icon, `bg-sky-soft`) exposing `LanguageSwitcher` inline — language is now accessible from both the navbar user menu and the Settings page.
+  - **i18n** (`en/fr/es/de` `translation.json`): Added keys `nav.userMenu`, `nav.howItWorks`, `nav.forFamilies`, `nav.pricing`, `nav.help`; `settings.language.title`, `settings.language.description`.
+  - **Tests**: Updated `NavBar.test.tsx` (replaced `Home`-count assertions with `Sign in`/`Home`-presence checks to match new public desktop nav) and `HomePublicPage.test.tsx` (`bg-surface-page` class check).
+
 ## [0.95.0] - 2026-05-13
 ### Changed
 - **Frontend UI redesign — Hearth design system**: Applied warm terracotta/cream palette throughout the dashboard; no functionality changed.

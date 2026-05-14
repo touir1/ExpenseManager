@@ -9,7 +9,12 @@
     "signOut": "Abmelden",
     "getStarted": "Loslegen",
     "toggleMenu": "Menü öffnen",
-    "mobileNav": "Mobile Navigation"
+    "mobileNav": "Mobile Navigation",
+    "userMenu": "Benutzermenü",
+    "howItWorks": "Wie es funktioniert",
+    "forFamilies": "Für Familien",
+    "pricing": "Preise",
+    "help": "Hilfe"
   },
   "auth": {
     "login": {
@@ -118,6 +123,10 @@
       "title": "Passwort",
       "description": "Aktualisiere das Passwort für die Anmeldung an deinem Konto.",
       "changeLink": "Passwort ändern"
+    },
+    "language": {
+      "title": "Sprache",
+      "description": "Wähle deine bevorzugte Anzeigesprache."
     }
   },
   "public": {

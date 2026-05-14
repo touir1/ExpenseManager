@@ -9,7 +9,12 @@
     "signOut": "Sign out",
     "getStarted": "Get started",
     "toggleMenu": "Toggle menu",
-    "mobileNav": "Mobile navigation"
+    "mobileNav": "Mobile navigation",
+    "userMenu": "User menu",
+    "howItWorks": "How it works",
+    "forFamilies": "For families",
+    "pricing": "Pricing",
+    "help": "Help"
   },
   "auth": {
     "login": {
@@ -118,6 +123,10 @@
       "title": "Password",
       "description": "Update the password used to sign in to your account.",
       "changeLink": "Change Password"
+    },
+    "language": {
+      "title": "Language",
+      "description": "Choose your preferred display language."
     }
   },
   "public": {

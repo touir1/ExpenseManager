@@ -40,12 +40,12 @@ describe('HomePublicPage', () => {
     expect(registerLink).toHaveAttribute('href', '/register')
   })
 
-  it('outer container has centering classes for vertical layout', () => {
+  it('outer container uses the page background surface', () => {
     const { container } = render(
       <MemoryRouter>
         <HomePublicPage />
       </MemoryRouter>
     )
-    expect(container.firstChild).toHaveClass('auth-page')
+    expect(container.firstChild).toHaveClass('bg-surface-page')
   })
 })

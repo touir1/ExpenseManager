@@ -50,11 +50,10 @@ describe('NavBar', () => {
       mockUseAuth.mockReturnValue({ isAuthenticated: false, logout: vi.fn() })
     })
 
-    it('shows Home, Sign in, and Get started links in desktop nav', () => {
+    it('shows Sign in and Get started links in desktop nav', () => {
       renderNavBar('/')
       const nav = screen.getByRole('navigation')
       expect(nav).toBeInTheDocument()
-      expect(nav).toHaveTextContent('Home')
       expect(nav).toHaveTextContent('Sign in')
       expect(nav).toHaveTextContent('Get started')
     })
@@ -198,11 +197,12 @@ describe('NavBar', () => {
       renderNavBar('/')
 
       const hamburger = screen.getByRole('button', { name: /toggle menu/i })
-      expect(screen.getAllByText('Home')).toHaveLength(1)
+      // Sign in appears in desktop nav only before open
+      expect(screen.getAllByText('Sign in')).toHaveLength(1)
 
       await user.click(hamburger)
-      // Home link now appears in both desktop nav and mobile menu
-      expect(screen.getAllByText('Home')).toHaveLength(2)
+      // Sign in now appears in both desktop nav and mobile menu
+      expect(screen.getAllByText('Sign in')).toHaveLength(2)
     })
 
     it('closes when hamburger is clicked again', async () => {
@@ -212,10 +212,10 @@ describe('NavBar', () => {
 
       const hamburger = screen.getByRole('button', { name: /toggle menu/i })
       await user.click(hamburger)
-      expect(screen.getAllByText('Home')).toHaveLength(2)
+      expect(screen.getAllByText('Sign in')).toHaveLength(2)
 
       await user.click(hamburger)
-      expect(screen.getAllByText('Home')).toHaveLength(1)
+      expect(screen.getAllByText('Sign in')).toHaveLength(1)
     })
 
     it('shows authenticated links in mobile menu', async () => {
@@ -237,9 +237,11 @@ describe('NavBar', () => {
 
       await user.click(screen.getByRole('button', { name: /toggle menu/i }))
 
-      expect(screen.getAllByText('Home')).toHaveLength(2)
+      // Sign in and Get started appear in both desktop nav and mobile menu
       expect(screen.getAllByText('Sign in')).toHaveLength(2)
       expect(screen.getAllByText('Get started')).toHaveLength(2)
+      // Home link is mobile-only (desktop uses marketing links instead)
+      expect(screen.getAllByText('Home')).toHaveLength(1)
     })
 
     it('closes mobile menu when a link is clicked', async () => {
@@ -327,11 +329,11 @@ describe('NavBar', () => {
       renderNavBar('/')
 
       await user.click(screen.getByRole('button', { name: /toggle menu/i }))
-      expect(screen.getAllByText('Home')).toHaveLength(2)
+      const mobileHome = screen.getByText('Home')
+      expect(mobileHome).toBeInTheDocument()
 
-      const [, mobileHome] = screen.getAllByText('Home')
       await user.click(mobileHome)
-      expect(screen.getAllByText('Home')).toHaveLength(1)
+      expect(screen.queryByText('Home')).not.toBeInTheDocument()
     })
 
     it('closes mobile menu when mobile Get started link is clicked', async () => {
@@ -380,9 +382,9 @@ describe('NavBar', () => {
       const user = userEvent.setup()
       renderNavBar('/')
       await user.click(screen.getByRole('button', { name: /toggle menu/i }))
-      expect(screen.getAllByText('Home')).toHaveLength(2)
+      expect(screen.getAllByText('Sign in')).toHaveLength(2)
       await user.keyboard('{Escape}')
-      expect(screen.getAllByText('Home')).toHaveLength(1)
+      expect(screen.getAllByText('Sign in')).toHaveLength(1)
     })
 
     it('restores focus to hamburger button after menu closes', async () => {
@@ -443,7 +445,7 @@ describe('NavBar', () => {
 
       fireEvent.keyDown(mobileNav, { key: 'ArrowDown' })
 
-      expect(screen.getAllByText('Home')).toHaveLength(2)
+      expect(screen.getByText('Home')).toBeInTheDocument()
       expect(document.activeElement).toBe(focusables[0])
     })
 

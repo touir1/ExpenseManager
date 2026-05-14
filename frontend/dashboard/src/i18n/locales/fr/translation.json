@@ -9,7 +9,12 @@
     "signOut": "Se déconnecter",
     "getStarted": "Commencer",
     "toggleMenu": "Ouvrir le menu",
-    "mobileNav": "Navigation mobile"
+    "mobileNav": "Navigation mobile",
+    "userMenu": "Menu utilisateur",
+    "howItWorks": "Comment ça marche",
+    "forFamilies": "Pour les familles",
+    "pricing": "Tarifs",
+    "help": "Aide"
   },
   "auth": {
     "login": {
@@ -118,6 +123,10 @@
       "title": "Mot de passe",
       "description": "Mettez à jour le mot de passe utilisé pour vous connecter.",
       "changeLink": "Changer le mot de passe"
+    },
+    "language": {
+      "title": "Langue",
+      "description": "Choisissez votre langue d'affichage préférée."
     }
   },
   "public": {

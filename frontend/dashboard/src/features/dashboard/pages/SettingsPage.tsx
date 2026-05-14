@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default function SettingsPage() {
   const { t } = useTranslation()
@@ -40,6 +41,27 @@ export default function SettingsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </Link>
+        </div>
+        {/* Language card */}
+        <div className="bg-surface-card rounded-2xl border border-surface-border shadow-card p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-soft">
+              <svg
+                className="h-4 w-4 text-sky"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.6}
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18" />
+              </svg>
+            </span>
+            <h2 className="text-sm font-semibold text-ink">{t('settings.language.title')}</h2>
+          </div>
+          <p className="text-xs text-ink-mute mb-3">{t('settings.language.description')}</p>
+          <LanguageSwitcher />
         </div>
       </div>
     </div>

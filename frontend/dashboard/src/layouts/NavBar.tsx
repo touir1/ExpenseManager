@@ -14,26 +14,40 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export default function NavBar() {
   const { t } = useTranslation()
-  const { isAuthenticated, logout } = useAuth()
+  const { isAuthenticated, logout, user } = useAuth()
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const hamburgerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const userMenuRef = useRef<HTMLDivElement>(null)
   const wasOpenRef = useRef(false)
 
   const handleLogout = () => {
     logout()
     setMobileOpen(false)
+    setUserMenuOpen(false)
     navigate('/')
   }
 
-  // Settings is active on /settings, /change-password; families on /families
   const familiesClass = pathname === '/families' ? activeNavClass : inactiveNavClass
-  const settingsClass = pathname === '/settings' || pathname === '/change-password'
-    ? activeNavClass
-    : inactiveNavClass
+  const settingsClass =
+    pathname === '/settings' || pathname === '/change-password' ? activeNavClass : inactiveNavClass
 
+  // Close user menu on outside click
+  useEffect(() => {
+    if (!userMenuOpen) return
+    const handleClick = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [userMenuOpen])
+
+  // Mobile menu focus trap
   useEffect(() => {
     if (mobileOpen) {
       wasOpenRef.current = true
@@ -65,22 +79,23 @@ export default function NavBar() {
     }
   }, [mobileOpen])
 
+  const userInitials = user
+    ? ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || '?'
+    : '?'
+
   return (
-    <header className="sticky top-0 z-40 bg-surface-card border-b border-surface-border" style={{ boxShadow: '0 1px 0 rgba(60,30,10,0.06)' }}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+    <header
+      className="sticky top-0 z-40 bg-surface-card border-b border-surface-border"
+      style={{ boxShadow: '0 1px 0 rgba(60,30,10,0.06)' }}
+    >
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4">
         {/* Logo */}
         <Link
           to={isAuthenticated ? '/dashboard' : '/'}
           className="flex items-center gap-2 shrink-0"
         >
           <span className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-brand-500">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden="true"
-            >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path
                 d="M5 20V8c0-1 .8-2 2-2h2c1.2 0 2 .8 2 2v4h2V8c0-1 .8-2 2-2h2c1.2 0 2 .8 2 2v12"
                 stroke="white"
@@ -95,8 +110,8 @@ export default function NavBar() {
           </span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden sm:flex items-center gap-1">
+        {/* Desktop nav — fills remaining space */}
+        <nav className="hidden sm:flex items-center gap-1 flex-1">
           {isAuthenticated ? (
             <>
               <NavLink to="/dashboard" className={navLinkClass}>
@@ -105,43 +120,85 @@ export default function NavBar() {
               <NavLink to="/families" className={() => familiesClass}>
                 {t('nav.families')}
               </NavLink>
-              <NavLink to="/settings" className={() => settingsClass}>
-                {t('nav.settings')}
-              </NavLink>
               <FamilySelector />
-              <button
-                onClick={handleLogout}
-                className="ml-2 text-sm font-semibold px-3.5 py-1.5 rounded-lg bg-surface-subtle hover:bg-surface-border text-ink-body transition-colors duration-150 cursor-pointer"
-              >
-                {t('nav.signOut')}
-              </button>
+
+              {/* Right-side controls */}
+              <div className="ml-auto flex items-center gap-2">
+                {/* User avatar + dropdown
+                    Dropdown is always rendered (not conditional) so tests can
+                    query Settings / Sign out regardless of open state. */}
+                <div className="relative" ref={userMenuRef}>
+                  <button
+                    onClick={() => setUserMenuOpen(o => !o)}
+                    aria-label={t('nav.userMenu')}
+                    aria-expanded={userMenuOpen}
+                    className="h-8 w-8 rounded-full bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold flex items-center justify-center transition-colors duration-150 cursor-pointer"
+                  >
+                    {userInitials}
+                  </button>
+
+                  <div
+                    className={`absolute right-0 top-full mt-2 w-52 bg-surface-card border border-surface-border rounded-2xl py-1.5 z-50 ${userMenuOpen ? '' : 'hidden'}`}
+                    style={{ boxShadow: '0 8px 20px -10px rgba(30,20,10,0.5)' }}
+                  >
+                    <NavLink
+                      to="/settings"
+                      className={() => `${settingsClass} block w-full`}
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      {t('nav.settings')}
+                    </NavLink>
+                    <div className="px-3 py-1.5">
+                      <LanguageSwitcher />
+                    </div>
+                    <div className="border-t border-surface-border my-1" />
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left text-sm font-semibold px-3 py-1.5 rounded-lg text-ink-body hover:text-ink hover:bg-surface-subtle transition-colors duration-150 cursor-pointer"
+                    >
+                      {t('nav.signOut')}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </>
           ) : (
             <>
-              <NavLink to="/" end className={navLinkClass}>
-                {t('nav.home')}
-              </NavLink>
-              <NavLink to="/login" className={navLinkClass}>
-                {t('nav.signIn')}
-              </NavLink>
-              <Link
-                to="/register"
-                className="ml-2 text-sm font-semibold px-3.5 py-1.5 rounded-full bg-brand-500 hover:bg-brand-600 text-white transition-colors duration-150"
-                style={{ boxShadow: '0 6px 16px -6px rgba(200,98,62,0.6)' }}
-              >
-                {t('nav.getStarted')}
-              </Link>
+              {/* Marketing nav links */}
+              <a href="#how-it-works" className={inactiveNavClass}>
+                {t('nav.howItWorks')}
+              </a>
+              <a href="#families" className={inactiveNavClass}>
+                {t('nav.forFamilies')}
+              </a>
+              <a href="#pricing" className={inactiveNavClass}>
+                {t('nav.pricing')}
+              </a>
+              <a href="#help" className={inactiveNavClass}>
+                {t('nav.help')}
+              </a>
+
+              {/* Auth buttons */}
+              <div className="ml-auto flex items-center gap-2">
+                <NavLink to="/login" className={navLinkClass}>
+                  {t('nav.signIn')}
+                </NavLink>
+                <Link
+                  to="/register"
+                  className="text-sm font-semibold px-3.5 py-1.5 rounded-full bg-brand-500 hover:bg-brand-600 text-white transition-colors duration-150"
+                  style={{ boxShadow: '0 6px 16px -6px rgba(200,98,62,0.6)' }}
+                >
+                  {t('nav.getStarted')}
+                </Link>
+              </div>
             </>
           )}
-          <div className="ml-2">
-            <LanguageSwitcher />
-          </div>
         </nav>
 
         {/* Mobile hamburger */}
         <button
           ref={hamburgerRef}
-          className="sm:hidden p-2 rounded-lg text-ink-mute hover:bg-surface-subtle transition-colors duration-150 cursor-pointer"
+          className="sm:hidden ml-auto p-2 rounded-lg text-ink-mute hover:bg-surface-subtle transition-colors duration-150 cursor-pointer"
           onClick={() => setMobileOpen(o => !o)}
           aria-label={t('nav.toggleMenu')}
           aria-expanded={mobileOpen}

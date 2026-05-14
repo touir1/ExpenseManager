@@ -9,7 +9,12 @@
     "signOut": "Cerrar sesión",
     "getStarted": "Comenzar",
     "toggleMenu": "Abrir menú",
-    "mobileNav": "Navegación móvil"
+    "mobileNav": "Navegación móvil",
+    "userMenu": "Menú de usuario",
+    "howItWorks": "Cómo funciona",
+    "forFamilies": "Para familias",
+    "pricing": "Precios",
+    "help": "Ayuda"
   },
   "auth": {
     "login": {
@@ -118,6 +123,10 @@
       "title": "Contraseña",
       "description": "Actualiza la contraseña usada para iniciar sesión.",
       "changeLink": "Cambiar contraseña"
+    },
+    "language": {
+      "title": "Idioma",
+      "description": "Elige tu idioma de visualización preferido."
     }
   },
   "public": {
