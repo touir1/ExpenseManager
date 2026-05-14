@@ -167,22 +167,12 @@ describe('NavBar', () => {
       mockUseAuth.mockReturnValue({ isAuthenticated: true, logout })
       const user = userEvent.setup()
 
-      const { rerender } = renderNavBar('/dashboard')
+      renderNavBar('/dashboard')
 
       const signOut = screen.getAllByRole('button', { name: /sign out/i })[0]
       await user.click(signOut)
 
       expect(logout).toHaveBeenCalledOnce()
-
-      mockUseAuth.mockReturnValue({ isAuthenticated: false, logout })
-      rerender(
-        <MemoryRouter initialEntries={['/dashboard']}>
-          <Routes>
-            <Route path="*" element={<NavBar />} />
-          </Routes>
-        </MemoryRouter>
-      )
-
       expect(mockNavigate).toHaveBeenCalledWith('/')
     })
   })
@@ -327,7 +317,7 @@ describe('NavBar', () => {
       const logout = vi.fn()
       mockUseAuth.mockReturnValue({ isAuthenticated: true, logout })
       const user = userEvent.setup()
-      const { rerender } = renderNavBar('/dashboard')
+      renderNavBar('/dashboard')
 
       await user.click(screen.getByRole('button', { name: /toggle menu/i }))
 
@@ -335,16 +325,6 @@ describe('NavBar', () => {
       await user.click(mobileSignOut)
 
       expect(logout).toHaveBeenCalledOnce()
-
-      mockUseAuth.mockReturnValue({ isAuthenticated: false, logout })
-      rerender(
-        <MemoryRouter initialEntries={['/dashboard']}>
-          <Routes>
-            <Route path="*" element={<NavBar />} />
-          </Routes>
-        </MemoryRouter>
-      )
-
       expect(mockNavigate).toHaveBeenCalledWith('/')
     })
 
