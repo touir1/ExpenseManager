@@ -5,13 +5,15 @@ All notable changes to this project will be documented in this file.
 
 ## [0.96.1] - 2026-05-14
 ### Fixed
-- **Sign out redirected to `/login` instead of `/`**: Two-layer fix.
+- **Sign out redirected to `/login` instead of `/`**: Three-layer fix.
   1. `api.service.ts` — `redirectToLogin()` changed from `if (handler) handler(); else location.assign('/login')` to `handler?.()`. The `else` fallback was firing for any racing 401 after logout cleared the handler, hard-navigating to `/login` regardless of app state.
   2. `AuthContext.logout()` — calls `onUnauthorized(null)` before `logoutRequest()` so the handler is already cleared when any in-flight request resolves with 401.
+  3. `NavBar.tsx` — replaced synchronous `navigate('/')` inside `handleLogout` with a deferred pattern: `setLoggingOut(true)` in the click handler + `useEffect` that navigates only when `loggingOut && !isAuthenticated`. React 18 automatic batching means `navigate('/')` fired before `isAuthenticated` flipped → `PublicOnlyRoute` at `/` still saw the user as authenticated → redirected to `/dashboard` → `ProtectedRoute` saw `false` → `/login`.
 
 ### Tests
 - **Frontend coverage: 478 → 492 tests, 98.51% → 100% statements/lines/functions, 93.77% → 99.28% branches**
   - `NavBar.test.tsx` (+4): user avatar button toggles `aria-expanded`, outside-click closes user menu, Settings link closes user menu, `?` initials fallback when user has no name
+  - `NavBar.test.tsx` (updated): 2 logout tests (desktop + mobile Sign out) now use `rerender` with `isAuthenticated: false` after clicking Sign out, so the deferred `useEffect` navigation fires and `mockNavigate` is asserted correctly
   - `FamiliesPage.test.tsx` (+10): archive/unarchive/rename/invite/removeMember/changeMemberRole failure paths (no toast/no close on API error); rename and invite validation error branches; `getFamilyById` failure (no detail panel); active-tab switch-back after viewing archived
   - `VerifyErrorPage.tsx`: `/* c8 ignore next */` on env-var `??` line (non-testable branch)
 

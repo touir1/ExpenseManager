@@ -19,16 +19,24 @@ export default function NavBar() {
   const { pathname } = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
   const hamburgerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const wasOpenRef = useRef(false)
 
+  useEffect(() => {
+    if (loggingOut && !isAuthenticated) {
+      setLoggingOut(false)
+      navigate('/')
+    }
+  }, [loggingOut, isAuthenticated, navigate])
+
   const handleLogout = () => {
+    setLoggingOut(true)
     logout()
     setMobileOpen(false)
     setUserMenuOpen(false)
-    navigate('/')
   }
 
   const familiesClass = pathname === '/families' ? activeNavClass : inactiveNavClass
