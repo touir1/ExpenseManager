@@ -6,7 +6,7 @@ export function makeCreateFamilySchema(t: TFunction) {
     name: z
       .string()
       .min(1, t('validation.familyNameRequired'))
-      .max(100, t('validation.familyNameMax')),
+      .max(30, t('validation.familyNameMax')),
   })
 }
 

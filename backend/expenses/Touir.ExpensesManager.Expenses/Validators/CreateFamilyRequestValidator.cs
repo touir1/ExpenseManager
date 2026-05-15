@@ -11,7 +11,7 @@ namespace Touir.ExpensesManager.Expenses.Validators
 
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("FAMILY_NAME_REQUIRED")
-                .MaximumLength(100).WithMessage("FAMILY_NAME_TOO_LONG");
+                .MaximumLength(30).WithMessage("FAMILY_NAME_TOO_LONG");
         }
     }
 }

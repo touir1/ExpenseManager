@@ -17,14 +17,14 @@ describe('family.schemas', () => {
       expect(result.error?.issues[0].message).toBe('validation.familyNameRequired')
     })
 
-    it('rejects name over 100 characters', () => {
-      const result = schema.safeParse({ name: 'a'.repeat(101) })
+    it('rejects name over 30 characters', () => {
+      const result = schema.safeParse({ name: 'a'.repeat(31) })
       expect(result.success).toBe(false)
       expect(result.error?.issues[0].message).toBe('validation.familyNameMax')
     })
 
-    it('accepts name exactly 100 characters', () => {
-      expect(schema.safeParse({ name: 'a'.repeat(100) }).success).toBe(true)
+    it('accepts name exactly 30 characters', () => {
+      expect(schema.safeParse({ name: 'a'.repeat(30) }).success).toBe(true)
     })
   })
 
@@ -39,8 +39,8 @@ describe('family.schemas', () => {
       expect(schema.safeParse({ name: '' }).success).toBe(false)
     })
 
-    it('rejects name over 100 characters', () => {
-      expect(schema.safeParse({ name: 'b'.repeat(101) }).success).toBe(false)
+    it('rejects name over 30 characters', () => {
+      expect(schema.safeParse({ name: 'b'.repeat(31) }).success).toBe(false)
     })
   })
 

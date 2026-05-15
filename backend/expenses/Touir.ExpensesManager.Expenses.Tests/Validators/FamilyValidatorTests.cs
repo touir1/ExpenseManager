@@ -25,7 +25,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Validators
         [Fact]
         public async Task CreateFamily_NameTooLong_FailsWithTooLong()
         {
-            var result = await new CreateFamilyRequestValidator().ValidateAsync(new CreateFamilyRequest { Name = new string('a', 101) });
+            var result = await new CreateFamilyRequestValidator().ValidateAsync(new CreateFamilyRequest { Name = new string('a', 31) });
             Assert.False(result.IsValid);
             Assert.Contains(result.Errors, e => e.ErrorMessage == "FAMILY_NAME_TOO_LONG");
         }
@@ -33,7 +33,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Validators
         [Fact]
         public async Task CreateFamily_NameExactlyMaxLength_PassesValidation()
         {
-            var result = await new CreateFamilyRequestValidator().ValidateAsync(new CreateFamilyRequest { Name = new string('a', 100) });
+            var result = await new CreateFamilyRequestValidator().ValidateAsync(new CreateFamilyRequest { Name = new string('a', 30) });
             Assert.True(result.IsValid);
         }
 
@@ -57,7 +57,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Validators
         [Fact]
         public async Task RenameFamily_NameTooLong_FailsWithTooLong()
         {
-            var result = await new RenameFamilyRequestValidator().ValidateAsync(new RenameFamilyRequest { Name = new string('x', 101) });
+            var result = await new RenameFamilyRequestValidator().ValidateAsync(new RenameFamilyRequest { Name = new string('x', 31) });
             Assert.False(result.IsValid);
             Assert.Contains(result.Errors, e => e.ErrorMessage == "FAMILY_NAME_TOO_LONG");
         }

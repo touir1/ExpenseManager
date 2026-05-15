@@ -3,12 +3,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.97.2] - 2026-05-15
+### Changed
+- **LanguageSwitcher — trigger button styled to match FamilySelector**: Removed border (`border border-surface-border`), orange focus ring (`focus:ring-2 focus:ring-brand-500`), and `bg-transparent`. Now uses `font-medium px-2.5 py-1.5 rounded-lg text-ink-mute hover:text-ink hover:bg-surface-subtle` — identical pattern to the `FamilySelector` navbar button. Also removed custom `boxShadow` inline style from the dropdown list; uses plain `shadow-lg`.
+
+## [0.97.1] - 2026-05-15
+### Fixed
+- **FamilySelector — name no longer truncated**: Removed `max-w-[140px]` and `truncate` from the selector button; family names now display in full.
+- **Family name max length — backend/frontend parity**: Reduced max from 100 → 30 characters across all layers:
+  - `CreateFamilyRequestValidator` + `RenameFamilyRequestValidator` (FluentValidation): `MaximumLength(30)`
+  - `family.schemas.ts` (Zod): `.max(30, ...)`
+  - All 4 translation files (`en/fr/es/de`): `familyNameMax` message updated to "30 characters"
+  - Validator tests + schema tests updated to use 30/31 boundary values
+- **LanguageSwitcher — flag emoji not rendering on Windows**: Native `<select>` cannot render emoji flag characters on Windows (renders as ISO country code letters "GB", "FR" etc.). Replaced with a custom ARIA-compliant dropdown (button + `role="listbox"` + `role="option"` items) using inline SVG flag components (`FlagEN`, `FlagFR`, `FlagES`, `FlagDE`). Supports `placement` prop (`'down'` default / `'up'` for user menu and mobile). Tests rewritten to target the custom dropdown.
+
 ## [0.97.0] - 2026-05-15
 ### Changed
 - **Frontend — NavBar and user menu redesign**:
   - **`NavBar.tsx`** (authenticated): `FamilySelector` moved from left nav to right-side controls (before notification button and user avatar). Notification bell button added between family selector and user menu (placeholder, does nothing). User menu dropdown: Settings link now shows a cog icon; language section restructured as a labeled row (`Language` label + `LanguageSwitcher` inline); Sign out button now shows a logout icon. Dropdown width increased to `w-56` to accommodate the labeled language row.
   - **`NavBar.tsx`** (unauthenticated / desktop): `LanguageSwitcher` now shown in the desktop nav right-side controls (before Sign in / Get started) so language can be changed without logging in.
-  - **`LanguageSwitcher.tsx`**: Flag emoji prepended to each language option (🇬🇧 English, 🇫🇷 Français, 🇪🇸 Español, 🇩🇪 Deutsch).
+  - **`LanguageSwitcher.tsx`**: Flag emoji prepended to each language option in the native `<select>` (intermediate state; superseded by the SVG-flag custom dropdown in v0.97.1).
   - **`SettingsPage.tsx`**: Language card removed — language is now exclusively configurable from the NavBar user menu (both authenticated dropdown and unauthenticated desktop nav) and the mobile menu.
   - **i18n** (`en/fr/es/de` `translation.json`): Added `nav.notifications` key.
   - **Tests**: `NavBar.test.tsx` — 3 active-link-styling Settings finders updated from `a.textContent === 'Settings'` to `a.textContent?.trim() === 'Settings'` (Settings link now has SVG child, adding whitespace to `textContent`).

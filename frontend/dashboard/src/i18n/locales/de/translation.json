@@ -247,7 +247,7 @@
     "repeatPasswordRequired": "Bitte wiederhole dein neues Passwort.",
     "passwordsNoMatch": "Die neuen Passwörter stimmen nicht überein.",
     "familyNameRequired": "Familienname ist erforderlich.",
-    "familyNameMax": "Familienname darf maximal 100 Zeichen lang sein."
+    "familyNameMax": "Familienname darf maximal 30 Zeichen lang sein."
   },
   "language": {
     "label": "Sprache",

@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import LanguageSwitcher from '../LanguageSwitcher'
 
-// Mock useTranslation
 const mockChangeLanguage = vi.fn()
 let mockResolvedLanguage: string | undefined = 'en'
+
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => {
@@ -29,16 +29,31 @@ vi.mock('react-i18next', () => ({
 describe('LanguageSwitcher', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockResolvedLanguage = 'en'
   })
 
-  it('should render select dropdown', () => {
+  it('renders a button with aria-label', () => {
     render(<LanguageSwitcher />)
-    const select = screen.getByRole('combobox', { name: /select language/i })
-    expect(select).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /select language/i })).toBeInTheDocument()
   })
 
-  it('should display all language options', () => {
+  it('shows current language name in the button', () => {
     render(<LanguageSwitcher />)
+    expect(screen.getByRole('button', { name: /select language/i })).toHaveTextContent('English')
+  })
+
+  it('does not show options before button is clicked', () => {
+    render(<LanguageSwitcher />)
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+  })
+
+  it('opens dropdown and shows all 4 options on click', async () => {
+    const user = userEvent.setup()
+    render(<LanguageSwitcher />)
+
+    await user.click(screen.getByRole('button', { name: /select language/i }))
+
+    expect(screen.getByRole('listbox')).toBeInTheDocument()
     const options = screen.getAllByRole('option')
     expect(options).toHaveLength(4)
     expect(options[0]).toHaveTextContent('English')
@@ -47,83 +62,87 @@ describe('LanguageSwitcher', () => {
     expect(options[3]).toHaveTextContent('Deutsch')
   })
 
-  it('should have correct language codes as option values', () => {
+  it('button has aria-expanded=false when closed', () => {
     render(<LanguageSwitcher />)
-    const options = screen.getAllByRole('option')
-    expect((options[0] as HTMLOptionElement).value).toBe('en')
-    expect((options[1] as HTMLOptionElement).value).toBe('fr')
-    expect((options[2] as HTMLOptionElement).value).toBe('es')
-    expect((options[3] as HTMLOptionElement).value).toBe('de')
+    expect(screen.getByRole('button', { name: /select language/i })).toHaveAttribute('aria-expanded', 'false')
   })
 
-  it('should have language.label as aria-label', () => {
-    render(<LanguageSwitcher />)
-    const select = screen.getByRole('combobox', { name: /select language/i })
-    expect(select).toHaveAttribute('aria-label', 'Select Language')
-  })
-
-  it('should call changeLanguage when selecting different language', async () => {
+  it('button has aria-expanded=true when open', async () => {
     const user = userEvent.setup()
     render(<LanguageSwitcher />)
+    await user.click(screen.getByRole('button', { name: /select language/i }))
+    expect(screen.getByRole('button', { name: /select language/i })).toHaveAttribute('aria-expanded', 'true')
+  })
 
-    const select = screen.getByRole('combobox') as HTMLSelectElement
-    await user.selectOptions(select, 'fr')
-
+  it('calls changeLanguage with fr when French option clicked', async () => {
+    const user = userEvent.setup()
+    render(<LanguageSwitcher />)
+    await user.click(screen.getByRole('button', { name: /select language/i }))
+    await user.click(screen.getByText('Français'))
     expect(mockChangeLanguage).toHaveBeenCalledWith('fr')
   })
 
-  it('should call changeLanguage when changing to Spanish', async () => {
+  it('calls changeLanguage with es when Spanish option clicked', async () => {
     const user = userEvent.setup()
     render(<LanguageSwitcher />)
-
-    const select = screen.getByRole('combobox') as HTMLSelectElement
-    await user.selectOptions(select, 'es')
-
+    await user.click(screen.getByRole('button', { name: /select language/i }))
+    await user.click(screen.getByText('Español'))
     expect(mockChangeLanguage).toHaveBeenCalledWith('es')
   })
 
-  it('should call changeLanguage when changing to German', async () => {
+  it('calls changeLanguage with de when German option clicked', async () => {
     const user = userEvent.setup()
     render(<LanguageSwitcher />)
-
-    const select = screen.getByRole('combobox') as HTMLSelectElement
-    await user.selectOptions(select, 'de')
-
+    await user.click(screen.getByRole('button', { name: /select language/i }))
+    await user.click(screen.getByText('Deutsch'))
     expect(mockChangeLanguage).toHaveBeenCalledWith('de')
   })
 
-  it('should have correct styling classes', () => {
+  it('closes dropdown after selecting a language', async () => {
+    const user = userEvent.setup()
     render(<LanguageSwitcher />)
-    const select = screen.getByRole('combobox')
-    expect(select).toHaveClass(
-      'text-sm',
-      'text-ink-mute',
-      'bg-transparent',
-      'border',
-      'border-surface-border',
-      'rounded-lg',
-      'px-2',
-      'py-1',
-      'cursor-pointer'
-    )
+    await user.click(screen.getByRole('button', { name: /select language/i }))
+    await user.click(screen.getByText('Français'))
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
   })
 
-  it('should have hover and focus styles', () => {
+  it('closes dropdown on outside click', async () => {
+    const user = userEvent.setup()
     render(<LanguageSwitcher />)
-    const select = screen.getByRole('combobox')
-    expect(select).toHaveClass(
-      'hover:border-surface-muted',
-      'focus:outline-none',
-      'focus:ring-2',
-      'focus:ring-brand-500'
-    )
+    await user.click(screen.getByRole('button', { name: /select language/i }))
+    expect(screen.getByRole('listbox')).toBeInTheDocument()
+    fireEvent.mouseDown(document.body)
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+  })
+
+  it('marks current language option as selected', async () => {
+    const user = userEvent.setup()
+    render(<LanguageSwitcher />)
+    await user.click(screen.getByRole('button', { name: /select language/i }))
+    const options = screen.getAllByRole('option')
+    expect(options[0]).toHaveAttribute('aria-selected', 'true')
+    expect(options[1]).toHaveAttribute('aria-selected', 'false')
   })
 
   it('falls back to i18n.language when resolvedLanguage is undefined', () => {
     mockResolvedLanguage = undefined
     render(<LanguageSwitcher />)
-    const select = screen.getByRole('combobox') as HTMLSelectElement
-    expect(select.value).toBe('en')
-    mockResolvedLanguage = 'en'
+    expect(screen.getByRole('button', { name: /select language/i })).toHaveTextContent('English')
+  })
+
+  it('dropdown opens downward by default (placement=down)', async () => {
+    const user = userEvent.setup()
+    render(<LanguageSwitcher />)
+    await user.click(screen.getByRole('button', { name: /select language/i }))
+    const listbox = screen.getByRole('listbox')
+    expect(listbox.className).toContain('top-full')
+  })
+
+  it('dropdown opens upward when placement=up', async () => {
+    const user = userEvent.setup()
+    render(<LanguageSwitcher placement="up" />)
+    await user.click(screen.getByRole('button', { name: /select language/i }))
+    const listbox = screen.getByRole('listbox')
+    expect(listbox.className).toContain('bottom-full')
   })
 })

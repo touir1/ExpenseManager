@@ -247,7 +247,7 @@
     "repeatPasswordRequired": "Please repeat your new password.",
     "passwordsNoMatch": "New passwords do not match.",
     "familyNameRequired": "Family name is required.",
-    "familyNameMax": "Family name must be at most 100 characters."
+    "familyNameMax": "Family name must be at most 30 characters."
   },
   "language": {
     "label": "Language",
