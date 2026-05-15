@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
@@ -19,17 +19,27 @@ export default function NavBar() {
   const { pathname } = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const loggingOutRef = useRef(false)
   const hamburgerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const wasOpenRef = useRef(false)
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
+    loggingOutRef.current = true
     logout()
-    navigate('/')
     setMobileOpen(false)
     setUserMenuOpen(false)
-  }
+  }, [logout])
+
+  useEffect(() => {
+    if (loggingOutRef.current && !isAuthenticated) {
+      loggingOutRef.current = false
+      // Defer past the same-commit effects batch so ProtectedRoute's <Navigate>
+      // replaceState fires first; our pushState('/') then overrides it.
+      Promise.resolve().then(() => navigate('/'))
+    }
+  }, [isAuthenticated, navigate])
 
   const familiesClass = pathname === '/families' ? activeNavClass : inactiveNavClass
   const settingsClass =

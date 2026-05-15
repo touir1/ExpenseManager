@@ -44,3 +44,6 @@ infrastructure/configs/nginx/sites-enabled/
 
 # Graphify
 graphify-out/
+
+# C# Dev kit
+*.lscache

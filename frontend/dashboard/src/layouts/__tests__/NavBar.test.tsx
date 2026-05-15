@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import NavBar from '@/layouts/NavBar'
@@ -167,12 +167,25 @@ describe('NavBar', () => {
       mockUseAuth.mockReturnValue({ isAuthenticated: true, logout })
       const user = userEvent.setup()
 
-      renderNavBar('/dashboard')
+      const { rerender } = renderNavBar('/dashboard')
 
       const signOut = screen.getAllByRole('button', { name: /sign out/i })[0]
       await user.click(signOut)
 
       expect(logout).toHaveBeenCalledOnce()
+
+      // Simulate auth state update — useEffect fires navigate('/') only when loggingOut && !isAuthenticated
+      mockUseAuth.mockReturnValue({ isAuthenticated: false, logout })
+      await act(async () => {
+        rerender(
+          <MemoryRouter initialEntries={['/dashboard']}>
+            <Routes>
+              <Route path="*" element={<NavBar />} />
+            </Routes>
+          </MemoryRouter>
+        )
+      })
+
       expect(mockNavigate).toHaveBeenCalledWith('/')
     })
   })
@@ -317,7 +330,7 @@ describe('NavBar', () => {
       const logout = vi.fn()
       mockUseAuth.mockReturnValue({ isAuthenticated: true, logout })
       const user = userEvent.setup()
-      renderNavBar('/dashboard')
+      const { rerender } = renderNavBar('/dashboard')
 
       await user.click(screen.getByRole('button', { name: /toggle menu/i }))
 
@@ -325,6 +338,19 @@ describe('NavBar', () => {
       await user.click(mobileSignOut)
 
       expect(logout).toHaveBeenCalledOnce()
+
+      // Simulate auth state update — useEffect fires navigate('/') only when loggingOut && !isAuthenticated
+      mockUseAuth.mockReturnValue({ isAuthenticated: false, logout })
+      await act(async () => {
+        rerender(
+          <MemoryRouter initialEntries={['/dashboard']}>
+            <Routes>
+              <Route path="*" element={<NavBar />} />
+            </Routes>
+          </MemoryRouter>
+        )
+      })
+
       expect(mockNavigate).toHaveBeenCalledWith('/')
     })
 
