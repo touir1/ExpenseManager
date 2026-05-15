@@ -709,5 +709,15 @@ describe('FamiliesPage', () => {
       await user.click(inner)
       expect(screen.getByText('families.createTitle')).toBeInTheDocument()
     })
+
+    it('closes modal when Escape key is pressed', async () => {
+      makeCtx()
+      const user = userEvent.setup()
+      render(<FamiliesPage />)
+      await user.click(screen.getByRole('button', { name: /families\.createAction/i }))
+      expect(screen.getByText('families.createTitle')).toBeInTheDocument()
+      await user.keyboard('{Escape}')
+      expect(screen.queryByText('families.createTitle')).not.toBeInTheDocument()
+    })
   })
 })
