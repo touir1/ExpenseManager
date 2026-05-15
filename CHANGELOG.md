@@ -3,6 +3,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.97.0] - 2026-05-15
+### Changed
+- **Frontend — NavBar and user menu redesign**:
+  - **`NavBar.tsx`** (authenticated): `FamilySelector` moved from left nav to right-side controls (before notification button and user avatar). Notification bell button added between family selector and user menu (placeholder, does nothing). User menu dropdown: Settings link now shows a cog icon; language section restructured as a labeled row (`Language` label + `LanguageSwitcher` inline); Sign out button now shows a logout icon. Dropdown width increased to `w-56` to accommodate the labeled language row.
+  - **`NavBar.tsx`** (unauthenticated / desktop): `LanguageSwitcher` now shown in the desktop nav right-side controls (before Sign in / Get started) so language can be changed without logging in.
+  - **`LanguageSwitcher.tsx`**: Flag emoji prepended to each language option (🇬🇧 English, 🇫🇷 Français, 🇪🇸 Español, 🇩🇪 Deutsch).
+  - **`SettingsPage.tsx`**: Language card removed — language is now exclusively configurable from the NavBar user menu (both authenticated dropdown and unauthenticated desktop nav) and the mobile menu.
+  - **i18n** (`en/fr/es/de` `translation.json`): Added `nav.notifications` key.
+  - **Tests**: `NavBar.test.tsx` — 3 active-link-styling Settings finders updated from `a.textContent === 'Settings'` to `a.textContent?.trim() === 'Settings'` (Settings link now has SVG child, adding whitespace to `textContent`).
+
 ## [0.96.2] - 2026-05-15
 ### Fixed
 - **Sign out still redirected to `/login` with deferred `useState` pattern**: Root cause was that `ProtectedRoute`'s `<Navigate to="/login" replace />` effect fires in the same React commit as NavBar's `useEffect`, but later (tree order: NavBar is earlier). NavBar's `navigate('/')` (pushState) ran first, then ProtectedRoute's effect ran `replaceState('/login')`, overwriting it. Fix: wrap `navigate('/')` in `Promise.resolve().then(...)` so it fires as a microtask, after all same-commit effects including ProtectedRoute's redirect, letting the push to `/` be the final history entry. Also switched from `useState` loggingOut flag to `useRef` to avoid urgent re-render interrupting React Router's startTransition.

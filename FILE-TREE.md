@@ -565,7 +565,7 @@ ExpenseManager/
 │           │   ├── dashboard/         — Authenticated dashboard feature
 │           │   │   └── pages/
 │           │   │       ├── HomeDashboardPage.tsx — Dashboard home; shows user greeting and cards
-│           │   │       ├── SettingsPage.tsx       — Settings hub; links to sub-sections
+│           │   │       ├── SettingsPage.tsx       — Settings hub; password card (link to /change-password)
 │           │   │       └── __tests__/
 │           │   │           ├── HomeDashboardPage.test.tsx
 │           │   │           └── SettingsPage.test.tsx
@@ -585,7 +585,7 @@ ExpenseManager/
 │           ├── hooks/                 — Shared hooks
 │           │   └── usePageTitle.ts    — Sets document.title per page
 │           ├── layouts/               — App-wide layout components
-│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive; includes FamilySelector for authenticated users
+│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive; right-side controls: FamilySelector → notification bell → user avatar dropdown (cog Settings, labeled LanguageSwitcher, logout-icon Sign out); unauthenticated desktop nav also shows LanguageSwitcher
 │           │   └── __tests__/
 │           │       └── NavBar.test.tsx
 │           ├── services/              — Shared base services

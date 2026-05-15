@@ -221,7 +221,7 @@ describe('NavBar', () => {
 
       const nav = screen.getByRole('navigation')
       const settingsLink = Array.from(nav.querySelectorAll('a')).find(
-        a => a.textContent === 'Settings'
+        a => a.textContent?.trim() === 'Settings'
       )
       expect(settingsLink).toHaveClass('text-ink-mute')
       expect(settingsLink).not.toHaveClass('bg-brand-100')
@@ -233,7 +233,7 @@ describe('NavBar', () => {
 
       const nav = screen.getByRole('navigation')
       const settingsLink = Array.from(nav.querySelectorAll('a')).find(
-        a => a.textContent === 'Settings'
+        a => a.textContent?.trim() === 'Settings'
       )
       expect(settingsLink).toHaveClass('bg-brand-100', 'text-brand-600')
     })
@@ -244,7 +244,7 @@ describe('NavBar', () => {
 
       const nav = screen.getByRole('navigation')
       const settingsLink = Array.from(nav.querySelectorAll('a')).find(
-        a => a.textContent === 'Settings'
+        a => a.textContent?.trim() === 'Settings'
       )
       expect(settingsLink).toHaveClass('bg-brand-100', 'text-brand-600')
     })

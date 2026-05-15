@@ -14,7 +14,8 @@
     "howItWorks": "Comment ça marche",
     "forFamilies": "Pour les familles",
     "pricing": "Tarifs",
-    "help": "Aide"
+    "help": "Aide",
+    "notifications": "Notifications"
   },
   "auth": {
     "login": {
