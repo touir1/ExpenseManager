@@ -33,7 +33,7 @@ export default function FamilySelector() {
       <button
         onClick={() => setOpen(v => !v)}
         className="flex items-center gap-1.5 text-sm font-medium px-2.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors duration-150 cursor-pointer"
-        aria-haspopup="listbox"
+        aria-haspopup="menu"
         aria-expanded={open}
       >
         <svg className="h-3.5 w-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -47,12 +47,12 @@ export default function FamilySelector() {
 
       {open && (
         <div
-          role="listbox"
+          role="menu"
           className="absolute right-0 top-full mt-1 w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50"
         >
           <button
-            role="option"
-            aria-selected={activeFamilyId === null}
+            role="menuitemradio"
+            aria-checked={activeFamilyId === null}
             onClick={() => { setActiveFamilyId(null); setOpen(false) }}
             className={`w-full text-left px-3 py-2 text-sm transition-colors duration-100 cursor-pointer ${
               activeFamilyId === null
@@ -66,8 +66,8 @@ export default function FamilySelector() {
           {activeFamilies.filter(f => !f.isDefault).map(family => (
             <button
               key={family.id}
-              role="option"
-              aria-selected={activeFamilyId === family.id}
+              role="menuitemradio"
+              aria-checked={activeFamilyId === family.id}
               onClick={() => { setActiveFamilyId(family.id); setOpen(false) }}
               className={`w-full text-left px-3 py-2 text-sm truncate transition-colors duration-100 cursor-pointer ${
                 activeFamilyId === family.id

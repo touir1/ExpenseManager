@@ -176,7 +176,7 @@ export default function NavBar() {
                     <div className="border-t border-surface-border my-1" />
                     <div className="px-3 py-1.5 flex items-center gap-2">
                       <span className="text-sm font-semibold text-ink-mute shrink-0">{t('language.label')}</span>
-                      <LanguageSwitcher placement="up" />
+                      <LanguageSwitcher />
                     </div>
                     <div className="border-t border-surface-border my-1" />
                     <button
@@ -317,7 +317,7 @@ export default function NavBar() {
             </>
           )}
           <div className="mt-1">
-            <LanguageSwitcher placement="up" />
+            <LanguageSwitcher />
           </div>
         </nav>
       )}

@@ -240,14 +240,12 @@ describe('FamiliesPage', () => {
       expect(screen.getByText('families.default')).toBeInTheDocument()
     })
 
-    it('shows archived badge for archived family', () => {
+    it('shows archived badge for archived family', async () => {
       makeCtx({ families: [mockArchivedFamily] })
+      const user = userEvent.setup()
       render(<FamiliesPage />)
-      // need to switch to archived tab first
-      // Actually archived families are shown on archived tab
-      // But FamilyCard renders on whatever tab shows them
-      // Let's put an archived one that also appears on active tab for this test
-      // Actually archived ones won't show on active tab. Let's just check on archived tab.
+      await user.click(screen.getByRole('button', { name: /tabArchived/i }))
+      expect(screen.getByText('families.archived')).toBeInTheDocument()
     })
 
     it('shows role badge', () => {

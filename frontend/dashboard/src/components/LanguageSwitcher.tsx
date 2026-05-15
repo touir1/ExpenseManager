@@ -44,7 +44,7 @@ const LANGUAGES = [
 ] as const
 
 interface Props {
-  placement?: 'down' | 'up'
+  readonly placement?: 'down' | 'up'
 }
 
 export default function LanguageSwitcher({ placement = 'down' }: Props) {
@@ -72,7 +72,7 @@ export default function LanguageSwitcher({ placement = 'down' }: Props) {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(o => !o)}
-        aria-haspopup="listbox"
+        aria-haspopup="menu"
         aria-expanded={open}
         aria-label={t('language.label')}
         className="flex items-center gap-1.5 text-sm font-medium px-2.5 py-1.5 rounded-lg text-ink-mute hover:text-ink hover:bg-surface-subtle transition-colors duration-150 cursor-pointer"
@@ -88,27 +88,28 @@ export default function LanguageSwitcher({ placement = 'down' }: Props) {
       </button>
 
       {open && (
-        <ul
-          role="listbox"
+        <div
+          role="menu"
           aria-label={t('language.label')}
           className={`${dropdownClass} w-36 bg-surface-card border border-surface-border rounded-xl py-1 z-50 shadow-lg`}
         >
           {LANGUAGES.map(({ code, key, Flag }) => (
-            <li key={code} role="option" aria-selected={code === current.code}>
-              <button
-                onClick={() => { i18n.changeLanguage(code); setOpen(false) }}
-                className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors duration-100 cursor-pointer ${
-                  code === current.code
-                    ? 'text-brand-700 bg-brand-50 font-medium'
-                    : 'text-ink-body hover:bg-surface-subtle'
-                }`}
-              >
-                <Flag />
-                {t(key)}
-              </button>
-            </li>
+            <button
+              key={code}
+              role="menuitemradio"
+              aria-checked={code === current.code}
+              onClick={() => { i18n.changeLanguage(code); setOpen(false) }}
+              className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors duration-100 cursor-pointer ${
+                code === current.code
+                  ? 'text-brand-700 bg-brand-50 font-medium'
+                  : 'text-ink-body hover:bg-surface-subtle'
+              }`}
+            >
+              <Flag />
+              {t(key)}
+            </button>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   )

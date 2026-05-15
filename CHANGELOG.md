@@ -3,6 +3,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.97.3] - 2026-05-15
+### Fixed
+- **Sonar static analysis — backend and frontend**: Resolved all flagged issues across FamilyService, FamilyContext, LanguageSwitcher, FamilySelector, FamiliesPage, and HomePublicPage.
+  - **`FamilyService.cs`**: Extracted `"Member"` and `"Head"` string literals to `private const string RoleMember` / `RoleHead` (used 4+ times each).
+  - **`FamilyContext.tsx`**: `parseInt` → `Number.parseInt` (2 occurrences); renamed useState destructure to `activeFamilyIdRaw`/`setActiveFamilyIdRaw` to satisfy naming-convention rule for setter/state pair.
+  - **`LanguageSwitcher.tsx`**: `placement` prop wrapped in `Readonly<{}>`, `aria-haspopup="listbox"` → `"menu"`, dropdown changed from `role="listbox"` + `role="option"` + `aria-selected` to `role="menu"` + `role="menuitemradio"` + `aria-checked`.
+  - **`FamilySelector.tsx`**: Same ARIA pattern fix as LanguageSwitcher (`role="menu"`, `role="menuitemradio"`, `aria-checked`, `aria-haspopup="menu"`).
+  - **`FamiliesPage.tsx`**: All 7 inline component prop types wrapped in `Readonly<{}>` (`RoleBadge`, `Modal`, `CreateFamilyModal`, `RenameFamilyModal`, `InviteMemberModal`, `FamilyDetailPanel`, `FamilyCard`); Modal backdrop div gained `onKeyDown` (Escape closes) + `role="presentation"`; Modal content div gained `onKeyDown` stop-propagation; two nested ternaries extracted to `expandedContent` and `listContent` variables.
+  - **`HomePublicPage.tsx`**: Self-closing `<span ... />` before text node changed to explicit `<span ...></span>`.
+  - **Tests updated**: `LanguageSwitcher.test.tsx`, `FamilySelector.test.tsx`, `FamiliesPage.test.tsx` updated to match new ARIA roles/attributes; empty assertion test `'shows archived badge for archived family'` filled in.
+
 ## [0.97.2] - 2026-05-15
 ### Changed
 - **LanguageSwitcher — trigger button styled to match FamilySelector**: Removed border (`border border-surface-border`), orange focus ring (`focus:ring-2 focus:ring-brand-500`), and `bg-transparent`. Now uses `font-medium px-2.5 py-1.5 rounded-lg text-ink-mute hover:text-ink hover:bg-surface-subtle` — identical pattern to the `FamilySelector` navbar button. Also removed custom `boxShadow` inline style from the dropdown list; uses plain `shadow-lg`.

@@ -28,7 +28,7 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function RoleBadge({ role }: { role: string }) {
+function RoleBadge({ role }: Readonly<{ role: string }>) {
   const isHead = role === 'Head'
   return (
     <span
@@ -47,19 +47,22 @@ function Modal({
   title,
   onClose,
   children,
-}: {
+}: Readonly<{
   title: string
   onClose: () => void
   children: React.ReactNode
-}) {
+}>) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
       onClick={onClose}
+      onKeyDown={(e) => { if (e.key === 'Escape') onClose() }}
+      role="presentation"
     >
       <div
         className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md mx-4 p-6"
         onClick={e => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-semibold text-slate-900">{title}</h2>
@@ -81,7 +84,7 @@ function Modal({
 
 // ── Create Family Modal ────────────────────────────────────────────────────
 
-function CreateFamilyModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+function CreateFamilyModal({ onClose, onCreated }: Readonly<{ onClose: () => void; onCreated: () => void }>) {
   const { t } = useTranslation()
   const { show } = useToast()
   const schema = useMemo(() => makeCreateFamilySchema(t), [t])
@@ -128,11 +131,11 @@ function RenameFamilyModal({
   family,
   onClose,
   onRenamed,
-}: {
+}: Readonly<{
   family: Family
   onClose: () => void
   onRenamed: () => void
-}) {
+}>) {
   const { t } = useTranslation()
   const { show } = useToast()
   const schema = useMemo(() => makeRenameFamilySchema(t), [t])
@@ -178,10 +181,10 @@ function RenameFamilyModal({
 function InviteMemberModal({
   family,
   onClose,
-}: {
+}: Readonly<{
   family: Family
   onClose: () => void
-}) {
+}>) {
   const { t } = useTranslation()
   const { show } = useToast()
   const schema = useMemo(() => makeInviteMemberSchema(t), [t])
@@ -229,11 +232,11 @@ function FamilyDetailPanel({
   family,
   detail,
   onRefresh,
-}: {
+}: Readonly<{
   family: Family
   detail: FamilyDetail
   onRefresh: () => void
-}) {
+}>) {
   const { t } = useTranslation()
   const { show } = useToast()
   const [showInvite, setShowInvite] = useState(false)
@@ -325,10 +328,10 @@ function FamilyDetailPanel({
 function FamilyCard({
   family,
   onRefresh,
-}: {
+}: Readonly<{
   family: Family
   onRefresh: () => void
-}) {
+}>) {
   const { t } = useTranslation()
   const { show } = useToast()
   const [expanded, setExpanded] = useState(false)
@@ -366,6 +369,23 @@ function FamilyCard({
       onRefresh()
     }
   }
+
+  const expandedContent = loadingDetail ? (
+    <div className="mt-4 pt-4 border-t border-slate-100 animate-pulse space-y-2">
+      {[0, 1].map(i => (
+        <div key={i} className="flex items-center gap-3">
+          <div className="h-3 bg-slate-100 rounded w-32" />
+          <div className="h-3 bg-slate-100 rounded w-20" />
+        </div>
+      ))}
+    </div>
+  ) : detail ? (
+    <FamilyDetailPanel
+      family={family}
+      detail={detail}
+      onRefresh={handleDetailRefresh}
+    />
+  ) : null
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-card p-5">
@@ -444,24 +464,7 @@ function FamilyCard({
         </div>
       </div>
 
-      {expanded && (
-        loadingDetail ? (
-          <div className="mt-4 pt-4 border-t border-slate-100 animate-pulse space-y-2">
-            {[0, 1].map(i => (
-              <div key={i} className="flex items-center gap-3">
-                <div className="h-3 bg-slate-100 rounded w-32" />
-                <div className="h-3 bg-slate-100 rounded w-20" />
-              </div>
-            ))}
-          </div>
-        ) : detail ? (
-          <FamilyDetailPanel
-            family={family}
-            detail={detail}
-            onRefresh={handleDetailRefresh}
-          />
-        ) : null
-      )}
+      {expanded && expandedContent}
 
       {showRename && (
         <RenameFamilyModal
@@ -499,6 +502,29 @@ export default function FamiliesPage() {
   )
 
   const displayed = tab === 'active' ? activeFamilies : archivedFamilies
+
+  const listContent = isLoading ? (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {[0, 1, 2].map(i => (
+        <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-card p-5 animate-pulse">
+          <div className="h-4 bg-slate-200 rounded w-32 mb-2" />
+          <div className="h-3 bg-slate-100 rounded w-20" />
+        </div>
+      ))}
+    </div>
+  ) : displayed.length === 0 ? (
+    <div className="text-center py-16">
+      <p className="text-sm text-slate-400">
+        {tab === 'active' ? t('families.emptyActive') : t('families.emptyArchived')}
+      </p>
+    </div>
+  ) : (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {displayed.map(family => (
+        <FamilyCard key={family.id} family={family} onRefresh={refresh} />
+      ))}
+    </div>
+  )
 
   const tabClass = (t: Tab) =>
     `px-3 py-1.5 text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer ${
@@ -538,28 +564,7 @@ export default function FamiliesPage() {
       </div>
 
       {/* List */}
-      {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {[0, 1, 2].map(i => (
-            <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-card p-5 animate-pulse">
-              <div className="h-4 bg-slate-200 rounded w-32 mb-2" />
-              <div className="h-3 bg-slate-100 rounded w-20" />
-            </div>
-          ))}
-        </div>
-      ) : displayed.length === 0 ? (
-        <div className="text-center py-16">
-          <p className="text-sm text-slate-400">
-            {tab === 'active' ? t('families.emptyActive') : t('families.emptyArchived')}
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {displayed.map(family => (
-            <FamilyCard key={family.id} family={family} onRefresh={refresh} />
-          ))}
-        </div>
-      )}
+      {listContent}
 
       {showCreate && (
         <CreateFamilyModal

@@ -11,6 +11,9 @@ namespace Touir.ExpensesManager.Expenses.Services
 {
     public class FamilyService : IFamilyService
     {
+        private const string RoleMember = "Member";
+        private const string RoleHead = "Head";
+
         private readonly IFamilyRepository _familyRepo;
         private readonly IUserRepository _userRepo;
         private readonly ILookupCacheService _lookupCache;
@@ -29,7 +32,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             if (await _familyRepo.HasDefaultFamilyAsync(userId))
                 return;
 
-            var headId = await _lookupCache.GetIdAsync<FamilyRole>("Head");
+            var headId = await _lookupCache.GetIdAsync<FamilyRole>(RoleHead);
             var family = new Family
             {
                 Name = "Default",
@@ -49,7 +52,7 @@ namespace Touir.ExpensesManager.Expenses.Services
 
         public async Task<FamilyDto> CreateAsync(string name, int userId)
         {
-            var headId = await _lookupCache.GetIdAsync<FamilyRole>("Head");
+            var headId = await _lookupCache.GetIdAsync<FamilyRole>(RoleHead);
             var family = new Family
             {
                 Name = name,
@@ -65,13 +68,13 @@ namespace Touir.ExpensesManager.Expenses.Services
             };
 
             await _familyRepo.CreateAsync(family, membership);
-            return MapToDto(family, "Head");
+            return MapToDto(family, RoleHead);
         }
 
         public async Task<IEnumerable<FamilyDto>> GetByUserAsync(int userId)
         {
             var families = await _familyRepo.GetFamiliesByUserAsync(userId);
-            return families.Select(f => MapToDto(f.Family, f.Membership.Role?.Name ?? "Member"));
+            return families.Select(f => MapToDto(f.Family, f.Membership.Role?.Name ?? RoleMember));
         }
 
         public async Task<FamilyDetailDto> GetByIdAsync(int id, int userId)
@@ -89,7 +92,7 @@ namespace Touir.ExpensesManager.Expenses.Services
                 Name = family.Name,
                 IsDefault = family.IsDefault,
                 IsArchived = family.IsDeleted,
-                UserRole = userMembership.Role?.Name ?? "Member",
+                UserRole = userMembership.Role?.Name ?? RoleMember,
                 CreatedAt = family.CreatedAt,
                 Members = members.Select(m => new FamilyMemberDto
                 {
@@ -97,7 +100,7 @@ namespace Touir.ExpensesManager.Expenses.Services
                     FirstName = m.User?.FirstName ?? string.Empty,
                     LastName = m.User?.LastName ?? string.Empty,
                     Email = m.User?.Email ?? string.Empty,
-                    Role = m.Role?.Name ?? "Member",
+                    Role = m.Role?.Name ?? RoleMember,
                     JoinedAt = m.JoinedAt
                 })
             };
@@ -111,13 +114,13 @@ namespace Touir.ExpensesManager.Expenses.Services
             var membership = await _familyRepo.GetMembershipAsync(id, userId)
                 ?? throw new FamilyForbiddenException();
 
-            var headId = await _lookupCache.GetIdAsync<FamilyRole>("Head");
+            var headId = await _lookupCache.GetIdAsync<FamilyRole>(RoleHead);
             if (membership.RoleId != headId)
                 throw new FamilyForbiddenException();
 
             family.Name = name;
             await _familyRepo.UpdateFamilyAsync(family);
-            return MapToDto(family, membership.Role?.Name ?? "Head");
+            return MapToDto(family, membership.Role?.Name ?? RoleHead);
         }
 
         public async Task<string> InviteAsync(int familyId, string email, int invitedById)
@@ -125,7 +128,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             var membership = await _familyRepo.GetMembershipAsync(familyId, invitedById)
                 ?? throw new FamilyForbiddenException();
 
-            var headId = await _lookupCache.GetIdAsync<FamilyRole>("Head");
+            var headId = await _lookupCache.GetIdAsync<FamilyRole>(RoleHead);
             if (membership.RoleId != headId)
                 throw new FamilyForbiddenException();
 
@@ -170,7 +173,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             if (await _familyRepo.IsMemberAsync(invitation.FamilyId, userId))
                 throw new FamilyConflictException("FAMILY_ALREADY_MEMBER");
 
-            var memberId = await _lookupCache.GetIdAsync<FamilyRole>("Member");
+            var memberId = await _lookupCache.GetIdAsync<FamilyRole>(RoleMember);
             var membershipEntry = new FamilyMembership
             {
                 FamilyId = invitation.FamilyId,
@@ -190,7 +193,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             var removerMembership = await _familyRepo.GetMembershipAsync(familyId, removedById)
                 ?? throw new FamilyForbiddenException();
 
-            var headId = await _lookupCache.GetIdAsync<FamilyRole>("Head");
+            var headId = await _lookupCache.GetIdAsync<FamilyRole>(RoleHead);
             if (removerMembership.RoleId != headId)
                 throw new FamilyForbiddenException();
 
@@ -209,7 +212,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             var changerMembership = await _familyRepo.GetMembershipAsync(familyId, changedById)
                 ?? throw new FamilyForbiddenException();
 
-            var headId = await _lookupCache.GetIdAsync<FamilyRole>("Head");
+            var headId = await _lookupCache.GetIdAsync<FamilyRole>(RoleHead);
             if (changerMembership.RoleId != headId)
                 throw new FamilyForbiddenException();
 
@@ -232,7 +235,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             var membership = await _familyRepo.GetMembershipAsync(familyId, userId)
                 ?? throw new FamilyForbiddenException();
 
-            var headId = await _lookupCache.GetIdAsync<FamilyRole>("Head");
+            var headId = await _lookupCache.GetIdAsync<FamilyRole>(RoleHead);
             if (membership.RoleId != headId)
                 throw new FamilyForbiddenException();
 
@@ -249,7 +252,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             var membership = await _familyRepo.GetMembershipAsync(familyId, userId)
                 ?? throw new FamilyForbiddenException();
 
-            var headId = await _lookupCache.GetIdAsync<FamilyRole>("Head");
+            var headId = await _lookupCache.GetIdAsync<FamilyRole>(RoleHead);
             if (membership.RoleId != headId)
                 throw new FamilyForbiddenException();
 

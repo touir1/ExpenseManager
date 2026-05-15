@@ -19,9 +19,9 @@ export function FamilyProvider({ children }: Readonly<{ children: ReactNode }>) 
   const { isAuthenticated } = useAuth()
   const [families, setFamilies] = useState<Family[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [activeFamilyId, setActiveFamilyIdState] = useState<number | null>(() => {
+  const [activeFamilyIdRaw, setActiveFamilyIdRaw] = useState<number | null>(() => {
     const stored = localStorage.getItem(ACTIVE_FAMILY_KEY)
-    return stored ? parseInt(stored, 10) : null
+    return stored ? Number.parseInt(stored, 10) : null
   })
 
   const load = useCallback(async () => {
@@ -32,11 +32,11 @@ export function FamilyProvider({ children }: Readonly<{ children: ReactNode }>) 
       // If stored active family is no longer valid, clear it
       const stored = localStorage.getItem(ACTIVE_FAMILY_KEY)
       if (stored) {
-        const storedId = parseInt(stored, 10)
+        const storedId = Number.parseInt(stored, 10)
         const stillMember = res.data.some(f => f.id === storedId && !f.isArchived)
         if (!stillMember) {
           localStorage.removeItem(ACTIVE_FAMILY_KEY)
-          setActiveFamilyIdState(null)
+          setActiveFamilyIdRaw(null)
         }
       }
     }
@@ -48,13 +48,13 @@ export function FamilyProvider({ children }: Readonly<{ children: ReactNode }>) 
       load()
     } else {
       setFamilies([])
-      setActiveFamilyIdState(null)
+      setActiveFamilyIdRaw(null)
       localStorage.removeItem(ACTIVE_FAMILY_KEY)
     }
   }, [isAuthenticated, load])
 
   const setActiveFamilyId = useCallback((id: number | null) => {
-    setActiveFamilyIdState(id)
+    setActiveFamilyIdRaw(id)
     if (id === null) {
       localStorage.removeItem(ACTIVE_FAMILY_KEY)
     } else {
@@ -63,8 +63,8 @@ export function FamilyProvider({ children }: Readonly<{ children: ReactNode }>) 
   }, [])
 
   const value = useMemo<FamilyContextValue>(
-    () => ({ families, activeFamilyId, setActiveFamilyId, isLoading, refresh: load }),
-    [families, activeFamilyId, setActiveFamilyId, isLoading, load]
+    () => ({ families, activeFamilyId: activeFamilyIdRaw, setActiveFamilyId, isLoading, refresh: load }),
+    [families, activeFamilyIdRaw, setActiveFamilyId, isLoading, load]
   )
 
   return <FamilyContext.Provider value={value}>{children}</FamilyContext.Provider>

@@ -85,7 +85,7 @@ describe('FamilySelector', () => {
   it('dropdown is not visible initially', () => {
     makeFamilies()
     render(<FamilySelector />)
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
 
   it('opens dropdown when toggle button is clicked', async () => {
@@ -93,7 +93,7 @@ describe('FamilySelector', () => {
     const user = userEvent.setup()
     render(<FamilySelector />)
     await user.click(screen.getByRole('button'))
-    expect(screen.getByRole('listbox')).toBeInTheDocument()
+    expect(screen.getByRole('menu')).toBeInTheDocument()
   })
 
   it('shows selectorPersonal option in dropdown', async () => {
@@ -101,7 +101,7 @@ describe('FamilySelector', () => {
     const user = userEvent.setup()
     render(<FamilySelector />)
     await user.click(screen.getByRole('button'))
-    const options = screen.getAllByRole('option')
+    const options = screen.getAllByRole('menuitemradio')
     expect(options[0].textContent).toBe('families.selectorPersonal')
   })
 
@@ -110,7 +110,7 @@ describe('FamilySelector', () => {
     const user = userEvent.setup()
     render(<FamilySelector />)
     await user.click(screen.getByRole('button'))
-    expect(screen.getByRole('option', { name: 'Holiday' })).toBeInTheDocument()
+    expect(screen.getByRole('menuitemradio', { name: 'Holiday' })).toBeInTheDocument()
   })
 
   it('does not show default family as a selectable option in dropdown', async () => {
@@ -118,7 +118,7 @@ describe('FamilySelector', () => {
     const user = userEvent.setup()
     render(<FamilySelector />)
     await user.click(screen.getByRole('button'))
-    const options = screen.getAllByRole('option')
+    const options = screen.getAllByRole('menuitemradio')
     expect(options.map(o => o.textContent)).not.toContain('Smith household')
   })
 
@@ -128,7 +128,7 @@ describe('FamilySelector', () => {
     const user = userEvent.setup()
     render(<FamilySelector />)
     await user.click(screen.getByRole('button'))
-    await user.click(screen.getAllByRole('option')[0])
+    await user.click(screen.getAllByRole('menuitemradio')[0])
     expect(setActiveFamilyId).toHaveBeenCalledWith(null)
   })
 
@@ -138,7 +138,7 @@ describe('FamilySelector', () => {
     const user = userEvent.setup()
     render(<FamilySelector />)
     await user.click(screen.getByRole('button'))
-    await user.click(screen.getByRole('option', { name: 'Holiday' }))
+    await user.click(screen.getByRole('menuitemradio', { name: 'Holiday' }))
     expect(setActiveFamilyId).toHaveBeenCalledWith(2)
   })
 
@@ -147,8 +147,8 @@ describe('FamilySelector', () => {
     const user = userEvent.setup()
     render(<FamilySelector />)
     await user.click(screen.getByRole('button'))
-    await user.click(screen.getAllByRole('option')[0])
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    await user.click(screen.getAllByRole('menuitemradio')[0])
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
 
   it('closes dropdown when clicking outside', async () => {
@@ -156,15 +156,15 @@ describe('FamilySelector', () => {
     const user = userEvent.setup()
     render(<FamilySelector />)
     await user.click(screen.getByRole('button'))
-    expect(screen.getByRole('listbox')).toBeInTheDocument()
+    expect(screen.getByRole('menu')).toBeInTheDocument()
     fireEvent.mouseDown(document.body)
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
 
-  it('toggle button has aria-haspopup=listbox', () => {
+  it('toggle button has aria-haspopup=menu', () => {
     makeFamilies()
     render(<FamilySelector />)
-    expect(screen.getByRole('button')).toHaveAttribute('aria-haspopup', 'listbox')
+    expect(screen.getByRole('button')).toHaveAttribute('aria-haspopup', 'menu')
   })
 
   it('toggle button aria-expanded is false when closed', () => {
@@ -181,19 +181,19 @@ describe('FamilySelector', () => {
     expect(screen.getByRole('button')).toHaveAttribute('aria-expanded', 'true')
   })
 
-  it('selectorPersonal option has aria-selected=true when activeFamilyId is null', async () => {
+  it('selectorPersonal option has aria-checked=true when activeFamilyId is null', async () => {
     makeFamilies()
     const user = userEvent.setup()
     render(<FamilySelector />)
     await user.click(screen.getByRole('button'))
-    expect(screen.getAllByRole('option')[0]).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getAllByRole('menuitemradio')[0]).toHaveAttribute('aria-checked', 'true')
   })
 
-  it('family option has aria-selected=true when it is active', async () => {
+  it('family option has aria-checked=true when it is active', async () => {
     makeFamilies({ families: [mockFamily, mockFamily2], activeFamilyId: 2 })
     const user = userEvent.setup()
     render(<FamilySelector />)
     await user.click(screen.getByRole('button'))
-    expect(screen.getByRole('option', { name: 'Holiday' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('menuitemradio', { name: 'Holiday' })).toHaveAttribute('aria-checked', 'true')
   })
 })

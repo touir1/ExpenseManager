@@ -44,7 +44,7 @@ describe('LanguageSwitcher', () => {
 
   it('does not show options before button is clicked', () => {
     render(<LanguageSwitcher />)
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
 
   it('opens dropdown and shows all 4 options on click', async () => {
@@ -53,8 +53,8 @@ describe('LanguageSwitcher', () => {
 
     await user.click(screen.getByRole('button', { name: /select language/i }))
 
-    expect(screen.getByRole('listbox')).toBeInTheDocument()
-    const options = screen.getAllByRole('option')
+    expect(screen.getByRole('menu')).toBeInTheDocument()
+    const options = screen.getAllByRole('menuitemradio')
     expect(options).toHaveLength(4)
     expect(options[0]).toHaveTextContent('English')
     expect(options[1]).toHaveTextContent('Français')
@@ -103,25 +103,25 @@ describe('LanguageSwitcher', () => {
     render(<LanguageSwitcher />)
     await user.click(screen.getByRole('button', { name: /select language/i }))
     await user.click(screen.getByText('Français'))
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
 
   it('closes dropdown on outside click', async () => {
     const user = userEvent.setup()
     render(<LanguageSwitcher />)
     await user.click(screen.getByRole('button', { name: /select language/i }))
-    expect(screen.getByRole('listbox')).toBeInTheDocument()
+    expect(screen.getByRole('menu')).toBeInTheDocument()
     fireEvent.mouseDown(document.body)
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
 
   it('marks current language option as selected', async () => {
     const user = userEvent.setup()
     render(<LanguageSwitcher />)
     await user.click(screen.getByRole('button', { name: /select language/i }))
-    const options = screen.getAllByRole('option')
-    expect(options[0]).toHaveAttribute('aria-selected', 'true')
-    expect(options[1]).toHaveAttribute('aria-selected', 'false')
+    const options = screen.getAllByRole('menuitemradio')
+    expect(options[0]).toHaveAttribute('aria-checked', 'true')
+    expect(options[1]).toHaveAttribute('aria-checked', 'false')
   })
 
   it('falls back to i18n.language when resolvedLanguage is undefined', () => {
@@ -134,15 +134,15 @@ describe('LanguageSwitcher', () => {
     const user = userEvent.setup()
     render(<LanguageSwitcher />)
     await user.click(screen.getByRole('button', { name: /select language/i }))
-    const listbox = screen.getByRole('listbox')
-    expect(listbox.className).toContain('top-full')
+    const menu = screen.getByRole('menu')
+    expect(menu.className).toContain('top-full')
   })
 
   it('dropdown opens upward when placement=up', async () => {
     const user = userEvent.setup()
     render(<LanguageSwitcher placement="up" />)
     await user.click(screen.getByRole('button', { name: /select language/i }))
-    const listbox = screen.getByRole('listbox')
-    expect(listbox.className).toContain('bottom-full')
+    const menu = screen.getByRole('menu')
+    expect(menu.className).toContain('bottom-full')
   })
 })
