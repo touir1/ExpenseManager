@@ -381,6 +381,14 @@ function FamilyCard({
     }
   }
 
+  const detailPanel = detail ? (
+    <FamilyDetailPanel
+      family={family}
+      detail={detail}
+      onRefresh={handleDetailRefresh}
+    />
+  ) : null
+
   const expandedContent = loadingDetail ? (
     <div className="mt-4 pt-4 border-t border-slate-100 animate-pulse space-y-2">
       {[0, 1].map(i => (
@@ -390,13 +398,7 @@ function FamilyCard({
         </div>
       ))}
     </div>
-  ) : detail ? (
-    <FamilyDetailPanel
-      family={family}
-      detail={detail}
-      onRefresh={handleDetailRefresh}
-    />
-  ) : null
+  ) : detailPanel
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-card p-5">
@@ -514,16 +516,7 @@ export default function FamiliesPage() {
 
   const displayed = tab === 'active' ? activeFamilies : archivedFamilies
 
-  const listContent = isLoading ? (
-    <div className="grid gap-4 sm:grid-cols-2">
-      {[0, 1, 2].map(i => (
-        <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-card p-5 animate-pulse">
-          <div className="h-4 bg-slate-200 rounded w-32 mb-2" />
-          <div className="h-3 bg-slate-100 rounded w-20" />
-        </div>
-      ))}
-    </div>
-  ) : displayed.length === 0 ? (
+  const familiesList = displayed.length === 0 ? (
     <div className="text-center py-16">
       <p className="text-sm text-slate-400">
         {tab === 'active' ? t('families.emptyActive') : t('families.emptyArchived')}
@@ -536,6 +529,17 @@ export default function FamiliesPage() {
       ))}
     </div>
   )
+
+  const listContent = isLoading ? (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {[0, 1, 2].map(i => (
+        <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-card p-5 animate-pulse">
+          <div className="h-4 bg-slate-200 rounded w-32 mb-2" />
+          <div className="h-3 bg-slate-100 rounded w-20" />
+        </div>
+      ))}
+    </div>
+  ) : familiesList
 
   const tabClass = (t: Tab) =>
     `px-3 py-1.5 text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer ${

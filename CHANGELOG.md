@@ -3,6 +3,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.99.0] - 2026-05-16
+### Fixed
+- **Sonar alerts — `TagInput.tsx`**: renamed `useTag` import alias to `adoptTag` (React hooks naming rule); removed `onClick` from wrapper div (a11y `no-static-element-interactions`); changed `role="listbox"` → `role="menu"` and `role="option"` → `role="menuitem"` on dropdown (avoid `prefer-tag-over-role`); added `aria-haspopup="menu"` + `aria-controls="tag-input-menu"`; `li` wrappers get `role="none"`/`role="presentation"`; interface fields now `readonly`.
+- **Sonar alert — `HomePublicPage.tsx`**: added explicit `{' '}` between dot `<span />` and adjacent text node (`react/jsx-child-element-spacing`).
+- **Sonar alerts — `FamiliesPage.tsx`**: extracted `detailPanel` constant to eliminate nested ternary in `expandedContent`; extracted `familiesList` constant to eliminate nested ternary in `listContent`.
+
+### Added
+- **`TagControllerTests.cs`** — 13 new backend unit tests covering all three `TagController` endpoints (`GetTagsAsync`, `UseTagAsync`, `RemoveTagAsync`): 401 no-cookie, 200 success, 404 not-found paths. Total backend: **338 tests** (was 325).
+- **`TagInput.test.tsx`** — 4 additional tests: `getTags ok=false` branch (tag list stays empty), `useTag ok=false` branch (onChange not called), `Enter` key selects first result, `Enter` key triggers create when no match. Total frontend: **515 tests** (was 511). Updated all role queries from `listbox`/`option` → `menu`/`menuitem`.
+
 ## [0.98.0] - 2026-05-16
 ### Added
 - **Phase 5 — Tags (backend + frontend)**

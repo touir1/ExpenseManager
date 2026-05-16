@@ -122,7 +122,7 @@ ExpenseManager/
 │   │   │   │       └── RabbitMQOptions.cs
 │   │   │   ├── Controllers/
 │   │   │   │   ├── CategoryController.cs    — GET /categories → IEnumerable<CategoryDto>
-│   │   │   │   ├── ControllerErrors.cs      — Shared internal static class: SERVER_ERROR, UNAUTHORIZED, EXPENSE_NOT_FOUND, MISSING_PARAMETERS
+│   │   │   │   ├── ControllerErrors.cs      — Shared internal static class: SERVER_ERROR, UNAUTHORIZED, EXPENSE_NOT_FOUND, MISSING_PARAMETERS, TAG_NOT_FOUND
 │   │   │   │   ├── CurrencyController.cs    — GET /currencies → IEnumerable<CurrencyDto>
 │   │   │   │   ├── ExpenseController.cs     — POST/PUT/DELETE/GET/GET(paged) /expenses; FamilyForbiddenException → 403 on create/update; tag visibility → 403 if tag not owned/co-member
 │   │   │   │   ├── FamilyController.cs      — 10 endpoints: list, detail, create, rename, archive, unarchive, invite, accept-invite, remove-member, change-role
@@ -249,7 +249,8 @@ ExpenseManager/
 │   │       │   ├── CategoryControllerTests.cs
 │   │       │   ├── CurrencyControllerTests.cs
 │   │       │   ├── ExpenseControllerTests.cs        — 12 tests: 401 no-cookie, 201/400/403 create, 404/200/403 update, 404/204 delete, 404/200 getById, 200 getPaged
-│   │       │   └── FamilyControllerTests.cs         — 30+ tests: 401 no-cookie paths, all 10 family endpoints (200/201/204/403/404/409 per action)
+│   │       │   ├── FamilyControllerTests.cs         — 30+ tests: 401 no-cookie paths, all 10 family endpoints (200/201/204/403/404/409 per action)
+│   │       │   └── TagControllerTests.cs            — 13 tests: 401 no-cookie × 3 endpoints, GetTags 200 (list/empty/family), UseTag 200 (new/existing), RemoveTag 204/404
 │   │       ├── Messaging/
 │   │       │   └── UserEventConsumerTests.cs        — 24 tests: constructor, ExecuteAsync, Dispose, OnMessageReceivedAsync (null msg, dedup, Created/Updated/Deleted/unknown/exception), HandleMessageAsync, UserEventMessage/UserEventType
 │   │       ├── Repositories/
@@ -572,7 +573,7 @@ ExpenseManager/
 │           │   │   └── components/
 │           │   │       ├── TagInput.tsx          — Combobox: grouped "My tags"/"Family tags" dropdown, chips, create option, keyboard (Enter/Escape/Backspace)
 │           │   │       └── __tests__/
-│           │   │           └── TagInput.test.tsx — 13 component tests
+│           │   │           └── TagInput.test.tsx — 17 component tests (role queries updated to menu/menuitem; added getTags/useTag error-path and Enter-key tests)
 │           │   ├── expenses/          — Expense management feature
 │           │   │   ├── types/
 │           │   │   │   └── expenses.type.ts     — Category, Subcategory, Currency types

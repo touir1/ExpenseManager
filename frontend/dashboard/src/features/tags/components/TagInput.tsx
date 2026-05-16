@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { getTags, useTag } from '@/features/tags/services/tagsApi.service'
+import { getTags, useTag as adoptTag } from '@/features/tags/services/tagsApi.service'
 import type { Tag, TagList } from '@/features/tags/types/tag.type'
 
 interface TagInputProps {
-  value: Tag[]
-  onChange: (tags: Tag[]) => void
+  readonly value: Tag[]
+  readonly onChange: (tags: Tag[]) => void
 }
 
 export default function TagInput({ value, onChange }: TagInputProps) {
@@ -50,7 +50,7 @@ export default function TagInput({ value, onChange }: TagInputProps) {
   }
 
   const handleCreate = async () => {
-    const res = await useTag(query.trim())
+    const res = await adoptTag(query.trim())
     if (res.ok && res.data) {
       select(res.data)
     }
@@ -82,10 +82,7 @@ export default function TagInput({ value, onChange }: TagInputProps) {
 
   return (
     <div ref={containerRef} className="relative">
-      <div
-        className="flex flex-wrap gap-1 p-1.5 min-h-[2.5rem] border border-slate-300 rounded-lg focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-brand-500 bg-white cursor-text"
-        onClick={() => inputRef.current?.focus()}
-      >
+      <div className="flex flex-wrap gap-1 p-1.5 min-h-[2.5rem] border border-slate-300 rounded-lg focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-brand-500 bg-white cursor-text">
         {value.map((tag, i) => (
           <span
             key={tag.id}
@@ -112,7 +109,8 @@ export default function TagInput({ value, onChange }: TagInputProps) {
           className="flex-1 min-w-[6rem] outline-none text-sm py-0.5 px-1 bg-transparent"
           aria-label="Tag input"
           aria-expanded={open && hasDropdown}
-          aria-haspopup="listbox"
+          aria-haspopup="menu"
+          aria-controls="tag-input-menu"
           role="combobox"
           aria-autocomplete="list"
         />
@@ -120,20 +118,20 @@ export default function TagInput({ value, onChange }: TagInputProps) {
 
       {open && hasDropdown && (
         <ul
-          role="listbox"
+          id="tag-input-menu"
+          role="menu"
           className="absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg py-1 max-h-60 overflow-y-auto"
         >
           {filteredOwn.length > 0 && (
             <>
-              <li className="px-3 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wide select-none">
+              <li role="presentation" className="px-3 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wide select-none">
                 My tags
               </li>
               {filteredOwn.map(tag => (
-                <li key={tag.id}>
+                <li key={tag.id} role="none">
                   <button
                     type="button"
-                    role="option"
-                    aria-selected={false}
+                    role="menuitem"
                     onClick={() => select(tag)}
                     className="w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer"
                   >
@@ -146,15 +144,14 @@ export default function TagInput({ value, onChange }: TagInputProps) {
 
           {filteredFamily.length > 0 && (
             <>
-              <li className="px-3 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wide select-none">
+              <li role="presentation" className="px-3 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wide select-none">
                 Family tags
               </li>
               {filteredFamily.map(tag => (
-                <li key={tag.id}>
+                <li key={tag.id} role="none">
                   <button
                     type="button"
-                    role="option"
-                    aria-selected={false}
+                    role="menuitem"
                     onClick={() => select(tag)}
                     className="w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer"
                   >
@@ -166,11 +163,10 @@ export default function TagInput({ value, onChange }: TagInputProps) {
           )}
 
           {showCreate && (
-            <li>
+            <li role="none">
               <button
                 type="button"
-                role="option"
-                aria-selected={false}
+                role="menuitem"
                 onClick={handleCreate}
                 className="w-full text-left px-3 py-1.5 text-sm text-brand-600 hover:bg-brand-50 cursor-pointer"
               >

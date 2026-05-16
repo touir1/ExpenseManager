@@ -40,6 +40,15 @@ describe('TagInput', () => {
     await waitFor(() => expect(mockGetTags).toHaveBeenCalledOnce())
   })
 
+  it('does not update tag list when getTags returns ok=false', async () => {
+    mockGetTags.mockResolvedValue({ ok: false })
+    const user = userEvent.setup()
+    render(<TagInput value={[]} onChange={vi.fn()} />)
+    await waitFor(() => expect(mockGetTags).toHaveBeenCalledOnce())
+    await user.click(screen.getByRole('combobox'))
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+  })
+
   it('shows My tags group heading when own tags match', async () => {
     setupGetTags(makeList({ own: [ownTag] }))
     const user = userEvent.setup()
@@ -78,8 +87,8 @@ describe('TagInput', () => {
     const user = userEvent.setup()
     render(<TagInput value={[]} onChange={onChange} />)
     await user.click(screen.getByRole('combobox'))
-    await waitFor(() => expect(screen.getByRole('option', { name: 'food' })).toBeInTheDocument())
-    await user.click(screen.getByRole('option', { name: 'food' }))
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'food' })).toBeInTheDocument())
+    await user.click(screen.getByRole('menuitem', { name: 'food' }))
     expect(onChange).toHaveBeenCalledWith([ownTag])
   })
 
@@ -89,8 +98,8 @@ describe('TagInput', () => {
     const user = userEvent.setup()
     render(<TagInput value={[]} onChange={onChange} />)
     await user.click(screen.getByRole('combobox'))
-    await waitFor(() => expect(screen.getByRole('option', { name: 'travel' })).toBeInTheDocument())
-    await user.click(screen.getByRole('option', { name: 'travel' }))
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'travel' })).toBeInTheDocument())
+    await user.click(screen.getByRole('menuitem', { name: 'travel' }))
     expect(onChange).toHaveBeenCalledWith([familyTag])
   })
 
@@ -108,6 +117,19 @@ describe('TagInput', () => {
     expect(onChange).toHaveBeenCalledWith([newTag])
   })
 
+  it('does not call onChange when useTag returns ok=false', async () => {
+    setupGetTags(emptyList)
+    mockUseTag.mockResolvedValue({ ok: false })
+    const onChange = vi.fn()
+    const user = userEvent.setup()
+    render(<TagInput value={[]} onChange={onChange} />)
+    await user.type(screen.getByRole('combobox'), 'xyz')
+    await waitFor(() => expect(screen.getByText(/Create/)).toBeInTheDocument())
+    await user.click(screen.getByText(/Create/))
+    await waitFor(() => expect(mockUseTag).toHaveBeenCalledWith('xyz'))
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
   it('clicking chip remove button removes tag from onChange', async () => {
     setupGetTags(emptyList)
     const onChange = vi.fn()
@@ -122,9 +144,9 @@ describe('TagInput', () => {
     const user = userEvent.setup()
     render(<TagInput value={[]} onChange={vi.fn()} />)
     await user.click(screen.getByRole('combobox'))
-    await waitFor(() => expect(screen.getByRole('listbox')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('menu')).toBeInTheDocument())
     await user.keyboard('{Escape}')
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
 
   it('pressing Backspace removes last chip', async () => {
@@ -137,13 +159,38 @@ describe('TagInput', () => {
     expect(onChange).toHaveBeenCalledWith([ownTag])
   })
 
+  it('pressing Enter selects first result', async () => {
+    setupGetTags(makeList({ own: [ownTag] }))
+    const onChange = vi.fn()
+    const user = userEvent.setup()
+    render(<TagInput value={[]} onChange={onChange} />)
+    await user.click(screen.getByRole('combobox'))
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'food' })).toBeInTheDocument())
+    await user.keyboard('{Enter}')
+    expect(onChange).toHaveBeenCalledWith([ownTag])
+  })
+
+  it('pressing Enter triggers create when no results match', async () => {
+    setupGetTags(emptyList)
+    const newTag: Tag = { id: 3, name: 'xyz' }
+    mockUseTag.mockResolvedValue({ ok: true, data: newTag })
+    const onChange = vi.fn()
+    const user = userEvent.setup()
+    render(<TagInput value={[]} onChange={onChange} />)
+    await user.type(screen.getByRole('combobox'), 'xyz')
+    await waitFor(() => expect(screen.getByText(/Create/)).toBeInTheDocument())
+    await user.keyboard('{Enter}')
+    await waitFor(() => expect(mockUseTag).toHaveBeenCalledWith('xyz'))
+    expect(onChange).toHaveBeenCalledWith([newTag])
+  })
+
   it('dropdown closes after selection', async () => {
     setupGetTags(makeList({ own: [ownTag] }))
     const user = userEvent.setup()
     render(<TagInput value={[]} onChange={vi.fn()} />)
     await user.click(screen.getByRole('combobox'))
-    await waitFor(() => expect(screen.getByRole('option', { name: 'food' })).toBeInTheDocument())
-    await user.click(screen.getByRole('option', { name: 'food' }))
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'food' })).toBeInTheDocument())
+    await user.click(screen.getByRole('menuitem', { name: 'food' }))
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
 })

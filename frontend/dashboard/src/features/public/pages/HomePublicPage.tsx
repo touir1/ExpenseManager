@@ -76,8 +76,8 @@ export default function HomePublicPage() {
           {/* Left: hero text */}
           <div>
             <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-mustard-soft text-ink-body text-xs font-semibold mb-6">
-              <span className="h-1.5 w-1.5 rounded-full bg-mustard shrink-0"></span>
-              Smart family finance
+              <span className="h-1.5 w-1.5 rounded-full bg-mustard shrink-0" />
+              {' '}Smart family finance
             </span>
 
             <h1 className="font-serif text-5xl lg:text-[68px] leading-[1.02] text-ink tracking-tight mb-5">
