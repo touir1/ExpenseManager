@@ -117,64 +117,60 @@ export default function TagInput({ value, onChange }: TagInputProps) {
       </div>
 
       {open && hasDropdown && (
-        <ul
+        <div
           id="tag-input-menu"
           role="menu"
           className="absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg py-1 max-h-60 overflow-y-auto"
         >
           {filteredOwn.length > 0 && (
             <>
-              <li role="presentation" className="px-3 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wide select-none">
+              <div className="px-3 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wide select-none">
                 My tags
-              </li>
+              </div>
               {filteredOwn.map(tag => (
-                <li key={tag.id} role="none">
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => select(tag)}
-                    className="w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer"
-                  >
-                    {tag.name}
-                  </button>
-                </li>
+                <button
+                  key={tag.id}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => select(tag)}
+                  className="w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer"
+                >
+                  {tag.name}
+                </button>
               ))}
             </>
           )}
 
           {filteredFamily.length > 0 && (
             <>
-              <li role="presentation" className="px-3 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wide select-none">
+              <div className="px-3 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wide select-none">
                 Family tags
-              </li>
+              </div>
               {filteredFamily.map(tag => (
-                <li key={tag.id} role="none">
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => select(tag)}
-                    className="w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer"
-                  >
-                    {tag.name}
-                  </button>
-                </li>
+                <button
+                  key={tag.id}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => select(tag)}
+                  className="w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer"
+                >
+                  {tag.name}
+                </button>
               ))}
             </>
           )}
 
           {showCreate && (
-            <li role="none">
-              <button
-                type="button"
-                role="menuitem"
-                onClick={handleCreate}
-                className="w-full text-left px-3 py-1.5 text-sm text-brand-600 hover:bg-brand-50 cursor-pointer"
-              >
-                Create &ldquo;{query.trim()}&rdquo;
-              </button>
-            </li>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={handleCreate}
+              className="w-full text-left px-3 py-1.5 text-sm text-brand-600 hover:bg-brand-50 cursor-pointer"
+            >
+              Create &ldquo;{query.trim()}&rdquo;
+            </button>
           )}
-        </ul>
+        </div>
       )}
     </div>
   )
