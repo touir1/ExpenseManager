@@ -20,7 +20,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             _dbContext = dbContext;
         }
 
-        public async Task WriteAddAuditAsync(Expense expense, int performedById, int performedFromId)
+        public async Task WriteAddAuditAsync(Expense expense, int performedById, int performedFromId, string tags = "")
         {
             var log = new ExpenseAuditLog
             {
@@ -33,11 +33,11 @@ namespace Touir.ExpensesManager.Expenses.Services
             _dbContext.ExpenseAuditLogs.Add(log);
             await _dbContext.SaveChangesAsync();
 
-            _dbContext.ExpenseAuditSnapshots.Add(BuildSnapshot(log.Id, SnapshotAfter, expense));
+            _dbContext.ExpenseAuditSnapshots.Add(BuildSnapshot(log.Id, SnapshotAfter, expense, tags));
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task WriteUpdateAuditAsync(Expense before, Expense after, int performedById, int performedFromId)
+        public async Task WriteUpdateAuditAsync(Expense before, Expense after, int performedById, int performedFromId, string beforeTags = "", string afterTags = "")
         {
             var log = new ExpenseAuditLog
             {
@@ -51,13 +51,13 @@ namespace Touir.ExpensesManager.Expenses.Services
             await _dbContext.SaveChangesAsync();
 
             _dbContext.ExpenseAuditSnapshots.AddRange(
-                BuildSnapshot(log.Id, SnapshotBefore, before),
-                BuildSnapshot(log.Id, SnapshotAfter, after)
+                BuildSnapshot(log.Id, SnapshotBefore, before, beforeTags),
+                BuildSnapshot(log.Id, SnapshotAfter, after, afterTags)
             );
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task WriteDeleteAuditAsync(Expense expense, int performedById, int performedFromId)
+        public async Task WriteDeleteAuditAsync(Expense expense, int performedById, int performedFromId, string tags = "")
         {
             var log = new ExpenseAuditLog
             {
@@ -70,11 +70,11 @@ namespace Touir.ExpensesManager.Expenses.Services
             _dbContext.ExpenseAuditLogs.Add(log);
             await _dbContext.SaveChangesAsync();
 
-            _dbContext.ExpenseAuditSnapshots.Add(BuildSnapshot(log.Id, SnapshotBefore, expense));
+            _dbContext.ExpenseAuditSnapshots.Add(BuildSnapshot(log.Id, SnapshotBefore, expense, tags));
             await _dbContext.SaveChangesAsync();
         }
 
-        private static ExpenseAuditSnapshot BuildSnapshot(long auditLogId, int snapshotTypeId, Expense expense)
+        private static ExpenseAuditSnapshot BuildSnapshot(long auditLogId, int snapshotTypeId, Expense expense, string tags = "")
         {
             return new ExpenseAuditSnapshot
             {
@@ -85,7 +85,8 @@ namespace Touir.ExpensesManager.Expenses.Services
                 Date = expense.Date,
                 CategoryId = expense.CategoryId,
                 SubcategoryId = expense.SubcategoryId,
-                Description = expense.Description
+                Description = expense.Description,
+                Tags = tags
             };
         }
     }

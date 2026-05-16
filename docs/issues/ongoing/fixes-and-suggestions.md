@@ -100,6 +100,7 @@ Discrepancies found by cross-checking Zod schemas (`auth.schemas.ts`) against co
 ### Expenses service
 - ✅ **Implement expenses CRUD**: Phase 3 complete in v0.91.0 — `POST/PUT/DELETE/GET /expenses` + paged `GET /expenses` live; soft-delete, audit trail, ownership enforcement all implemented.
 - ✅ **Pagination**: Implemented in v0.91.0 — `GetPagedAsync` supports offset pagination with `Page`/`PageSize` and full filter set (date range, category, currency, amount range, description).
+- ✅ **Tags (Phase 5)**: Implemented in v0.98.0 — global tag table (unique by name, case-sensitive), `UserTags` junction for adoption tracking, `GET/POST/DELETE /tags`, tag visibility across family co-members, auto-adopt on expense attachment, `TagInput` component.
 - **Input sanitisation**: Validate and sanitise string fields (`description`, category name, etc.) at the controller layer before they reach the database.
 
 ---

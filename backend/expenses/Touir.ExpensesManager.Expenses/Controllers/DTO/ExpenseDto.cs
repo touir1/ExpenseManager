@@ -12,5 +12,6 @@ namespace Touir.ExpensesManager.Expenses.Controllers.DTO
         public DateTime CreatedAt { get; set; }
         public DateTime? ModifiedAt { get; set; }
         public string? ModifiedFrom { get; set; }
+        public IEnumerable<TagDto> Tags { get; set; } = [];
     }
 }

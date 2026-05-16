@@ -7,8 +7,8 @@ Reference: [application-description.md](application-description.md)
 | Area | Status |
 |------|--------|
 | Users service | ✅ Complete — auth, registration, JWT, refresh tokens, password management, FluentValidation |
-| Expenses service | ⚠️ Skeleton — `Category`, `Currency`, `Expense` models defined but not migrated; no controllers or services; `RabbitMQService` and external `UserRepository` exist |
-| Frontend | ⚠️ Auth flows complete; dashboard is "Coming soon" placeholder; i18n wired |
+| Expenses service | ✅ Phase 1–5 complete — schema, categories/currencies, expense CRUD, family system, tags; Phase 6+ pending |
+| Frontend | ⚠️ Auth + family management + tag input component complete; expense list/form + dashboard pending (Phase 8–9) |
 | Infrastructure | ✅ Docker Compose, nginx, PostgreSQL, RabbitMQ, Grafana, Prometheus |
 
 ---
@@ -101,13 +101,19 @@ Replace current model with:
 | `attributed_at` | timestamp |
 | `attributed_by` | FK → ext.USR_Users |
 
-**`Tag`**
+**`Tag`** *(global — no per-user ownership; unique by name, case-sensitive)*
 
-| Column | Type |
-|--------|------|
-| `id` | PK |
-| `name` | varchar(50) |
-| `user_id` | FK → ext.USR_Users |
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | PK | |
+| `name` | varchar(50) | UNIQUE index |
+
+**`UserTag`** *(junction — tracks which users have adopted each tag)*
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `user_id` | FK → ext.USR_Users | PK composite; Cascade on delete |
+| `tag_id` | FK → Tag | PK composite; Restrict on delete |
 
 **`ExpenseTag`**
 
@@ -185,7 +191,7 @@ Replace current model with:
 - [x] Update `Category` model — add `IsArchived`
 - [x] Rewrite `Expense` model with new columns
 - [x] Add `Family`, `FamilyMembership`, `ExpenseFamilyAttribution` models
-- [x] Add `Tag`, `ExpenseTag` models
+- [x] Add `Tag`, `UserTag`, `ExpenseTag` models — `Tag` is global (no `UserId`); `UserTag` junction tracks adoption (Phase 5 redesign; migration `AddUserTagsRefactorTags`)
 - [x] Add `CurrencyDailyRate`, `CurrencyPairDefault`, `CurrencyRateConflict` models
 - [x] Add `ExpenseAuditLog`, `ExpenseAuditSnapshot` models
 - [x] Update `ExpensesDbContext` — register all new models, configure constraints/indexes
@@ -295,26 +301,34 @@ Replace current model with:
 
 ---
 
-## Phase 5 — Tags
+## Phase 5 — Tags ✅ Complete (v0.98.0)
 
-**Goal:** Users can create and assign tags to expenses.
+**Goal:** Users can create and assign tags to expenses. Tags differentiated between own (adopted by user) and family (adopted by co-members).
+
+**Design note:** Tags are global (unique by name, case-sensitive). `UserTag` junction tracks adoption — a row is created when user calls `POST /tags` or auto-adopts by attaching a tag to an expense. Once adopted, tag remains visible even if the adopting co-member leaves the family.
 
 ### Backend
 
-- [ ] `TagService`
-  - `GetByUserAsync(userId)` — for autocomplete
-  - `CreateAsync(name, userId)` — idempotent (return existing if name matches)
-  - `DeleteAsync(id, userId)` — removes tag and all `ExpenseTag` links
-- [ ] Update `ExpenseService.AddAsync` / `UpdateAsync` to accept `tagIds[]`; create tags on-the-fly if name provided
-- [ ] `TagController` — `GET /tags`, `POST /tags`, `DELETE /tags/{id}`
-- [ ] Update expense filters to support tag filtering (AND/OR)
-- [ ] Unit tests
+- [x] `TagService`
+  - `GetVisibleAsync(userId)` → `TagListDto { own, family }` — own + co-member tags, fetched in parallel
+  - `UseTagAsync(name, userId)` — idempotent: find-or-create `Tag` by name + `EnsureUserTagAsync`
+  - `RemoveTagAsync(tagId, userId)` — removes `UserTag` only; `Tag` entity and `ExpenseTag` rows persist for history
+- [x] `TagRepository` — `GetOwnAsync`, `GetFamilyAsync` (co-member tags excluding own and deleted-family members), `GetByNameAsync`, `GetByIdsAsync`, `AddAsync`, `EnsureUserTagAsync`, `RemoveUserTagAsync`, `IsVisibleAsync`
+- [x] Migration `AddUserTagsRefactorTags` — drops `Tags.UserId` FK+column; adds unique index on `Tags.Name`; creates `UserTags` table
+- [x] Update `ExpenseService.AddAsync` / `UpdateAsync` — validate `tagIds` visibility (→ 403 if invisible), auto-adopt via `EnsureUserTagAsync`, insert `ExpenseTag` rows, capture tag IDs in audit snapshot
+- [x] `TagController` — `GET /tags` → `TagListDto`; `POST /tags` → `TagDto` (idempotent, case-sensitive); `DELETE /tags/{id}` → 204 or 404
+- [x] Update `ExpenseFilterDto` with `int[]? TagIds` — OR-semantics filter in `GetPagedAsync`
+- [x] `ExpenseDto` includes `IEnumerable<TagDto> Tags`
+- [x] FluentValidation for `CreateTagRequest` (name not-empty, max 50 chars)
+- [x] Unit tests: `TagServiceTests` (10 tests, Moq), `TagRepositoryTests` (16 integration tests)
 
 ### Frontend
 
-- [ ] Tag autocomplete input component
-- [ ] Wire into add/edit expense form
-- [ ] Tag filter in expense list
+- [x] `tag.type.ts` — `Tag { id, name }`, `TagList { own, family }`
+- [x] `tagsApi.service.ts` — `getTags()`, `useTag(name)`, `removeTag(id)`
+- [x] `TagInput.tsx` — grouped combobox: "My tags" / "Family tags" sections, chip display, "Create" option when no exact match, keyboard (Enter / Escape / Backspace); 13 component tests
+- [ ] Wire `TagInput` into add/edit expense form — deferred to Phase 8
+- [ ] Tag filter in expense list — deferred to Phase 8
 
 **Depends on:** Phase 3
 

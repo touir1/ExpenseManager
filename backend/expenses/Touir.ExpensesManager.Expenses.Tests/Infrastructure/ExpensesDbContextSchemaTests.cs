@@ -77,9 +77,9 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
             return expense;
         }
 
-        private async Task<Tag> SeedTagAsync(int userId, int id = 1)
+        private async Task<Tag> SeedTagAsync(int id = 1)
         {
-            var tag = new Tag { Id = id, Name = $"tag-{id}", UserId = userId };
+            var tag = new Tag { Id = id, Name = $"tag-{id}" };
             _ctx.Tags.Add(tag);
             await _ctx.SaveChangesAsync();
             return tag;
@@ -289,8 +289,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
         [Fact]
         public async Task Tag_CanPersist()
         {
-            var user = await SeedUserAsync();
-            var tag = new Tag { Id = 1, Name = "food", UserId = user.Id };
+            var tag = new Tag { Id = 1, Name = "food" };
             _ctx.Tags.Add(tag);
             await _ctx.SaveChangesAsync();
 
@@ -308,7 +307,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
             var user = await SeedUserAsync();
             var currency = await SeedCurrencyAsync();
             var expense = await SeedExpenseAsync(user.Id, currency.Id, user.Id);
-            var tag = await SeedTagAsync(user.Id);
+            var tag = await SeedTagAsync();
 
             _ctx.ExpenseTags.Add(new ExpenseTag { ExpenseId = expense.Id, TagId = tag.Id });
             await _ctx.SaveChangesAsync();
@@ -324,7 +323,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Infrastructure
             var user = await SeedUserAsync();
             var currency = await SeedCurrencyAsync();
             var expense = await SeedExpenseAsync(user.Id, currency.Id, user.Id);
-            var tag = await SeedTagAsync(user.Id);
+            var tag = await SeedTagAsync();
 
             _ctx.ExpenseTags.Add(new ExpenseTag { ExpenseId = expense.Id, TagId = tag.Id });
             await _ctx.SaveChangesAsync();

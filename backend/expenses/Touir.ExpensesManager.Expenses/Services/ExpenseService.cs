@@ -11,15 +11,18 @@ namespace Touir.ExpensesManager.Expenses.Services
         private readonly IExpenseRepository _expenseRepository;
         private readonly IExpenseAuditService _auditService;
         private readonly IFamilyRepository _familyRepository;
+        private readonly ITagRepository _tagRepository;
 
         public ExpenseService(
             IExpenseRepository expenseRepository,
             IExpenseAuditService auditService,
-            IFamilyRepository familyRepository)
+            IFamilyRepository familyRepository,
+            ITagRepository tagRepository)
         {
             _expenseRepository = expenseRepository;
             _auditService = auditService;
             _familyRepository = familyRepository;
+            _tagRepository = tagRepository;
         }
 
         public async Task<ExpenseDto> AddAsync(CreateExpenseRequest request, int userId, int sourceId)
@@ -39,10 +42,14 @@ namespace Touir.ExpensesManager.Expenses.Services
             };
 
             await _expenseRepository.AddAsync(expense);
-            await _auditService.WriteAddAuditAsync(expense, userId, sourceId);
+
+            var tagDtos = await WriteExpenseTagsAsync(expense.Id, request.TagIds, userId);
+            var tagsSnapshot = string.Join(",", tagDtos.Select(t => t.Id));
+
+            await _auditService.WriteAddAuditAsync(expense, userId, sourceId, tagsSnapshot);
             await WriteAttributionsAsync(expense.Id, request.FamilyIds, userId);
 
-            return MapToDto(expense);
+            return MapToDto(expense, tagDtos);
         }
 
         public async Task<ExpenseDto?> UpdateAsync(long id, UpdateExpenseRequest request, int userId, int sourceId)
@@ -52,6 +59,7 @@ namespace Touir.ExpensesManager.Expenses.Services
                 return null;
 
             var before = CloneExpense(existing);
+            var beforeTags = string.Join(",", existing.ExpenseTags.Select(et => et.TagId));
 
             existing.Amount = request.Amount;
             existing.CurrencyId = request.CurrencyId;
@@ -64,12 +72,15 @@ namespace Touir.ExpensesManager.Expenses.Services
             existing.ModifiedFromId = sourceId;
 
             await _expenseRepository.UpdateAsync(existing);
-            await _auditService.WriteUpdateAuditAsync(before, existing, userId, sourceId);
+            await _expenseRepository.ClearExpenseTagsAsync(existing.Id);
+            var afterTagDtos = await WriteExpenseTagsAsync(existing.Id, request.TagIds, userId);
+            var afterTags = string.Join(",", afterTagDtos.Select(t => t.Id));
 
+            await _auditService.WriteUpdateAuditAsync(before, existing, userId, sourceId, beforeTags, afterTags);
             await _familyRepository.ClearAttributionsAsync(existing.Id);
             await WriteAttributionsAsync(existing.Id, request.FamilyIds, userId);
 
-            return MapToDto(existing);
+            return MapToDto(existing, afterTagDtos);
         }
 
         public async Task<bool> DeleteAsync(long id, int userId, int sourceId)
@@ -78,7 +89,8 @@ namespace Touir.ExpensesManager.Expenses.Services
             if (existing is null)
                 return false;
 
-            await _auditService.WriteDeleteAuditAsync(existing, userId, sourceId);
+            var tags = string.Join(",", existing.ExpenseTags.Select(et => et.TagId));
+            await _auditService.WriteDeleteAuditAsync(existing, userId, sourceId, tags);
             await _expenseRepository.SoftDeleteAsync(existing);
 
             return true;
@@ -98,12 +110,31 @@ namespace Touir.ExpensesManager.Expenses.Services
 
             return new ExpensePagedResult
             {
-                Items = items.Select(MapToDto),
+                Items = items.Select(e => MapToDto(e)),
                 TotalCount = totalCount,
                 Page = page,
                 PageSize = pageSize,
                 TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
             };
+        }
+
+        private async Task<IEnumerable<TagDto>> WriteExpenseTagsAsync(long expenseId, int[]? tagIds, int userId)
+        {
+            if (tagIds is null || tagIds.Length == 0)
+                return [];
+
+            foreach (var tagId in tagIds)
+                if (!await _tagRepository.IsVisibleAsync(userId, tagId))
+                    throw new FamilyForbiddenException("TAG_NOT_VISIBLE");
+
+            foreach (var tagId in tagIds)
+                await _tagRepository.EnsureUserTagAsync(userId, tagId);
+
+            await _expenseRepository.AddExpenseTagsAsync(
+                tagIds.Select(tagId => new ExpenseTag { ExpenseId = expenseId, TagId = tagId }));
+
+            var tags = await _tagRepository.GetByIdsAsync(tagIds);
+            return tags.Select(t => new TagDto { Id = t.Id, Name = t.Name });
         }
 
         private async Task WriteAttributionsAsync(long expenseId, int[]? familyIds, int userId)
@@ -143,7 +174,7 @@ namespace Touir.ExpensesManager.Expenses.Services
                 await _familyRepository.AddAttributionsAsync(attributions);
         }
 
-        private static ExpenseDto MapToDto(Expense e) => new()
+        private static ExpenseDto MapToDto(Expense e, IEnumerable<TagDto>? explicitTags = null) => new()
         {
             Id = e.Id,
             Amount = e.Amount,
@@ -171,7 +202,8 @@ namespace Touir.ExpensesManager.Expenses.Services
             Description = e.Description,
             CreatedAt = e.CreatedAt,
             ModifiedAt = e.ModifiedAt,
-            ModifiedFrom = e.ModifiedFrom?.Name
+            ModifiedFrom = e.ModifiedFrom?.Name,
+            Tags = explicitTags ?? e.ExpenseTags.Select(et => new TagDto { Id = et.Tag.Id, Name = et.Tag.Name })
         };
 
         private static Expense CloneExpense(Expense e) => new()

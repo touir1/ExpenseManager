@@ -3,6 +3,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.98.0] - 2026-05-16
+### Added
+- **Phase 5 — Tags (backend + frontend)**
+  - **Schema redesign**: Tags are now global (unique by name, case-sensitive). Removed `UserId` column from `Tags` table; added `UserTags` junction table `(UserId, TagId)` to track which users have "adopted" each tag. Tag adoption is created automatically when a user attaches a tag to an expense, or explicitly via `POST /tags`.
+  - **Migration `AddUserTagsRefactorTags`**: drops `Tags.UserId` FK + column, adds unique index on `Tags.Name`, creates `UserTags` with Cascade on user-delete and Restrict on tag-delete.
+  - **New models**: `UserTag.cs` — junction entity `(UserId, TagId)` with `User` and `Tag` nav properties.
+  - **`Tag.cs`**: Removed `UserId`/`User`; added `ICollection<UserTag> UserTags` and `ICollection<ExpenseTag> ExpenseTags`.
+  - **`ITagRepository` / `TagRepository`**: `GetOwnAsync`, `GetFamilyAsync` (co-member tags not adopted by user, excluding deleted families), `GetByNameAsync`, `GetByIdsAsync`, `AddAsync`, `EnsureUserTagAsync` (idempotent adopt), `RemoveUserTagAsync`, `IsVisibleAsync` (own or co-member).
+  - **`ITagService` / `TagService`**: `GetVisibleAsync` (parallel own + family fetch → `TagListDto`), `UseTagAsync` (find-or-create tag + adopt), `RemoveTagAsync` (removes UserTag only; tag entity persists for history).
+  - **`TagController`** (`GET /tags`, `POST /tags`, `DELETE /tags/{id}`): all endpoints read userId from JWT cookie; `GET` returns `TagListDto { own, family }`; `POST` is idempotent (case-sensitive); `DELETE` returns 204 or 404.
+  - **`TagDto`** (`{ id, name }`), **`TagListDto`** (`{ own: TagDto[], family: TagDto[] }`), **`CreateTagRequest`** + **`CreateTagRequestValidator`** (name not-empty, max 50 chars).
+  - **Expense requests updated**: `IExpenseRequest`, `CreateExpenseRequest`, `UpdateExpenseRequest` now include `int[]? TagIds`; `ExpenseFilterDto` includes `int[]? TagIds` (OR-semantics filter).
+  - **`ExpenseDto`**: added `IEnumerable<TagDto> Tags`.
+  - **`ExpenseRepository`**: `GetByIdAsync` and `GetPagedAsync` now `.Include(e => e.ExpenseTags).ThenInclude(et => et.Tag)`; added `ClearExpenseTagsAsync` and `AddExpenseTagsAsync`; tag filter in `GetPagedAsync`.
+  - **`ExpenseService`**: tag visibility validation (`IsVisibleAsync` → 403), auto-adopt (`EnsureUserTagAsync`), tag writes in `AddAsync`/`UpdateAsync` with before/after audit snapshots; `MapToDto` uses explicit tags for add/update, nav property for read paths.
+  - **`IExpenseAuditService`** / **`ExpenseAuditService`**: audit methods now accept `string tags`/`string beforeTags`/`string afterTags` to record comma-separated tag IDs in snapshots.
+  - **Backend tests**: `TagServiceTests.cs` (10 unit tests, Moq); `TagRepositoryTests.cs` (16 integration tests via `TestExpensesDbContextWrapper`); `ExpenseServiceTests.cs` updated for new `ITagRepository` dependency and explicit tag audit args. Total: 325 tests, all passing.
+  - **Frontend `features/tags/`**:
+    - `types/tag.type.ts` — `Tag { id, name }`, `TagList { own, family }`.
+    - `services/tagsApi.service.ts` — `getTags()`, `useTag(name)`, `removeTag(id)`.
+    - `components/TagInput.tsx` — grouped combobox with "My tags" / "Family tags" sections, chip display, create option, keyboard (Enter/Escape/Backspace) support.
+    - `components/__tests__/TagInput.test.tsx` — 13 component tests. Total frontend: 511 tests, all passing.
+
 ## [0.97.3] - 2026-05-15
 ### Fixed
 - **Sonar static analysis — backend and frontend**: Resolved all flagged issues across FamilyService, FamilyContext, LanguageSwitcher, FamilySelector, FamiliesPage, and HomePublicPage.

@@ -28,5 +28,6 @@ namespace Touir.ExpensesManager.Expenses.Models
         public Category? Subcategory { get; set; }
         public OperationSource CreatedFrom { get; set; } = null!;
         public ModifiedSource? ModifiedFrom { get; set; }
+        public ICollection<ExpenseTag> ExpenseTags { get; set; } = [];
     }
 }

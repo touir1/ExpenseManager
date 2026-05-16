@@ -10,5 +10,7 @@ namespace Touir.ExpensesManager.Expenses.Repositories.Contracts
         Task<Expense?> GetByIdAsync(long id, int userId);
         Task<(IEnumerable<Expense> Items, int TotalCount)> GetPagedAsync(ExpenseFilterDto filter, int userId);
         Task SoftDeleteAsync(Expense expense);
+        Task ClearExpenseTagsAsync(long expenseId);
+        Task AddExpenseTagsAsync(IEnumerable<ExpenseTag> expenseTags);
     }
 }

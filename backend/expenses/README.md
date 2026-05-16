@@ -41,21 +41,28 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 | `POST` | `/families/accept-invite` | Accept invitation by token → 204 or 400/403/409 |
 | `DELETE` | `/families/{id}/members/{userId}` | Remove member (head only, not self) → 204 or 403/404 |
 | `PUT` | `/families/{id}/members/{userId}/role` | Change member role (head only) → 204 or 403/404 |
+| `GET` | `/tags` | Tags visible to user → `TagListDto { own, family }` |
+| `POST` | `/tags` | Create/adopt tag by name (idempotent, case-sensitive) → `TagDto` (200) |
+| `DELETE` | `/tags/{id}` | Remove user's adoption of tag → 204 or 404 (tag entity and expense history preserved) |
 | `GET` | `/health` | Liveness/readiness probe |
 
 All endpoints (except `/health`) require authentication, enforced by nginx's `auth_request` subrequest to the users service before forwarding.
 
-`POST /expenses` and `PUT /expenses/{id}` return `403 Forbidden` if a provided `familyId` does not match a family the user belongs to.
+`POST /expenses` and `PUT /expenses/{id}` return `403 Forbidden` if a provided `familyId` does not match a family the user belongs to, or if a `tagId` is not visible to the user (not in own tags or co-member tags).
+
+**Tag visibility:** a tag is visible if the user has adopted it (`UserTag` row exists) OR any co-member of a shared non-deleted family has adopted it. Attaching a tag to an expense auto-adopts it for the requesting user.
 
 ### Response DTOs
 
 **`CategoryDto`** — `{ id, name, description?, subcategories: SubcategoryDto[] }`  
 **`SubcategoryDto`** — `{ id, name, description? }`  
 **`CurrencyDto`** — `{ id, code, name, symbol, decimals }`  
-**`ExpenseDto`** — `{ id, amount, currencyId, currencyCode?, currencySymbol?, date, categoryId?, categoryName?, subcategoryId?, subcategoryName?, description?, createdAt, modifiedAt?, modifiedFrom? }`  
+**`ExpenseDto`** — `{ id, amount, currency: CurrencyDto?, date, category: SubcategoryDto?, subcategory: SubcategoryDto?, description?, createdAt, modifiedAt?, modifiedFrom?, tags: TagDto[] }`  
+**`TagDto`** — `{ id, name }`  
+**`TagListDto`** — `{ own: TagDto[], family: TagDto[] }`  
 **`ExpensePagedResponse`** — `{ items: ExpenseDto[], totalCount, page, pageSize, totalPages }`
 
-**Query params for `GET /expenses`:** `dateFrom`, `dateTo`, `categoryId`, `subcategoryId`, `currencyId`, `amountMin`, `amountMax`, `description` (substring), `page` (default 1), `pageSize` (default 20)
+**Query params for `GET /expenses`:** `dateFrom`, `dateTo`, `categoryId`, `subcategoryId`, `currencyId`, `amountMin`, `amountMax`, `description` (substring), `tagIds[]` (OR filter), `page` (default 1), `pageSize` (default 20)
 
 DTOs live in `Controllers/DTO/`; error envelopes (`{ message }`) in `Controllers/Responses/`.
 

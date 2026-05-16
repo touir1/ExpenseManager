@@ -13,13 +13,14 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         private static ExpenseService CreateService(
             IExpenseRepository? repo = null,
             IExpenseAuditService? audit = null,
-            IFamilyRepository? familyRepo = null)
+            IFamilyRepository? familyRepo = null,
+            ITagRepository? tagRepo = null)
         {
-            var defaultFamilyRepo = familyRepo ?? Mock.Of<IFamilyRepository>();
             return new ExpenseService(
                 repo ?? Mock.Of<IExpenseRepository>(),
                 audit ?? Mock.Of<IExpenseAuditService>(),
-                defaultFamilyRepo);
+                familyRepo ?? Mock.Of<IFamilyRepository>(),
+                tagRepo ?? Mock.Of<ITagRepository>());
         }
 
         private static Expense MakeExpense(long id = 1, int userId = 42) => new()
@@ -62,7 +63,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
                 new CreateExpenseRequest { Amount = 50m, CurrencyId = 1, Date = DateOnly.FromDateTime(DateTime.UtcNow) },
                 userId: 1, sourceId: 1);
 
-            audit.Verify(a => a.WriteAddAuditAsync(It.IsAny<Expense>(), 1, 1), Times.Once);
+            audit.Verify(a => a.WriteAddAuditAsync(It.IsAny<Expense>(), 1, 1, It.IsAny<string>()), Times.Once);
         }
 
         [Fact]
@@ -130,7 +131,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
                 userId: 42, sourceId: 1);
 
             audit.Verify(a => a.WriteUpdateAuditAsync(
-                It.IsAny<Expense>(), It.IsAny<Expense>(), 42, 1), Times.Once);
+                It.IsAny<Expense>(), It.IsAny<Expense>(), 42, 1, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
         [Fact]
@@ -197,7 +198,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
 
             await CreateService(repo.Object, audit.Object).DeleteAsync(1, userId: 42, sourceId: 1);
 
-            audit.Verify(a => a.WriteDeleteAuditAsync(expense, 42, 1), Times.Once);
+            audit.Verify(a => a.WriteDeleteAuditAsync(expense, 42, 1, It.IsAny<string>()), Times.Once);
         }
 
         // ── GetByIdAsync ─────────────────────────────────────────────────────────

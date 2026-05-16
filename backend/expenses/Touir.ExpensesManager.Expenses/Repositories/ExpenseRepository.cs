@@ -36,6 +36,21 @@ namespace Touir.ExpensesManager.Expenses.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task ClearExpenseTagsAsync(long expenseId)
+        {
+            var tags = await _dbContext.ExpenseTags
+                .Where(et => et.ExpenseId == expenseId)
+                .ToListAsync();
+            _dbContext.ExpenseTags.RemoveRange(tags);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task AddExpenseTagsAsync(IEnumerable<ExpenseTag> expenseTags)
+        {
+            _dbContext.ExpenseTags.AddRange(expenseTags);
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task<Expense?> GetByIdAsync(long id, int userId)
         {
             return await _dbContext.Expenses
@@ -43,6 +58,7 @@ namespace Touir.ExpensesManager.Expenses.Repositories
                 .Include(e => e.Category)
                 .Include(e => e.Subcategory)
                 .Include(e => e.ModifiedFrom)
+                .Include(e => e.ExpenseTags).ThenInclude(et => et.Tag)
                 .Where(e => e.Id == id && e.UserId == userId && !e.IsDeleted)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -55,6 +71,7 @@ namespace Touir.ExpensesManager.Expenses.Repositories
                 .Include(e => e.Category)
                 .Include(e => e.Subcategory)
                 .Include(e => e.ModifiedFrom)
+                .Include(e => e.ExpenseTags).ThenInclude(et => et.Tag)
                 .Where(e => e.UserId == userId && !e.IsDeleted);
 
             if (filter.DateFrom.HasValue)
@@ -73,6 +90,8 @@ namespace Touir.ExpensesManager.Expenses.Repositories
                 query = query.Where(e => e.Amount <= filter.AmountMax.Value);
             if (!string.IsNullOrWhiteSpace(filter.Description))
                 query = query.Where(e => e.Description != null && e.Description.Contains(filter.Description));
+            if (filter.TagIds is { Length: > 0 })
+                query = query.Where(e => e.ExpenseTags.Any(et => filter.TagIds.Contains(et.TagId)));
 
             var totalCount = await query.CountAsync();
 

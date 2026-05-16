@@ -19,6 +19,7 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
         public DbSet<FamilyInvitation> FamilyInvitations { get; set; }
         public DbSet<ExpenseFamilyAttribution> ExpenseFamilyAttributions { get; set; }
         public DbSet<Tag> Tags { get; set; }
+        public DbSet<UserTag> UserTags { get; set; }
         public DbSet<ExpenseTag> ExpenseTags { get; set; }
         public DbSet<CurrencyDailyRate> CurrencyDailyRates { get; set; }
         public DbSet<CurrencyPairDefault> CurrencyPairDefaults { get; set; }
@@ -300,9 +301,21 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).HasMaxLength(50).IsRequired();
+                entity.HasIndex(e => e.Name).IsUnique();
+            });
+
+            // ── UserTag ───────────────────────────────────────────────────────
+
+            modelBuilder.Entity<UserTag>(entity =>
+            {
+                entity.HasKey(e => new { e.UserId, e.TagId });
                 entity.HasOne(e => e.User)
                       .WithMany()
                       .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Tag)
+                      .WithMany(t => t.UserTags)
+                      .HasForeignKey(e => e.TagId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
@@ -312,11 +325,11 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
             {
                 entity.HasKey(e => new { e.ExpenseId, e.TagId });
                 entity.HasOne(e => e.Expense)
-                      .WithMany()
+                      .WithMany(e => e.ExpenseTags)
                       .HasForeignKey(e => e.ExpenseId)
                       .OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(e => e.Tag)
-                      .WithMany()
+                      .WithMany(t => t.ExpenseTags)
                       .HasForeignKey(e => e.TagId)
                       .OnDelete(DeleteBehavior.Cascade);
             });

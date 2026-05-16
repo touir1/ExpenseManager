@@ -124,31 +124,36 @@ ExpenseManager/
 │   │   │   │   ├── CategoryController.cs    — GET /categories → IEnumerable<CategoryDto>
 │   │   │   │   ├── ControllerErrors.cs      — Shared internal static class: SERVER_ERROR, UNAUTHORIZED, EXPENSE_NOT_FOUND, MISSING_PARAMETERS
 │   │   │   │   ├── CurrencyController.cs    — GET /currencies → IEnumerable<CurrencyDto>
-│   │   │   │   ├── ExpenseController.cs     — POST/PUT/DELETE/GET/GET(paged) /expenses; FamilyForbiddenException → 403 on create/update
+│   │   │   │   ├── ExpenseController.cs     — POST/PUT/DELETE/GET/GET(paged) /expenses; FamilyForbiddenException → 403 on create/update; tag visibility → 403 if tag not owned/co-member
 │   │   │   │   ├── FamilyController.cs      — 10 endpoints: list, detail, create, rename, archive, unarchive, invite, accept-invite, remove-member, change-role
+│   │   │   │   ├── TagController.cs         — GET /tags → TagListDto; POST /tags → TagDto (idempotent); DELETE /tags/{id} → 204 or 404
 │   │   │   │   ├── DTO/
 │   │   │   │   │   ├── CategoryDto.cs       — Id, Name, Description?, Subcategories: IEnumerable<SubcategoryDto>
 │   │   │   │   │   ├── SubcategoryDto.cs    — Id, Name, Description? (reused for category + subcategory slots in ExpenseDto)
 │   │   │   │   │   ├── CurrencyDto.cs       — Id, Code, Name, Symbol, Decimals
-│   │   │   │   │   ├── ExpenseDto.cs        — Id, Amount, Currency: CurrencyDto?, Date, Category: SubcategoryDto?, Subcategory: SubcategoryDto?, Description?, CreatedAt, ModifiedAt?, ModifiedFrom?
-│   │   │   │   │   ├── ExpenseFilterDto.cs  — DateFrom?, DateTo?, CategoryId?, SubcategoryId?, CurrencyId?, AmountMin?, AmountMax?, Description?, Page (default 1), PageSize (default 20)
+│   │   │   │   │   ├── ExpenseDto.cs        — Id, Amount, Currency: CurrencyDto?, Date, Category: SubcategoryDto?, Subcategory: SubcategoryDto?, Description?, CreatedAt, ModifiedAt?, ModifiedFrom?, Tags: TagDto[]
+│   │   │   │   │   ├── ExpenseFilterDto.cs  — DateFrom?, DateTo?, CategoryId?, SubcategoryId?, CurrencyId?, AmountMin?, AmountMax?, Description?, TagIds?, Page (default 1), PageSize (default 20)
+│   │   │   │   │   ├── TagDto.cs            — Id, Name
+│   │   │   │   │   ├── TagListDto.cs        — Own: IEnumerable<TagDto>, Family: IEnumerable<TagDto>
 │   │   │   │   │   └── FamilyDto.cs         — Family response shape: Id, Name, IsDefault, IsDeleted, Members: FamilyMemberDto[]
 │   │   │   │   ├── Requests/
-│   │   │   │   │   ├── IExpenseRequest.cs      — Shared interface (Amount, CurrencyId, Date, CategoryId?, SubcategoryId?, Description?) implemented by Create + Update DTOs
-│   │   │   │   │   ├── CreateExpenseRequest.cs — Amount (required), CurrencyId (required), Date (required), CategoryId?, SubcategoryId?, Description?
-│   │   │   │   │   └── UpdateExpenseRequest.cs — same fields as Create
+│   │   │   │   │   ├── IExpenseRequest.cs      — Shared interface (Amount, CurrencyId, Date, CategoryId?, SubcategoryId?, Description?, TagIds?) implemented by Create + Update DTOs
+│   │   │   │   │   ├── CreateExpenseRequest.cs — Amount (required), CurrencyId (required), Date (required), CategoryId?, SubcategoryId?, Description?, TagIds?
+│   │   │   │   │   ├── UpdateExpenseRequest.cs — same fields as Create
+│   │   │   │   │   └── CreateTagRequest.cs     — Name (required)
 │   │   │   │   └── Responses/
 │   │   │   │       ├── ErrorResponse.cs     — Uniform error envelope (matches users service pattern)
 │   │   │   │       └── ExpensePagedResponse.cs — Items: ExpenseDto[], TotalCount, Page, PageSize, TotalPages
 │   │   │   ├── Models/
 │   │   │   │   ├── Category.cs              — IsDeleted + DeletedAt (soft-delete); ParentCategoryId, Children
 │   │   │   │   ├── Currency.cs
-│   │   │   │   ├── Expense.cs               — IsDeleted + DeletedAt (soft-delete); owner, amount, date, category, audit fields; FK int columns
+│   │   │   │   ├── Expense.cs               — IsDeleted + DeletedAt (soft-delete); owner, amount, date, category, audit fields; FK int columns; ICollection<ExpenseTag> ExpenseTags
 │   │   │   │   ├── Family.cs                — IsDeleted + DeletedAt (soft-delete)
 │   │   │   │   ├── FamilyInvitation.cs      — GUID token, ExpiresAt, InviteeEmail, AcceptedAt?, AcceptedByUserId?
 │   │   │   │   ├── FamilyMembership.cs      — RoleId (int FK) instead of enum
 │   │   │   │   ├── ExpenseFamilyAttribution.cs
-│   │   │   │   ├── Tag.cs
+│   │   │   │   ├── Tag.cs                   — Global tag entity; unique Name; ICollection<UserTag> UserTags + ICollection<ExpenseTag> ExpenseTags
+│   │   │   │   ├── UserTag.cs               — Junction: (UserId, TagId); created on explicit POST /tags or auto-adopt when attaching tag to expense
 │   │   │   │   ├── ExpenseTag.cs
 │   │   │   │   ├── CurrencyDailyRate.cs     — RateSourceId (int FK) instead of enum
 │   │   │   │   ├── CurrencyPairDefault.cs
@@ -172,6 +177,7 @@ ExpenseManager/
 │   │   │   │   ├── ExpenseRequestValidatorBase.cs   — Abstract base AbstractValidator<T> where T : IExpenseRequest; holds all shared rules (amount, currency, date, description, subcategory-requires-category)
 │   │   │   │   ├── CreateExpenseRequestValidator.cs — Inherits ExpenseRequestValidatorBase<CreateExpenseRequest>
 │   │   │   │   ├── UpdateExpenseRequestValidator.cs — Inherits ExpenseRequestValidatorBase<UpdateExpenseRequest>
+│   │   │   │   ├── CreateTagRequestValidator.cs     — Name NotEmpty + MaxLength(50)
 │   │   │   │   ├── CreateFamilyRequestValidator.cs  — Name NotEmpty + MaxLength(100)
 │   │   │   │   ├── RenameFamilyRequestValidator.cs  — Name NotEmpty + MaxLength(100)
 │   │   │   │   ├── InviteMemberRequestValidator.cs  — Email NotEmpty + EmailAddress + MaxLength(255)
@@ -179,14 +185,16 @@ ExpenseManager/
 │   │   │   ├── Repositories/
 │   │   │   │   ├── CategoryRepository.cs    — GetAllActiveAsync(): top-level non-archived categories with Include(Children), AsNoTracking
 │   │   │   │   ├── CurrencyRepository.cs    — GetAllAsync(): all currencies, AsNoTracking
-│   │   │   │   ├── ExpenseRepository.cs     — AddAsync, UpdateAsync, SoftDeleteAsync, GetByIdAsync (ownership + !IsDeleted), GetPagedAsync (filtered + paginated, desc by date)
+│   │   │   │   ├── ExpenseRepository.cs     — AddAsync, UpdateAsync, SoftDeleteAsync, GetByIdAsync (ownership + !IsDeleted + ExpenseTags include), GetPagedAsync (filtered + paginated, desc by date; TagIds OR filter); ClearExpenseTagsAsync, AddExpenseTagsAsync
 │   │   │   │   ├── FamilyRepository.cs      — family CRUD, membership CRUD, invitation CRUD, attribution helpers (AddAttributionsAsync, ClearAttributionsAsync, RemoveMemberAttributionsAsync)
 │   │   │   │   ├── InboxRepository.cs       — ExistsAsync(messageId), AddAsync(InboxEvent) for deduplication
+│   │   │   │   ├── TagRepository.cs         — GetOwnAsync, GetFamilyAsync (co-member, excludes deleted families), GetByNameAsync, GetByIdsAsync, AddAsync, EnsureUserTagAsync, RemoveUserTagAsync, IsVisibleAsync
 │   │   │   │   ├── Contracts/
 │   │   │   │   │   ├── ICategoryRepository.cs
 │   │   │   │   │   ├── ICurrencyRepository.cs
-│   │   │   │   │   ├── IExpenseRepository.cs — AddAsync, UpdateAsync, SoftDeleteAsync, GetByIdAsync, GetPagedAsync
+│   │   │   │   │   ├── IExpenseRepository.cs — AddAsync, UpdateAsync, SoftDeleteAsync, GetByIdAsync, GetPagedAsync, ClearExpenseTagsAsync, AddExpenseTagsAsync
 │   │   │   │   │   ├── IFamilyRepository.cs  — family/membership/invitation/attribution methods; IsMemberAsync, HasDefaultFamilyAsync
+│   │   │   │   │   ├── ITagRepository.cs     — GetOwnAsync, GetFamilyAsync, GetByNameAsync, GetByIdsAsync, AddAsync, EnsureUserTagAsync, RemoveUserTagAsync, IsVisibleAsync, SaveChangesAsync
 │   │   │   │   │   └── IInboxRepository.cs  — ExistsAsync, AddAsync
 │   │   │   │   └── External/
 │   │   │   │       ├── Contracts/
@@ -199,16 +207,18 @@ ExpenseManager/
 │   │   │   │   │   ├── ICategoryService.cs  — GetAllAsync() → active category tree
 │   │   │   │   │   ├── ICurrencyService.cs  — GetAllAsync() → all currencies
 │   │   │   │   │   ├── IExpenseService.cs   — AddAsync, UpdateAsync, DeleteAsync, GetByIdAsync, GetPagedAsync
-│   │   │   │   │   ├── IExpenseAuditService.cs — WriteAddAuditAsync, WriteUpdateAuditAsync, WriteDeleteAuditAsync
-│   │   │   │   │   └── IFamilyService.cs    — CreateDefaultAsync, CreateAsync, GetByUserAsync, GetByIdAsync, RenameAsync, InviteAsync, AcceptInviteAsync, RemoveMemberAsync, ChangeRoleAsync, ArchiveAsync, UnarchiveAsync
-│   │   │   │   ├── FamilyExceptions.cs      — FamilyNotFoundException (→404), FamilyForbiddenException (→403), FamilyConflictException (→409), FamilyInvitationException (→400)
+│   │   │   │   │   ├── IExpenseAuditService.cs — WriteAddAuditAsync, WriteUpdateAuditAsync, WriteDeleteAuditAsync (all accept string tags for snapshot)
+│   │   │   │   │   ├── IFamilyService.cs    — CreateDefaultAsync, CreateAsync, GetByUserAsync, GetByIdAsync, RenameAsync, InviteAsync, AcceptInviteAsync, RemoveMemberAsync, ChangeRoleAsync, ArchiveAsync, UnarchiveAsync
+│   │   │   │   │   └── ITagService.cs       — GetVisibleAsync(userId) → TagListDto; UseTagAsync(name, userId) → TagDto; RemoveTagAsync(tagId, userId) → bool
+│   │   │   │   ├── FamilyExceptions.cs      — FamilyNotFoundException (→404), FamilyForbiddenException (→403; also used for tag visibility violations), FamilyConflictException (→409), FamilyInvitationException (→400)
 │   │   │   │   ├── FamilyService.cs         — Implements IFamilyService; uses ILookupCacheService for role ID resolution; invite expiry from FamilyOptions
 │   │   │   │   ├── RabbitMQService.cs       — RabbitMQ connection and messaging
 │   │   │   │   ├── LookupCacheService.cs    — IMemoryCache-backed lookup; NeverRemove priority; loads entire table on first access
 │   │   │   │   ├── CategoryService.cs       — Injects ICategoryRepository; projects Category → CategoryDto (filters archived children)
 │   │   │   │   ├── CurrencyService.cs       — Injects ICurrencyRepository; projects Currency → CurrencyDto
-│   │   │   │   ├── ExpenseService.cs        — Orchestrates IExpenseRepository + IExpenseAuditService; maps Expense → ExpenseDto with nested CurrencyDto/SubcategoryDto; throws FamilyForbiddenException if familyId provided without membership
-│   │   │   │   └── ExpenseAuditService.cs   — Writes ExpenseAuditLog + ExpenseAuditSnapshot(s): add→1 after, update→before+after, delete→1 before
+│   │   │   │   ├── ExpenseService.cs        — Orchestrates IExpenseRepository + IExpenseAuditService + ITagRepository; validates tag visibility (→403), auto-adopts tags; maps Expense → ExpenseDto with Tags
+│   │   │   │   ├── TagService.cs            — GetVisibleAsync calls repo in parallel; UseTagAsync is idempotent find-or-create + adopt; RemoveTagAsync removes UserTag only
+│   │   │   │   └── ExpenseAuditService.cs   — Writes ExpenseAuditLog + ExpenseAuditSnapshot(s): add→1 after, update→before+after, delete→1 before; snapshots store comma-sep tag IDs
 │   │   │   └── Migrations/
 │   │   │       ├── 20260217225816_InitialCreate.cs
 │   │   │       ├── 20260217225816_InitialCreate.Designer.cs
@@ -228,6 +238,8 @@ ExpenseManager/
 │   │   │       ├── 20260509163919_AddExpenseSoftDelete.Designer.cs
 │   │   │       ├── 20260511130345_Phase4_FamilyInvitation.cs — FamilyInvitation table (token, ExpiresAt, InviteeEmail, AcceptedAt?, AcceptedByUserId?)
 │   │   │       ├── 20260511130345_Phase4_FamilyInvitation.Designer.cs
+│   │   │       ├── 20260516192901_AddUserTagsRefactorTags.cs — Phase 5: drops Tags.UserId FK+column; adds unique index on Tags.Name; creates UserTags (UserId+TagId PK, Cascade on user, Restrict on tag)
+│   │   │       ├── 20260516192901_AddUserTagsRefactorTags.Designer.cs
 │   │   │       └── ExpensesDbContextModelSnapshot.cs
 │   │   └── Touir.ExpensesManager.Expenses.Tests/
 │   │       ├── Touir.ExpensesManager.Expenses.Tests.csproj
@@ -247,7 +259,8 @@ ExpenseManager/
 │   │       │   ├── CurrencyRepositoryTests.cs       — 4 tests: all currencies, field mapping, empty set, positive IDs
 │   │       │   ├── ExpenseRepositoryTests.cs        — 8 tests: AddAsync, GetByIdAsync (owned/wrong-user/soft-deleted), SoftDeleteAsync, GetPagedAsync (excludes deleted/other-users, pagination, UpdateAsync); BuildExpense static
 │   │       │   ├── FamilyRepositoryTests.cs         — family CRUD, membership, invitation, attribution, IsMemberAsync, HasDefaultFamilyAsync
-│   │       │   └── InboxRepositoryTests.cs          — 7 tests: ExistsAsync×3, AddAsync×4
+│   │       │   ├── InboxRepositoryTests.cs          — 7 tests: ExistsAsync×3, AddAsync×4
+│   │       │   └── TagRepositoryTests.cs            — 16 integration tests: GetOwnAsync×3, GetFamilyAsync×4, EnsureUserTagAsync×3, RemoveUserTagAsync×2, IsVisibleAsync×4
 │   │       ├── Infrastructure/
 │   │       │   └── ExpensesDbContextSchemaTests.cs  — 23 tests: all Phase 1 entities, composite PKs, unique constraints, cascades
 │   │       ├── Validators/
@@ -258,8 +271,9 @@ ExpenseManager/
 │   │           ├── LookupCacheServiceTests.cs       — 7 tests: GetId/Name, KeyNotFoundException, cache hit, all 8 types
 │   │           ├── CategoryServiceTests.cs          — 8 tests: Mock<ICategoryRepository>; top-level, subcategories, archived exclusion, field mapping, call count
 │   │           ├── CurrencyServiceTests.cs          — 5 tests: Mock<ICurrencyRepository>; all currencies, field mapping, empty set, ID mapping, call count
-│   │           ├── ExpenseServiceTests.cs           — 16 tests: AddAsync (repo called, audit written, DTO amount/currency), UpdateAsync (null when not found, repo called, audit written, fields updated), DeleteAsync (false/true/soft-delete/audit), GetByIdAsync (null/mapped), GetPagedAsync (result, total pages)
+│   │           ├── ExpenseServiceTests.cs           — 16 tests: AddAsync (repo called, audit written, DTO amount/currency), UpdateAsync (null when not found, repo called, audit written, fields updated), DeleteAsync (false/true/soft-delete/audit), GetByIdAsync (null/mapped), GetPagedAsync (result, total pages); updated for ITagRepository dependency
 │   │           ├── ExpenseAuditServiceTests.cs      — 3 tests: WriteAddAuditAsync (log + after snapshot), WriteUpdateAuditAsync (log + before+after snapshots), WriteDeleteAuditAsync (log + before snapshot)
+│   │           ├── TagServiceTests.cs               — 10 unit tests (Moq): GetVisibleAsync×4, UseTagAsync×4, RemoveTagAsync×2
 │   │           └── FamilyServiceTests.cs            — 42+ tests: CreateDefault, Create, GetByUser, GetById, Rename, Invite, AcceptInvite, RemoveMember, ChangeRole, Archive, Unarchive (success + forbidden/not-found paths)
 │   │
 │   └── users/
@@ -550,6 +564,15 @@ ExpenseManager/
 │           │   │       ├── FamilyContext.test.tsx
 │           │   │       ├── family.schemas.test.ts
 │           │   │       └── familyApi.service.test.ts
+│           │   ├── tags/              — Tag management feature (Phase 5; wiring into expense form deferred to Phase 8)
+│           │   │   ├── types/
+│           │   │   │   └── tag.type.ts          — Tag { id, name }, TagList { own: Tag[], family: Tag[] }
+│           │   │   ├── services/
+│           │   │   │   └── tagsApi.service.ts   — getTags() → GET /api/expenses/tags; useTag(name) → POST; removeTag(id) → DELETE
+│           │   │   └── components/
+│           │   │       ├── TagInput.tsx          — Combobox: grouped "My tags"/"Family tags" dropdown, chips, create option, keyboard (Enter/Escape/Backspace)
+│           │   │       └── __tests__/
+│           │   │           └── TagInput.test.tsx — 13 component tests
 │           │   ├── expenses/          — Expense management feature
 │           │   │   ├── types/
 │           │   │   │   └── expenses.type.ts     — Category, Subcategory, Currency types
