@@ -101,4 +101,36 @@ describe('DisplayCurrencySelector', () => {
     const noConvItem = screen.getByRole('menuitemradio', { name: /no conversion/i })
     expect(noConvItem).toHaveAttribute('aria-checked', 'true')
   })
+
+  it('renders search input when dropdown is open', async () => {
+    renderSelector()
+    await userEvent.click(screen.getByRole('button', { name: /display currency/i }))
+    expect(screen.getByRole('textbox')).toBeInTheDocument()
+  })
+
+  it('filters currencies by code when searching', async () => {
+    renderSelector()
+    await userEvent.click(screen.getByRole('button', { name: /display currency/i }))
+    await userEvent.type(screen.getByRole('textbox'), 'USD')
+    expect(screen.getByRole('menuitemradio', { name: /USD/i })).toBeInTheDocument()
+    expect(screen.queryByRole('menuitemradio', { name: /EUR/i })).not.toBeInTheDocument()
+  })
+
+  it('filters currencies by name when searching', async () => {
+    renderSelector()
+    await userEvent.click(screen.getByRole('button', { name: /display currency/i }))
+    await userEvent.type(screen.getByRole('textbox'), 'euro')
+    expect(screen.getByRole('menuitemradio', { name: /EUR/i })).toBeInTheDocument()
+    expect(screen.queryByRole('menuitemradio', { name: /USD/i })).not.toBeInTheDocument()
+  })
+
+  it('clears search when dropdown closes', async () => {
+    renderSelector()
+    await userEvent.click(screen.getByRole('button', { name: /display currency/i }))
+    await userEvent.type(screen.getByRole('textbox'), 'USD')
+    await userEvent.click(screen.getByRole('button', { name: /display currency/i }))
+    await userEvent.click(screen.getByRole('button', { name: /display currency/i }))
+    const input = screen.getByRole('textbox')
+    expect(input).toHaveValue('')
+  })
 })

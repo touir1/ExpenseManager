@@ -11,6 +11,7 @@ import {
   acceptInvite,
   removeMember,
   changeMemberRole,
+  leaveFamily,
 } from '../services/familyApi.service'
 
 vi.mock('@/services/api.service', () => ({
@@ -73,5 +74,10 @@ describe('familyApi.service', () => {
   it('changeMemberRole calls PUT /api/expenses/families/:id/members/:userId/role', () => {
     changeMemberRole(6, 99, 'Head')
     expect(api.put).toHaveBeenCalledWith(`${BASE}/6/members/99/role`, { role: 'Head' })
+  })
+
+  it('leaveFamily calls DELETE /api/expenses/families/:id/leave', () => {
+    leaveFamily(7)
+    expect(api.del).toHaveBeenCalledWith(`${BASE}/7/leave`)
   })
 })

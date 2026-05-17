@@ -8,10 +8,22 @@ export default function DisplayCurrencySelector() {
   const { currencies } = useExpensesData()
   const { displayCurrencyId, setDisplayCurrencyId } = useDisplayCurrency()
   const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
   const ref = useRef<HTMLDivElement>(null)
 
   const selected = displayCurrencyId ? currencies.find(c => c.id === displayCurrencyId) : null
   const label = selected ? `${selected.code} ${selected.symbol}` : t('currencies.noConversion', 'No conversion')
+
+  const filtered = search
+    ? currencies.filter(c =>
+        c.code.toLowerCase().includes(search.toLowerCase()) ||
+        c.name.toLowerCase().includes(search.toLowerCase())
+      )
+    : currencies
+
+  useEffect(() => {
+    if (!open) setSearch('')
+  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -47,8 +59,19 @@ export default function DisplayCurrencySelector() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full mt-1 w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50 max-h-64 overflow-y-auto"
+          className="absolute right-0 top-full mt-1 w-52 bg-white border border-slate-200 rounded-xl shadow-lg z-50 flex flex-col max-h-72"
         >
+          <div className="px-2 pt-2 pb-1 border-b border-slate-100 shrink-0">
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder={t('currencies.searchPlaceholder', 'Search…')}
+              className="w-full px-2 py-1 text-xs border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500"
+              aria-label={t('currencies.searchPlaceholder', 'Search…')}
+            />
+          </div>
+          <div className="overflow-y-auto py-1">
           <button
             role="menuitemradio"
             aria-checked={displayCurrencyId === null}
@@ -62,7 +85,7 @@ export default function DisplayCurrencySelector() {
             {t('currencies.noConversion', 'No conversion')}
           </button>
 
-          {currencies.map(currency => (
+          {filtered.map(currency => (
             <button
               key={currency.id}
               role="menuitemradio"
@@ -77,6 +100,7 @@ export default function DisplayCurrencySelector() {
               {currency.code} — {currency.name} {currency.symbol}
             </button>
           ))}
+          </div>
         </div>
       )}
     </div>

@@ -1,3 +1,4 @@
+using System.Globalization;
 using Quartz;
 using Touir.ExpensesManager.Expenses.Controllers.Responses;
 using Touir.ExpensesManager.Expenses.Jobs;
@@ -112,7 +113,7 @@ builder.Services.Configure<CurrencyRateOptions>(c =>
 {
     var updateTime = builder.Configuration.GetValue("CurrencyRate:UpdateTime",
                     Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_CURRENCYRATE_UPDATE_TIME")) ?? "02:00";
-    c.UpdateTime = TimeOnly.Parse(updateTime);
+    c.UpdateTime = TimeOnly.Parse(updateTime, CultureInfo.InvariantCulture);
 });
 #endregion
 
@@ -136,7 +137,7 @@ builder.Services.AddHostedService<UserEventConsumer>();
 #region Quartz
 var updateTimeStr = builder.Configuration.GetValue("CurrencyRate:UpdateTime",
     Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_CURRENCYRATE_UPDATE_TIME")) ?? "02:00";
-var updateTime = TimeOnly.Parse(updateTimeStr);
+var updateTime = TimeOnly.Parse(updateTimeStr, CultureInfo.InvariantCulture);
 
 builder.Services.AddQuartz(q =>
 {

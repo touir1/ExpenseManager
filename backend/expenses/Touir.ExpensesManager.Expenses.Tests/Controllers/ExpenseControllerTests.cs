@@ -99,6 +99,14 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         // ── UpdateAsync ──────────────────────────────────────────────────────────
 
         [Fact]
+        public async Task UpdateAsync_Returns401_WhenNoCookie()
+        {
+            var result = await CreateController(jwtCookie: null).UpdateAsync(
+                1, new UpdateExpenseRequest { Amount = 10m, CurrencyId = 1, Date = DateOnly.FromDateTime(DateTime.UtcNow) });
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
+
+        [Fact]
         public async Task UpdateAsync_Returns404_WhenNotFound()
         {
             var service = new Mock<IExpenseService>();
@@ -145,6 +153,13 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         // ── DeleteAsync ──────────────────────────────────────────────────────────
 
         [Fact]
+        public async Task DeleteAsync_Returns401_WhenNoCookie()
+        {
+            var result = await CreateController(jwtCookie: null).DeleteAsync(1);
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
+
+        [Fact]
         public async Task DeleteAsync_Returns404_WhenNotFound()
         {
             var service = new Mock<IExpenseService>();
@@ -169,6 +184,13 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         }
 
         // ── GetByIdAsync ─────────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task GetByIdAsync_Returns401_WhenNoCookie()
+        {
+            var result = await CreateController(jwtCookie: null).GetByIdAsync(1);
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
 
         [Fact]
         public async Task GetByIdAsync_Returns404_WhenNotFound()
@@ -197,6 +219,13 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         }
 
         // ── GetPagedAsync ────────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task GetPagedAsync_Returns401_WhenNoCookie()
+        {
+            var result = await CreateController(jwtCookie: null).GetPagedAsync(new ExpenseFilterDto());
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
 
         [Fact]
         public async Task GetPagedAsync_Returns200_WithPagedResponse()

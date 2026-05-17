@@ -460,6 +460,86 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             repo.Verify(r => r.RemoveMemberAttributionsAsync(1, 20), Times.Once);
         }
 
+        // ── LeaveAsync ───────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task LeaveAsync_ThrowsNotFound_WhenFamilyMissing()
+        {
+            var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((Family?)null);
+
+            await Assert.ThrowsAsync<FamilyNotFoundException>(
+                () => CreateService(repo.Object).LeaveAsync(1, userId: 10));
+        }
+
+        [Fact]
+        public async Task LeaveAsync_ThrowsForbidden_WhenDefaultFamily()
+        {
+            var family = MakeFamily(1, isDefault: true);
+            var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(family);
+
+            await Assert.ThrowsAsync<FamilyForbiddenException>(
+                () => CreateService(repo.Object).LeaveAsync(1, userId: 10));
+        }
+
+        [Fact]
+        public async Task LeaveAsync_ThrowsForbidden_WhenNotMember()
+        {
+            var family = MakeFamily(1);
+            var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(family);
+            repo.Setup(r => r.GetMembershipAsync(1, 10)).ReturnsAsync((FamilyMembership?)null);
+
+            await Assert.ThrowsAsync<FamilyForbiddenException>(
+                () => CreateService(repo.Object).LeaveAsync(1, userId: 10));
+        }
+
+        [Fact]
+        public async Task LeaveAsync_ThrowsForbidden_WhenLastHead()
+        {
+            var family = MakeFamily(1);
+            var membership = MakeMembership(1, userId: 10, roleId: 1);
+            var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(family);
+            repo.Setup(r => r.GetMembershipAsync(1, 10)).ReturnsAsync(membership);
+            repo.Setup(r => r.CountHeadsAsync(1, 1)).ReturnsAsync(1);
+
+            await Assert.ThrowsAsync<FamilyForbiddenException>(
+                () => CreateService(repo.Object).LeaveAsync(1, userId: 10));
+        }
+
+        [Fact]
+        public async Task LeaveAsync_Succeeds_WhenHeadWithOtherHead()
+        {
+            var family = MakeFamily(1);
+            var membership = MakeMembership(1, userId: 10, roleId: 1);
+            var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(family);
+            repo.Setup(r => r.GetMembershipAsync(1, 10)).ReturnsAsync(membership);
+            repo.Setup(r => r.CountHeadsAsync(1, 1)).ReturnsAsync(2);
+
+            await CreateService(repo.Object).LeaveAsync(1, userId: 10);
+
+            repo.Verify(r => r.RemoveMemberAsync(membership), Times.Once);
+            repo.Verify(r => r.RemoveMemberAttributionsAsync(1, 10), Times.Once);
+        }
+
+        [Fact]
+        public async Task LeaveAsync_Succeeds_ForMember()
+        {
+            var family = MakeFamily(1);
+            var membership = MakeMembership(1, userId: 10, roleId: 2);
+            var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(family);
+            repo.Setup(r => r.GetMembershipAsync(1, 10)).ReturnsAsync(membership);
+
+            await CreateService(repo.Object).LeaveAsync(1, userId: 10);
+
+            repo.Verify(r => r.RemoveMemberAsync(membership), Times.Once);
+            repo.Verify(r => r.RemoveMemberAttributionsAsync(1, 10), Times.Once);
+        }
+
         // ── ChangeRoleAsync ───────────────────────────────────────────────────
 
         [Fact]

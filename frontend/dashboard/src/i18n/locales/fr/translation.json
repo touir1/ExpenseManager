@@ -230,7 +230,14 @@
     "removeMember": "Retirer le membre",
     "expand": "Afficher les membres",
     "collapse": "Masquer les membres",
-    "selectorPersonal": "Mes dépenses"
+    "selectorPersonal": "Mes dépenses",
+    "leaveAction": "Quitter la famille",
+    "leaveSuccess": "Vous avez quitté la famille."
+  },
+  "currencies": {
+    "searchPlaceholder": "Rechercher par code ou nom…",
+    "noConversion": "Sans conversion",
+    "displayCurrencySelector": "Devise d'affichage"
   },
   "validation": {
     "emailRequired": "L'adresse e-mail est requise.",

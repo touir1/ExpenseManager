@@ -12,6 +12,7 @@ import {
   inviteMember,
   removeMember,
   changeMemberRole,
+  leaveFamily,
   getFamilyById,
 } from '@/features/families/services/familyApi.service'
 import {
@@ -244,10 +245,12 @@ function FamilyDetailPanel({
   family,
   detail,
   onRefresh,
+  onLeave,
 }: Readonly<{
   family: Family
   detail: FamilyDetail
   onRefresh: () => void
+  onLeave: () => void
 }>) {
   const { t } = useTranslation()
   const { show } = useToast()
@@ -255,6 +258,15 @@ function FamilyDetailPanel({
   const [showInvite, setShowInvite] = useState(false)
   const isHead = family.userRole === 'Head'
   const headCount = detail.members.filter(m => m.role === 'Head').length
+  const canLeave = !family.isDefault && !family.isArchived && (!isHead || headCount > 1)
+
+  const handleLeave = async () => {
+    const res = await leaveFamily(family.id)
+    if (res.ok) {
+      show(t('families.leaveSuccess'), 'success')
+      onLeave()
+    }
+  }
 
   const handleRemove = async (member: FamilyMember) => {
     const res = await removeMember(family.id, member.userId)
@@ -332,6 +344,17 @@ function FamilyDetailPanel({
         })}
       </ul>
 
+      {canLeave && (
+        <div className="mt-3 pt-3 border-t border-slate-100 flex justify-end">
+          <button
+            onClick={handleLeave}
+            className="text-xs font-medium text-red-500 hover:text-red-700 transition-colors cursor-pointer"
+          >
+            {t('families.leaveAction')}
+          </button>
+        </div>
+      )}
+
       {showInvite && (
         <InviteMemberModal
           family={family}
@@ -394,6 +417,7 @@ function FamilyCard({
       family={family}
       detail={detail}
       onRefresh={handleDetailRefresh}
+      onLeave={onRefresh}
     />
   ) : null
 

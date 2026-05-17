@@ -265,10 +265,10 @@ ExpenseManager/
 │   │       ├── Controllers/
 │   │       │   ├── CategoryControllerTests.cs
 │   │       │   ├── CurrencyControllerTests.cs
-│   │       │   ├── ExpenseControllerTests.cs        — 12 tests: 401 no-cookie, 201/400/403 create, 404/200/403 update, 404/204 delete, 404/200 getById, 200 getPaged
-│   │       │   ├── FamilyControllerTests.cs         — 30+ tests: 401 no-cookie paths, all 10 family endpoints (200/201/204/403/404/409 per action)
+│   │       │   ├── ExpenseControllerTests.cs        — 16 tests: 401 no-cookie × 5 endpoints, 201/400/403 create, 404/200/403 update, 404/204 delete, 404/200 getById, 200 getPaged
+│   │       │   ├── FamilyControllerTests.cs         — 34+ tests: 401 no-cookie paths, all 10 family endpoints (200/201/204/403/404/409 per action) incl. LeaveAsync 401/204/403/404
 │   │       │   ├── TagControllerTests.cs            — 13 tests: 401 no-cookie × 3 endpoints, GetTags 200 (list/empty/family), UseTag 200 (new/existing), RemoveTag 204/404
-│   │       │   └── CurrencyRateControllerTests.cs   — 23 tests: GetHistory 200/500, AddRate 201/401/500, BulkAdd 204/401/500, SetDefault 204/401/500, GetConflicts 200/500, ResolveConflict 204/401/404, RefreshRates 204/401/500/filter
+│   │       │   └── CurrencyRateControllerTests.cs   — 24 tests: GetHistory 200/500, AddRate 201/401/500, BulkAdd 204/401/500, SetDefault 204/401/500, GetConflicts 200/500, ResolveConflict 204/401/400/404, RefreshRates 204/401/500/filter
 │   │       ├── Jobs/
 │   │       │   └── RateAutoUpdateJobTests.cs        — 3 tests: Execute calls RunDailyUpdateAsync, exception does not propagate, exception logs error
 │   │       ├── Messaging/
@@ -286,6 +286,7 @@ ExpenseManager/
 │   │       ├── Infrastructure/
 │   │       │   └── ExpensesDbContextSchemaTests.cs  — 23 tests: all Phase 1 entities, composite PKs, unique constraints, cascades
 │   │       ├── Validators/
+│   │       │   ├── CreateTagRequestValidatorTests.cs — 4 tests: valid, empty name, name too long (51 chars), exact max length (50 chars)
 │   │       │   ├── ExpenseRequestValidatorTests.cs  — 13 tests: valid pass, amount/currency/date/description/subcategory rules for both Create and Update validators
 │   │       │   └── FamilyValidatorTests.cs          — 15 tests: CreateFamily, RenameFamily, InviteMember (incl. email case + length), ChangeMemberRole
 │   │       └── Services/
@@ -601,7 +602,7 @@ ExpenseManager/
 │           │   │   ├── components/
 │           │   │   │   ├── DisplayCurrencySelector.tsx — NavBar dropdown; reads currencies from ExpensesDataContext; writes to DisplayCurrencyContext; "No conversion" option
 │           │   │   │   └── __tests__/
-│           │   │   │       └── DisplayCurrencySelector.test.tsx — 9 tests: renders/no currencies/label/open/select/clear/close/aria-checked
+│           │   │   │       └── DisplayCurrencySelector.test.tsx — 13 tests: renders/no currencies/label/open/select/clear/close/aria-checked/search-input/filter-by-code/filter-by-name/clear-on-close
 │           │   │   ├── services/
 │           │   │   │   ├── ratesApi.service.ts — refreshRates(RefreshRatesParams) → POST /api/expenses/rates/refresh (204); params: from, sourceCurrencyId?, destinationCurrencyId?
 │           │   │   │   └── __tests__/

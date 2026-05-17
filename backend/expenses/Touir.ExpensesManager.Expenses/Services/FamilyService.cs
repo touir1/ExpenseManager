@@ -268,6 +268,29 @@ namespace Touir.ExpensesManager.Expenses.Services
             await _familyRepo.UpdateFamilyAsync(family);
         }
 
+        public async Task LeaveAsync(int familyId, int userId)
+        {
+            var family = await _familyRepo.GetByIdAsync(familyId)
+                ?? throw new FamilyNotFoundException();
+
+            if (family.IsDefault)
+                throw new FamilyForbiddenException("FAMILY_CANNOT_LEAVE_DEFAULT");
+
+            var membership = await _familyRepo.GetMembershipAsync(familyId, userId)
+                ?? throw new FamilyForbiddenException();
+
+            var headId = await _lookupCache.GetIdAsync<FamilyRole>(RoleHead);
+            if (membership.RoleId == headId)
+            {
+                var headCount = await _familyRepo.CountHeadsAsync(familyId, headId);
+                if (headCount <= 1)
+                    throw new FamilyForbiddenException("FAMILY_CANNOT_LEAVE_LAST_HEAD");
+            }
+
+            await _familyRepo.RemoveMemberAsync(membership);
+            await _familyRepo.RemoveMemberAttributionsAsync(familyId, userId);
+        }
+
         private static FamilyDto MapToDto(Family family, string roleName) => new()
         {
             Id = family.Id,

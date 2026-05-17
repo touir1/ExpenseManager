@@ -7,8 +7,8 @@ Reference: [application-description.md](application-description.md)
 | Area | Status |
 |------|--------|
 | Users service | ✅ Complete — auth, registration, JWT, refresh tokens, password management, FluentValidation |
-| Expenses service | ✅ Phase 1–6 complete — schema, categories/currencies, expense CRUD, family system, tags, currency rates (daily storage, resolution, auto-update via Quartz, backfill endpoint, conflict management, display currency conversion); Phase 7+ pending |
-| Frontend | ⚠️ Auth + family management + tag input component complete; expense list/form + dashboard pending (Phase 8–9) |
+| Expenses service | ✅ Phase 1–6 complete — schema, categories/currencies, expense CRUD, family system, tags, currency rates (daily storage, resolution, auto-update via Quartz, backfill, conflict management, display currency conversion); Phase 7+ pending |
+| Frontend | ⚠️ Auth + family management (incl. leave) + tag input + display currency selector (with search) complete; expense list/form + dashboard pending (Phase 8–9) |
 | Infrastructure | ✅ Docker Compose, nginx, PostgreSQL, RabbitMQ, Grafana, Prometheus |
 
 ---
@@ -278,13 +278,14 @@ Replace current model with:
   - `RenameAsync(familyId, name, userId)` — head only
   - `ArchiveAsync(familyId, userId)` — head only, non-default (soft delete)
   - `UnarchiveAsync(familyId, userId)` — head only
+  - `LeaveAsync(familyId, userId)` — any member; head blocked if last head (`FAMILY_CANNOT_LEAVE_LAST_HEAD`)
 - [x] `FamilyInvitation` model + `Phase4_FamilyInvitation` EF migration
 - [x] `UserEventConsumer` — on `user.created` → `SaveOrUpdateUserAsync` then `CreateDefaultAsync` (idempotent)
 - [x] Expense attribution: `FamilyIds int[]?` on Create/Update requests; null = auto-attribute to default family; empty = no attribution; provided = validate membership + write `ExpenseFamilyAttribution` rows
 - [x] Head "remove from family" → deletes `ExpenseFamilyAttribution` rows via `RemoveMemberAttributionsAsync`
-- [x] `FamilyController` — `GET /families`, `GET /families/{id}`, `POST /families`, `PUT /families/{id}/name`, `POST /families/{id}/archive`, `POST /families/{id}/unarchive`, `POST /families/{id}/invite`, `POST /families/accept-invite/{token}`, `DELETE /families/{id}/members/{userId}`, `PUT /families/{id}/members/{userId}/role`
+- [x] `FamilyController` — `GET /families`, `GET /families/{id}`, `POST /families`, `PUT /families/{id}/name`, `POST /families/{id}/archive`, `POST /families/{id}/unarchive`, `POST /families/{id}/invite`, `POST /families/accept-invite/{token}`, `DELETE /families/{id}/members/{userId}`, `PUT /families/{id}/members/{userId}/role`, `DELETE /families/{id}/leave`
 - [x] FluentValidation for all request DTOs
-- [x] Unit tests — FamilyService (42 cases), UserEventConsumer updated
+- [x] Unit tests — FamilyService (34 cases), UserEventConsumer updated
 
 ### Backend (users service)
 
@@ -340,26 +341,26 @@ Replace current model with:
 
 ### Backend
 
-- [ ] `CurrencyRateService`
+- [x] `CurrencyRateService`
   - `ResolveRateAsync(sourceCurrencyId, destinationCurrencyId, date)` — exact → most recent before → default fallback
   - `GetRateHistoryAsync(sourceCurrencyId, destinationCurrencyId)` — admin use
   - `AddManualRateAsync(request, adminUserId)` — single date
   - `BulkAddManualRatesAsync(rows, adminUserId)` — CSV
   - `SetDefaultFallbackAsync(sourceCurrencyId, destinationCurrencyId, rate, adminUserId)`
   - `ResolveConflictAsync(conflictId, resolution, customRate, adminUserId)`
-- [ ] Auto-update background service (`IHostedService` / `BackgroundService`)
-  - Runs daily (configurable time)
-  - Fetches rates from external provider (provider abstracted behind `IRateProvider`)
-  - For each fetched rate: if a manual rate already exists for that date → insert into `CurrencyRateConflict` (status: `pending`); otherwise insert into `CurrencyDailyRate`
-- [ ] Update `ExpenseService.GetPagedAsync` and `GetByIdAsync` to accept `displayCurrencyId` parameter; compute converted amount using `ResolveRateAsync` per expense date
-- [ ] Admin controllers for rates, conflicts
-- [ ] Unit tests for rate resolution logic (exact match, fallback chain, default)
+  - `GetPendingConflictsAsync()` — list conflicts awaiting resolution
+  - `RunDailyUpdateAsync(ct)` — fetches today's rates, creates conflicts for existing manual rates
+  - `RefreshRatesFromAsync(from, sourceCurrencyId?, destinationCurrencyId?, ct)` — date-range backfill
+- [x] Auto-update background service — `RateAutoUpdateJob` (`IJob` with `[DisallowConcurrentExecution]`, Quartz cron `0 {m} {h} * * ?` from `CurrencyRateOptions.UpdateTime`)
+- [x] Update `ExpenseService.GetPagedAsync` and `GetByIdAsync` to accept `displayCurrencyId` parameter; compute `ConvertedAmount` + `DisplayCurrency` via `ResolveRateAsync` per expense date
+- [x] `CurrencyRateController` (`/rates`) — `GET /rates/history`, `POST /rates`, `POST /rates/bulk`, `DELETE /rates/{id}`, `GET /rates/conflicts/pending`, `PUT /rates/conflicts/{id}/resolve`, `POST /rates/refresh`; no separate admin role — all authenticated users can access
+- [x] Unit tests — `CurrencyRateServiceTests` (27 cases), `RateAutoUpdateJobTests`
 
 ### Frontend
 
-- [ ] Display currency selector (session state, not persisted)
-- [ ] Expense list: show original amount + currency + converted amount
-- [ ] Add/edit form: live converted amount preview
+- [x] `DisplayCurrencySelector` — session state (not persisted), search by code/name, NavBar integration
+- [ ] Expense list: show original + converted amount (deferred to Phase 8)
+- [ ] Add/edit form: live converted amount preview (deferred to Phase 8)
 
 **Depends on:** Phase 2, Phase 3
 
@@ -441,16 +442,16 @@ Replace current model with:
 
 ### Tasks
 
-- [ ] `FamiliesPage` — tabbed: Active / Archived
-- [ ] Create family form
-- [ ] Per-family detail: member list, invite by email, change role, remove member
-- [ ] Archive / unarchive family (head only; Default family: no archive option rendered)
-- [ ] Rename family, family settings
-- [ ] Leave family (member; head must transfer first)
+- [x] `FamiliesPage` — tabbed: Active / Archived
+- [x] Create family form
+- [x] Per-family detail: member list, invite by email, change role, remove member
+- [x] Archive / unarchive family (head only; Default family: no archive option rendered)
+- [x] Rename family, family settings
+- [x] Leave family — `DELETE /families/{id}/leave`; heads blocked if last head (`FAMILY_CANNOT_LEAVE_LAST_HEAD`); button in expanded detail panel; 6 service tests
 - [ ] Accept invite flow (email link → web page)
 - [ ] Notification when attribution removed (in-app)
-- [ ] i18n coverage
-- [ ] Tests
+- [x] i18n coverage — all 4 locales (en/fr/es/de) complete for families + currencies sections
+- [ ] Tests — `FamiliesPage.test.tsx` exists (layout, cards, detail panel, create/rename modals) but missing coverage for leave button and `DisplayCurrencySelector` search
 
 **Depends on:** Phase 4
 

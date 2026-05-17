@@ -105,7 +105,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             if (expense is null)
                 return null;
 
-            var (convertedAmount, displayCurrency) = await ResolveConversionAsync(expense.CurrencyId, expense.Date, expense.Amount, displayCurrencyId, expense.Currency);
+            var (convertedAmount, displayCurrency) = await ResolveConversionAsync(expense.CurrencyId, expense.Date, expense.Amount, displayCurrencyId);
             return MapToDto(expense, convertedAmount: convertedAmount, displayCurrency: displayCurrency);
         }
 
@@ -118,7 +118,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             var dtos = new List<ExpenseDto>();
             foreach (var e in items)
             {
-                var (convertedAmount, displayCurrency) = await ResolveConversionAsync(e.CurrencyId, e.Date, e.Amount, filter.DisplayCurrencyId, e.Currency);
+                var (convertedAmount, displayCurrency) = await ResolveConversionAsync(e.CurrencyId, e.Date, e.Amount, filter.DisplayCurrencyId);
                 dtos.Add(MapToDto(e, convertedAmount: convertedAmount, displayCurrency: displayCurrency));
             }
 
@@ -133,7 +133,7 @@ namespace Touir.ExpensesManager.Expenses.Services
         }
 
         private async Task<(decimal? convertedAmount, CurrencyDto? displayCurrency)> ResolveConversionAsync(
-            int expenseCurrencyId, DateOnly date, decimal amount, int? displayCurrencyId, Currency? expenseCurrency)
+            int expenseCurrencyId, DateOnly date, decimal amount, int? displayCurrencyId)
         {
             if (displayCurrencyId is null || displayCurrencyId == expenseCurrencyId)
                 return (null, null);

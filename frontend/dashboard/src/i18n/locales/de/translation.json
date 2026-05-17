@@ -230,7 +230,14 @@
     "removeMember": "Mitglied entfernen",
     "expand": "Mitglieder anzeigen",
     "collapse": "Mitglieder ausblenden",
-    "selectorPersonal": "Meine Ausgaben"
+    "selectorPersonal": "Meine Ausgaben",
+    "leaveAction": "Familie verlassen",
+    "leaveSuccess": "Du hast die Familie verlassen."
+  },
+  "currencies": {
+    "searchPlaceholder": "Nach Code oder Name suchen…",
+    "noConversion": "Keine Umrechnung",
+    "displayCurrencySelector": "Anzeigewährung"
   },
   "validation": {
     "emailRequired": "E-Mail-Adresse ist erforderlich.",

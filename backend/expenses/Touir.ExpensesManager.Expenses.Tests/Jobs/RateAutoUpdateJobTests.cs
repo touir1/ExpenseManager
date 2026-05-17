@@ -40,8 +40,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Jobs
             service.Setup(s => s.RunDailyUpdateAsync(It.IsAny<CancellationToken>()))
                    .ThrowsAsync(new InvalidOperationException("provider down"));
 
-            // Should not throw — job catches and logs
-            await CreateJob(service.Object).Execute(MakeContext());
+            var ex = await Record.ExceptionAsync(() => CreateJob(service.Object).Execute(MakeContext()));
+            Assert.Null(ex);
         }
 
         [Fact]

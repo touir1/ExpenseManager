@@ -230,7 +230,14 @@
     "removeMember": "Eliminar miembro",
     "expand": "Ver miembros",
     "collapse": "Ocultar miembros",
-    "selectorPersonal": "Mis gastos"
+    "selectorPersonal": "Mis gastos",
+    "leaveAction": "Abandonar familia",
+    "leaveSuccess": "Has abandonado la familia."
+  },
+  "currencies": {
+    "searchPlaceholder": "Buscar por código o nombre…",
+    "noConversion": "Sin conversión",
+    "displayCurrencySelector": "Moneda de visualización"
   },
   "validation": {
     "emailRequired": "El correo electrónico es obligatorio.",

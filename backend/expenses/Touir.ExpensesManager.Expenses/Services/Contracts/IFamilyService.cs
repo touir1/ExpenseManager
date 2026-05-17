@@ -15,5 +15,6 @@ namespace Touir.ExpensesManager.Expenses.Services.Contracts
         Task ChangeRoleAsync(int familyId, int targetUserId, string roleName, int changedById);
         Task ArchiveAsync(int familyId, int userId);
         Task UnarchiveAsync(int familyId, int userId);
+        Task LeaveAsync(int familyId, int userId);
     }
 }

@@ -45,6 +45,7 @@ vi.mock('@/features/families/services/familyApi.service', () => ({
   removeMember: vi.fn(),
   changeMemberRole: vi.fn(),
   getFamilyById: vi.fn(),
+  leaveFamily: vi.fn(),
 }))
 
 import * as familyApi from '@/features/families/services/familyApi.service'
@@ -697,6 +698,60 @@ describe('FamiliesPage', () => {
       await user.click(screen.getByRole('button', { name: /families\.inviteSubmit/i }))
       await waitFor(() => expect(familyApi.inviteMember).toHaveBeenCalled())
       expect(screen.getByText('families.inviteTitle')).toBeInTheDocument()
+      expect(mockShow).not.toHaveBeenCalled()
+    })
+
+    it('shows leave button for non-default non-archived family with multiple heads', async () => {
+      const twoHeadsDetail: FamilyDetail = {
+        ...mockDetail,
+        members: [
+          { userId: 10, firstName: 'Alice', lastName: 'Smith', email: 'alice@example.com', role: 'Head', joinedAt: '2024-01-01T00:00:00Z' },
+          { userId: 11, firstName: 'Bob', lastName: 'Jones', email: 'bob@example.com', role: 'Head', joinedAt: '2024-02-01T00:00:00Z' },
+        ],
+      }
+      await renderExpanded({ detail: twoHeadsDetail })
+      expect(screen.getByRole('button', { name: /families\.leaveAction/i })).toBeInTheDocument()
+    })
+
+    it('does not show leave button for default family', async () => {
+      const defaultFamily: Family = { ...mockFamily2, isDefault: true }
+      const defaultDetail: FamilyDetail = { ...mockDetail, isDefault: true }
+      await renderExpanded({ family: defaultFamily, detail: defaultDetail })
+      expect(screen.queryByRole('button', { name: /families\.leaveAction/i })).not.toBeInTheDocument()
+    })
+
+    it('does not show leave button when user is the only head', async () => {
+      const singleHeadDetail: FamilyDetail = {
+        ...mockDetail,
+        members: [
+          { userId: 10, firstName: 'Alice', lastName: 'Smith', email: 'alice@example.com', role: 'Head', joinedAt: '2024-01-01T00:00:00Z' },
+        ],
+      }
+      await renderExpanded({ detail: singleHeadDetail })
+      expect(screen.queryByRole('button', { name: /families\.leaveAction/i })).not.toBeInTheDocument()
+    })
+
+    it('calls leaveFamily and shows toast on success', async () => {
+      const memberFamily: Family = { ...mockFamily2, userRole: 'Member' }
+      const mockRefresh = vi.fn()
+      mockUseFamilies.mockReturnValue({ families: [memberFamily], isLoading: false, refresh: mockRefresh })
+      vi.mocked(familyApi.getFamilyById).mockResolvedValue({ ok: true, status: 200, data: mockDetail })
+      vi.mocked(familyApi.leaveFamily).mockResolvedValue({ ok: true, status: 204 })
+      const user = userEvent.setup()
+      render(<FamiliesPage />)
+      await user.click(screen.getByRole('button', { name: /families\.expand/i }))
+      await waitFor(() => expect(screen.getByText('Alice Smith')).toBeInTheDocument())
+      await user.click(screen.getByRole('button', { name: /families\.leaveAction/i }))
+      await waitFor(() => expect(familyApi.leaveFamily).toHaveBeenCalledWith(2))
+      expect(mockShow).toHaveBeenCalledWith('families.leaveSuccess', 'success')
+    })
+
+    it('does not show toast when leaveFamily fails', async () => {
+      const memberFamily: Family = { ...mockFamily2, userRole: 'Member' }
+      vi.mocked(familyApi.leaveFamily).mockResolvedValue({ ok: false, status: 403 })
+      const user = await renderExpanded({ family: memberFamily })
+      await user.click(screen.getByRole('button', { name: /families\.leaveAction/i }))
+      await waitFor(() => expect(familyApi.leaveFamily).toHaveBeenCalled())
       expect(mockShow).not.toHaveBeenCalled()
     })
   })

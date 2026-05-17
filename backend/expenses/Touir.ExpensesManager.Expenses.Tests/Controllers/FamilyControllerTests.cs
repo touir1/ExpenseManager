@@ -391,6 +391,50 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
             Assert.Equal(403, ((ObjectResult)result).StatusCode);
         }
 
+        // ── LeaveAsync ────────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task Leave_Returns401_WhenNoCookie()
+        {
+            var result = await CreateController(jwtCookie: null).LeaveAsync(1);
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task Leave_Returns204_OnSuccess()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.LeaveAsync(1, 42)).Returns(Task.CompletedTask);
+
+            var result = await CreateController(service.Object).LeaveAsync(1);
+            Assert.IsType<NoContentResult>(result);
+        }
+
+        [Fact]
+        public async Task Leave_Returns403_WhenLastHead()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.LeaveAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ThrowsAsync(new FamilyForbiddenException("FAMILY_CANNOT_LEAVE_LAST_HEAD"));
+
+            var result = await CreateController(service.Object).LeaveAsync(1);
+            var obj = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(403, obj.StatusCode);
+            var err = Assert.IsType<ErrorResponse>(obj.Value);
+            Assert.Equal("FAMILY_CANNOT_LEAVE_LAST_HEAD", err.Message);
+        }
+
+        [Fact]
+        public async Task Leave_Returns404_WhenNotMember()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.LeaveAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ThrowsAsync(new FamilyNotFoundException());
+
+            var result = await CreateController(service.Object).LeaveAsync(1);
+            Assert.IsType<NotFoundObjectResult>(result);
+        }
+
         // ── ChangeMemberRoleAsync ─────────────────────────────────────────────
 
         [Fact]

@@ -269,6 +269,19 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         }
 
         [Fact]
+        public async Task ResolveConflict_ServiceThrows_ReturnsBadRequest()
+        {
+            var service = new Mock<ICurrencyRateService>();
+            service.Setup(s => s.ResolveConflictAsync(It.IsAny<int>(), It.IsAny<ResolveConflictRequest>(), It.IsAny<int>()))
+                   .ThrowsAsync(new Exception("db error"));
+
+            var result = await CreateController(service.Object).ResolveConflictAsync(1,
+                new ResolveConflictRequest { Resolution = "KeepManual" });
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
         public async Task ResolveConflict_NotFound_Returns404()
         {
             var service = new Mock<ICurrencyRateService>();

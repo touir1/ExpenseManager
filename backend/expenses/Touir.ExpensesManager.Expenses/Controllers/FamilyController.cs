@@ -293,6 +293,37 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             }
         }
 
+        /// <summary>Leave a family. Heads must have at least one other head first.</summary>
+        [HttpDelete("{id:int}/leave")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> LeaveAsync(int id)
+        {
+            try
+            {
+                var userId = JwtCookieReader.GetUserId(Request);
+                if (userId is null)
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingUser });
+
+                await _familyService.LeaveAsync(id, userId.Value);
+                return NoContent();
+            }
+            catch (FamilyNotFoundException ex)
+            {
+                return NotFound(new ErrorResponse { Message = ex.Message });
+            }
+            catch (FamilyForbiddenException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponse { Message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
+            }
+        }
+
         /// <summary>Change a member's role. Head only.</summary>
         [HttpPut("{id:int}/members/{targetUserId:int}/role")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

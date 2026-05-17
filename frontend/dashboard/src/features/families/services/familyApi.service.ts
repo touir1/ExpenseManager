@@ -43,3 +43,7 @@ export function removeMember(familyId: number, targetUserId: number): Promise<Ap
 export function changeMemberRole(familyId: number, targetUserId: number, role: string): Promise<ApiResponse<void>> {
   return put<void>(`${BASE}/${familyId}/members/${targetUserId}/role`, { role })
 }
+
+export function leaveFamily(familyId: number): Promise<ApiResponse<void>> {
+  return del<void>(`${BASE}/${familyId}/leave`)
+}

@@ -3,6 +3,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.102.2] - 2026-05-17
+### Changed
+- **Test coverage — backend (expenses)**: Added 13 new tests across 4 files. `FamilyControllerTests`: 4 `LeaveAsync` paths (401 no-cookie, 204 success, 403 last-head, 404 not-member). `ExpenseControllerTests`: 4 missing 401 no-cookie tests (UpdateAsync, DeleteAsync, GetByIdAsync, GetPagedAsync). `CurrencyRateControllerTests`: 1 missing `ResolveConflict_ServiceThrows_ReturnsBadRequest`. `Validators/CreateTagRequestValidatorTests` (new file): 4 tests (valid, empty name, too-long, exact max length). Total backend: **433 tests** (was 420).
+- **Test coverage — frontend**: Added tests for `FamiliesPage` leave-button flow (show/hide by isDefault/isArchived/headCount, success toast, failure no-toast), `DisplayCurrencySelector` search/filter/clear, and `familyApi.service` `leaveFamily`. Total frontend: **548 tests** (was 530).
+- **Sonar fixes — backend**: `FrankfurterRateProvider` — extracted `BaseUrl` and `DateFormat` constants; added `CultureInfo.InvariantCulture` to `ToString`/`ParseExact` calls. `ExpenseService.ResolveConversionAsync` — removed unused `expenseCurrency` parameter and all call sites. `Program.cs` — added `CultureInfo.InvariantCulture` to both `TimeOnly.Parse` calls. `RateAutoUpdateJobTests.Execute_ServiceThrows_DoesNotPropagate` — replaced implicit no-throw assertion with `Record.ExceptionAsync` + `Assert.Null`.
+- **Sonar fixes — frontend**: `DisplayCurrencyContext` — removed redundant `useCallback` wrapper; replaced non-standard `setDisplayCurrencyIdState` alias with standard `[displayCurrencyId, setDisplayCurrencyId]` `useState` destructure.
+
 ## [0.102.1] - 2026-05-17
 ### Changed
 - **`POST /rates/refresh` — optional source/destination currency filter**: Body now accepts optional `sourceCurrencyId` and `destinationCurrencyId`; when omitted, all pairs are refreshed (previous behavior preserved). Service filters the source-currencies loop and skips non-matching destination entries without an extra API call.
