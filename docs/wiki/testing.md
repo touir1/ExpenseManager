@@ -14,7 +14,7 @@ Testing spans three codebases — users service, expenses service, and the React
 
 **Runner:** xUnit + Moq + FluentValidation.TestHelper  
 **Location:** `backend/users/Touir.ExpensesManager.Users.Tests/`  
-**Test count:** ~316 (as of v0.93.1)
+**Test count:** ~318 (as of v0.103.1)
 
 ### Running
 
@@ -87,7 +87,7 @@ Options.Create(new JwtAuthOptions {
 
 **Runner:** xUnit + Moq  
 **Location:** `backend/expenses/Touir.ExpensesManager.Expenses.Tests/`  
-**Test count:** ~299 (as of v0.93.1)
+**Test count:** ~454 (as of v0.103.1)
 
 ### Running
 

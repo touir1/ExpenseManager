@@ -203,7 +203,7 @@ Implements HMAC-SHA256 password hashing:
 
 Template loading and email dispatch:
 
-- `GetEmailTemplate(templateKey, parameters)` — loads HTML template from `Assets/EmailTemplates/`; replaces `{{KEY}}` placeholders
+- `GetEmailTemplate(templateKey, parameters)` — loads HTML template from `Assets/EmailTemplates/`; auto-substitutes `@@YEAR@@` with current year; replaces `@@KEY@@` placeholders from caller-provided dict
 - `SendEmail(to, subject, body)` — delegates to `IEmailService`
 - `VerifyEmail(user, app)` — builds verification email content; sends via `SendEmail`
 
@@ -321,7 +321,7 @@ dotnet test --collect:"XPlat Code Coverage" --results-directory "./coverage" \
   -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
 ```
 
-**Test count:** ~238 tests (as of v0.69.0)
+**Test count:** ~318 tests (as of v0.103.1)
 
 **Test organization:**
 ```

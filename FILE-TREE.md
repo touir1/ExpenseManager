@@ -115,12 +115,22 @@ ExpenseManager/
 │   │   │   │   │   └── UserEventMessage.cs  — Inbound event DTO + UserEventType constants (Created/Updated/Deleted)
 │   │   │   │   └── Consumers/
 │   │   │   │       └── UserEventConsumer.cs — BackgroundService; binds expenses.users.sync → users.events; inbox deduplication via IInboxRepository.ExistsAsync; calls IUserRepository.SaveOrUpdateUserAsync / DeleteUserAsync
+│   │   │   ├── Assets/
+│   │   │   │   └── EmailTemplates/
+│   │   │   │       └── FAMILY_INVITATION_TEMPLATE.html — HTML email template for family invitations; placeholders @@INVITER_NAME@@ @@FAMILY_NAME@@ @@INVITE_LINK@@ @@YEAR@@ (auto)
 │   │   │   ├── Infrastructure/
+│   │   │   │   ├── EmailHelper.cs           — Template loading + email dispatch; delegates to IEmailService
+│   │   │   │   ├── EmailHtmlTemplate.cs     — Template key+variable constants (FamilyInvitation)
 │   │   │   │   ├── ExpensesDbContext.cs     — EF Core context; all 13 DbSets with full Fluent API config
 │   │   │   │   ├── JwtCookieReader.cs       — Decodes auth_token cookie (base64url payload) to extract sub claim; no signature validation (nginx validates upstream)
+│   │   │   │   ├── SmtpEmailService.cs      — SMTP email sender; configurable host/port/SSL via EmailOptions
+│   │   │   │   ├── Contracts/
+│   │   │   │   │   ├── IEmailHelper.cs      — Template loading + send interface
+│   │   │   │   │   └── IEmailService.cs     — Raw send interface
 │   │   │   │   └── Options/
 │   │   │   │       ├── CurrencyRateOptions.cs — UpdateTime (default 02:00 UTC); env prefix EXPENSES_MANAGEMENT_EXPENSES_CURRENCYRATE_*
-│   │   │   │       ├── FamilyOptions.cs     — InviteExpiryInDays (env: EXPENSES_MANAGEMENT_EXPENSES_FAMILY_INVITE_EXPIRY_IN_DAYS, default 7)
+│   │   │   │       ├── EmailOptions.cs      — SMTP config; env prefix EXPENSES_MANAGEMENT_EXPENSES_EMAILAUTH_*
+│   │   │   │       ├── FamilyOptions.cs     — InviteExpiryInDays + InviteBaseUrl; env prefix EXPENSES_MANAGEMENT_EXPENSES_FAMILY_*
 │   │   │   │       ├── PostgresOptions.cs
 │   │   │   │       └── RabbitMQOptions.cs
 │   │   │   ├── Controllers/
@@ -284,7 +294,9 @@ ExpenseManager/
 │   │       │   ├── TagRepositoryTests.cs            — 16 integration tests: GetOwnAsync×3, GetFamilyAsync×4, EnsureUserTagAsync×3, RemoveUserTagAsync×2, IsVisibleAsync×4
 │   │       │   └── CurrencyRateRepositoryTests.cs   — 20 integration tests: GetExact×2, GetMostRecentBefore×2, GetDefault×2, AddRate, ManualRateExists×2, AddConflict, GetPendingConflicts, SetDefault×2, GetHistory×2, UpdateRate, GetConflictById×2, UpdateConflict
 │   │       ├── Infrastructure/
-│   │       │   └── ExpensesDbContextSchemaTests.cs  — 23 tests: all Phase 1 entities, composite PKs, unique constraints, cascades
+│   │       │   ├── EmailHelperTests.cs              — 9 tests: template replacement, no/empty params, multi-occurrence, family-invitation placeholders, @@YEAR@@ auto-sub×2, SendEmail delegation×2
+│   │       │   ├── ExpensesDbContextSchemaTests.cs  — 23 tests: all Phase 1 entities, composite PKs, unique constraints, cascades
+│   │       │   └── SmtpEmailServiceTests.cs         — 10 tests: SendEmail SSL on/off, CC, BCC, HTML, null body, minimal, empty/single attachment, all params
 │   │       ├── Validators/
 │   │       │   ├── CreateTagRequestValidatorTests.cs — 4 tests: valid, empty name, name too long (51 chars), exact max length (50 chars)
 │   │       │   ├── ExpenseRequestValidatorTests.cs  — 13 tests: valid pass, amount/currency/date/description/subcategory rules for both Create and Update validators
@@ -299,7 +311,7 @@ ExpenseManager/
 │   │           ├── ExpenseAuditServiceTests.cs      — 3 tests: WriteAddAuditAsync (log + after snapshot), WriteUpdateAuditAsync (log + before+after snapshots), WriteDeleteAuditAsync (log + before snapshot)
 │   │           ├── CurrencyRateServiceTests.cs      — 28 tests: ResolveRateAsync×5, AddManualRateAsync×2, BulkAdd×1, SetDefault×1, ResolveConflict×4, GetRateHistory×1, GetPendingConflicts×1, RunDailyUpdate×5, RefreshRatesFrom×7 (all/manualConflict/providerThrows/skipDest/sourceFilter/destFilter/unknownSource)
 │   │           ├── TagServiceTests.cs               — 10 unit tests (Moq): GetVisibleAsync×4, UseTagAsync×4, RemoveTagAsync×2
-│   │           └── FamilyServiceTests.cs            — 42+ tests: CreateDefault, Create, GetByUser, GetById, Rename, Invite, AcceptInvite, RemoveMember, ChangeRole, Archive, Unarchive (success + forbidden/not-found paths)
+│   │           └── FamilyServiceTests.cs            — 36 tests: CreateDefault, Create, GetByUser, GetById, Rename, Invite (incl. email send + failure non-propagation), AcceptInvite, RemoveMember, ChangeRole, Archive, Unarchive, Leave
 │   │
 │   └── users/
 │       ├── .config/
@@ -468,7 +480,7 @@ ExpenseManager/
 │           │   └── ResendVerificationRequestValidatorTests.cs — 3 tests: email empty, appCode empty, valid
 │           ├── Infrastructure/
 │           │   ├── CryptographyHelperTests.cs
-│           │   ├── EmailHelperTests.cs
+│           │   ├── EmailHelperTests.cs          — 8 tests: VerifyEmail×2, template replacement, no/empty params, multi-occurrence, @@YEAR@@ auto-sub×2, SendEmail delegation×2
 │           │   └── SmtpEmailServiceTests.cs
 │           ├── Repositories/
 │           │   ├── ApplicationRepositoryTests.cs

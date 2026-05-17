@@ -25,6 +25,13 @@
     <Content Remove="sql_database_scripts\**" />
     <EmbeddedResource Remove="sql_database_scripts\**" />
     <None Remove="sql_database_scripts\**" />
+    <None Remove="Assets\EmailTemplates\FAMILY_INVITATION_TEMPLATE.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\EmailTemplates\FAMILY_INVITATION_TEMPLATE.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>

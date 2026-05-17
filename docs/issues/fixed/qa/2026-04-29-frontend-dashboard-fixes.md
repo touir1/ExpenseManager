@@ -80,3 +80,40 @@ Resolved by F-1's fix: `silent: true` on `sessionCheck()` and `refreshRequest()`
 **Fix applied:**
 - Added `silent: true` to `loginRequest()` opts in `authApi.service.ts`. The api.service generic toast is suppressed; `LoginPage` continues to show its own contextual message.
 - `AuthContext.test.tsx`: two `toHaveBeenCalledWith` assertions for the login endpoint updated from `SKIP` to `SKIP_SILENT`. All 267 tests pass.
+
+---
+
+## U-3 — ~~Email footer shows stale copyright year "© 2024"~~ ✅ FIXED (v0.103.0)
+
+**Severity:** Low  
+**Affected:** All email templates (verification email, password reset email, family invitation email)
+
+**Root cause:** Year was hardcoded as `2024` in `EMAIL_VERIFICATION_TEMPLATE.html` and `PASSWORD_RESET_TEMPLATE.html` in the users service. New expenses service templates also used a static year.
+
+**Fix applied (v0.103.0):**
+- `EMAIL_VERIFICATION_TEMPLATE.html` and `PASSWORD_RESET_TEMPLATE.html` (users service): replaced `© 2024` with `© @@YEAR@@`.
+- `FAMILY_INVITATION_TEMPLATE.html` (expenses service): uses `@@YEAR@@` from creation.
+- `EmailHelper.GetEmailTemplate` (both services): auto-substitutes `@@YEAR@@` → `DateTime.UtcNow.Year.ToString()` before processing any caller-provided parameters. No caller changes required — single point of change.
+- 2 new tests in users `EmailHelperTests.cs` verifying auto-substitution.
+
+---
+
+## S-1 — ~~No rate limiting on login endpoint~~ ✅ FIXED (v0.92.0)
+
+**Severity:** High  
+**Affected endpoint:** `POST /api/users/auth/login`
+
+**Root cause:** No rate limiting existed at any layer — neither nginx nor application level. Unlimited concurrent login attempts returned HTTP 401 indefinitely.
+
+**Fix applied (v0.92.0):**
+- Added `Microsoft.AspNetCore.RateLimiting` to the users service with fixed-window per-client-IP policies on all sensitive routes:
+  - `login`: 10 req / 1 min
+  - `register`: 5 req / 10 min
+  - `resend_verification`: 3 req / 10 min
+  - `validate_email`: 10 req / 5 min
+  - `request_password_reset` / `change_password_reset` / `create_password`: 5 req / 10 min
+  - `change_password`: 10 req / 5 min
+  - `refresh`: 20 req / 1 min
+  - `messaging_replay`: 5 req / 1 min
+- Endpoints without rate limiting: `GET /auth/check`, `GET /auth/session`, `POST /auth/logout`, `GET /messaging/outbox/stats`.
+- Exceeding any limit returns HTTP 429.

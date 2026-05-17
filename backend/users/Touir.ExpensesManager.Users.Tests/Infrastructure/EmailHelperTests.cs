@@ -144,6 +144,54 @@ namespace Touir.ExpensesManager.Users.Tests.Infrastructure
             }
         }
 
+        [Fact]
+        public void GetEmailTemplate_ReplacesYear_Automatically()
+        {
+            var (helper, _) = CreateEmailHelper();
+            var templateKey = "YearTemplate";
+            var templateDir = Path.Combine(AppContext.BaseDirectory, "Assets", "EmailTemplates");
+            Directory.CreateDirectory(templateDir);
+            var templatePath = Path.Combine(templateDir, templateKey + ".html");
+
+            try
+            {
+                File.WriteAllText(templatePath, "Copyright @@YEAR@@ Corp.");
+
+                var result = helper.GetEmailTemplate(templateKey, new Dictionary<string, string>());
+
+                Assert.Equal($"Copyright {DateTime.UtcNow.Year} Corp.", result);
+            }
+            finally
+            {
+                if (File.Exists(templatePath))
+                    File.Delete(templatePath);
+            }
+        }
+
+        [Fact]
+        public void GetEmailTemplate_ReplacesYear_EvenWithNullParameters()
+        {
+            var (helper, _) = CreateEmailHelper();
+            var templateKey = "YearNullTemplate";
+            var templateDir = Path.Combine(AppContext.BaseDirectory, "Assets", "EmailTemplates");
+            Directory.CreateDirectory(templateDir);
+            var templatePath = Path.Combine(templateDir, templateKey + ".html");
+
+            try
+            {
+                File.WriteAllText(templatePath, "Year: @@YEAR@@");
+
+                var result = helper.GetEmailTemplate(templateKey, null!);
+
+                Assert.Equal($"Year: {DateTime.UtcNow.Year}", result);
+            }
+            finally
+            {
+                if (File.Exists(templatePath))
+                    File.Delete(templatePath);
+            }
+        }
+
         #endregion
 
         #region SendEmail Tests

@@ -42,14 +42,24 @@ Touir.ExpensesManager.Expenses/
 │   ├── Requests/                       ← Request bodies
 │   ├── Responses/                      ← Response envelopes and ErrorResponse
 │   └── ControllerErrors.cs             ← Consolidated error string constants (same namespace, no using)
+├── Assets/
+│   └── EmailTemplates/
+│       └── FAMILY_INVITATION_TEMPLATE.html   ← Invitation email; placeholders @@INVITER_NAME@@ @@FAMILY_NAME@@ @@INVITE_LINK@@ @@YEAR@@
 ├── Infrastructure/
 │   ├── ExpensesDbContext.cs             ← EF Core context; maps ext.USR_Users cross-schema view
 │   ├── JwtCookieReader.cs              ← Reads auth_token cookie, extracts sub claim as int (no sig check)
 │   ├── LookupCacheService.cs           ← IMemoryCache-backed lookup table resolver
+│   ├── EmailHelper.cs                  ← Template loading (auto-substitutes @@YEAR@@) + send delegation
+│   ├── SmtpEmailService.cs             ← SMTP send via System.Net.Mail; returns bool success
+│   ├── EmailHtmlTemplate.cs            ← Template key + variable name constants
+│   ├── Contracts/
+│   │   ├── IEmailService.cs
+│   │   └── IEmailHelper.cs
 │   └── Options/
 │       ├── PostgresOptions.cs
 │       ├── RabbitMQOptions.cs
-│       └── FamilyOptions.cs            ← InviteExpiryInDays (env: EXPENSES_MANAGEMENT_EXPENSES_FAMILY_INVITE_EXPIRY_IN_DAYS)
+│       ├── EmailOptions.cs             ← SMTP config (env prefix: EXPENSES_MANAGEMENT_EXPENSES_EMAILAUTH_*)
+│       └── FamilyOptions.cs            ← InviteExpiryInDays + InviteBaseUrl
 ├── Models/
 │   ├── Expense.cs
 │   ├── Category.cs
@@ -139,7 +149,7 @@ Rate-limited: `[EnableRateLimiting("expenses_global")]`
 | PUT | `/families/{id}/rename` | Rename family |
 | POST | `/families/{id}/archive` | Soft-delete non-default family |
 | POST | `/families/{id}/unarchive` | Restore archived family |
-| POST | `/families/{id}/invite` | Send invitation (GUID token, configurable expiry default 7 days) |
+| POST | `/families/{id}/invite` | Send invitation (GUID token, configurable expiry default 7 days); sends HTML email with inviter name |
 | POST | `/families/{id}/accept-invite` | Accept invitation (validates token + email match) |
 | DELETE | `/families/{id}/members/{memberId}` | Remove member + purge their expense attributions |
 | PUT | `/families/{id}/members/{memberId}/role` | Change member role (Head/Member) |
@@ -310,6 +320,17 @@ Snapshots store comma-separated tag/family IDs. `PerformedFromId` uses `Operatio
 | Environment Variable | Default | Description |
 |---|---|---|
 | `EXPENSES_MANAGEMENT_EXPENSES_FAMILY_INVITE_EXPIRY_IN_DAYS` | `7` | Invitation token TTL |
+| `EXPENSES_MANAGEMENT_EXPENSES_FAMILY_INVITE_BASE_URL` | `https://localhost/families/accept-invite` | Base URL for invitation link in email |
+
+### Email (`EmailOptions`)
+
+| Environment Variable | Default | Description |
+|---|---|---|
+| `EXPENSES_MANAGEMENT_EXPENSES_EMAILAUTH_HOST` | `smtp.gmail.com` | SMTP server hostname |
+| `EXPENSES_MANAGEMENT_EXPENSES_EMAILAUTH_PORT` | `587` | SMTP port |
+| `EXPENSES_MANAGEMENT_EXPENSES_EMAILAUTH_EMAIL` | — | Sender email address |
+| `EXPENSES_MANAGEMENT_EXPENSES_EMAILAUTH_PASSWORD` | — | SMTP password |
+| `EXPENSES_MANAGEMENT_EXPENSES_EMAILAUTH_ENABLE_SSL` | `true` | Enable TLS; set `false` for local Mailpit |
 
 ---
 
@@ -349,7 +370,7 @@ dotnet test --collect:"XPlat Code Coverage" --results-directory "./coverage" \
   -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
 ```
 
-**Test count:** ~299 tests (as of v0.93.1)
+**Test count:** ~454 tests (as of v0.103.1)
 
 **Test organization:**
 ```

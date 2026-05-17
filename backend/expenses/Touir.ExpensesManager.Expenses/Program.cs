@@ -3,6 +3,7 @@ using Quartz;
 using Touir.ExpensesManager.Expenses.Controllers.Responses;
 using Touir.ExpensesManager.Expenses.Jobs;
 using Touir.ExpensesManager.Expenses.Infrastructure;
+using Touir.ExpensesManager.Expenses.Infrastructure.Contracts;
 using Touir.ExpensesManager.Expenses.Infrastructure.Options;
 using Touir.ExpensesManager.Expenses.Messaging.Consumers;
 using Touir.ExpensesManager.Expenses.Repositories;
@@ -107,6 +108,22 @@ builder.Services.Configure<FamilyOptions>(c =>
 {
     c.InviteExpiryInDays = int.Parse(builder.Configuration.GetValue("Family:InviteExpiryInDays",
                     Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_FAMILY_INVITE_EXPIRY_IN_DAYS")) ?? "7");
+    c.InviteBaseUrl = builder.Configuration.GetValue("Family:InviteBaseUrl",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_FAMILY_INVITE_BASE_URL")) ?? "https://localhost/families/accept-invite";
+});
+
+builder.Services.Configure<EmailOptions>(c =>
+{
+    c.Email = builder.Configuration.GetValue("EmailAuth:Email",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_EMAILAUTH_EMAIL")) ?? "email.to.change.later@email.com";
+    c.Password = builder.Configuration.GetValue("EmailAuth:Password",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_EMAILAUTH_PASSWORD")) ?? string.Empty;
+    c.Host = builder.Configuration.GetValue("EmailAuth:Host",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_EMAILAUTH_HOST")) ?? "smtp.gmail.com";
+    c.Port = int.Parse(builder.Configuration.GetValue("EmailAuth:Port",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_EMAILAUTH_PORT")) ?? "587");
+    c.EnableSsl = bool.Parse(builder.Configuration.GetValue("EmailAuth:EnableSsl",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_EMAILAUTH_ENABLE_SSL")) ?? "true");
 });
 
 builder.Services.Configure<CurrencyRateOptions>(c =>
@@ -119,6 +136,8 @@ builder.Services.Configure<CurrencyRateOptions>(c =>
 
 #region Services
 builder.Services.AddMemoryCache();
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+builder.Services.AddScoped<IEmailHelper, EmailHelper>();
 builder.Services.AddSingleton<IRabbitMQService, RabbitMQService>();
 builder.Services.AddScoped<ILookupCacheService, LookupCacheService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();

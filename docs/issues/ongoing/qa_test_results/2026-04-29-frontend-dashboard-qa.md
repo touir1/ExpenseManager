@@ -15,12 +15,12 @@ The Expenses Manager frontend is well-structured and functional. Authentication,
 
 | Severity | Found | Open | Fixed |
 |---|---|---|---|
-| High | 2 | 2 | 0 |
+| High | 2 | 1 | 1 |
 | Medium | 4 | 0 | 4 |
-| Low | 4 | 4 | 0 |
+| Low | 4 | 3 | 1 |
 | Info | 3 | 3 | 0 |
 
-Fixed items: [F-1, F-2, F-3, F-4, U-1](../../../fixed/qa/2026-04-29-frontend-dashboard-fixes.md)
+Fixed items: [F-1, F-2, F-3, F-4, U-1, U-3, S-1](../../../fixed/qa/2026-04-29-frontend-dashboard-fixes.md)
 
 ---
 
@@ -59,14 +59,6 @@ The Expenses card on `/dashboard` is a placeholder. No link, no ETA, no descript
 
 ---
 
-### U-3 — Email footer shows stale copyright year "© 2024" (Low)
-
-The verification email template footer reads "© 2024 Expenses Manager. All rights reserved." The current year is 2026.
-
-**Recommendation:** Make the year dynamic or update to the current year.
-
----
-
 ### U-4 — No "skip to main content" link (Low)
 
 No skip-navigation link is present on any page.
@@ -96,16 +88,6 @@ Navigating directly to `/reset-password` with a fake hash renders the "Create Pa
 ---
 
 ## Security Findings
-
-### S-1 — No rate limiting on login endpoint (High)
-
-**Test:** 6 concurrent `POST /api/users/auth/login` requests with invalid credentials all returned HTTP 401. No HTTP 429 observed at any attempt count.
-
-**Risk:** An attacker can perform unlimited brute-force password attacks against any known email address. Combined with the public registration form (email enumeration is mitigated), this is a significant risk.
-
-**Recommendation:** Implement rate limiting at the nginx or application level (e.g., 5 failed attempts per email per 15 minutes, with exponential backoff or account lockout).
-
----
 
 ### S-2 — Missing `Content-Security-Policy` header (High)
 
@@ -181,7 +163,7 @@ Registering with an already-used email returns "Registration successful!" (HTTP 
 | Link domain | `https://localhost` (correct for local env) ✓ |
 | Link parameters | `h` (hash), `s` (email), `app_code=EXPENSES_MANAGER` ✓ |
 | HTML render | Clean, readable ✓ |
-| Copyright year in footer | `© 2024` — stale (U-3) ✗ |
+| Copyright year in footer | `© 2024` — stale (U-3) ✗ → ✅ FIXED v0.103.0 (dynamic `@@YEAR@@`) |
 | Password reset email | Present in inbox from prior test ✓ |
 | Duplicate registration email | Re-sends verification (consistent with anti-enumeration) ✓ |
 
@@ -197,10 +179,10 @@ Registering with an already-used email returns "Registration successful!" (HTTP 
 
 ## Recommendations (Priority Order)
 
-1. **[High]** Add rate limiting to `POST /auth/login` — 5 attempts / email / 15 min minimum. (S-1)
+1. ~~**[High]** Add rate limiting to `POST /auth/login` — 5 attempts / email / 15 min minimum. (S-1)~~ ✅ Fixed v0.92.0
 2. **[High]** Add `Content-Security-Policy`, `X-Content-Type-Options`, `Referrer-Policy` headers in nginx config. (S-2)
 3. **[Low]** Add `<a href="#main-content">Skip to content</a>` skip-nav link. (U-4)
 4. **[Low]** Add `aria-pressed` to the show/hide password toggle button. (U-5)
-5. **[Low]** Update email template copyright year to dynamic current year. (U-3)
+5. ~~**[Low]** Update email template copyright year to dynamic current year. (U-3)~~ ✅ Fixed v0.103.0
 6. **[Info]** Pre-validate reset token on page load and redirect to error page if invalid. (U-6)
 7. **[Info]** Add description or hide Expenses "Coming soon…" card until feature ships. (U-2)

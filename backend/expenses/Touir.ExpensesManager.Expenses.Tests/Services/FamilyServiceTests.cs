@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using Moq;
+using Touir.ExpensesManager.Expenses.Infrastructure.Contracts;
 using Touir.ExpensesManager.Expenses.Infrastructure.Options;
 using Touir.ExpensesManager.Expenses.Models;
 using Touir.ExpensesManager.Expenses.Models.External;
@@ -25,12 +26,14 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             IFamilyRepository? familyRepo = null,
             IUserRepository? userRepo = null,
             ILookupCacheService? lookupCache = null,
+            IEmailHelper? emailHelper = null,
             IOptions<FamilyOptions>? familyOptions = null)
         {
             return new FamilyService(
                 familyRepo ?? Mock.Of<IFamilyRepository>(),
                 userRepo ?? Mock.Of<IUserRepository>(),
                 lookupCache ?? DefaultLookupCache(),
+                emailHelper ?? Mock.Of<IEmailHelper>(),
                 familyOptions ?? Options.Create(new FamilyOptions { InviteExpiryInDays = 7 }));
         }
 
@@ -267,6 +270,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         {
             var membership = MakeMembership(1, userId: 10, roleId: 2);
             var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(MakeFamily(1));
             repo.Setup(r => r.GetMembershipAsync(1, 10)).ReturnsAsync(membership);
 
             await Assert.ThrowsAsync<FamilyForbiddenException>(
@@ -278,6 +282,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         {
             var membership = MakeMembership(1, userId: 10, roleId: 1);
             var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(MakeFamily(1));
             repo.Setup(r => r.GetMembershipAsync(1, 10)).ReturnsAsync(membership);
 
             var userRepo = new Mock<IUserRepository>();
@@ -294,6 +299,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             var invitee = MakeUser(20, "other@example.com");
 
             var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(MakeFamily(1));
             repo.Setup(r => r.GetMembershipAsync(1, 10)).ReturnsAsync(membership);
             repo.Setup(r => r.IsMemberAsync(1, 20)).ReturnsAsync(true);
 
@@ -311,6 +317,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             var invitee = MakeUser(20, "other@example.com");
 
             var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(MakeFamily(1));
             repo.Setup(r => r.GetMembershipAsync(1, 10)).ReturnsAsync(membership);
             repo.Setup(r => r.IsMemberAsync(1, 20)).ReturnsAsync(false);
 
@@ -323,6 +330,68 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             Assert.Equal(36, token.Length); // GUID format
             repo.Verify(r => r.AddInvitationAsync(It.Is<FamilyInvitation>(i =>
                 i.FamilyId == 1 && i.InviteeEmail == "other@example.com" && i.Token == token)), Times.Once);
+        }
+
+        [Fact]
+        public async Task InviteAsync_SendsEmail_ToInvitee_WhenValid()
+        {
+            var family = MakeFamily(1);
+            var membership = MakeMembership(1, userId: 10, roleId: 1);
+            var inviter = MakeUser(10, "inviter@example.com");
+            var invitee = MakeUser(20, "other@example.com");
+
+            var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(family);
+            repo.Setup(r => r.GetMembershipAsync(1, 10)).ReturnsAsync(membership);
+            repo.Setup(r => r.IsMemberAsync(1, 20)).ReturnsAsync(false);
+
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("other@example.com")).ReturnsAsync(invitee);
+            userRepo.Setup(r => r.GetUserByIdAsync(10)).ReturnsAsync(inviter);
+
+            var emailHelper = new Mock<IEmailHelper>();
+
+            await CreateService(repo.Object, userRepo.Object, emailHelper: emailHelper.Object)
+                .InviteAsync(1, "other@example.com", invitedById: 10);
+
+            emailHelper.Verify(e => e.GetEmailTemplate(
+                It.IsAny<string>(),
+                It.Is<Dictionary<string, string>>(d =>
+                    d.ContainsKey("INVITER_NAME") && d["INVITER_NAME"] == "Test User")),
+                Times.Once);
+            emailHelper.Verify(e => e.SendEmail(
+                "other@example.com",
+                null, null,
+                "[Expenses Manager] Family Invitation",
+                It.IsAny<string?>(),
+                true,
+                null), Times.Once);
+        }
+
+        [Fact]
+        public async Task InviteAsync_EmailFailure_DoesNotPropagate()
+        {
+            var family = MakeFamily(1);
+            var membership = MakeMembership(1, userId: 10, roleId: 1);
+            var invitee = MakeUser(20, "other@example.com");
+
+            var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(family);
+            repo.Setup(r => r.GetMembershipAsync(1, 10)).ReturnsAsync(membership);
+            repo.Setup(r => r.IsMemberAsync(1, 20)).ReturnsAsync(false);
+
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("other@example.com")).ReturnsAsync(invitee);
+
+            var emailHelper = new Mock<IEmailHelper>();
+            emailHelper.Setup(e => e.GetEmailTemplate(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
+                .Throws(new Exception("SMTP down"));
+
+            var token = await CreateService(repo.Object, userRepo.Object, emailHelper: emailHelper.Object)
+                .InviteAsync(1, "other@example.com", invitedById: 10);
+
+            Assert.NotEmpty(token);
+            repo.Verify(r => r.AddInvitationAsync(It.IsAny<FamilyInvitation>()), Times.Once);
         }
 
         // ── AcceptInviteAsync ─────────────────────────────────────────────────

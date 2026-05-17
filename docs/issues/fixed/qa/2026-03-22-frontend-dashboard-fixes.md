@@ -191,6 +191,22 @@ All items below were identified in the 2026-03-22 QA session and subsequently re
 
 ---
 
+### 28. ~~No rate limiting or brute-force protection visible in the frontend~~ ✅ FIXED (v0.92.0)
+**Detail:** The login form had no lockout, CAPTCHA, or delay after repeated failed attempts. 6 concurrent invalid-credential login requests all returned HTTP 401 with no rate limit applied.
+**Fix applied (v0.92.0):** Added `Microsoft.AspNetCore.RateLimiting` to the users service with fixed-window per-client-IP policies on all sensitive auth routes:
+- `login`: 10 req / 1 min
+- `register`: 5 req / 10 min
+- `resend_verification`: 3 req / 10 min
+- `validate_email`: 10 req / 5 min
+- `request_password_reset` / `change_password_reset` / `create_password`: 5 req / 10 min
+- `change_password`: 10 req / 5 min
+- `refresh`: 20 req / 1 min
+- `messaging_replay`: 5 req / 1 min
+
+Exceeding any policy returns HTTP 429. No rate limiting on: `GET /auth/check`, `GET /auth/session`, `POST /auth/logout`, `GET /messaging/outbox/stats`.
+
+---
+
 ### 29. ~~No password strength indicator or minimum length requirement shown to users~~ ✅ FIXED
 **Root cause:** No indication of what constitutes a valid password and no client-side length check on Change Password and Reset Password pages.
 **Fix applied:** Added a reusable `PasswordStrength` component (`src/components/PasswordStrength.tsx`) that displays below the "New password" field on both pages. It shows a 5-segment colour bar and a live checklist of five criteria (≥ 8 characters, uppercase, lowercase, number, special character) with a Weak / Fair / Good / Strong label. Client-side validation now rejects passwords shorter than 8 characters before calling the API.
@@ -233,5 +249,6 @@ All items below were identified in the 2026-03-22 QA session and subsequently re
 | 25 | ⚙️ Code | Warning | ~~React Router v6 future flag console warnings~~ |
 | 26 | ⚙️ Code | Architecture | ~~`onUnauthorized` set outside `useEffect`, no cleanup~~ |
 | 27 | ⚙️ Code | Performance | ~~Auth functions not memoized with `useCallback`~~ |
+| 28 | ⚙️ Security | Feature | ~~No rate limiting / brute-force protection on login~~ |
 | 29 | ⚙️ Code | Security | ~~No password strength indicator or minimum length~~ |
 | 30 | ⚙️ Code | Architecture | ~~Route `/home` vs. UI label "Dashboard" inconsistency~~ |

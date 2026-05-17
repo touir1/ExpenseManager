@@ -15,17 +15,10 @@ This file contains only unresolved issues. All fixed items have been moved to
 
 ---
 
-## ⚙️ CODE / ARCHITECTURE ISSUES
-
-### 28. No rate limiting or brute-force protection visible in the frontend
-**Detail:** The login form has no lockout, CAPTCHA, or delay after repeated failed attempts. There is also no client-side attempt counter.
-**Fix:** Implement progressive delay or lockout on the client side (e.g., disable the login button for 5s after 5 failed attempts), and ensure the API has rate limiting.
-
----
-
 ## Open Items Summary
 
 | # | Severity | Category | Issue |
 |---|----------|----------|-------|
 | 11 | 🟡 Moderate | Feature | Core "Expenses" feature is "Coming soon…" |
-| 28 | ⚙️ Security | Feature | No brute-force/rate-limit protection on login |
+
+Fixed items: [1–27, 29, 30, 28](../../../fixed/qa/2026-03-22-frontend-dashboard-fixes.md)

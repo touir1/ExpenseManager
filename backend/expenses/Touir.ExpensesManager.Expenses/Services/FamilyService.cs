@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Options;
 using Touir.ExpensesManager.Expenses.Controllers.DTO;
+using Touir.ExpensesManager.Expenses.Infrastructure;
+using Touir.ExpensesManager.Expenses.Infrastructure.Contracts;
 using Touir.ExpensesManager.Expenses.Infrastructure.Options;
 using Touir.ExpensesManager.Expenses.Models;
 using Touir.ExpensesManager.Expenses.Models.Lookups;
@@ -17,13 +19,15 @@ namespace Touir.ExpensesManager.Expenses.Services
         private readonly IFamilyRepository _familyRepo;
         private readonly IUserRepository _userRepo;
         private readonly ILookupCacheService _lookupCache;
+        private readonly IEmailHelper _emailHelper;
         private readonly FamilyOptions _familyOptions;
 
-        public FamilyService(IFamilyRepository familyRepo, IUserRepository userRepo, ILookupCacheService lookupCache, IOptions<FamilyOptions> familyOptions)
+        public FamilyService(IFamilyRepository familyRepo, IUserRepository userRepo, ILookupCacheService lookupCache, IEmailHelper emailHelper, IOptions<FamilyOptions> familyOptions)
         {
             _familyRepo = familyRepo;
             _userRepo = userRepo;
             _lookupCache = lookupCache;
+            _emailHelper = emailHelper;
             _familyOptions = familyOptions.Value;
         }
 
@@ -125,6 +129,9 @@ namespace Touir.ExpensesManager.Expenses.Services
 
         public async Task<string> InviteAsync(int familyId, string email, int invitedById)
         {
+            var family = await _familyRepo.GetByIdAsync(familyId)
+                ?? throw new FamilyNotFoundException();
+
             var membership = await _familyRepo.GetMembershipAsync(familyId, invitedById)
                 ?? throw new FamilyForbiddenException();
 
@@ -150,6 +157,28 @@ namespace Touir.ExpensesManager.Expenses.Services
             };
 
             await _familyRepo.AddInvitationAsync(invitation);
+
+            try
+            {
+                var inviter = await _userRepo.GetUserByIdAsync(invitedById);
+                var inviterName = inviter != null
+                    ? $"{inviter.FirstName} {inviter.LastName}".Trim()
+                    : string.Empty;
+
+                string inviteLink = $"{_familyOptions.InviteBaseUrl.TrimEnd('/')}?token={Uri.EscapeDataString(token)}";
+                string emailHtml = _emailHelper.GetEmailTemplate(EmailHtmlTemplate.FamilyInvitation.Key, new Dictionary<string, string>
+                {
+                    { EmailHtmlTemplate.FamilyInvitation.Variables.InviteLink, inviteLink },
+                    { EmailHtmlTemplate.FamilyInvitation.Variables.FamilyName, family.Name },
+                    { EmailHtmlTemplate.FamilyInvitation.Variables.InviterName, inviterName }
+                });
+                _emailHelper.SendEmail(recipientTo: email, emailSubject: "[Expenses Manager] Family Invitation", isHTML: true, emailBody: emailHtml);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(ex.Message);
+            }
+
             return token;
         }
 

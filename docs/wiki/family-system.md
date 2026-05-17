@@ -65,13 +65,19 @@ Only non-default families can be archived. `IsDeleted=true`, `DeletedAt` set. Th
 ```
 1. HEAD: POST /families/{id}/invite  { "email": "friend@example.com" }
          └─ FamilyService.InviteAsync
-              ├─ IUserRepository.GetUserByEmailAsync → resolve invited user (or future user)
+              ├─ IUserRepository.GetUserByEmailAsync → resolve invited user
               ├─ Create FamilyInvitation {
               │    Token = Guid.NewGuid().ToString(),
               │    InviteeEmail = email,
               │    ExpiresAt = UtcNow + FamilyOptions.InviteExpiryInDays (default 7 days),
-              │    IsAccepted = false
               │  }
+              ├─ Persist invitation
+              ├─ [try/catch] GetUserByIdAsync(invitedById) → inviter name
+              ├─ [try/catch] Build invite link: {InviteBaseUrl}?token={token}
+              ├─ [try/catch] Send HTML email to invitee
+              │    Template: FAMILY_INVITATION_TEMPLATE.html
+              │    Placeholders: @@INVITER_NAME@@  @@FAMILY_NAME@@  @@INVITE_LINK@@  @@YEAR@@ (auto)
+              │    Email failure caught + logged — invitation still succeeds
               └─ Returns invitation token
 
 2. INVITEE: POST /families/{id}/accept-invite  { "token": "<guid>" }
@@ -83,8 +89,12 @@ Only non-default families can be archived. `IsDeleted=true`, `DeletedAt` set. Th
                  └─ Add user as FamilyMember { RoleId = Member }
 ```
 
-**`InviteExpiryInDays`** is configurable:  
-`EXPENSES_MANAGEMENT_EXPENSES_FAMILY_INVITE_EXPIRY_IN_DAYS` (default `7`)
+**Configurable options:**
+
+| Environment variable | Default |
+|---|---|
+| `EXPENSES_MANAGEMENT_EXPENSES_FAMILY_INVITE_EXPIRY_IN_DAYS` | `7` |
+| `EXPENSES_MANAGEMENT_EXPENSES_FAMILY_INVITE_BASE_URL` | `https://localhost/families/accept-invite` |
 
 ---
 

@@ -1,8 +1,7 @@
-﻿using System.Net.Mail;
 using System.Text;
-using Touir.ExpensesManager.Users.Infrastructure.Contracts;
+using Touir.ExpensesManager.Expenses.Infrastructure.Contracts;
 
-namespace Touir.ExpensesManager.Users.Infrastructure
+namespace Touir.ExpensesManager.Expenses.Infrastructure
 {
     public class EmailHelper : IEmailHelper
     {
@@ -23,31 +22,17 @@ namespace Touir.ExpensesManager.Users.Infrastructure
             ICollection<string>? attachments = null)
             => _emailService.SendEmail(recipientTo, recipientCC, recipientBCC, emailSubject, emailBody, isHTML, attachments);
 
-        public bool VerifyEmail(string email)
-        {
-            try
-            {
-                _ = new MailAddress(email);
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-            return true;
-        }
-
         public string GetEmailTemplate(string templateKey, Dictionary<string, string> parameters)
         {
             string filePath = Path.Combine(AppContext.BaseDirectory, "Assets", "EmailTemplates", $"{templateKey}.html");
-            StringBuilder templateContent = new StringBuilder(File.ReadAllText(filePath));
+            var templateContent = new StringBuilder(File.ReadAllText(filePath));
 
             templateContent.Replace("@@YEAR@@", DateTime.UtcNow.Year.ToString());
 
-            if(parameters != null) {
-                foreach(KeyValuePair<string, string> param in  parameters)
-                {
+            if (parameters != null)
+            {
+                foreach (KeyValuePair<string, string> param in parameters)
                     templateContent.Replace($"@@{param.Key}@@", param.Value);
-                }
             }
 
             return templateContent.ToString();

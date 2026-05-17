@@ -3,6 +3,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.103.1] - 2026-05-18
+### Changed
+- **Family invitation email — inviter name**: Email now includes `@@INVITER_NAME@@` placeholder showing `{FirstName} {LastName}` of the inviting user. `FamilyService.InviteAsync` fetches the inviter via `GetUserByIdAsync` inside the email try-catch; falls back to empty string if user not found.
+- **Dynamic copyright year in all email templates**: All 3 templates (`FAMILY_INVITATION_TEMPLATE.html`, `EMAIL_VERIFICATION_TEMPLATE.html`, `PASSWORD_RESET_TEMPLATE.html`) now use `@@YEAR@@` instead of hardcoded `2024`. Both `EmailHelper.GetEmailTemplate` implementations auto-substitute `@@YEAR@@` with `DateTime.UtcNow.Year` before caller-provided parameters.
+- **Tests**: 2 new `@@YEAR@@` auto-substitution tests in expenses `EmailHelperTests`; 2 in users `EmailHelperTests`. `InviteAsync_SendsEmail_ToInvitee_WhenValid` updated to set up inviter lookup and verify `INVITER_NAME` is passed to the template. Total: expenses **454** (was 452), users **318** (was 316).
+
+## [0.103.0] - 2026-05-18
+### Added
+- **Family invitation email (expenses service)**: `InviteAsync` now sends an HTML invitation email to the invitee after persisting the token. Email failure is caught and logged — invitation still succeeds and token is returned. Template: `Assets/EmailTemplates/FAMILY_INVITATION_TEMPLATE.html` with `@@INVITE_LINK@@` and `@@FAMILY_NAME@@` placeholders. Invite URL: `FamilyOptions.InviteBaseUrl` (env: `EXPENSES_MANAGEMENT_EXPENSES_FAMILY_INVITE_BASE_URL`, default `https://localhost/families/accept-invite`) + `?token={token}`.
+- **Email infrastructure (expenses service)**: Added `IEmailService`, `SmtpEmailService`, `IEmailHelper`, `EmailHelper`, `EmailOptions`, and `EmailHtmlTemplate` mirroring the users service pattern. Env prefix `EXPENSES_MANAGEMENT_EXPENSES_EMAILAUTH_*`.
+- **`FamilyOptions.InviteBaseUrl`**: New property (env: `EXPENSES_MANAGEMENT_EXPENSES_FAMILY_INVITE_BASE_URL`, default `https://localhost/families/accept-invite`).
+- **Tests**: 19 new tests. `SmtpEmailServiceTests` (10): all `SendEmail` paths (SSL on/off, CC, BCC, HTML, null body, minimal, empty attachments, single attachment, all params). `EmailHelperTests` (7): template replacement, no-params, empty-params, multi-occurrence, family-invitation placeholders, `SendEmail` delegation×2. `FamilyServiceTests` (2): `InviteAsync_SendsEmail_ToInvitee_WhenValid`, `InviteAsync_EmailFailure_DoesNotPropagate`. Total backend: **452 tests** (was 433).
+
 ## [0.102.2] - 2026-05-17
 ### Changed
 - **Test coverage — backend (expenses)**: Added 13 new tests across 4 files. `FamilyControllerTests`: 4 `LeaveAsync` paths (401 no-cookie, 204 success, 403 last-head, 404 not-member). `ExpenseControllerTests`: 4 missing 401 no-cookie tests (UpdateAsync, DeleteAsync, GetByIdAsync, GetPagedAsync). `CurrencyRateControllerTests`: 1 missing `ResolveConflict_ServiceThrows_ReturnsBadRequest`. `Validators/CreateTagRequestValidatorTests` (new file): 4 tests (valid, empty name, too-long, exact max length). Total backend: **433 tests** (was 420).
