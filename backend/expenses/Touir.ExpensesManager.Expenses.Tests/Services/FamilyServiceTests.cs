@@ -417,15 +417,29 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         }
 
         [Fact]
-        public async Task RemoveMemberAsync_ThrowsForbidden_WhenRemovingSelf()
+        public async Task RemoveMemberAsync_ThrowsForbidden_WhenRemovingSelf_AndNoOtherHead()
         {
             var headMembership = MakeMembership(1, userId: 10, roleId: 1);
             var repo = new Mock<IFamilyRepository>();
             repo.Setup(r => r.GetMembershipAsync(1, 10)).ReturnsAsync(headMembership);
-            repo.Setup(r => r.GetMembershipAsync(1, 10)).ReturnsAsync(headMembership);
+            repo.Setup(r => r.CountHeadsAsync(1, 1)).ReturnsAsync(1);
 
             await Assert.ThrowsAsync<FamilyForbiddenException>(
                 () => CreateService(repo.Object).RemoveMemberAsync(1, targetUserId: 10, removedById: 10));
+        }
+
+        [Fact]
+        public async Task RemoveMemberAsync_AllowsSelfRemoval_WhenOtherHeadExists()
+        {
+            var headMembership = MakeMembership(1, userId: 10, roleId: 1);
+            var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.GetMembershipAsync(1, 10)).ReturnsAsync(headMembership);
+            repo.Setup(r => r.CountHeadsAsync(1, 1)).ReturnsAsync(2);
+
+            await CreateService(repo.Object).RemoveMemberAsync(1, targetUserId: 10, removedById: 10);
+
+            repo.Verify(r => r.RemoveMemberAsync(headMembership), Times.Once);
+            repo.Verify(r => r.RemoveMemberAttributionsAsync(1, 10), Times.Once);
         }
 
         [Fact]
@@ -447,6 +461,17 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         }
 
         // ── ChangeRoleAsync ───────────────────────────────────────────────────
+
+        [Fact]
+        public async Task ChangeRoleAsync_ThrowsForbidden_WhenChangingOwnRole()
+        {
+            var headMembership = MakeMembership(1, userId: 10, roleId: 1);
+            var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.GetMembershipAsync(1, 10)).ReturnsAsync(headMembership);
+
+            await Assert.ThrowsAsync<FamilyForbiddenException>(
+                () => CreateService(repo.Object).ChangeRoleAsync(1, targetUserId: 10, roleName: "Member", changedById: 10));
+        }
 
         [Fact]
         public async Task ChangeRoleAsync_ThrowsForbidden_WhenNotHead()

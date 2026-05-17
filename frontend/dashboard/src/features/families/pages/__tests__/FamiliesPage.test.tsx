@@ -32,6 +32,10 @@ vi.mock('react-i18next', () => ({
 
 vi.mock('@/hooks/usePageTitle', () => ({ usePageTitle: vi.fn() }))
 
+vi.mock('@/features/auth/AuthContext', () => ({
+  useAuth: () => ({ user: { email: 'current@example.com' } }),
+}))
+
 vi.mock('@/features/families/services/familyApi.service', () => ({
   createFamily: vi.fn(),
   renameFamily: vi.fn(),

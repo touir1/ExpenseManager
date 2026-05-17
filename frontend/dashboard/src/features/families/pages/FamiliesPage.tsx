@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useAuth } from '@/features/auth/AuthContext'
 import { useFamilies } from '@/features/families/FamilyContext'
 import {
   createFamily,
@@ -250,8 +251,10 @@ function FamilyDetailPanel({
 }>) {
   const { t } = useTranslation()
   const { show } = useToast()
+  const { user } = useAuth()
   const [showInvite, setShowInvite] = useState(false)
   const isHead = family.userRole === 'Head'
+  const headCount = detail.members.filter(m => m.role === 'Head').length
 
   const handleRemove = async (member: FamilyMember) => {
     const res = await removeMember(family.id, member.userId)
@@ -287,18 +290,21 @@ function FamilyDetailPanel({
       </div>
 
       <ul className="space-y-2">
-        {detail.members.map(member => (
-          <li key={member.userId} className="flex items-center justify-between gap-2">
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-slate-800 truncate">
-                {member.firstName} {member.lastName}
-              </p>
-              <p className="text-xs text-slate-400 truncate">{member.email}</p>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <RoleBadge role={member.role} />
-              {isHead && (
-                <>
+        {detail.members.map(member => {
+          const isSelf = member.email === user?.email
+          const canToggleRole = isHead && !isSelf
+          const canRemove = isHead && !(isSelf && headCount <= 1)
+          return (
+            <li key={member.userId} className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-slate-800 truncate">
+                  {member.firstName} {member.lastName}
+                </p>
+                <p className="text-xs text-slate-400 truncate">{member.email}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <RoleBadge role={member.role} />
+                {canToggleRole && (
                   <button
                     onClick={() => handleToggleRole(member)}
                     className="text-xs text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
@@ -308,6 +314,8 @@ function FamilyDetailPanel({
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                     </svg>
                   </button>
+                )}
+                {canRemove && (
                   <button
                     onClick={() => handleRemove(member)}
                     className="text-xs text-red-400 hover:text-red-600 transition-colors cursor-pointer"
@@ -317,11 +325,11 @@ function FamilyDetailPanel({
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
-                </>
-              )}
-            </div>
-          </li>
-        ))}
+                )}
+              </div>
+            </li>
+          )
+        })}
       </ul>
 
       {showInvite && (

@@ -12,6 +12,7 @@ namespace Touir.ExpensesManager.Expenses.Repositories.Contracts
         Task<bool> HasDefaultFamilyAsync(int userId);
         Task<FamilyMembership?> GetMembershipAsync(int familyId, int userId);
         Task<bool> IsMemberAsync(int familyId, int userId);
+        Task<int> CountHeadsAsync(int familyId, int headRoleId);
         Task AddMemberAsync(FamilyMembership membership);
         Task UpdateMemberAsync(FamilyMembership membership);
         Task RemoveMemberAsync(FamilyMembership membership);

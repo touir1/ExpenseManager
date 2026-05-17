@@ -81,6 +81,9 @@ namespace Touir.ExpensesManager.Expenses.Repositories
         public async Task<bool> IsMemberAsync(int familyId, int userId)
             => await _db.FamilyMemberships.AnyAsync(m => m.FamilyId == familyId && m.UserId == userId);
 
+        public async Task<int> CountHeadsAsync(int familyId, int headRoleId)
+            => await _db.FamilyMemberships.CountAsync(m => m.FamilyId == familyId && m.RoleId == headRoleId);
+
         public async Task AddMemberAsync(FamilyMembership membership)
         {
             _db.FamilyMemberships.Add(membership);

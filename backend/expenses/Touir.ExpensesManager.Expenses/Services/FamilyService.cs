@@ -201,7 +201,11 @@ namespace Touir.ExpensesManager.Expenses.Services
                 ?? throw new FamilyNotFoundException("FAMILY_NOT_MEMBER");
 
             if (targetUserId == removedById)
-                throw new FamilyForbiddenException("FAMILY_CANNOT_REMOVE_SELF_HEAD");
+            {
+                var headCount = await _familyRepo.CountHeadsAsync(familyId, headId);
+                if (headCount <= 1)
+                    throw new FamilyForbiddenException("FAMILY_CANNOT_REMOVE_SELF_HEAD");
+            }
 
             await _familyRepo.RemoveMemberAsync(targetMembership);
             await _familyRepo.RemoveMemberAttributionsAsync(familyId, targetUserId);
@@ -215,6 +219,9 @@ namespace Touir.ExpensesManager.Expenses.Services
             var headId = await _lookupCache.GetIdAsync<FamilyRole>(RoleHead);
             if (changerMembership.RoleId != headId)
                 throw new FamilyForbiddenException();
+
+            if (targetUserId == changedById)
+                throw new FamilyForbiddenException("FAMILY_CANNOT_CHANGE_OWN_ROLE");
 
             var targetMembership = await _familyRepo.GetMembershipAsync(familyId, targetUserId)
                 ?? throw new FamilyNotFoundException("FAMILY_NOT_MEMBER");

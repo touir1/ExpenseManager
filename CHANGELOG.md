@@ -3,6 +3,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.100.0] - 2026-05-17
+### Added
+- **Family member self-action guards (backend + frontend)**
+  - **Backend — `RemoveMemberAsync`**: Head can now remove themselves from a family only when another Head exists; blocked with `FamilyForbiddenException("FAMILY_CANNOT_REMOVE_SELF_HEAD")` when they are the sole Head. Previously self-removal was always blocked.
+  - **Backend — `ChangeRoleAsync`**: Any user attempting to change their own role now throws `FamilyForbiddenException("FAMILY_CANNOT_CHANGE_OWN_ROLE")` immediately, regardless of their current role.
+  - **Backend — `IFamilyRepository` / `FamilyRepository`**: Added `CountHeadsAsync(familyId, headRoleId)` — counts Head-role memberships for a family; used by the self-removal guard.
+  - **Backend tests**: 3 new unit tests in `FamilyServiceTests.cs` — `RemoveMemberAsync_ThrowsForbidden_WhenRemovingSelf_AndNoOtherHead`, `RemoveMemberAsync_AllowsSelfRemoval_WhenOtherHeadExists`, `ChangeRoleAsync_ThrowsForbidden_WhenChangingOwnRole`. Total backend: **341 tests** (was 338), all passing.
+  - **Frontend — `FamiliesPage.tsx`**: Member list now hides the role-toggle button for the current user (`isSelf` via email match) and hides the remove button for the current user when they are the sole Head. Uses `useAuth()` for current-user identification.
+  - **Frontend tests**: Added `vi.mock('@/features/auth/AuthContext')` to `FamiliesPage.test.tsx`. Total frontend: **62 tests** in that suite, all passing.
+
 ## [0.99.0] - 2026-05-16
 ### Fixed
 - **Sonar alerts — `TagInput.tsx`**: renamed `useTag` import alias to `adoptTag` (React hooks naming rule); removed `onClick` from wrapper div (a11y `no-static-element-interactions`); changed `role="listbox"` → `role="menu"` and `role="option"` → `role="menuitem"` on dropdown (avoid `prefer-tag-over-role`); added `aria-haspopup="menu"` + `aria-controls="tag-input-menu"`; `li` wrappers get `role="none"`/`role="presentation"`; interface fields now `readonly`.
