@@ -16,6 +16,14 @@ vi.mock('@/features/families/FamilyContext', () => ({
   useFamilies: () => mockUseFamilies(),
 }))
 
+vi.mock('@/features/expenses/ExpensesDataContext', () => ({
+  useExpensesData: () => ({ currencies: [], isLoading: false, refresh: vi.fn() }),
+}))
+
+vi.mock('@/features/currencies/DisplayCurrencyContext', () => ({
+  useDisplayCurrency: () => ({ displayCurrencyId: null, setDisplayCurrencyId: vi.fn() }),
+}))
+
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
   return { ...actual, useNavigate: () => mockNavigate }

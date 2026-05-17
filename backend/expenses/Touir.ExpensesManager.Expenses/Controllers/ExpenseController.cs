@@ -122,12 +122,13 @@ namespace Touir.ExpensesManager.Expenses.Controllers
         /// Get a single expense by ID. Only returns expenses owned by the authenticated user.
         /// </summary>
         /// <param name="id">Expense ID.</param>
+        /// <param name="displayCurrencyId">Optional currency ID to convert amounts into.</param>
         [HttpGet("{id:long}", Name = "GetExpenseById")]
         [ProducesResponseType(typeof(ExpenseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetByIdAsync(long id)
+        public async Task<IActionResult> GetByIdAsync(long id, [FromQuery] int? displayCurrencyId = null)
         {
             try
             {
@@ -135,7 +136,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers
                 if (userId is null)
                     return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingUser });
 
-                var dto = await _expenseService.GetByIdAsync(id, userId.Value);
+                var dto = await _expenseService.GetByIdAsync(id, userId.Value, displayCurrencyId);
                 if (dto is null)
                     return NotFound(new ErrorResponse { Message = ControllerErrors.ExpenseNotFound });
 

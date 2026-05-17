@@ -7,7 +7,7 @@ Reference: [application-description.md](application-description.md)
 | Area | Status |
 |------|--------|
 | Users service | ✅ Complete — auth, registration, JWT, refresh tokens, password management, FluentValidation |
-| Expenses service | ✅ Phase 1–5 complete — schema, categories/currencies, expense CRUD, family system, tags; Phase 6+ pending |
+| Expenses service | ✅ Phase 1–6 complete — schema, categories/currencies, expense CRUD, family system, tags, currency rates (daily storage, resolution, auto-update via Quartz, backfill endpoint, conflict management, display currency conversion); Phase 7+ pending |
 | Frontend | ⚠️ Auth + family management + tag input component complete; expense list/form + dashboard pending (Phase 8–9) |
 | Infrastructure | ✅ Docker Compose, nginx, PostgreSQL, RabbitMQ, Grafana, Prometheus |
 

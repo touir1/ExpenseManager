@@ -13,5 +13,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers.DTO
         public DateTime? ModifiedAt { get; set; }
         public string? ModifiedFrom { get; set; }
         public IEnumerable<TagDto> Tags { get; set; } = [];
+        public decimal? ConvertedAmount { get; set; }
+        public CurrencyDto? DisplayCurrency { get; set; }
     }
 }

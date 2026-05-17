@@ -12,17 +12,20 @@ namespace Touir.ExpensesManager.Expenses.Services
         private readonly IExpenseAuditService _auditService;
         private readonly IFamilyRepository _familyRepository;
         private readonly ITagRepository _tagRepository;
+        private readonly ICurrencyRateService _currencyRateService;
 
         public ExpenseService(
             IExpenseRepository expenseRepository,
             IExpenseAuditService auditService,
             IFamilyRepository familyRepository,
-            ITagRepository tagRepository)
+            ITagRepository tagRepository,
+            ICurrencyRateService currencyRateService)
         {
             _expenseRepository = expenseRepository;
             _auditService = auditService;
             _familyRepository = familyRepository;
             _tagRepository = tagRepository;
+            _currencyRateService = currencyRateService;
         }
 
         public async Task<ExpenseDto> AddAsync(CreateExpenseRequest request, int userId, int sourceId)
@@ -96,10 +99,14 @@ namespace Touir.ExpensesManager.Expenses.Services
             return true;
         }
 
-        public async Task<ExpenseDto?> GetByIdAsync(long id, int userId)
+        public async Task<ExpenseDto?> GetByIdAsync(long id, int userId, int? displayCurrencyId = null)
         {
             var expense = await _expenseRepository.GetByIdAsync(id, userId);
-            return expense is null ? null : MapToDto(expense);
+            if (expense is null)
+                return null;
+
+            var (convertedAmount, displayCurrency) = await ResolveConversionAsync(expense.CurrencyId, expense.Date, expense.Amount, displayCurrencyId, expense.Currency);
+            return MapToDto(expense, convertedAmount: convertedAmount, displayCurrency: displayCurrency);
         }
 
         public async Task<ExpensePagedResult> GetPagedAsync(ExpenseFilterDto filter, int userId)
@@ -108,14 +115,34 @@ namespace Touir.ExpensesManager.Expenses.Services
             var pageSize = Math.Max(1, filter.PageSize);
             var page = Math.Max(1, filter.Page);
 
+            var dtos = new List<ExpenseDto>();
+            foreach (var e in items)
+            {
+                var (convertedAmount, displayCurrency) = await ResolveConversionAsync(e.CurrencyId, e.Date, e.Amount, filter.DisplayCurrencyId, e.Currency);
+                dtos.Add(MapToDto(e, convertedAmount: convertedAmount, displayCurrency: displayCurrency));
+            }
+
             return new ExpensePagedResult
             {
-                Items = items.Select(e => MapToDto(e)),
+                Items = dtos,
                 TotalCount = totalCount,
                 Page = page,
                 PageSize = pageSize,
                 TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
             };
+        }
+
+        private async Task<(decimal? convertedAmount, CurrencyDto? displayCurrency)> ResolveConversionAsync(
+            int expenseCurrencyId, DateOnly date, decimal amount, int? displayCurrencyId, Currency? expenseCurrency)
+        {
+            if (displayCurrencyId is null || displayCurrencyId == expenseCurrencyId)
+                return (null, null);
+
+            var rate = await _currencyRateService.ResolveRateAsync(expenseCurrencyId, displayCurrencyId.Value, date);
+            if (rate is null)
+                return (null, null);
+
+            return (Math.Round(amount * rate.Value, 4), null);
         }
 
         private async Task<IEnumerable<TagDto>> WriteExpenseTagsAsync(long expenseId, int[]? tagIds, int userId)
@@ -174,7 +201,7 @@ namespace Touir.ExpensesManager.Expenses.Services
                 await _familyRepository.AddAttributionsAsync(attributions);
         }
 
-        private static ExpenseDto MapToDto(Expense e, IEnumerable<TagDto>? explicitTags = null) => new()
+        private static ExpenseDto MapToDto(Expense e, IEnumerable<TagDto>? explicitTags = null, decimal? convertedAmount = null, CurrencyDto? displayCurrency = null) => new()
         {
             Id = e.Id,
             Amount = e.Amount,
@@ -203,7 +230,9 @@ namespace Touir.ExpensesManager.Expenses.Services
             CreatedAt = e.CreatedAt,
             ModifiedAt = e.ModifiedAt,
             ModifiedFrom = e.ModifiedFrom?.Name,
-            Tags = explicitTags ?? e.ExpenseTags.Select(et => new TagDto { Id = et.Tag.Id, Name = et.Tag.Name })
+            Tags = explicitTags ?? e.ExpenseTags.Select(et => new TagDto { Id = et.Tag.Id, Name = et.Tag.Name }),
+            ConvertedAmount = convertedAmount,
+            DisplayCurrency = displayCurrency
         };
 
         private static Expense CloneExpense(Expense e) => new()

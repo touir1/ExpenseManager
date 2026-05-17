@@ -44,6 +44,13 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 | `GET` | `/tags` | Tags visible to user → `TagListDto { own, family }` |
 | `POST` | `/tags` | Create/adopt tag by name (idempotent, case-sensitive) → `TagDto` (200) |
 | `DELETE` | `/tags/{id}` | Remove user's adoption of tag → 204 or 404 (tag entity and expense history preserved) |
+| `GET` | `/rates/history` | Rate history for a currency pair → `RateDto[]` (query: `sourceCurrencyId`, `destinationCurrencyId`) |
+| `POST` | `/rates` | Add manual rate → `RateDto` (201); if auto rate exists for that date, creates a conflict instead |
+| `POST` | `/rates/bulk` | Bulk add manual rates → 204 |
+| `PUT` | `/rates/default` | Set/update global fallback rate for a currency pair → 204 |
+| `GET` | `/rates/conflicts` | List pending rate conflicts → `RateConflictDto[]` |
+| `POST` | `/rates/conflicts/{id}/resolve` | Resolve conflict (AcceptAuto / KeepManual / Custom) → 204 or 400/404 |
+| `POST` | `/rates/refresh` | Backfill rates from provider → 204; body: `{ from: "YYYY-MM-DD", sourceCurrencyId?: int, destinationCurrencyId?: int }`; omit filters to refresh all pairs |
 | `GET` | `/health` | Liveness/readiness probe |
 
 All endpoints (except `/health`) require authentication, enforced by nginx's `auth_request` subrequest to the users service before forwarding.
@@ -52,17 +59,21 @@ All endpoints (except `/health`) require authentication, enforced by nginx's `au
 
 **Tag visibility:** a tag is visible if the user has adopted it (`UserTag` row exists) OR any co-member of a shared non-deleted family has adopted it. Attaching a tag to an expense auto-adopts it for the requesting user.
 
+**Display currency conversion:** `GET /expenses/{id}` and `GET /expenses` accept an optional `?displayCurrencyId={id}` query param. When set and the expense currency differs, `ExpenseDto.convertedAmount` and `ExpenseDto.displayCurrency` are populated. The rate resolution chain: same currency → 1.0; exact date match → most-recent-before fallback → global pair default → null (no conversion).
+
 ### Response DTOs
 
 **`CategoryDto`** — `{ id, name, description?, subcategories: SubcategoryDto[] }`  
 **`SubcategoryDto`** — `{ id, name, description? }`  
 **`CurrencyDto`** — `{ id, code, name, symbol, decimals }`  
-**`ExpenseDto`** — `{ id, amount, currency: CurrencyDto?, date, category: SubcategoryDto?, subcategory: SubcategoryDto?, description?, createdAt, modifiedAt?, modifiedFrom?, tags: TagDto[] }`  
+**`ExpenseDto`** — `{ id, amount, currency: CurrencyDto?, date, category: SubcategoryDto?, subcategory: SubcategoryDto?, description?, createdAt, modifiedAt?, modifiedFrom?, tags: TagDto[], convertedAmount?: decimal, displayCurrency?: CurrencyDto }`  
 **`TagDto`** — `{ id, name }`  
 **`TagListDto`** — `{ own: TagDto[], family: TagDto[] }`  
-**`ExpensePagedResponse`** — `{ items: ExpenseDto[], totalCount, page, pageSize, totalPages }`
+**`ExpensePagedResponse`** — `{ items: ExpenseDto[], totalCount, page, pageSize, totalPages }`  
+**`RateDto`** — `{ sourceCurrencyId, destinationCurrencyId, date, rate, rateSource }`  
+**`RateConflictDto`** — `{ id, sourceCurrencyId, destinationCurrencyId, date, automaticRate, manualRate, status, resolvedAt? }`
 
-**Query params for `GET /expenses`:** `dateFrom`, `dateTo`, `categoryId`, `subcategoryId`, `currencyId`, `amountMin`, `amountMax`, `description` (substring), `tagIds[]` (OR filter), `page` (default 1), `pageSize` (default 20)
+**Query params for `GET /expenses`:** `dateFrom`, `dateTo`, `categoryId`, `subcategoryId`, `currencyId`, `amountMin`, `amountMax`, `description` (substring), `tagIds[]` (OR filter), `displayCurrencyId`, `page` (default 1), `pageSize` (default 20)
 
 DTOs live in `Controllers/DTO/`; error envelopes (`{ message }`) in `Controllers/Responses/`.
 
@@ -74,7 +85,7 @@ Swagger UI is available in development or when `ENABLE_SWAGGER=true`:
 http://localhost:9200/swagger
 ```
 
-All 7 endpoints have XML `<summary>` docs and full `[ProducesResponseType]` coverage.
+All endpoints have XML `<summary>` docs and full `[ProducesResponseType]` coverage.
 
 ## Architecture
 

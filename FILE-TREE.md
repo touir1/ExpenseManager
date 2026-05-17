@@ -108,6 +108,8 @@ ExpenseManager/
 │   │   │   ├── Touir.ExpensesManager.Expenses.csproj
 │   │   │   ├── Properties/
 │   │   │   │   └── launchSettings.json
+│   │   │   ├── Jobs/
+│   │   │   │   └── RateAutoUpdateJob.cs     — Quartz IJob; [DisallowConcurrentExecution]; cron scheduled from CurrencyRateOptions.UpdateTime; calls ICurrencyRateService.RunDailyUpdateAsync; logs on failure
 │   │   │   ├── Messaging/
 │   │   │   │   ├── Messages/
 │   │   │   │   │   └── UserEventMessage.cs  — Inbound event DTO + UserEventType constants (Created/Updated/Deleted)
@@ -117,22 +119,26 @@ ExpenseManager/
 │   │   │   │   ├── ExpensesDbContext.cs     — EF Core context; all 13 DbSets with full Fluent API config
 │   │   │   │   ├── JwtCookieReader.cs       — Decodes auth_token cookie (base64url payload) to extract sub claim; no signature validation (nginx validates upstream)
 │   │   │   │   └── Options/
+│   │   │   │       ├── CurrencyRateOptions.cs — UpdateTime (default 02:00 UTC); env prefix EXPENSES_MANAGEMENT_EXPENSES_CURRENCYRATE_*
 │   │   │   │       ├── FamilyOptions.cs     — InviteExpiryInDays (env: EXPENSES_MANAGEMENT_EXPENSES_FAMILY_INVITE_EXPIRY_IN_DAYS, default 7)
 │   │   │   │       ├── PostgresOptions.cs
 │   │   │   │       └── RabbitMQOptions.cs
 │   │   │   ├── Controllers/
 │   │   │   │   ├── CategoryController.cs    — GET /categories → IEnumerable<CategoryDto>
-│   │   │   │   ├── ControllerErrors.cs      — Shared internal static class: SERVER_ERROR, UNAUTHORIZED, EXPENSE_NOT_FOUND, MISSING_PARAMETERS, TAG_NOT_FOUND
+│   │   │   │   ├── ControllerErrors.cs      — Shared internal static class: SERVER_ERROR, UNAUTHORIZED, EXPENSE_NOT_FOUND, MISSING_PARAMETERS, TAG_NOT_FOUND, RATE_NOT_FOUND, CONFLICT_NOT_FOUND
 │   │   │   │   ├── CurrencyController.cs    — GET /currencies → IEnumerable<CurrencyDto>
-│   │   │   │   ├── ExpenseController.cs     — POST/PUT/DELETE/GET/GET(paged) /expenses; FamilyForbiddenException → 403 on create/update; tag visibility → 403 if tag not owned/co-member
+│   │   │   │   ├── CurrencyRateController.cs — GET /rates/history, POST /rates (201), POST /rates/bulk (204), PUT /rates/default (204), GET /rates/conflicts, POST /rates/conflicts/{id}/resolve (204), POST /rates/refresh (204)
+│   │   │   │   ├── ExpenseController.cs     — POST/PUT/DELETE/GET/GET(paged) /expenses; GetByIdAsync accepts ?displayCurrencyId; FamilyForbiddenException → 403 on create/update
 │   │   │   │   ├── FamilyController.cs      — 10 endpoints: list, detail, create, rename, archive, unarchive, invite, accept-invite, remove-member, change-role
 │   │   │   │   ├── TagController.cs         — GET /tags → TagListDto; POST /tags → TagDto (idempotent); DELETE /tags/{id} → 204 or 404
 │   │   │   │   ├── DTO/
 │   │   │   │   │   ├── CategoryDto.cs       — Id, Name, Description?, Subcategories: IEnumerable<SubcategoryDto>
 │   │   │   │   │   ├── SubcategoryDto.cs    — Id, Name, Description? (reused for category + subcategory slots in ExpenseDto)
 │   │   │   │   │   ├── CurrencyDto.cs       — Id, Code, Name, Symbol, Decimals
-│   │   │   │   │   ├── ExpenseDto.cs        — Id, Amount, Currency: CurrencyDto?, Date, Category: SubcategoryDto?, Subcategory: SubcategoryDto?, Description?, CreatedAt, ModifiedAt?, ModifiedFrom?, Tags: TagDto[]
-│   │   │   │   │   ├── ExpenseFilterDto.cs  — DateFrom?, DateTo?, CategoryId?, SubcategoryId?, CurrencyId?, AmountMin?, AmountMax?, Description?, TagIds?, Page (default 1), PageSize (default 20)
+│   │   │   │   │   ├── ExpenseDto.cs        — Id, Amount, Currency: CurrencyDto?, Date, Category: SubcategoryDto?, Subcategory: SubcategoryDto?, Description?, CreatedAt, ModifiedAt?, ModifiedFrom?, Tags: TagDto[], ConvertedAmount?: decimal, DisplayCurrency?: CurrencyDto
+│   │   │   │   │   ├── ExpenseFilterDto.cs  — DateFrom?, DateTo?, CategoryId?, SubcategoryId?, CurrencyId?, AmountMin?, AmountMax?, Description?, TagIds?, DisplayCurrencyId?, Page (default 1), PageSize (default 20)
+│   │   │   │   │   ├── RateDto.cs           — SourceCurrencyId, DestinationCurrencyId, Date, Rate, RateSource
+│   │   │   │   │   ├── RateConflictDto.cs   — Id, SourceCurrencyId, DestinationCurrencyId, Date, AutomaticRate, ManualRate, Status, ResolvedAt?
 │   │   │   │   │   ├── TagDto.cs            — Id, Name
 │   │   │   │   │   ├── TagListDto.cs        — Own: IEnumerable<TagDto>, Family: IEnumerable<TagDto>
 │   │   │   │   │   └── FamilyDto.cs         — Family response shape: Id, Name, IsDefault, IsDeleted, Members: FamilyMemberDto[]
@@ -140,7 +146,12 @@ ExpenseManager/
 │   │   │   │   │   ├── IExpenseRequest.cs      — Shared interface (Amount, CurrencyId, Date, CategoryId?, SubcategoryId?, Description?, TagIds?) implemented by Create + Update DTOs
 │   │   │   │   │   ├── CreateExpenseRequest.cs — Amount (required), CurrencyId (required), Date (required), CategoryId?, SubcategoryId?, Description?, TagIds?
 │   │   │   │   │   ├── UpdateExpenseRequest.cs — same fields as Create
-│   │   │   │   │   └── CreateTagRequest.cs     — Name (required)
+│   │   │   │   │   ├── CreateTagRequest.cs     — Name (required)
+│   │   │   │   │   ├── AddRateRequest.cs       — SourceCurrencyId, DestinationCurrencyId, Date, Rate (all required)
+│   │   │   │   │   ├── BulkAddRatesRequest.cs  — Rates: List<AddRateRequest>
+│   │   │   │   │   ├── SetDefaultRateRequest.cs — SourceCurrencyId, DestinationCurrencyId, Rate
+│   │   │   │   │   ├── ResolveConflictRequest.cs — Resolution (string: AcceptAuto/KeepManual/Custom), CustomRate?
+│   │   │   │   │   └── RefreshRatesRequest.cs    — From: DateOnly (required); SourceCurrencyId?: int; DestinationCurrencyId?: int
 │   │   │   │   └── Responses/
 │   │   │   │       ├── ErrorResponse.cs     — Uniform error envelope (matches users service pattern)
 │   │   │   │       └── ExpensePagedResponse.cs — Items: ExpenseDto[], TotalCount, Page, PageSize, TotalPages
@@ -189,36 +200,42 @@ ExpenseManager/
 │   │   │   │   ├── FamilyRepository.cs      — family CRUD, membership CRUD, invitation CRUD, attribution helpers (AddAttributionsAsync, ClearAttributionsAsync, RemoveMemberAttributionsAsync)
 │   │   │   │   ├── InboxRepository.cs       — ExistsAsync(messageId), AddAsync(InboxEvent) for deduplication
 │   │   │   │   ├── TagRepository.cs         — GetOwnAsync, GetFamilyAsync (co-member, excludes deleted families), GetByNameAsync, GetByIdsAsync, AddAsync, EnsureUserTagAsync, RemoveUserTagAsync, IsVisibleAsync
+│   │   │   │   ├── CurrencyRateRepository.cs — GetExactAsync, GetMostRecentBeforeAsync, GetDefaultAsync, GetHistoryAsync, AddRateAsync, UpdateRateAsync, ManualRateExistsAsync, AddConflictAsync, GetPendingConflictsAsync, GetConflictByIdAsync, UpdateConflictAsync, SetDefaultAsync (upsert)
 │   │   │   │   ├── Contracts/
 │   │   │   │   │   ├── ICategoryRepository.cs
 │   │   │   │   │   ├── ICurrencyRepository.cs
 │   │   │   │   │   ├── IExpenseRepository.cs — AddAsync, UpdateAsync, SoftDeleteAsync, GetByIdAsync, GetPagedAsync, ClearExpenseTagsAsync, AddExpenseTagsAsync
 │   │   │   │   │   ├── IFamilyRepository.cs  — family/membership/invitation/attribution methods; IsMemberAsync, HasDefaultFamilyAsync
 │   │   │   │   │   ├── ITagRepository.cs     — GetOwnAsync, GetFamilyAsync, GetByNameAsync, GetByIdsAsync, AddAsync, EnsureUserTagAsync, RemoveUserTagAsync, IsVisibleAsync, SaveChangesAsync
-│   │   │   │   │   └── IInboxRepository.cs  — ExistsAsync, AddAsync
+│   │   │   │   │   ├── IInboxRepository.cs  — ExistsAsync, AddAsync
+│   │   │   │   │   └── ICurrencyRateRepository.cs — GetExactAsync, GetMostRecentBeforeAsync, GetDefaultAsync, GetHistoryAsync, AddRateAsync, UpdateRateAsync, ManualRateExistsAsync, AddConflictAsync, GetPendingConflictsAsync, GetConflictByIdAsync, UpdateConflictAsync, SetDefaultAsync
 │   │   │   │   └── External/
 │   │   │   │       ├── Contracts/
 │   │   │   │       │   └── IUserRepository.cs — GetUserByEmailAsync (invite flow), GetUserByIdAsync (filters !IsDeleted)
 │   │   │   │       └── UserRepository.cs    — Read-only cross-service user access
 │   │   │   ├── Services/
-│   │   │   │   ├── Contracts/
-│   │   │   │   │   ├── IRabbitMQService.cs
-│   │   │   │   │   ├── ILookupCacheService.cs — GetIdAsync<T>(name) / GetNameAsync<T>(id)
-│   │   │   │   │   ├── ICategoryService.cs  — GetAllAsync() → active category tree
-│   │   │   │   │   ├── ICurrencyService.cs  — GetAllAsync() → all currencies
-│   │   │   │   │   ├── IExpenseService.cs   — AddAsync, UpdateAsync, DeleteAsync, GetByIdAsync, GetPagedAsync
-│   │   │   │   │   ├── IExpenseAuditService.cs — WriteAddAuditAsync, WriteUpdateAuditAsync, WriteDeleteAuditAsync (all accept string tags for snapshot)
-│   │   │   │   │   ├── IFamilyService.cs    — CreateDefaultAsync, CreateAsync, GetByUserAsync, GetByIdAsync, RenameAsync, InviteAsync, AcceptInviteAsync, RemoveMemberAsync, ChangeRoleAsync, ArchiveAsync, UnarchiveAsync
-│   │   │   │   │   └── ITagService.cs       — GetVisibleAsync(userId) → TagListDto; UseTagAsync(name, userId) → TagDto; RemoveTagAsync(tagId, userId) → bool
 │   │   │   │   ├── FamilyExceptions.cs      — FamilyNotFoundException (→404), FamilyForbiddenException (→403; also used for tag visibility violations), FamilyConflictException (→409), FamilyInvitationException (→400)
 │   │   │   │   ├── FamilyService.cs         — Implements IFamilyService; uses ILookupCacheService for role ID resolution; invite expiry from FamilyOptions
 │   │   │   │   ├── RabbitMQService.cs       — RabbitMQ connection and messaging
 │   │   │   │   ├── LookupCacheService.cs    — IMemoryCache-backed lookup; NeverRemove priority; loads entire table on first access
 │   │   │   │   ├── CategoryService.cs       — Injects ICategoryRepository; projects Category → CategoryDto (filters archived children)
 │   │   │   │   ├── CurrencyService.cs       — Injects ICurrencyRepository; projects Currency → CurrencyDto
-│   │   │   │   ├── ExpenseService.cs        — Orchestrates IExpenseRepository + IExpenseAuditService + ITagRepository; validates tag visibility (→403), auto-adopts tags; maps Expense → ExpenseDto with Tags
+│   │   │   │   ├── ExpenseService.cs        — Orchestrates IExpenseRepository + IExpenseAuditService + ITagRepository + ICurrencyRateService; validates tag visibility (→403), auto-adopts tags; resolves ConvertedAmount/DisplayCurrency when displayCurrencyId provided; maps Expense → ExpenseDto
 │   │   │   │   ├── TagService.cs            — GetVisibleAsync calls repo in parallel; UseTagAsync is idempotent find-or-create + adopt; RemoveTagAsync removes UserTag only
-│   │   │   │   └── ExpenseAuditService.cs   — Writes ExpenseAuditLog + ExpenseAuditSnapshot(s): add→1 after, update→before+after, delete→1 before; snapshots store comma-sep tag IDs
+│   │   │   │   ├── ExpenseAuditService.cs   — Writes ExpenseAuditLog + ExpenseAuditSnapshot(s): add→1 after, update→before+after, delete→1 before; snapshots store comma-sep tag IDs
+│   │   │   │   ├── IRateProvider.cs         — FetchRatesAsync(code, date) → dict; FetchRatesRangeAsync(code, from, to) → dict<DateOnly, dict>
+│   │   │   │   ├── FrankfurterRateProvider.cs — Calls api.frankfurter.app (ECB, no API key); single-date and range endpoints; registered via IHttpClientFactory
+│   │   │   │   ├── CurrencyRateService.cs   — ResolveRateAsync; AddManualRateAsync (conflict if auto exists); RunDailyUpdateAsync; RefreshRatesFromAsync (backfill range); ResolveConflictAsync
+│   │   │   │   └── Contracts/
+│   │   │   │       ├── IRabbitMQService.cs
+│   │   │   │       ├── ILookupCacheService.cs — GetIdAsync<T>(name) / GetNameAsync<T>(id)
+│   │   │   │       ├── ICategoryService.cs  — GetAllAsync() → active category tree
+│   │   │   │       ├── ICurrencyService.cs  — GetAllAsync() → all currencies
+│   │   │   │       ├── IExpenseService.cs   — AddAsync, UpdateAsync, DeleteAsync, GetByIdAsync(id, userId, displayCurrencyId?), GetPagedAsync
+│   │   │   │       ├── IExpenseAuditService.cs — WriteAddAuditAsync, WriteUpdateAuditAsync, WriteDeleteAuditAsync (all accept string tags for snapshot)
+│   │   │   │       ├── IFamilyService.cs    — CreateDefaultAsync, CreateAsync, GetByUserAsync, GetByIdAsync, RenameAsync, InviteAsync, AcceptInviteAsync, RemoveMemberAsync, ChangeRoleAsync, ArchiveAsync, UnarchiveAsync
+│   │   │   │       ├── ITagService.cs       — GetVisibleAsync(userId) → TagListDto; UseTagAsync(name, userId) → TagDto; RemoveTagAsync(tagId, userId) → bool
+│   │   │   │       └── ICurrencyRateService.cs — ResolveRateAsync, GetRateHistoryAsync, AddManualRateAsync, BulkAddManualRatesAsync, SetDefaultFallbackAsync, ResolveConflictAsync, GetPendingConflictsAsync, RunDailyUpdateAsync, RefreshRatesFromAsync
 │   │   │   └── Migrations/
 │   │   │       ├── 20260217225816_InitialCreate.cs
 │   │   │       ├── 20260217225816_InitialCreate.Designer.cs
@@ -250,7 +267,10 @@ ExpenseManager/
 │   │       │   ├── CurrencyControllerTests.cs
 │   │       │   ├── ExpenseControllerTests.cs        — 12 tests: 401 no-cookie, 201/400/403 create, 404/200/403 update, 404/204 delete, 404/200 getById, 200 getPaged
 │   │       │   ├── FamilyControllerTests.cs         — 30+ tests: 401 no-cookie paths, all 10 family endpoints (200/201/204/403/404/409 per action)
-│   │       │   └── TagControllerTests.cs            — 13 tests: 401 no-cookie × 3 endpoints, GetTags 200 (list/empty/family), UseTag 200 (new/existing), RemoveTag 204/404
+│   │       │   ├── TagControllerTests.cs            — 13 tests: 401 no-cookie × 3 endpoints, GetTags 200 (list/empty/family), UseTag 200 (new/existing), RemoveTag 204/404
+│   │       │   └── CurrencyRateControllerTests.cs   — 23 tests: GetHistory 200/500, AddRate 201/401/500, BulkAdd 204/401/500, SetDefault 204/401/500, GetConflicts 200/500, ResolveConflict 204/401/404, RefreshRates 204/401/500/filter
+│   │       ├── Jobs/
+│   │       │   └── RateAutoUpdateJobTests.cs        — 3 tests: Execute calls RunDailyUpdateAsync, exception does not propagate, exception logs error
 │   │       ├── Messaging/
 │   │       │   └── UserEventConsumerTests.cs        — 24 tests: constructor, ExecuteAsync, Dispose, OnMessageReceivedAsync (null msg, dedup, Created/Updated/Deleted/unknown/exception), HandleMessageAsync, UserEventMessage/UserEventType
 │   │       ├── Repositories/
@@ -261,7 +281,8 @@ ExpenseManager/
 │   │       │   ├── ExpenseRepositoryTests.cs        — 8 tests: AddAsync, GetByIdAsync (owned/wrong-user/soft-deleted), SoftDeleteAsync, GetPagedAsync (excludes deleted/other-users, pagination, UpdateAsync); BuildExpense static
 │   │       │   ├── FamilyRepositoryTests.cs         — family CRUD, membership, invitation, attribution, IsMemberAsync, HasDefaultFamilyAsync
 │   │       │   ├── InboxRepositoryTests.cs          — 7 tests: ExistsAsync×3, AddAsync×4
-│   │       │   └── TagRepositoryTests.cs            — 16 integration tests: GetOwnAsync×3, GetFamilyAsync×4, EnsureUserTagAsync×3, RemoveUserTagAsync×2, IsVisibleAsync×4
+│   │       │   ├── TagRepositoryTests.cs            — 16 integration tests: GetOwnAsync×3, GetFamilyAsync×4, EnsureUserTagAsync×3, RemoveUserTagAsync×2, IsVisibleAsync×4
+│   │       │   └── CurrencyRateRepositoryTests.cs   — 20 integration tests: GetExact×2, GetMostRecentBefore×2, GetDefault×2, AddRate, ManualRateExists×2, AddConflict, GetPendingConflicts, SetDefault×2, GetHistory×2, UpdateRate, GetConflictById×2, UpdateConflict
 │   │       ├── Infrastructure/
 │   │       │   └── ExpensesDbContextSchemaTests.cs  — 23 tests: all Phase 1 entities, composite PKs, unique constraints, cascades
 │   │       ├── Validators/
@@ -272,8 +293,10 @@ ExpenseManager/
 │   │           ├── LookupCacheServiceTests.cs       — 7 tests: GetId/Name, KeyNotFoundException, cache hit, all 8 types
 │   │           ├── CategoryServiceTests.cs          — 8 tests: Mock<ICategoryRepository>; top-level, subcategories, archived exclusion, field mapping, call count
 │   │           ├── CurrencyServiceTests.cs          — 5 tests: Mock<ICurrencyRepository>; all currencies, field mapping, empty set, ID mapping, call count
-│   │           ├── ExpenseServiceTests.cs           — 16 tests: AddAsync (repo called, audit written, DTO amount/currency), UpdateAsync (null when not found, repo called, audit written, fields updated), DeleteAsync (false/true/soft-delete/audit), GetByIdAsync (null/mapped), GetPagedAsync (result, total pages); updated for ITagRepository dependency
+│   │           ├── ExpenseServiceTests.cs           — 16 tests: AddAsync (repo called, audit written, DTO amount/currency), UpdateAsync (null when not found, repo called, audit written, fields updated), DeleteAsync (false/true/soft-delete/audit), GetByIdAsync (null/mapped), GetPagedAsync (result, total pages); updated for ICurrencyRateService dependency
+│   │           ├── ExpenseServiceConversionTests.cs — 5 tests: GetByIdAsync with displayCurrencyId set/same currency/no rate/not set; GetPagedAsync with conversion
 │   │           ├── ExpenseAuditServiceTests.cs      — 3 tests: WriteAddAuditAsync (log + after snapshot), WriteUpdateAuditAsync (log + before+after snapshots), WriteDeleteAuditAsync (log + before snapshot)
+│   │           ├── CurrencyRateServiceTests.cs      — 28 tests: ResolveRateAsync×5, AddManualRateAsync×2, BulkAdd×1, SetDefault×1, ResolveConflict×4, GetRateHistory×1, GetPendingConflicts×1, RunDailyUpdate×5, RefreshRatesFrom×7 (all/manualConflict/providerThrows/skipDest/sourceFilter/destFilter/unknownSource)
 │   │           ├── TagServiceTests.cs               — 10 unit tests (Moq): GetVisibleAsync×4, UseTagAsync×4, RemoveTagAsync×2
 │   │           └── FamilyServiceTests.cs            — 42+ tests: CreateDefault, Create, GetByUser, GetById, Rename, Invite, AcceptInvite, RemoveMember, ChangeRole, Archive, Unarchive (success + forbidden/not-found paths)
 │   │
@@ -574,6 +597,18 @@ ExpenseManager/
 │           │   │       ├── TagInput.tsx          — Combobox: grouped "My tags"/"Family tags" dropdown, chips, create option, keyboard (Enter/Escape/Backspace)
 │           │   │       └── __tests__/
 │           │   │           └── TagInput.test.tsx — 17 component tests (role queries updated to menu/menuitem; added getTags/useTag error-path and Enter-key tests)
+│           │   ├── currencies/        — Display currency feature (Phase 6)
+│           │   │   ├── components/
+│           │   │   │   ├── DisplayCurrencySelector.tsx — NavBar dropdown; reads currencies from ExpensesDataContext; writes to DisplayCurrencyContext; "No conversion" option
+│           │   │   │   └── __tests__/
+│           │   │   │       └── DisplayCurrencySelector.test.tsx — 9 tests: renders/no currencies/label/open/select/clear/close/aria-checked
+│           │   │   ├── services/
+│           │   │   │   ├── ratesApi.service.ts — refreshRates(RefreshRatesParams) → POST /api/expenses/rates/refresh (204); params: from, sourceCurrencyId?, destinationCurrencyId?
+│           │   │   │   └── __tests__/
+│           │   │   │       └── ratesApi.service.test.ts — 8 tests: from-only, sourceCurrencyId, destinationCurrencyId, both, success, error, 401, call count
+│           │   │   ├── DisplayCurrencyContext.tsx — Session-only state (number | null, default null); no localStorage
+│           │   │   └── __tests__/
+│           │   │       └── DisplayCurrencyContext.test.tsx — 5 tests: default null, set/clear, persist on rerender, throws outside provider
 │           │   ├── expenses/          — Expense management feature
 │           │   │   ├── types/
 │           │   │   │   └── expenses.type.ts     — Category, Subcategory, Currency types
@@ -603,13 +638,13 @@ ExpenseManager/
 │           │               ├── NotFoundPage.test.tsx
 │           │               └── VerifyErrorPage.test.tsx
 │           ├── providers/             — Composed provider tree
-│           │   ├── AppProviders.tsx   — Nests ToastProvider → AuthProvider → ExpensesDataProvider → FamilyProvider; mounts ErrorBinder
+│           │   ├── AppProviders.tsx   — Nests AuthProvider → ExpensesDataProvider → FamilyProvider → DisplayCurrencyProvider
 │           │   └── __tests__/
 │           │       └── AppProviders.test.tsx
 │           ├── hooks/                 — Shared hooks
 │           │   └── usePageTitle.ts    — Sets document.title per page
 │           ├── layouts/               — App-wide layout components
-│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive; right-side controls: FamilySelector → notification bell → user avatar dropdown (cog Settings, labeled LanguageSwitcher, logout-icon Sign out); unauthenticated desktop nav also shows LanguageSwitcher
+│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive; right-side controls: FamilySelector → DisplayCurrencySelector → notification bell → user avatar dropdown (cog Settings, labeled LanguageSwitcher, logout-icon Sign out); unauthenticated desktop nav also shows LanguageSwitcher
 │           │   └── __tests__/
 │           │       └── NavBar.test.tsx
 │           ├── services/              — Shared base services

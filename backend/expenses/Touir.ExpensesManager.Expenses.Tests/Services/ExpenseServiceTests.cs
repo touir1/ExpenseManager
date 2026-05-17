@@ -14,13 +14,15 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             IExpenseRepository? repo = null,
             IExpenseAuditService? audit = null,
             IFamilyRepository? familyRepo = null,
-            ITagRepository? tagRepo = null)
+            ITagRepository? tagRepo = null,
+            ICurrencyRateService? rateService = null)
         {
             return new ExpenseService(
                 repo ?? Mock.Of<IExpenseRepository>(),
                 audit ?? Mock.Of<IExpenseAuditService>(),
                 familyRepo ?? Mock.Of<IFamilyRepository>(),
-                tagRepo ?? Mock.Of<ITagRepository>());
+                tagRepo ?? Mock.Of<ITagRepository>(),
+                rateService ?? Mock.Of<ICurrencyRateService>());
         }
 
         private static Expense MakeExpense(long id = 1, int userId = 42) => new()

@@ -174,7 +174,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         public async Task GetByIdAsync_Returns404_WhenNotFound()
         {
             var service = new Mock<IExpenseService>();
-            service.Setup(s => s.GetByIdAsync(It.IsAny<long>(), It.IsAny<int>()))
+            service.Setup(s => s.GetByIdAsync(It.IsAny<long>(), It.IsAny<int>(), It.IsAny<int?>()))
                    .ReturnsAsync((ExpenseDto?)null);
 
             var result = await CreateController(service.Object).GetByIdAsync(1);
@@ -187,7 +187,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         {
             var dto = MakeDto(id: 5);
             var service = new Mock<IExpenseService>();
-            service.Setup(s => s.GetByIdAsync(5, It.IsAny<int>())).ReturnsAsync(dto);
+            service.Setup(s => s.GetByIdAsync(5, It.IsAny<int>(), It.IsAny<int?>())).ReturnsAsync(dto);
 
             var result = await CreateController(service.Object).GetByIdAsync(5);
 

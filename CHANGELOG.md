@@ -3,6 +3,43 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.102.1] - 2026-05-17
+### Changed
+- **`POST /rates/refresh` — optional source/destination currency filter**: Body now accepts optional `sourceCurrencyId` and `destinationCurrencyId`; when omitted, all pairs are refreshed (previous behavior preserved). Service filters the source-currencies loop and skips non-matching destination entries without an extra API call.
+- **Frontend `refreshRates`**: Signature changed from `refreshRates(from: string)` to `refreshRates(params: RefreshRatesParams)` where `RefreshRatesParams = { from, sourceCurrencyId?, destinationCurrencyId? }`.
+- **Tests**: 3 new `RefreshRatesFromAsync` filter tests (source filter, dest filter, unknown source → no-op); 1 new controller filter passthrough test. Total backend: **414 tests** (was 410). Frontend tests expanded to **538** (was 535).
+
+## [0.102.0] - 2026-05-17
+### Added
+- **Rate refresh endpoint + range provider (backend + frontend)**
+  - **Backend — `IRateProvider.FetchRatesRangeAsync`**: New interface method `FetchRatesRangeAsync(code, from, to, ct)` → `Dictionary<DateOnly, Dictionary<string, decimal>>` for fetching a date range in one API call.
+  - **Backend — `FrankfurterRateProvider`**: Implements `FetchRatesRangeAsync` via Frankfurter's `{from}..{to}?from={code}` endpoint; parses nested date-keyed JSON.
+  - **Backend — `ICurrencyRateService.RefreshRatesFromAsync`**: New method iterates all currencies as source, calls `FetchRatesRangeAsync` from the given date to today, inserts auto rates or creates conflicts (same logic as `RunDailyUpdateAsync`).
+  - **Backend — `POST /rates/refresh`**: New authenticated endpoint; body `{ from: "YYYY-MM-DD" }`; calls `RefreshRatesFromAsync`; returns 204 or 401/400.
+  - **Backend — `RefreshRatesRequest.cs`**: Request DTO with `required DateOnly From`.
+  - **Backend — Quartz migration**: `RateAutoUpdateService` (BackgroundService + PeriodicTimer) replaced by `Jobs/RateAutoUpdateJob` implementing `IJob` with `[DisallowConcurrentExecution]`; scheduled via Quartz cron `0 {min} {hour} * * ?` built from `CurrencyRateOptions.UpdateTime`; registered via `AddQuartz` / `AddQuartzHostedService`.
+  - **Frontend — `ratesApi.service.ts`**: New service at `features/currencies/services/`; exports `refreshRates(from: string)` calling `POST /api/expenses/rates/refresh`.
+  - **Backend tests**: 4 new `RefreshRatesFromAsync` tests in `CurrencyRateServiceTests`; 3 new `RefreshRates_*` + 3 error-path tests in `CurrencyRateControllerTests`; 7 new repository tests (GetHistory, UpdateRate, GetConflictById, UpdateConflict); 3 new `RateAutoUpdateJobTests`. Total backend: **410 tests** (was 386), all passing.
+  - **Frontend tests**: 5 new `ratesApi.service` tests. Total frontend: **535 tests** (was 530), all passing.
+
+## [0.101.0] - 2026-05-17
+### Added
+- **Phase 6 — Currency Rates (backend + frontend)**
+  - **Backend — `CurrencyDailyRate` storage & resolution**: New `ICurrencyRateRepository` / `CurrencyRateRepository` with exact-date lookup, most-recent-before fallback, `CurrencyPairDefault` global fallback, and upsert for defaults.
+  - **Backend — `ICurrencyRateService` / `CurrencyRateService`**: Resolution chain (same currency → 1; exact date → most-recent → default → null); manual rate insertion with conflict detection; bulk insert; default fallback upsert; conflict resolution (AcceptAuto / KeepManual / Custom); `RunDailyUpdateAsync` for background fetch.
+  - **Backend — `IRateProvider` / `FrankfurterRateProvider`**: Fetches ECB rates from `https://api.frankfurter.app/{date}?from={code}` (no API key); registered via `IHttpClientFactory`.
+  - **Backend — `RateAutoUpdateService`**: `BackgroundService` with 24-hour `PeriodicTimer`; resolves scoped `ICurrencyRateService` via `IServiceScopeFactory`; calls `RunDailyUpdateAsync` daily.
+  - **Backend — `CurrencyRateController`** (`/rates`): `GET /rates/history`, `POST /rates` (201), `POST /rates/bulk` (204), `PUT /rates/default` (204), `GET /rates/conflicts`, `POST /rates/conflicts/{id}/resolve` (204); all require auth; rate-limited via `expenses_global`.
+  - **Backend — `ExpenseDto`**: Added `decimal? ConvertedAmount` and `CurrencyDto? DisplayCurrency` for converted display.
+  - **Backend — `ExpenseFilterDto`**: Added `int? DisplayCurrencyId` query param.
+  - **Backend — `ExpenseService`**: Injected `ICurrencyRateService`; `GetByIdAsync` and `GetPagedAsync` now accept `displayCurrencyId` and call `ResolveConversionAsync` to populate `ConvertedAmount`.
+  - **Backend — `ExpenseController`**: `GetByIdAsync` now accepts `[FromQuery] int? displayCurrencyId`.
+  - **Backend tests**: `CurrencyRateServiceTests` (15 tests), `CurrencyRateControllerTests` (12 tests), `CurrencyRateRepositoryTests` (13 tests), `ExpenseServiceConversionTests` (5 tests). Total backend: **386 tests** (was 341), all passing.
+  - **Frontend — `DisplayCurrencyContext`**: Session-only React context (`number | null`, default null); no localStorage persistence.
+  - **Frontend — `DisplayCurrencySelector`**: Dropdown in NavBar showing all currencies from `ExpensesDataContext`; "No conversion" option clears selection; mirrors `FamilySelector` ARIA pattern.
+  - **Frontend — `AppProviders`**: Added `DisplayCurrencyProvider` to provider compose chain.
+  - **Frontend tests**: `DisplayCurrencyContext.test.tsx` (5 tests), `DisplayCurrencySelector.test.tsx` (9 tests). Total frontend: **530 tests** (was 516), all passing.
+
 ## [0.100.0] - 2026-05-17
 ### Added
 - **Family member self-action guards (backend + frontend)**

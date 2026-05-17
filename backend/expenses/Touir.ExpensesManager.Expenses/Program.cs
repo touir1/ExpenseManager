@@ -1,4 +1,6 @@
+using Quartz;
 using Touir.ExpensesManager.Expenses.Controllers.Responses;
+using Touir.ExpensesManager.Expenses.Jobs;
 using Touir.ExpensesManager.Expenses.Infrastructure;
 using Touir.ExpensesManager.Expenses.Infrastructure.Options;
 using Touir.ExpensesManager.Expenses.Messaging.Consumers;
@@ -105,6 +107,13 @@ builder.Services.Configure<FamilyOptions>(c =>
     c.InviteExpiryInDays = int.Parse(builder.Configuration.GetValue("Family:InviteExpiryInDays",
                     Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_FAMILY_INVITE_EXPIRY_IN_DAYS")) ?? "7");
 });
+
+builder.Services.Configure<CurrencyRateOptions>(c =>
+{
+    var updateTime = builder.Configuration.GetValue("CurrencyRate:UpdateTime",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_CURRENCYRATE_UPDATE_TIME")) ?? "02:00";
+    c.UpdateTime = TimeOnly.Parse(updateTime);
+});
 #endregion
 
 #region Services
@@ -117,10 +126,28 @@ builder.Services.AddScoped<IExpenseAuditService, ExpenseAuditService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
 builder.Services.AddScoped<IFamilyService, FamilyService>();
 builder.Services.AddScoped<ITagService, TagService>();
+builder.Services.AddScoped<ICurrencyRateService, CurrencyRateService>();
 #endregion
 
 #region Messaging
 builder.Services.AddHostedService<UserEventConsumer>();
+#endregion
+
+#region Quartz
+var updateTimeStr = builder.Configuration.GetValue("CurrencyRate:UpdateTime",
+    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_CURRENCYRATE_UPDATE_TIME")) ?? "02:00";
+var updateTime = TimeOnly.Parse(updateTimeStr);
+
+builder.Services.AddQuartz(q =>
+{
+    var jobKey = new JobKey("RateAutoUpdateJob");
+    q.AddJob<RateAutoUpdateJob>(opts => opts.WithIdentity(jobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("RateAutoUpdateTrigger")
+        .WithCronSchedule($"0 {updateTime.Minute} {updateTime.Hour} * * ?"));
+});
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 #endregion
 
 #region Repositories
@@ -131,6 +158,12 @@ builder.Services.AddScoped<IInboxRepository, InboxRepository>();
 builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
+builder.Services.AddScoped<ICurrencyRateRepository, CurrencyRateRepository>();
+#endregion
+
+#region HttpClients
+builder.Services.AddHttpClient<FrankfurterRateProvider>();
+builder.Services.AddScoped<IRateProvider, FrankfurterRateProvider>();
 #endregion
 
 #region Database

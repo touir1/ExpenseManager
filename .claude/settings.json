@@ -9,7 +9,8 @@
       "mcp__chrome-devtools__click",
       "mcp__chrome-devtools__wait_for",
       "mcp__chrome-devtools__evaluate_script",
-      "mcp__chrome-devtools__list_console_messages"
+      "mcp__chrome-devtools__list_console_messages",
+      "Bash(rtk dotnet *)"
     ]
   },
   "hooks": {

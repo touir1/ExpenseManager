@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import FamilySelector from '@/features/families/components/FamilySelector'
+import DisplayCurrencySelector from '@/features/currencies/components/DisplayCurrencySelector'
 
 const baseNavClass = 'text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors duration-150'
 const activeNavClass = `${baseNavClass} bg-brand-100 text-brand-600`
@@ -134,6 +135,7 @@ export default function NavBar() {
               {/* Right-side controls */}
               <div className="ml-auto flex items-center gap-2">
                 <FamilySelector />
+                <DisplayCurrencySelector />
 
                 {/* Notifications (placeholder) */}
                 <button

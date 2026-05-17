@@ -8,7 +8,7 @@ namespace Touir.ExpensesManager.Expenses.Services.Contracts
         Task<ExpenseDto> AddAsync(CreateExpenseRequest request, int userId, int sourceId);
         Task<ExpenseDto?> UpdateAsync(long id, UpdateExpenseRequest request, int userId, int sourceId);
         Task<bool> DeleteAsync(long id, int userId, int sourceId);
-        Task<ExpenseDto?> GetByIdAsync(long id, int userId);
+        Task<ExpenseDto?> GetByIdAsync(long id, int userId, int? displayCurrencyId = null);
         Task<ExpensePagedResult> GetPagedAsync(ExpenseFilterDto filter, int userId);
     }
 

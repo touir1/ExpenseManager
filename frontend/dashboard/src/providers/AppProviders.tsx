@@ -2,6 +2,7 @@ import { type ComponentType, type ReactNode } from 'react'
 import { AuthProvider } from '@/features/auth/AuthContext'
 import { ExpensesDataProvider } from '@/features/expenses/ExpensesDataContext'
 import { FamilyProvider } from '@/features/families/FamilyContext'
+import { DisplayCurrencyProvider } from '@/features/currencies/DisplayCurrencyContext'
 
 type ProviderComponent = ComponentType<Readonly<{ children: ReactNode }>>
 
@@ -14,4 +15,5 @@ export const AppProviders = composeProviders(
   AuthProvider,
   ExpensesDataProvider,
   FamilyProvider,
+  DisplayCurrencyProvider,
 )
