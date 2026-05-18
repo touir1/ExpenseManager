@@ -1,8 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json;
+using Touir.ExpensesManager.Expenses.Infrastructure.Contracts;
 
-namespace Touir.ExpensesManager.Expenses.Services
+namespace Touir.ExpensesManager.Expenses.Infrastructure
 {
     [ExcludeFromCodeCoverage]
     public class FrankfurterRateProvider : IRateProvider

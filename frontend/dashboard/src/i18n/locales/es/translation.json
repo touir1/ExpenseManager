@@ -201,6 +201,7 @@
     "familyCannotArchiveDefault": "Tu familia predeterminada no puede archivarse.",
     "familyCannotLeaveDefault": "No puedes abandonar tu familia predeterminada.",
     "familyCannotLeaveLastHead": "No puedes salir — eres el único responsable de esta familia.",
+    "familyForbidden": "No tienes acceso a esta familia.",
     "tagNotVisible": "Una o más etiquetas no son visibles para ti.",
     "familyInvitationInvalid": "Este enlace de invitación no es válido.",
     "familyInvitationAlreadyAccepted": "Esta invitación ya fue aceptada.",

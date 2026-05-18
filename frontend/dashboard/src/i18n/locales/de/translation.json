@@ -201,6 +201,7 @@
     "familyCannotArchiveDefault": "Deine Standardfamilie kann nicht archiviert werden.",
     "familyCannotLeaveDefault": "Du kannst deine Standardfamilie nicht verlassen.",
     "familyCannotLeaveLastHead": "Du kannst nicht gehen — du bist der einzige Kopf dieser Familie.",
+    "familyForbidden": "Du hast keinen Zugriff auf diese Familie.",
     "tagNotVisible": "Ein oder mehrere Tags sind für dich nicht sichtbar.",
     "familyInvitationInvalid": "Dieser Einladungslink ist ungültig.",
     "familyInvitationAlreadyAccepted": "Diese Einladung wurde bereits angenommen.",

@@ -152,7 +152,7 @@ namespace Touir.ExpensesManager.Expenses.Services
 
             foreach (var tagId in tagIds)
                 if (!await _tagRepository.IsVisibleAsync(userId, tagId))
-                    throw new FamilyForbiddenException("TAG_NOT_VISIBLE");
+                    throw new FamilyForbiddenException(ServiceErrors.TagNotVisible);
 
             foreach (var tagId in tagIds)
                 await _tagRepository.EnsureUserTagAsync(userId, tagId);
@@ -186,7 +186,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             foreach (var familyId in targetIds)
             {
                 if (!await _familyRepository.IsMemberAsync(familyId, userId))
-                    throw new FamilyForbiddenException("FAMILY_FORBIDDEN");
+                    throw new FamilyForbiddenException(ServiceErrors.FamilyForbidden);
 
                 attributions.Add(new ExpenseFamilyAttribution
                 {

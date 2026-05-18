@@ -124,9 +124,11 @@ ExpenseManager/
 │   │   │   │   ├── ExpensesDbContext.cs     — EF Core context; all 13 DbSets with full Fluent API config
 │   │   │   │   ├── JwtCookieReader.cs       — Decodes auth_token cookie (base64url payload) to extract sub claim; no signature validation (nginx validates upstream)
 │   │   │   │   ├── SmtpEmailService.cs      — SMTP email sender; configurable host/port/SSL via EmailOptions
+│   │   │   │   ├── FrankfurterRateProvider.cs — [ExcludeFromCodeCoverage] Calls api.frankfurter.app (ECB, no API key); single-date and range endpoints; registered via IHttpClientFactory
 │   │   │   │   ├── Contracts/
 │   │   │   │   │   ├── IEmailHelper.cs      — Template loading + send interface
-│   │   │   │   │   └── IEmailService.cs     — Raw send interface
+│   │   │   │   │   ├── IEmailService.cs     — Raw send interface
+│   │   │   │   │   └── IRateProvider.cs     — FetchRatesAsync(code, date) → dict; FetchRatesRangeAsync(code, from, to) → dict<DateOnly, dict>
 │   │   │   │   └── Options/
 │   │   │   │       ├── CurrencyRateOptions.cs — UpdateTime (default 02:00 UTC); env prefix EXPENSES_MANAGEMENT_EXPENSES_CURRENCYRATE_*
 │   │   │   │       ├── EmailOptions.cs      — SMTP config; env prefix EXPENSES_MANAGEMENT_EXPENSES_EMAILAUTH_*
@@ -224,7 +226,8 @@ ExpenseManager/
 │   │   │   │       │   └── IUserRepository.cs — GetUserByEmailAsync (invite flow), GetUserByIdAsync (filters !IsDeleted)
 │   │   │   │       └── UserRepository.cs    — Read-only cross-service user access
 │   │   │   ├── Services/
-│   │   │   │   ├── FamilyExceptions.cs      — FamilyNotFoundException (→404), FamilyForbiddenException (→403; also used for tag visibility violations), FamilyConflictException (→409), FamilyInvitationException (→400)
+│   │   │   │   ├── FamilyExceptions.cs      — FamilyNotFoundException (→404), FamilyForbiddenException (→403; also used for tag visibility violations), FamilyConflictException (→409), FamilyInvitationException (→400); default ctor args reference ServiceErrors constants
+│   │   │   │   ├── ServiceErrors.cs         — internal static class; 16 domain error-code constants (FAMILY_*, TAG_NOT_VISIBLE, USER_NOT_FOUND, invitation codes) used by service-layer exceptions; mirrors ControllerErrors pattern
 │   │   │   │   ├── FamilyService.cs         — Implements IFamilyService; uses ILookupCacheService for role ID resolution; invite expiry from FamilyOptions
 │   │   │   │   ├── RabbitMQService.cs       — RabbitMQ connection and messaging
 │   │   │   │   ├── LookupCacheService.cs    — IMemoryCache-backed lookup; NeverRemove priority; loads entire table on first access
@@ -233,8 +236,6 @@ ExpenseManager/
 │   │   │   │   ├── ExpenseService.cs        — Orchestrates IExpenseRepository + IExpenseAuditService + ITagRepository + ICurrencyRateService; validates tag visibility (→403), auto-adopts tags; resolves ConvertedAmount/DisplayCurrency when displayCurrencyId provided; maps Expense → ExpenseDto
 │   │   │   │   ├── TagService.cs            — GetVisibleAsync calls repo in parallel; UseTagAsync is idempotent find-or-create + adopt; RemoveTagAsync removes UserTag only
 │   │   │   │   ├── ExpenseAuditService.cs   — Writes ExpenseAuditLog + ExpenseAuditSnapshot(s): add→1 after, update→before+after, delete→1 before; snapshots store comma-sep tag IDs
-│   │   │   │   ├── IRateProvider.cs         — FetchRatesAsync(code, date) → dict; FetchRatesRangeAsync(code, from, to) → dict<DateOnly, dict>
-│   │   │   │   ├── FrankfurterRateProvider.cs — Calls api.frankfurter.app (ECB, no API key); single-date and range endpoints; registered via IHttpClientFactory
 │   │   │   │   ├── CurrencyRateService.cs   — ResolveRateAsync; AddManualRateAsync (conflict if auto exists); RunDailyUpdateAsync; RefreshRatesFromAsync (backfill range); ResolveConflictAsync
 │   │   │   │   └── Contracts/
 │   │   │   │       ├── IRabbitMQService.cs

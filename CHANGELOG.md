@@ -3,6 +3,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.103.4] - 2026-05-18
+### Changed
+- **`ServiceErrors` constants class (expenses)**: New `Services/ServiceErrors.cs` (`internal static class`) consolidates all 16 domain error-code strings thrown by service-layer exceptions (`FAMILY_NOT_FOUND`, `USER_NOT_FOUND`, `FAMILY_NOT_MEMBER`, `FAMILY_ALREADY_MEMBER`, `FAMILY_FORBIDDEN`, `FAMILY_CANNOT_INVITE/REMOVE/REMOVE_SELF_HEAD/CHANGE_OWN_ROLE/ARCHIVE/LEAVE/LEAVE_LAST_HEAD _DEFAULT`, `TAG_NOT_VISIBLE`, `FAMILY_INVITATION_{INVALID/ALREADY_ACCEPTED/EXPIRED}`). All hardcoded string literals in `FamilyService`, `ExpenseService`, and `FamilyExceptions` (default ctor args) replaced with `ServiceErrors.*` references. Mirrors the existing `ControllerErrors` pattern.
+- **Frontend — `FAMILY_FORBIDDEN` mapping**: Added `FAMILY_FORBIDDEN: 'apiErrors.familyForbidden'` to `BACKEND_ERROR_CODES` in `apiErrors.constant.ts`. Added `"familyForbidden"` translation to all 4 locale files (EN: "You do not have access to this family." and equivalents in FR/ES/DE).
+
+## [0.103.3] - 2026-05-18
+### Changed
+- **Refactor — `IRateProvider` / `FrankfurterRateProvider` moved to `Infrastructure/`**: Both files relocated from `Services/` to the infrastructure layer (`Infrastructure/Contracts/IRateProvider.cs` and `Infrastructure/FrankfurterRateProvider.cs`). Namespaces updated accordingly. `CurrencyRateService` and `CurrencyRateServiceTests` gain `using Touir.ExpensesManager.Expenses.Infrastructure.Contracts`. No behavioral change.
+
 ## [0.103.2] - 2026-05-18
 ### Changed
 - **Test coverage — 100% line coverage across all three projects**: Closed all remaining coverage gaps.

@@ -1,4 +1,4 @@
-namespace Touir.ExpensesManager.Expenses.Services
+namespace Touir.ExpensesManager.Expenses.Infrastructure.Contracts
 {
     public interface IRateProvider
     {

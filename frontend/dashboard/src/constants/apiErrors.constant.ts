@@ -34,6 +34,7 @@ const BACKEND_KEYS: Record<string, string> = {
   FAMILY_CANNOT_ARCHIVE_DEFAULT:      'apiErrors.familyCannotArchiveDefault',
   FAMILY_CANNOT_LEAVE_DEFAULT:        'apiErrors.familyCannotLeaveDefault',
   FAMILY_CANNOT_LEAVE_LAST_HEAD:      'apiErrors.familyCannotLeaveLastHead',
+  FAMILY_FORBIDDEN:                   'apiErrors.familyForbidden',
   TAG_NOT_VISIBLE:                    'apiErrors.tagNotVisible',
   FAMILY_INVITATION_INVALID:          'apiErrors.familyInvitationInvalid',
   FAMILY_INVITATION_ALREADY_ACCEPTED: 'apiErrors.familyInvitationAlreadyAccepted',

@@ -133,7 +133,7 @@ namespace Touir.ExpensesManager.Expenses.Services
                 ?? throw new FamilyNotFoundException();
 
             if (family.IsDefault)
-                throw new FamilyForbiddenException("FAMILY_CANNOT_INVITE_DEFAULT");
+                throw new FamilyForbiddenException(ServiceErrors.FamilyCannotInviteDefault);
 
             var membership = await _familyRepo.GetMembershipAsync(familyId, invitedById)
                 ?? throw new FamilyForbiddenException();
@@ -143,10 +143,10 @@ namespace Touir.ExpensesManager.Expenses.Services
                 throw new FamilyForbiddenException();
 
             var invitee = await _userRepo.GetUserByEmailAsync(email)
-                ?? throw new FamilyNotFoundException("USER_NOT_FOUND");
+                ?? throw new FamilyNotFoundException(ServiceErrors.UserNotFound);
 
             if (await _familyRepo.IsMemberAsync(familyId, invitee.Id))
-                throw new FamilyConflictException("FAMILY_ALREADY_MEMBER");
+                throw new FamilyConflictException(ServiceErrors.FamilyAlreadyMember);
 
             var token = Guid.NewGuid().ToString();
             var invitation = new FamilyInvitation
@@ -188,16 +188,16 @@ namespace Touir.ExpensesManager.Expenses.Services
         public async Task AcceptInviteAsync(string token, int userId)
         {
             var invitation = await _familyRepo.GetInvitationByTokenAsync(token)
-                ?? throw new FamilyInvitationException("FAMILY_INVITATION_INVALID");
+                ?? throw new FamilyInvitationException(ServiceErrors.FamilyInvitationInvalid);
 
             if (invitation.AcceptedAt.HasValue)
-                throw new FamilyInvitationException("FAMILY_INVITATION_ALREADY_ACCEPTED");
+                throw new FamilyInvitationException(ServiceErrors.FamilyInvitationAlreadyAccepted);
 
             if (invitation.ExpiresAt < DateTime.UtcNow)
-                throw new FamilyInvitationException("FAMILY_INVITATION_EXPIRED");
+                throw new FamilyInvitationException(ServiceErrors.FamilyInvitationExpired);
 
             var user = await _userRepo.GetUserByIdAsync(userId)
-                ?? throw new FamilyNotFoundException("USER_NOT_FOUND");
+                ?? throw new FamilyNotFoundException(ServiceErrors.UserNotFound);
 
             if (!string.Equals(user.Email, invitation.InviteeEmail, StringComparison.OrdinalIgnoreCase))
                 throw new FamilyForbiddenException();
@@ -206,10 +206,10 @@ namespace Touir.ExpensesManager.Expenses.Services
                 ?? throw new FamilyNotFoundException();
 
             if (family.IsDefault)
-                throw new FamilyForbiddenException("FAMILY_CANNOT_INVITE_DEFAULT");
+                throw new FamilyForbiddenException(ServiceErrors.FamilyCannotInviteDefault);
 
             if (await _familyRepo.IsMemberAsync(invitation.FamilyId, userId))
-                throw new FamilyConflictException("FAMILY_ALREADY_MEMBER");
+                throw new FamilyConflictException(ServiceErrors.FamilyAlreadyMember);
 
             var memberId = await _lookupCache.GetIdAsync<FamilyRole>(RoleMember);
             var membershipEntry = new FamilyMembership
@@ -232,7 +232,7 @@ namespace Touir.ExpensesManager.Expenses.Services
                 ?? throw new FamilyNotFoundException();
 
             if (family.IsDefault)
-                throw new FamilyForbiddenException("FAMILY_CANNOT_REMOVE_DEFAULT");
+                throw new FamilyForbiddenException(ServiceErrors.FamilyCannotRemoveDefault);
 
             var removerMembership = await _familyRepo.GetMembershipAsync(familyId, removedById)
                 ?? throw new FamilyForbiddenException();
@@ -242,13 +242,13 @@ namespace Touir.ExpensesManager.Expenses.Services
                 throw new FamilyForbiddenException();
 
             var targetMembership = await _familyRepo.GetMembershipAsync(familyId, targetUserId)
-                ?? throw new FamilyNotFoundException("FAMILY_NOT_MEMBER");
+                ?? throw new FamilyNotFoundException(ServiceErrors.FamilyNotMember);
 
             if (targetUserId == removedById)
             {
                 var headCount = await _familyRepo.CountHeadsAsync(familyId, headId);
                 if (headCount <= 1)
-                    throw new FamilyForbiddenException("FAMILY_CANNOT_REMOVE_SELF_HEAD");
+                    throw new FamilyForbiddenException(ServiceErrors.FamilyCannotRemoveSelfHead);
             }
 
             await _familyRepo.RemoveMemberAsync(targetMembership);
@@ -265,10 +265,10 @@ namespace Touir.ExpensesManager.Expenses.Services
                 throw new FamilyForbiddenException();
 
             if (targetUserId == changedById)
-                throw new FamilyForbiddenException("FAMILY_CANNOT_CHANGE_OWN_ROLE");
+                throw new FamilyForbiddenException(ServiceErrors.FamilyCannotChangeOwnRole);
 
             var targetMembership = await _familyRepo.GetMembershipAsync(familyId, targetUserId)
-                ?? throw new FamilyNotFoundException("FAMILY_NOT_MEMBER");
+                ?? throw new FamilyNotFoundException(ServiceErrors.FamilyNotMember);
 
             var normalized = char.ToUpperInvariant(roleName[0]) + roleName[1..].ToLowerInvariant();
             targetMembership.RoleId = await _lookupCache.GetIdAsync<FamilyRole>(normalized);
@@ -281,7 +281,7 @@ namespace Touir.ExpensesManager.Expenses.Services
                 ?? throw new FamilyNotFoundException();
 
             if (family.IsDefault)
-                throw new FamilyForbiddenException("FAMILY_CANNOT_ARCHIVE_DEFAULT");
+                throw new FamilyForbiddenException(ServiceErrors.FamilyCannotArchiveDefault);
 
             var membership = await _familyRepo.GetMembershipAsync(familyId, userId)
                 ?? throw new FamilyForbiddenException();
@@ -318,7 +318,7 @@ namespace Touir.ExpensesManager.Expenses.Services
                 ?? throw new FamilyNotFoundException();
 
             if (family.IsDefault)
-                throw new FamilyForbiddenException("FAMILY_CANNOT_LEAVE_DEFAULT");
+                throw new FamilyForbiddenException(ServiceErrors.FamilyCannotLeaveDefault);
 
             var membership = await _familyRepo.GetMembershipAsync(familyId, userId)
                 ?? throw new FamilyForbiddenException();
@@ -328,7 +328,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             {
                 var headCount = await _familyRepo.CountHeadsAsync(familyId, headId);
                 if (headCount <= 1)
-                    throw new FamilyForbiddenException("FAMILY_CANNOT_LEAVE_LAST_HEAD");
+                    throw new FamilyForbiddenException(ServiceErrors.FamilyCannotLeaveLastHead);
             }
 
             await _familyRepo.RemoveMemberAsync(membership);

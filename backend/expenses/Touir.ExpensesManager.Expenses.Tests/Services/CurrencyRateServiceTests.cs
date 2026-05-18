@@ -5,6 +5,7 @@ using Touir.ExpensesManager.Expenses.Models.Lookups;
 using Touir.ExpensesManager.Expenses.Repositories.Contracts;
 using Touir.ExpensesManager.Expenses.Services;
 using Touir.ExpensesManager.Expenses.Services.Contracts;
+using Touir.ExpensesManager.Expenses.Infrastructure.Contracts;
 
 namespace Touir.ExpensesManager.Expenses.Tests.Services
 {

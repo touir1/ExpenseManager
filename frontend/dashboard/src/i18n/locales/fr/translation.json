@@ -201,6 +201,7 @@
     "familyCannotArchiveDefault": "Votre famille par défaut ne peut pas être archivée.",
     "familyCannotLeaveDefault": "Vous ne pouvez pas quitter votre famille par défaut.",
     "familyCannotLeaveLastHead": "Vous ne pouvez pas partir — vous êtes le seul responsable de cette famille.",
+    "familyForbidden": "Vous n'avez pas accès à cette famille.",
     "tagNotVisible": "Une ou plusieurs étiquettes ne vous sont pas visibles.",
     "familyInvitationInvalid": "Ce lien d'invitation est invalide.",
     "familyInvitationAlreadyAccepted": "Cette invitation a déjà été acceptée.",
