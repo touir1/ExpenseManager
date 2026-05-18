@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -15,6 +16,7 @@ using Touir.ExpensesManager.Expenses.Services.Contracts;
 
 namespace Touir.ExpensesManager.Expenses.Messaging.Consumers
 {
+    [ExcludeFromCodeCoverage]
     public class UserEventConsumer : BackgroundService
     {
         private const string ExchangeName = "users.events";

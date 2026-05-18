@@ -115,9 +115,28 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
         {
             using var db = new TestDbContextWrapper();
             var repo = new AuthenticationRepository(db.Context);
-            
+
             var result = await repo.CreateAuthenticationAsync(null!);
-            
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task CreateAuthenticationAsync_ReturnsFalse_WhenDbThrows()
+        {
+            using var db = new TestDbContextWrapper();
+            var user = new User { Id = 200, FirstName = "T", LastName = "U", Email = "t200@u.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            db.Context.Users.Add(user);
+            db.Context.Authentications.Add(new Authentication { UserId = 200, HashPassword = "hash", HashSalt = "salt" });
+            db.Context.SaveChanges();
+            db.Context.ChangeTracker.Clear();
+
+            var trackedUser = db.Context.Users.Find(200)!;
+            var dupAuth = new Authentication { UserId = 200, User = trackedUser, HashPassword = "hash2", HashSalt = "salt2" };
+
+            var repo = new AuthenticationRepository(db.Context);
+            var result = await repo.CreateAuthenticationAsync(dupAuth);
+
             Assert.False(result);
         }
 
@@ -225,9 +244,31 @@ namespace Touir.ExpensesManager.Users.Tests.Repositories
         {
             using var db = new TestDbContextWrapper();
             var repo = new AuthenticationRepository(db.Context);
-            
+
             var result = await repo.UpdateAuthenticationAsync(null!);
-            
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task UpdateAuthenticationAsync_ReturnsFalse_WhenDbThrows()
+        {
+            using var db = new TestDbContextWrapper();
+            var user = new User { Id = 300, FirstName = "V", LastName = "W", Email = "v300@w.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            var auth = new Authentication { UserId = 300, User = user, HashPassword = "hash", HashSalt = "salt" };
+            db.Context.Users.Add(user);
+            db.Context.Authentications.Add(auth);
+            db.Context.SaveChanges();
+            db.Context.ChangeTracker.Clear();
+
+            // Track the existing auth as Unchanged
+            _ = db.Context.Authentications.Find(300)!;
+            // Create a second instance with the same PK — Update() inside the repo will throw
+            var conflictAuth = new Authentication { UserId = 300, HashPassword = "conflict", HashSalt = "salt" };
+
+            var repo = new AuthenticationRepository(db.Context);
+            var result = await repo.UpdateAuthenticationAsync(conflictAuth, resetHash: false);
+
             Assert.False(result);
         }
 

@@ -22,7 +22,7 @@
     - mc mb --ignore-existing minio/expenses-manager-web-artifacts
     - mc mb --ignore-existing minio/expenses-manager-web
     - mc cp "/tmp/$ZIP_NAME" minio/expenses-manager-web-artifacts/
-    - mc cp ./* minio/expenses-manager-web/ --recursive
+    - mc mirror --overwrite --remove . minio/expenses-manager-web/
 
 .docker-deploy-dev:
   stage: deploy

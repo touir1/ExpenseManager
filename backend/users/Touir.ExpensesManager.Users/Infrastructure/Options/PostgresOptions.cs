@@ -1,5 +1,8 @@
-﻿namespace Touir.ExpensesManager.Users.Infrastructure.Options
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Touir.ExpensesManager.Users.Infrastructure.Options
 {
+    [ExcludeFromCodeCoverage]
     public class PostgresOptions
     {
         public string Server { get; set; }

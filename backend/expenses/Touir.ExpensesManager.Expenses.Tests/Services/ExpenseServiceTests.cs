@@ -231,6 +231,128 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             Assert.Equal(100m, result.Amount);
         }
 
+        // ── WriteExpenseTagsAsync (via AddAsync) ─────────────────────────────────
+
+        [Fact]
+        public async Task AddAsync_ThrowsForbidden_WhenTagNotVisible()
+        {
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.AddAsync(It.IsAny<Expense>())).ReturnsAsync((Expense e) => e);
+            var tagRepo = new Mock<ITagRepository>();
+            tagRepo.Setup(r => r.IsVisibleAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(false);
+
+            await Assert.ThrowsAsync<FamilyForbiddenException>(() =>
+                CreateService(repo: repo.Object, tagRepo: tagRepo.Object).AddAsync(
+                    new CreateExpenseRequest { Amount = 10m, CurrencyId = 1, Date = DateOnly.FromDateTime(DateTime.UtcNow), TagIds = [99] },
+                    userId: 1, sourceId: 1));
+        }
+
+        // ── WriteAttributionsAsync (via AddAsync) ────────────────────────────────
+
+        [Fact]
+        public async Task AddAsync_WithVisibleTags_AddsTagsToExpense()
+        {
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.AddAsync(It.IsAny<Expense>())).ReturnsAsync((Expense e) => e);
+            var tagRepo = new Mock<ITagRepository>();
+            tagRepo.Setup(r => r.IsVisibleAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(true);
+            tagRepo.Setup(r => r.EnsureUserTagAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(true);
+            tagRepo.Setup(r => r.GetByIdsAsync(It.IsAny<IEnumerable<int>>())).ReturnsAsync(
+                [new Touir.ExpensesManager.Expenses.Models.Tag { Id = 5, Name = "food" }]);
+
+            var result = await CreateService(repo: repo.Object, tagRepo: tagRepo.Object).AddAsync(
+                new CreateExpenseRequest { Amount = 10m, CurrencyId = 1, Date = DateOnly.FromDateTime(DateTime.UtcNow), TagIds = [5] },
+                userId: 1, sourceId: 1);
+
+            Assert.Single(result.Tags);
+            tagRepo.Verify(r => r.EnsureUserTagAsync(1, 5), Times.Once);
+        }
+
+        [Fact]
+        public async Task AddAsync_NullFamilyIds_NoDefaultFamily_SkipsAttributions()
+        {
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.AddAsync(It.IsAny<Expense>())).ReturnsAsync((Expense e) => e);
+            var familyRepo = new Mock<IFamilyRepository>();
+            familyRepo.Setup(r => r.GetDefaultFamilyForUserAsync(It.IsAny<int>())).ReturnsAsync((Family?)null);
+
+            // should complete without error
+            var result = await CreateService(repo: repo.Object, familyRepo: familyRepo.Object).AddAsync(
+                new CreateExpenseRequest { Amount = 10m, CurrencyId = 1, Date = DateOnly.FromDateTime(DateTime.UtcNow), FamilyIds = null },
+                userId: 1, sourceId: 1);
+
+            Assert.NotNull(result);
+            familyRepo.Verify(r => r.AddAttributionsAsync(It.IsAny<IEnumerable<ExpenseFamilyAttribution>>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task AddAsync_NullFamilyIds_WithDefaultFamily_AddsAttribution()
+        {
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.AddAsync(It.IsAny<Expense>())).ReturnsAsync((Expense e) => e);
+            var familyRepo = new Mock<IFamilyRepository>();
+            familyRepo.Setup(r => r.GetDefaultFamilyForUserAsync(1)).ReturnsAsync(new Family { Id = 10, Name = "Default", IsDefault = true });
+            familyRepo.Setup(r => r.IsMemberAsync(10, 1)).ReturnsAsync(true);
+
+            var result = await CreateService(repo: repo.Object, familyRepo: familyRepo.Object).AddAsync(
+                new CreateExpenseRequest { Amount = 10m, CurrencyId = 1, Date = DateOnly.FromDateTime(DateTime.UtcNow), FamilyIds = null },
+                userId: 1, sourceId: 1);
+
+            Assert.NotNull(result);
+            familyRepo.Verify(r => r.AddAttributionsAsync(It.Is<IEnumerable<ExpenseFamilyAttribution>>(
+                attrs => attrs.Any(a => a.FamilyId == 10))), Times.Once);
+        }
+
+        [Fact]
+        public async Task AddAsync_ExplicitFamilyIds_ThrowsForbidden_WhenNotMember()
+        {
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.AddAsync(It.IsAny<Expense>())).ReturnsAsync((Expense e) => e);
+            var familyRepo = new Mock<IFamilyRepository>();
+            familyRepo.Setup(r => r.IsMemberAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(false);
+
+            await Assert.ThrowsAsync<FamilyForbiddenException>(() =>
+                CreateService(repo: repo.Object, familyRepo: familyRepo.Object).AddAsync(
+                    new CreateExpenseRequest { Amount = 10m, CurrencyId = 1, Date = DateOnly.FromDateTime(DateTime.UtcNow), FamilyIds = [7] },
+                    userId: 1, sourceId: 1));
+        }
+
+        // ── MapToDto — non-null Category/Subcategory paths ────────────────────────
+
+        [Fact]
+        public async Task GetByIdAsync_MapsCategory_WhenSet()
+        {
+            var expense = MakeExpense(id: 3);
+            expense.Category = new Touir.ExpensesManager.Expenses.Models.Category { Id = 5, Name = "Food" };
+            expense.Subcategory = new Touir.ExpensesManager.Expenses.Models.Category { Id = 6, Name = "Lunch" };
+
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.GetByIdAsync(3, 42)).ReturnsAsync(expense);
+
+            var result = await CreateService(repo.Object).GetByIdAsync(3, userId: 42);
+
+            Assert.NotNull(result!.Category);
+            Assert.Equal(5, result.Category!.Id);
+            Assert.NotNull(result.Subcategory);
+            Assert.Equal(6, result.Subcategory!.Id);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_MapsTagsFromExpenseTags_WhenNoExplicitTags()
+        {
+            var expense = MakeExpense(id: 4);
+            var tag = new Touir.ExpensesManager.Expenses.Models.Tag { Id = 7, Name = "travel" };
+            expense.ExpenseTags = [new Touir.ExpensesManager.Expenses.Models.ExpenseTag { ExpenseId = 4, TagId = 7, Tag = tag }];
+
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.GetByIdAsync(4, 42)).ReturnsAsync(expense);
+
+            var result = await CreateService(repo.Object).GetByIdAsync(4, userId: 42);
+
+            Assert.Single(result!.Tags);
+            Assert.Equal("travel", result.Tags.First().Name);
+        }
+
         // ── GetPagedAsync ────────────────────────────────────────────────────────
 
         [Fact]

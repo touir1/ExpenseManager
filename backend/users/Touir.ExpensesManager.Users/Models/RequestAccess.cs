@@ -1,5 +1,8 @@
-﻿namespace Touir.ExpensesManager.Users.Models
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Touir.ExpensesManager.Users.Models
 {
+    [ExcludeFromCodeCoverage]
     public class RequestAccess
     {
         public int Id { get; set; }

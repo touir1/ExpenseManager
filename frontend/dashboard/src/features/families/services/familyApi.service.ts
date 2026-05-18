@@ -32,8 +32,8 @@ export function inviteMember(familyId: number, email: string): Promise<ApiRespon
   return post<{ token: string }>(`${BASE}/${familyId}/invite`, { email })
 }
 
-export function acceptInvite(token: string): Promise<ApiResponse<void>> {
-  return post<void>(`${BASE}/accept-invite/${token}`, {})
+export function acceptInvite(token: string, opts?: { silent?: boolean }): Promise<ApiResponse<void>> {
+  return post<void>(`${BASE}/accept-invite/${token}`, {}, opts)
 }
 
 export function removeMember(familyId: number, targetUserId: number): Promise<ApiResponse<void>> {

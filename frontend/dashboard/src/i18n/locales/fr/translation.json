@@ -188,7 +188,23 @@
     "requestPasswordResetFailed": "Échec de la demande de réinitialisation. Veuillez réessayer.",
     "resetPasswordFailed": "Échec de la réinitialisation du mot de passe. Veuillez réessayer.",
     "missingToken": "Jeton d'authentification manquant. Veuillez vous reconnecter.",
-    "invalidToken": "Jeton d'authentification invalide. Veuillez vous reconnecter."
+    "invalidToken": "Jeton d'authentification invalide. Veuillez vous reconnecter.",
+    "createPasswordFailed": "Échec de la création du mot de passe. Veuillez réessayer.",
+    "familyNotFound": "Famille introuvable.",
+    "userNotFound": "Utilisateur introuvable.",
+    "familyNotMember": "Cet utilisateur n'est pas membre de cette famille.",
+    "familyAlreadyMember": "Cet utilisateur est déjà membre de cette famille.",
+    "familyCannotInviteDefault": "Vous ne pouvez pas inviter des membres dans votre famille par défaut.",
+    "familyCannotRemoveDefault": "Vous ne pouvez pas retirer des membres de votre famille par défaut.",
+    "familyCannotRemoveSelfHead": "Vous ne pouvez pas vous retirer en tant que seul responsable de cette famille.",
+    "familyCannotChangeOwnRole": "Vous ne pouvez pas modifier votre propre rôle.",
+    "familyCannotArchiveDefault": "Votre famille par défaut ne peut pas être archivée.",
+    "familyCannotLeaveDefault": "Vous ne pouvez pas quitter votre famille par défaut.",
+    "familyCannotLeaveLastHead": "Vous ne pouvez pas partir — vous êtes le seul responsable de cette famille.",
+    "tagNotVisible": "Une ou plusieurs étiquettes ne vous sont pas visibles.",
+    "familyInvitationInvalid": "Ce lien d'invitation est invalide.",
+    "familyInvitationAlreadyAccepted": "Cette invitation a déjà été acceptée.",
+    "familyInvitationExpired": "Cette invitation a expiré."
   },
   "families": {
     "pageTitle": "Familles",
@@ -232,7 +248,14 @@
     "collapse": "Masquer les membres",
     "selectorPersonal": "Mes dépenses",
     "leaveAction": "Quitter la famille",
-    "leaveSuccess": "Vous avez quitté la famille."
+    "leaveSuccess": "Vous avez quitté la famille.",
+    "acceptInvite": {
+      "pageTitle": "Accepter l'invitation",
+      "loading": "Acceptation en cours…",
+      "success": "Vous avez rejoint la famille !",
+      "error": "Cette invitation est invalide ou a expiré.",
+      "goToFamilies": "Voir les familles"
+    }
   },
   "currencies": {
     "searchPlaceholder": "Rechercher par code ou nom…",

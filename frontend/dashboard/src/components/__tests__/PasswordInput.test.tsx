@@ -62,7 +62,6 @@ describe('PasswordInput', () => {
   })
 
   it('passes value and onChange to the input', async () => {
-    const user = userEvent.setup()
     const { rerender } = render(<PasswordInput id="pwd" value="" onChange={() => {}} />)
     rerender(<PasswordInput id="pwd" value="hello" onChange={() => {}} />)
 

@@ -22,10 +22,10 @@ async function parseJsonSafe(res: Response) {
 function getErrorMessage(status: number, data: any, statusText: string): string {
   if (status >= 500) return API_ERRORS.SERVER
   if (status === 429) return API_ERRORS.RATE_LIMIT
-  if (status === 404) return API_ERRORS.NOT_FOUND
-  if (status === 403) return API_ERRORS.FORBIDDEN
   const backendCode: string | undefined = data?.message ?? data?.Message ?? data?.error
   if (backendCode && BACKEND_ERROR_CODES[backendCode]) return BACKEND_ERROR_CODES[backendCode]
+  if (status === 404) return API_ERRORS.NOT_FOUND
+  if (status === 403) return API_ERRORS.FORBIDDEN
   if (status === 400) return API_ERRORS.BAD_REQUEST
   return backendCode || statusText || 'Request failed'
 }

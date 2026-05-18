@@ -137,6 +137,14 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         }
 
         [Fact]
+        public async Task CreatePasswordAsync_ReturnsFalse_WhenVerificationHashNotGuid()
+        {
+            var service = CreateService();
+            var result = await service.CreatePasswordAsync("test@test.com", "not-a-guid", "newpass");
+            Assert.False(result);
+        }
+
+        [Fact]
         public async Task CreatePasswordAsync_ReturnsFalse_WhenUserNotFound()
         {
             var userRepo = new Mock<IUserRepository>();
@@ -225,6 +233,14 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             var service = CreateService(emailHelper: emailHelper);
             var result = await service.ResetPasswordAsync("bad", Guid.NewGuid().ToString(), "newpass");
 
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task ResetPasswordAsync_ReturnsFalse_WhenResetHashNotGuid()
+        {
+            var service = CreateService();
+            var result = await service.ResetPasswordAsync("test@test.com", "not-a-guid", "newpass");
             Assert.False(result);
         }
 

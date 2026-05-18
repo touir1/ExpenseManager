@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Mail;
@@ -6,6 +7,7 @@ using Touir.ExpensesManager.Expenses.Infrastructure.Options;
 
 namespace Touir.ExpensesManager.Expenses.Infrastructure
 {
+    [ExcludeFromCodeCoverage]
     public class SmtpEmailService : IEmailService
     {
         private readonly string? _sender;

@@ -63,7 +63,12 @@ describe('familyApi.service', () => {
 
   it('acceptInvite calls POST /api/expenses/families/accept-invite/:token', () => {
     acceptInvite('tok123')
-    expect(api.post).toHaveBeenCalledWith(`${BASE}/accept-invite/tok123`, {})
+    expect(api.post).toHaveBeenCalledWith(`${BASE}/accept-invite/tok123`, {}, undefined)
+  })
+
+  it('acceptInvite passes opts to post', () => {
+    acceptInvite('tok123', { silent: true })
+    expect(api.post).toHaveBeenCalledWith(`${BASE}/accept-invite/tok123`, {}, { silent: true })
   })
 
   it('removeMember calls DELETE /api/expenses/families/:id/members/:userId', () => {

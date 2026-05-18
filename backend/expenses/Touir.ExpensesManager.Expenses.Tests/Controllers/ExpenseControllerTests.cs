@@ -247,5 +247,48 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
             var paged = Assert.IsType<ExpensePagedResponse>(ok.Value);
             Assert.Equal(2, paged.TotalCount);
         }
+
+        // ── Exception fallback coverage ───────────────────────────────────────
+
+        [Fact]
+        public async Task UpdateAsync_ServiceThrows_ReturnsBadRequest()
+        {
+            var service = new Mock<IExpenseService>();
+            service.Setup(s => s.UpdateAsync(It.IsAny<long>(), It.IsAny<UpdateExpenseRequest>(), It.IsAny<int>(), It.IsAny<int>()))
+                   .ThrowsAsync(new Exception("db"));
+            var result = await CreateController(service.Object).UpdateAsync(
+                1, new UpdateExpenseRequest { Amount = 10m, CurrencyId = 1, Date = DateOnly.FromDateTime(DateTime.UtcNow) });
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task DeleteAsync_ServiceThrows_ReturnsBadRequest()
+        {
+            var service = new Mock<IExpenseService>();
+            service.Setup(s => s.DeleteAsync(It.IsAny<long>(), It.IsAny<int>(), It.IsAny<int>()))
+                   .ThrowsAsync(new Exception("db"));
+            var result = await CreateController(service.Object).DeleteAsync(1);
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_ServiceThrows_ReturnsBadRequest()
+        {
+            var service = new Mock<IExpenseService>();
+            service.Setup(s => s.GetByIdAsync(It.IsAny<long>(), It.IsAny<int>(), It.IsAny<int?>()))
+                   .ThrowsAsync(new Exception("db"));
+            var result = await CreateController(service.Object).GetByIdAsync(1);
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetPagedAsync_ServiceThrows_ReturnsBadRequest()
+        {
+            var service = new Mock<IExpenseService>();
+            service.Setup(s => s.GetPagedAsync(It.IsAny<ExpenseFilterDto>(), It.IsAny<int>()))
+                   .ThrowsAsync(new Exception("db"));
+            var result = await CreateController(service.Object).GetPagedAsync(new ExpenseFilterDto());
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
     }
 }

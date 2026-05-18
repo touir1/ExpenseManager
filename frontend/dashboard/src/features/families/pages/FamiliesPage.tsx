@@ -132,7 +132,7 @@ function CreateFamilyModal({ onClose, onCreated }: Readonly<{ onClose: () => voi
           />
           <FieldError id="family-name-error" message={errors.name?.message} />
         </div>
-        <SubmitButton isSubmitting={isSubmitting} label={t('families.createSubmit')} submittingLabel={t('families.createSubmitting')} />
+        <SubmitButton isSubmitting={isSubmitting} label={t('families.createSubmit')} loadingLabel={t('families.createSubmitting')} />
       </form>
     </Modal>
   )
@@ -183,7 +183,7 @@ function RenameFamilyModal({
           />
           <FieldError id="rename-family-error" message={errors.name?.message} />
         </div>
-        <SubmitButton isSubmitting={isSubmitting} label={t('families.renameSubmit')} submittingLabel={t('families.renamingSubmitting')} />
+        <SubmitButton isSubmitting={isSubmitting} label={t('families.renameSubmit')} loadingLabel={t('families.renamingSubmitting')} />
       </form>
     </Modal>
   )
@@ -233,7 +233,7 @@ function InviteMemberModal({
           <FieldError id="invite-email-error" message={errors.email?.message} />
         </div>
         <p className="text-xs text-slate-500">{t('families.inviteHint')}</p>
-        <SubmitButton isSubmitting={isSubmitting} label={t('families.inviteSubmit')} submittingLabel={t('families.inviteSubmitting')} />
+        <SubmitButton isSubmitting={isSubmitting} label={t('families.inviteSubmit')} loadingLabel={t('families.inviteSubmitting')} />
       </form>
     </Modal>
   )
@@ -291,7 +291,7 @@ function FamilyDetailPanel({
         <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
           {t('families.members', { count: detail.members.length })}
         </span>
-        {isHead && (
+        {isHead && !family.isDefault && (
           <button
             onClick={() => setShowInvite(true)}
             className="text-xs font-medium text-brand-600 hover:text-brand-700 transition-colors cursor-pointer"
@@ -304,8 +304,8 @@ function FamilyDetailPanel({
       <ul className="space-y-2">
         {detail.members.map(member => {
           const isSelf = member.email === user?.email
-          const canToggleRole = isHead && !isSelf
-          const canRemove = isHead && !(isSelf && headCount <= 1)
+          const canToggleRole = isHead && !isSelf && !family.isDefault
+          const canRemove = isHead && !family.isDefault && !(isSelf && headCount <= 1)
           return (
             <li key={member.userId} className="flex items-center justify-between gap-2">
               <div className="min-w-0">

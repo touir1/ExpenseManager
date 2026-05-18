@@ -12,6 +12,7 @@ import RequestPasswordReset from '@/features/auth/pages/RequestPasswordResetPage
 import NotFound from '@/features/public/pages/NotFoundPage'
 import VerifyError from '@/features/public/pages/VerifyErrorPage'
 import FamiliesPage from '@/features/families/pages/FamiliesPage'
+import AcceptInvitePage from '@/features/families/pages/AcceptInvitePage'
 
 export default function AppRoutes() {
   return (
@@ -28,6 +29,7 @@ export default function AppRoutes() {
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
       <Route path="/families" element={<ProtectedRoute><FamiliesPage /></ProtectedRoute>} />
+      <Route path="/families/accept-invite" element={<ProtectedRoute><AcceptInvitePage /></ProtectedRoute>} />
 
       {/* Standalone public pages */}
       <Route path="/verify-error" element={<VerifyError />} />

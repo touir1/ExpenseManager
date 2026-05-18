@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Touir.ExpensesManager.Users.Infrastructure.Options
 {
+    [ExcludeFromCodeCoverage]
     public class RabbitMQOptions
     {
         public string? HostName { get; set; }

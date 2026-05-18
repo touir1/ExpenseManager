@@ -246,6 +246,24 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         }
 
         [Fact]
+        public async Task ResolveConflictAsync_Custom_NullCustomRate_ThrowsArgumentException()
+        {
+            var conflict = new CurrencyRateConflict
+            {
+                Id = 1, SourceCurrencyId = 1, DestinationCurrencyId = 2,
+                Date = new DateOnly(2024, 6, 1), AutomaticRate = 0.91m, ManualRate = 0.92m, StatusId = 1
+            };
+            var repo = new Mock<ICurrencyRateRepository>();
+            repo.Setup(r => r.GetConflictByIdAsync(1)).ReturnsAsync(conflict);
+            var cache = new Mock<ILookupCacheService>();
+            cache.Setup(c => c.GetIdAsync<ConflictResolution>("Custom")).ReturnsAsync(3);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                CreateService(rateRepo: repo.Object, lookupCache: cache.Object)
+                    .ResolveConflictAsync(1, new ResolveConflictRequest { Resolution = "Custom", CustomRate = null }, adminUserId: 1));
+        }
+
+        [Fact]
         public async Task GetRateHistoryAsync_ReturnsAllHistoryMappedToDto()
         {
             var date = new DateOnly(2024, 6, 1);

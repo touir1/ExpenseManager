@@ -188,7 +188,23 @@
     "requestPasswordResetFailed": "Anforderung zum Zurücksetzen fehlgeschlagen. Bitte versuche es erneut.",
     "resetPasswordFailed": "Passwort zurücksetzen fehlgeschlagen. Bitte versuche es erneut.",
     "missingToken": "Authentifizierungstoken fehlt. Bitte melde dich erneut an.",
-    "invalidToken": "Ungültiger Authentifizierungstoken. Bitte melde dich erneut an."
+    "invalidToken": "Ungültiger Authentifizierungstoken. Bitte melde dich erneut an.",
+    "createPasswordFailed": "Passwort konnte nicht erstellt werden. Bitte versuche es erneut.",
+    "familyNotFound": "Familie nicht gefunden.",
+    "userNotFound": "Benutzer nicht gefunden.",
+    "familyNotMember": "Der Benutzer ist kein Mitglied dieser Familie.",
+    "familyAlreadyMember": "Dieser Benutzer ist bereits Mitglied dieser Familie.",
+    "familyCannotInviteDefault": "Du kannst keine Mitglieder in deine Standardfamilie einladen.",
+    "familyCannotRemoveDefault": "Du kannst keine Mitglieder aus deiner Standardfamilie entfernen.",
+    "familyCannotRemoveSelfHead": "Du kannst dich nicht entfernen, da du der einzige Kopf dieser Familie bist.",
+    "familyCannotChangeOwnRole": "Du kannst deine eigene Rolle nicht ändern.",
+    "familyCannotArchiveDefault": "Deine Standardfamilie kann nicht archiviert werden.",
+    "familyCannotLeaveDefault": "Du kannst deine Standardfamilie nicht verlassen.",
+    "familyCannotLeaveLastHead": "Du kannst nicht gehen — du bist der einzige Kopf dieser Familie.",
+    "tagNotVisible": "Ein oder mehrere Tags sind für dich nicht sichtbar.",
+    "familyInvitationInvalid": "Dieser Einladungslink ist ungültig.",
+    "familyInvitationAlreadyAccepted": "Diese Einladung wurde bereits angenommen.",
+    "familyInvitationExpired": "Diese Einladung ist abgelaufen."
   },
   "families": {
     "pageTitle": "Familien",
@@ -232,7 +248,14 @@
     "collapse": "Mitglieder ausblenden",
     "selectorPersonal": "Meine Ausgaben",
     "leaveAction": "Familie verlassen",
-    "leaveSuccess": "Du hast die Familie verlassen."
+    "leaveSuccess": "Du hast die Familie verlassen.",
+    "acceptInvite": {
+      "pageTitle": "Einladung annehmen",
+      "loading": "Einladung wird angenommen…",
+      "success": "Du bist der Familie beigetreten!",
+      "error": "Diese Einladung ist ungültig oder abgelaufen.",
+      "goToFamilies": "Zu den Familien"
+    }
   },
   "currencies": {
     "searchPlaceholder": "Nach Code oder Name suchen…",

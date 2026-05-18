@@ -188,7 +188,23 @@
     "requestPasswordResetFailed": "Error al solicitar el restablecimiento. Por favor, inténtalo de nuevo.",
     "resetPasswordFailed": "Error al restablecer la contraseña. Por favor, inténtalo de nuevo.",
     "missingToken": "Falta el token de autenticación. Por favor, inicia sesión de nuevo.",
-    "invalidToken": "Token de autenticación inválido. Por favor, inicia sesión de nuevo."
+    "invalidToken": "Token de autenticación inválido. Por favor, inicia sesión de nuevo.",
+    "createPasswordFailed": "Error al crear la contraseña. Por favor, inténtalo de nuevo.",
+    "familyNotFound": "Familia no encontrada.",
+    "userNotFound": "Usuario no encontrado.",
+    "familyNotMember": "El usuario no es miembro de esta familia.",
+    "familyAlreadyMember": "Este usuario ya es miembro de esta familia.",
+    "familyCannotInviteDefault": "No puedes invitar miembros a tu familia predeterminada.",
+    "familyCannotRemoveDefault": "No puedes eliminar miembros de tu familia predeterminada.",
+    "familyCannotRemoveSelfHead": "No puedes eliminarte siendo el único responsable de esta familia.",
+    "familyCannotChangeOwnRole": "No puedes cambiar tu propio rol.",
+    "familyCannotArchiveDefault": "Tu familia predeterminada no puede archivarse.",
+    "familyCannotLeaveDefault": "No puedes abandonar tu familia predeterminada.",
+    "familyCannotLeaveLastHead": "No puedes salir — eres el único responsable de esta familia.",
+    "tagNotVisible": "Una o más etiquetas no son visibles para ti.",
+    "familyInvitationInvalid": "Este enlace de invitación no es válido.",
+    "familyInvitationAlreadyAccepted": "Esta invitación ya fue aceptada.",
+    "familyInvitationExpired": "Esta invitación ha expirado."
   },
   "families": {
     "pageTitle": "Familias",
@@ -232,7 +248,14 @@
     "collapse": "Ocultar miembros",
     "selectorPersonal": "Mis gastos",
     "leaveAction": "Abandonar familia",
-    "leaveSuccess": "Has abandonado la familia."
+    "leaveSuccess": "Has abandonado la familia.",
+    "acceptInvite": {
+      "pageTitle": "Aceptar invitación",
+      "loading": "Aceptando invitación…",
+      "success": "¡Te has unido a la familia!",
+      "error": "Esta invitación no es válida o ha expirado.",
+      "goToFamilies": "Ir a familias"
+    }
   },
   "currencies": {
     "searchPlaceholder": "Buscar por código o nombre…",

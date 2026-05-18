@@ -1,4 +1,5 @@
 using Touir.ExpensesManager.Expenses.Models;
+using Touir.ExpensesManager.Expenses.Models.Lookups;
 using Touir.ExpensesManager.Expenses.Repositories;
 using Touir.ExpensesManager.Expenses.Tests.TestHelpers;
 
@@ -344,6 +345,15 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
             var result = await _sut.GetDefaultAsync(src, dst);
             Assert.NotNull(result);
             Assert.Equal(0.85m, result.Rate);
+        }
+
+        [Fact]
+        public void CurrencyRateConflict_Resolution_Setter()
+        {
+            var conflict = new CurrencyRateConflict();
+            var resolution = new ConflictResolution { Id = 1, Name = "AcceptAuto" };
+            conflict.Resolution = resolution;
+            Assert.Same(resolution, conflict.Resolution);
         }
     }
 }

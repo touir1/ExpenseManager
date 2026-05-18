@@ -293,5 +293,20 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
 
             Assert.IsType<NotFoundObjectResult>(result);
         }
+
+        [Fact]
+        public async Task ResolveConflict_InvalidResolution_Returns400()
+        {
+            var service = new Mock<ICurrencyRateService>();
+            service.Setup(s => s.ResolveConflictAsync(It.IsAny<int>(), It.IsAny<ResolveConflictRequest>(), It.IsAny<int>()))
+                   .ThrowsAsync(new ArgumentException("Invalid resolution value."));
+
+            var result = await CreateController(service.Object).ResolveConflictAsync(1,
+                new ResolveConflictRequest { Resolution = "Invalid" });
+
+            var bad = Assert.IsType<BadRequestObjectResult>(result);
+            var err = Assert.IsType<ErrorResponse>(bad.Value);
+            Assert.Equal("Invalid resolution value.", err.Message);
+        }
     }
 }

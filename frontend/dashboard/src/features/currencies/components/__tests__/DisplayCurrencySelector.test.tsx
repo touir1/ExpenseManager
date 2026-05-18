@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import DisplayCurrencySelector from '../DisplayCurrencySelector'
 
@@ -132,5 +132,13 @@ describe('DisplayCurrencySelector', () => {
     await userEvent.click(screen.getByRole('button', { name: /display currency/i }))
     const input = screen.getByRole('textbox')
     expect(input).toHaveValue('')
+  })
+
+  it('closes dropdown when clicking outside the component', async () => {
+    renderSelector()
+    await userEvent.click(screen.getByRole('button', { name: /display currency/i }))
+    expect(screen.getByRole('menu')).toBeInTheDocument()
+    fireEvent.mouseDown(document.body)
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
 })

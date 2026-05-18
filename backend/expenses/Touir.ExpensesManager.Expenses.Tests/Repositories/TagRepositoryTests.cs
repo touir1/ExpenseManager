@@ -279,5 +279,76 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
 
             Assert.False(visible);
         }
+
+        // ── AddAsync ─────────────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task AddAsync_PersistsTag()
+        {
+            var result = await _sut.AddAsync(new Tag { Name = "newtag" });
+
+            Assert.True(result.Id > 0);
+            Assert.True(_wrapper.Context.Tags.Any(t => t.Name == "newtag"));
+        }
+
+        // ── GetByNameAsync ───────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task GetByNameAsync_ReturnsTag_WhenFound()
+        {
+            await SeedTagAsync("mytag");
+
+            var result = await _sut.GetByNameAsync("mytag");
+
+            Assert.NotNull(result);
+            Assert.Equal("mytag", result!.Name);
+        }
+
+        [Fact]
+        public async Task GetByNameAsync_ReturnsNull_WhenNotFound()
+        {
+            var result = await _sut.GetByNameAsync("nonexistent");
+
+            Assert.Null(result);
+        }
+
+        // ── GetByIdsAsync ────────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task GetByIdsAsync_ReturnsMatchingTags()
+        {
+            var t1 = await SeedTagAsync("alpha");
+            var t2 = await SeedTagAsync("beta");
+            await SeedTagAsync("gamma");
+
+            var result = (await _sut.GetByIdsAsync([t1.Id, t2.Id])).ToList();
+
+            Assert.Equal(2, result.Count);
+            Assert.Contains(result, t => t.Name == "alpha");
+            Assert.Contains(result, t => t.Name == "beta");
+        }
+
+        [Fact]
+        public async Task GetByIdsAsync_ReturnsEmpty_WhenNoMatch()
+        {
+            var result = await _sut.GetByIdsAsync([99999]);
+
+            Assert.Empty(result);
+        }
+
+        // ── SaveChangesAsync ─────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task SaveChangesAsync_CommitsChanges()
+        {
+            await SeedUserAsync(1);
+            var tag = new Tag { Name = "pending" };
+            _wrapper.Context.Tags.Add(tag);
+
+            // SaveChangesAsync on the repo should commit
+            await _sut.SaveChangesAsync();
+
+            Assert.True(_wrapper.Context.Tags.Any(t => t.Name == "pending"));
+        }
     }
 }

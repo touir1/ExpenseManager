@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json;
 
 namespace Touir.ExpensesManager.Expenses.Services
 {
+    [ExcludeFromCodeCoverage]
     public class FrankfurterRateProvider : IRateProvider
     {
         private const string BaseUrl = "https://api.frankfurter.app/";

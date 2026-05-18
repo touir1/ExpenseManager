@@ -286,13 +286,13 @@ ExpenseManager/
 │   │       ├── Repositories/
 │   │       │   ├── External/
 │   │       │   │   └── UserRepositoryTests.cs
-│   │       │   ├── CategoryRepositoryTests.cs       — 5 tests: top-level only, children included, archived excluded, empty, archived subs
+│   │       │   ├── CategoryRepositoryTests.cs       — 6 tests: top-level only, children included, archived excluded, empty, archived subs, Category.DeletedAt setter
 │   │       │   ├── CurrencyRepositoryTests.cs       — 4 tests: all currencies, field mapping, empty set, positive IDs
 │   │       │   ├── ExpenseRepositoryTests.cs        — 8 tests: AddAsync, GetByIdAsync (owned/wrong-user/soft-deleted), SoftDeleteAsync, GetPagedAsync (excludes deleted/other-users, pagination, UpdateAsync); BuildExpense static
 │   │       │   ├── FamilyRepositoryTests.cs         — family CRUD, membership, invitation, attribution, IsMemberAsync, HasDefaultFamilyAsync
 │   │       │   ├── InboxRepositoryTests.cs          — 7 tests: ExistsAsync×3, AddAsync×4
 │   │       │   ├── TagRepositoryTests.cs            — 16 integration tests: GetOwnAsync×3, GetFamilyAsync×4, EnsureUserTagAsync×3, RemoveUserTagAsync×2, IsVisibleAsync×4
-│   │       │   └── CurrencyRateRepositoryTests.cs   — 20 integration tests: GetExact×2, GetMostRecentBefore×2, GetDefault×2, AddRate, ManualRateExists×2, AddConflict, GetPendingConflicts, SetDefault×2, GetHistory×2, UpdateRate, GetConflictById×2, UpdateConflict
+│   │       │   └── CurrencyRateRepositoryTests.cs   — 21 integration tests: GetExact×2, GetMostRecentBefore×2, GetDefault×2, AddRate, ManualRateExists×2, AddConflict, GetPendingConflicts, SetDefault×2, GetHistory×2, UpdateRate, GetConflictById×2, UpdateConflict, CurrencyRateConflict.Resolution setter
 │   │       ├── Infrastructure/
 │   │       │   ├── EmailHelperTests.cs              — 9 tests: template replacement, no/empty params, multi-occurrence, family-invitation placeholders, @@YEAR@@ auto-sub×2, SendEmail delegation×2
 │   │       │   ├── ExpensesDbContextSchemaTests.cs  — 23 tests: all Phase 1 entities, composite PKs, unique constraints, cascades
@@ -498,6 +498,8 @@ ExpenseManager/
 │               ├── RegistrationServiceTests.cs      — includes ResendVerificationEmailAsync×6
 │               ├── RoleServiceTests.cs
 │               └── UserRoleAssignmentServiceTests.cs
+│           ├── Models/
+│           │   └── ModelPropertyTests.cs        — 4 tests: navigation-property setters for User, UserDto, UserRole; RefreshToken.Id setter
 │
 ├── frontend/
 │   └── dashboard/
@@ -590,7 +592,8 @@ ExpenseManager/
 │           │   │   ├── pages/
 │           │   │   │   ├── FamiliesPage.tsx      — Family management screen: active/archived tabs, cards, create/rename/archive/invite modals, inline member panel
 │           │   │   │   └── __tests__/
-│           │   │   │       └── FamiliesPage.test.tsx
+│           │   │   │       ├── FamiliesPage.test.tsx
+│           │   │   │       └── AcceptInvitePage.test.tsx — 9 tests: loading state, success, error with/without res.error, missing token, no API call when token absent, silent:true call, go-to-families link on success/error
 │           │   │   ├── services/
 │           │   │   │   └── familyApi.service.ts  — All family CRUD + invitation + member management calls
 │           │   │   ├── types/
@@ -609,12 +612,12 @@ ExpenseManager/
 │           │   │   └── components/
 │           │   │       ├── TagInput.tsx          — Combobox: grouped "My tags"/"Family tags" dropdown, chips, create option, keyboard (Enter/Escape/Backspace)
 │           │   │       └── __tests__/
-│           │   │           └── TagInput.test.tsx — 17 component tests (role queries updated to menu/menuitem; added getTags/useTag error-path and Enter-key tests)
+│           │   │           └── TagInput.test.tsx — 18 component tests (role queries updated to menu/menuitem; added getTags/useTag error-path, Enter-key tests, outside-click close)
 │           │   ├── currencies/        — Display currency feature (Phase 6)
 │           │   │   ├── components/
 │           │   │   │   ├── DisplayCurrencySelector.tsx — NavBar dropdown; reads currencies from ExpensesDataContext; writes to DisplayCurrencyContext; "No conversion" option
 │           │   │   │   └── __tests__/
-│           │   │   │       └── DisplayCurrencySelector.test.tsx — 13 tests: renders/no currencies/label/open/select/clear/close/aria-checked/search-input/filter-by-code/filter-by-name/clear-on-close
+│           │   │   │       └── DisplayCurrencySelector.test.tsx — 15 tests: renders/no currencies/label/open/select/clear/close/aria-checked/search-input/filter-by-code/filter-by-name/clear-on-close/outside-click
 │           │   │   ├── services/
 │           │   │   │   ├── ratesApi.service.ts — refreshRates(RefreshRatesParams) → POST /api/expenses/rates/refresh (204); params: from, sourceCurrencyId?, destinationCurrencyId?
 │           │   │   │   └── __tests__/

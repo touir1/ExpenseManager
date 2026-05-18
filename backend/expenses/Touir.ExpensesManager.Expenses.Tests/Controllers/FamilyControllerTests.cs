@@ -475,5 +475,156 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
             var result = await CreateController(service.Object).ChangeMemberRoleAsync(1, 99, new ChangeMemberRoleRequest { Role = "Member" });
             Assert.IsType<NotFoundObjectResult>(result);
         }
+
+        // ── Exception fallback coverage ───────────────────────────────────────
+
+        [Fact]
+        public async Task GetByUser_ServiceThrows_ReturnsBadRequest()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.GetByUserAsync(It.IsAny<int>())).ThrowsAsync(new Exception("db"));
+            var result = await CreateController(service.Object).GetByUserAsync();
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetById_ServiceThrows_ReturnsBadRequest()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.GetByIdAsync(It.IsAny<int>(), It.IsAny<int>())).ThrowsAsync(new Exception("db"));
+            var result = await CreateController(service.Object).GetByIdAsync(1);
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task Rename_ServiceThrows_ReturnsBadRequest()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.RenameAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(new Exception("db"));
+            var result = await CreateController(service.Object).RenameAsync(1, new RenameFamilyRequest { Name = "X" });
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task Archive_Returns404_WhenNotFound()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.ArchiveAsync(It.IsAny<int>(), It.IsAny<int>())).ThrowsAsync(new FamilyNotFoundException());
+            var result = await CreateController(service.Object).ArchiveAsync(1);
+            Assert.IsType<NotFoundObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task Archive_ServiceThrows_ReturnsBadRequest()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.ArchiveAsync(It.IsAny<int>(), It.IsAny<int>())).ThrowsAsync(new Exception("db"));
+            var result = await CreateController(service.Object).ArchiveAsync(1);
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task Unarchive_Returns401_WhenNoCookie()
+        {
+            var result = await CreateController(jwtCookie: null).UnarchiveAsync(1);
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task Unarchive_Returns404_WhenNotFound()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.UnarchiveAsync(It.IsAny<int>(), It.IsAny<int>())).ThrowsAsync(new FamilyNotFoundException());
+            var result = await CreateController(service.Object).UnarchiveAsync(1);
+            Assert.IsType<NotFoundObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task Unarchive_Returns403_WhenForbidden()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.UnarchiveAsync(It.IsAny<int>(), It.IsAny<int>())).ThrowsAsync(new FamilyForbiddenException());
+            var result = await CreateController(service.Object).UnarchiveAsync(1);
+            Assert.Equal(403, ((ObjectResult)result).StatusCode);
+        }
+
+        [Fact]
+        public async Task Unarchive_ServiceThrows_ReturnsBadRequest()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.UnarchiveAsync(It.IsAny<int>(), It.IsAny<int>())).ThrowsAsync(new Exception("db"));
+            var result = await CreateController(service.Object).UnarchiveAsync(1);
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task Invite_ServiceThrows_ReturnsBadRequest()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.InviteAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ThrowsAsync(new Exception("db"));
+            var result = await CreateController(service.Object).InviteAsync(1, new InviteMemberRequest { Email = "x@y.com" });
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task AcceptInvite_Returns403_WhenForbidden()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.AcceptInviteAsync(It.IsAny<string>(), It.IsAny<int>()))
+                .ThrowsAsync(new FamilyForbiddenException("FAMILY_CANNOT_INVITE_DEFAULT"));
+            var result = await CreateController(service.Object).AcceptInviteAsync("tok");
+            Assert.Equal(403, ((ObjectResult)result).StatusCode);
+        }
+
+        [Fact]
+        public async Task AcceptInvite_Returns404_WhenNotFound()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.AcceptInviteAsync(It.IsAny<string>(), It.IsAny<int>()))
+                .ThrowsAsync(new FamilyNotFoundException("FAMILY_NOT_FOUND"));
+            var result = await CreateController(service.Object).AcceptInviteAsync("tok");
+            Assert.IsType<NotFoundObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task AcceptInvite_ServiceThrows_ReturnsBadRequest()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.AcceptInviteAsync(It.IsAny<string>(), It.IsAny<int>()))
+                .ThrowsAsync(new Exception("db"));
+            var result = await CreateController(service.Object).AcceptInviteAsync("tok");
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task RemoveMember_ServiceThrows_ReturnsBadRequest()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.RemoveMemberAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ThrowsAsync(new Exception("db"));
+            var result = await CreateController(service.Object).RemoveMemberAsync(1, 99);
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task Leave_ServiceThrows_ReturnsBadRequest()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.LeaveAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ThrowsAsync(new Exception("db"));
+            var result = await CreateController(service.Object).LeaveAsync(1);
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task ChangeMemberRole_ServiceThrows_ReturnsBadRequest()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.ChangeRoleAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ThrowsAsync(new Exception("db"));
+            var result = await CreateController(service.Object).ChangeMemberRoleAsync(1, 99, new ChangeMemberRoleRequest { Role = "Member" });
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
     }
 }

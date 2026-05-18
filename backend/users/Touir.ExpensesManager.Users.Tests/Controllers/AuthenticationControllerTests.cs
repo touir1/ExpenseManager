@@ -111,6 +111,10 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var okResult = Assert.IsType<OkObjectResult>(result);
             var response = Assert.IsType<LoginResponse>(okResult.Value);
             Assert.Equal("john@doe.com", response.User?.Email);
+            var roles = response.Roles?.ToList();
+            Assert.Single(roles!);
+            Assert.Equal("ADMIN", roles![0].Code);
+            Assert.Equal("Admin", roles[0].Name);
         }
 
         [Fact]

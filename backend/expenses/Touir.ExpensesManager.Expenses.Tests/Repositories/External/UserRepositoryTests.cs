@@ -313,5 +313,45 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories.External
             Assert.Equal(3, userList.Count); // All users are returned regardless of IsDeleted
             Assert.Contains(userList, u => u.Id == 2 && u.IsDeleted); // Deleted user is included
         }
+
+        [Fact]
+        public async Task GetUserByEmailAsync_WhenUserExists_ReturnsUser()
+        {
+            using var db = new TestExpensesDbContextWrapper();
+            var user = new User { Id = 5, FirstName = "Alice", LastName = "B", Email = "alice@example.com", IsDeleted = false };
+            await db.Context.Users.AddAsync(user);
+            await db.Context.SaveChangesAsync();
+
+            var repo = new UserRepository(db.Context);
+            var result = await repo.GetUserByEmailAsync("alice@example.com");
+
+            Assert.NotNull(result);
+            Assert.Equal(5, result!.Id);
+        }
+
+        [Fact]
+        public async Task GetUserByEmailAsync_WhenUserDeleted_ReturnsNull()
+        {
+            using var db = new TestExpensesDbContextWrapper();
+            var user = new User { Id = 6, FirstName = "Bob", LastName = "D", Email = "bob@example.com", IsDeleted = true };
+            await db.Context.Users.AddAsync(user);
+            await db.Context.SaveChangesAsync();
+
+            var repo = new UserRepository(db.Context);
+            var result = await repo.GetUserByEmailAsync("bob@example.com");
+
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task GetUserByEmailAsync_WhenNotFound_ReturnsNull()
+        {
+            using var db = new TestExpensesDbContextWrapper();
+            var repo = new UserRepository(db.Context);
+
+            var result = await repo.GetUserByEmailAsync("nobody@example.com");
+
+            Assert.Null(result);
+        }
     }
 }

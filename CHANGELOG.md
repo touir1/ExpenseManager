@@ -3,6 +3,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.103.2] - 2026-05-18
+### Changed
+- **Test coverage — 100% line coverage across all three projects**: Closed all remaining coverage gaps.
+  - **Backend (expenses)**: Model setter tests for `Category.DeletedAt` and `CurrencyRateConflict.Resolution`. Total: **523 tests** (was 454).
+  - **Backend (users)**: New `Models/ModelPropertyTests.cs` (4 tests: navigation-property setters for `User`, `UserDto`, `UserRole`, `RefreshToken`); 2 service tests for invalid-GUID paths in `PasswordManagementService`; 2 repository tests for `AuthenticationRepository` catch blocks (duplicate insert and conflicting ChangeTracker update). `UsersAppDbContext.OnModelCreating` refactored — Npgsql-only branch extracted to `ConfigureOutboxIdProperty` helper marked `[ExcludeFromCodeCoverage]`. Total: **326 tests** (was 318).
+  - **Frontend**: Outside-click handler tests for `DisplayCurrencySelector` and `TagInput`; new `AcceptInvitePage.test.tsx` (9 tests: loading state, success, error with/without `res.error`, missing token, no API call when token absent, `silent:true` param, go-to-families link on success/error). Total: **560 tests** (was 548).
+
 ## [0.103.1] - 2026-05-18
 ### Changed
 - **Family invitation email — inviter name**: Email now includes `@@INVITER_NAME@@` placeholder showing `{FirstName} {LastName}` of the inviting user. `FamilyService.InviteAsync` fetches the inviter via `GetUserByIdAsync` inside the email try-catch; falls back to empty string if user not found.

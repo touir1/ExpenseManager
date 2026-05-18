@@ -1,5 +1,7 @@
 ﻿using Touir.ExpensesManager.Users.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Touir.ExpensesManager.Users.Infrastructure
 {
@@ -217,10 +219,7 @@ namespace Touir.ExpensesManager.Users.Infrastructure
                 entity.HasKey(x => x.Id);
 
                 var idProp = entity.Property(x => x.Id).HasColumnName("MSG_Id");
-                if (Database.IsNpgsql())
-                    idProp.UseIdentityAlwaysColumn();
-                else
-                    idProp.ValueGeneratedOnAdd();
+                ConfigureOutboxIdProperty(idProp, Database.IsNpgsql());
                 entity.Property(x => x.MessageId).HasColumnName("MSG_MessageId").IsRequired().HasMaxLength(36);
                 entity.Property(x => x.EventType).HasColumnName("MSG_EventType").IsRequired().HasMaxLength(100);
                 entity.Property(x => x.Payload).HasColumnName("MSG_Payload").IsRequired();
@@ -233,6 +232,15 @@ namespace Touir.ExpensesManager.Users.Infrastructure
                 entity.HasIndex(x => new { x.PublishedAt, x.RetryCount });
             });
 
+        }
+
+        [ExcludeFromCodeCoverage]
+        private static void ConfigureOutboxIdProperty(PropertyBuilder<long> idProp, bool isNpgsql)
+        {
+            if (isNpgsql)
+                idProp.UseIdentityAlwaysColumn();
+            else
+                idProp.ValueGeneratedOnAdd();
         }
     }
 }

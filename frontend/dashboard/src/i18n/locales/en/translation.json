@@ -188,7 +188,23 @@
     "requestPasswordResetFailed": "Failed to request a password reset. Please try again.",
     "resetPasswordFailed": "Failed to reset your password. Please try again.",
     "missingToken": "Authentication token is missing. Please log in again.",
-    "invalidToken": "Invalid authentication token. Please log in again."
+    "invalidToken": "Invalid authentication token. Please log in again.",
+    "createPasswordFailed": "Failed to set your password. Please try again.",
+    "familyNotFound": "Family not found.",
+    "userNotFound": "User not found.",
+    "familyNotMember": "User is not a member of this family.",
+    "familyAlreadyMember": "This user is already a member of this family.",
+    "familyCannotInviteDefault": "You cannot invite members to your default family.",
+    "familyCannotRemoveDefault": "You cannot remove members from your default family.",
+    "familyCannotRemoveSelfHead": "You cannot remove yourself as the only head of this family.",
+    "familyCannotChangeOwnRole": "You cannot change your own role.",
+    "familyCannotArchiveDefault": "Your default family cannot be archived.",
+    "familyCannotLeaveDefault": "You cannot leave your default family.",
+    "familyCannotLeaveLastHead": "You cannot leave — you are the only head of this family.",
+    "tagNotVisible": "One or more tags are not visible to you.",
+    "familyInvitationInvalid": "This invitation link is invalid.",
+    "familyInvitationAlreadyAccepted": "This invitation has already been accepted.",
+    "familyInvitationExpired": "This invitation has expired."
   },
   "families": {
     "pageTitle": "Families",
@@ -232,7 +248,14 @@
     "collapse": "Hide members",
     "selectorPersonal": "My expenses",
     "leaveAction": "Leave family",
-    "leaveSuccess": "You have left the family."
+    "leaveSuccess": "You have left the family.",
+    "acceptInvite": {
+      "pageTitle": "Accept Invitation",
+      "loading": "Accepting invitation…",
+      "success": "You've joined the family!",
+      "error": "This invitation is invalid or has expired.",
+      "goToFamilies": "Go to families"
+    }
   },
   "currencies": {
     "searchPlaceholder": "Search by code or name…",

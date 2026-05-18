@@ -477,5 +477,20 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
             Assert.True(_wrapper.Context.ExpenseFamilyAttributions.Any(a => a.ExpenseId == expenseU1.Id));
             Assert.False(_wrapper.Context.ExpenseFamilyAttributions.Any(a => a.ExpenseId == expenseU2.Id));
         }
+
+        // ── CountHeadsAsync ───────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task CountHeadsAsync_ReturnsCorrectHeadCount()
+        {
+            var family = await SeedFamilyAsync();
+            await SeedMembershipAsync(family.Id, userId: 1, roleId: 1); // Head
+            await SeedMembershipAsync(family.Id, userId: 2, roleId: 1); // Head
+            await SeedMembershipAsync(family.Id, userId: 3, roleId: 2); // Member
+
+            var count = await _sut.CountHeadsAsync(family.Id, headRoleId: 1);
+
+            Assert.Equal(2, count);
+        }
     }
 }

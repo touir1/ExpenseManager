@@ -69,6 +69,14 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         }
 
         [Fact]
+        public async Task GetNameAsync_SecondCall_ReturnsSameResult_FromCache()
+        {
+            var first = await _sut.GetNameAsync<FamilyRole>(1);
+            var second = await _sut.GetNameAsync<FamilyRole>(1);
+            Assert.Equal(first, second);
+        }
+
+        [Fact]
         public async Task GetIdAsync_WorksForAllLookupTypes()
         {
             Assert.Equal(1, await _sut.GetIdAsync<ModifiedSource>("Web"));

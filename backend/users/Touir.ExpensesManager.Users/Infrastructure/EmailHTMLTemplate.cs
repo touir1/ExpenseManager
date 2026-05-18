@@ -1,5 +1,8 @@
-﻿namespace Touir.ExpensesManager.Users.Infrastructure
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Touir.ExpensesManager.Users.Infrastructure
 {
+    [ExcludeFromCodeCoverage]
     public static class EmailHtmlTemplate
     {
         public static class EmailVerification

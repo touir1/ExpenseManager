@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import TagInput from '../TagInput'
 import type { Tag, TagList } from '../../types/tag.type'
@@ -192,5 +192,15 @@ describe('TagInput', () => {
     await waitFor(() => expect(screen.getByRole('menuitem', { name: 'food' })).toBeInTheDocument())
     await user.click(screen.getByRole('menuitem', { name: 'food' }))
     expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+  })
+
+  it('closes dropdown when clicking outside the component', async () => {
+    setupGetTags(makeList({ own: [ownTag] }))
+    const user = userEvent.setup()
+    render(<TagInput value={[]} onChange={vi.fn()} />)
+    await user.click(screen.getByRole('combobox'))
+    await waitFor(() => expect(screen.getByRole('menu')).toBeInTheDocument())
+    fireEvent.mouseDown(document.body)
+    await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
   })
 })

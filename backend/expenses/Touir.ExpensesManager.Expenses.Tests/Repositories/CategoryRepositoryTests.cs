@@ -87,5 +87,14 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
             var found = result.First(c => c.Name == "TestFoodGroup");
             Assert.Equal(2, found.Children.Count);
         }
+
+        [Fact]
+        public void Category_DeletedAt_Setter()
+        {
+            var cat = new Category { Name = "x" };
+            var ts = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            cat.DeletedAt = ts;
+            Assert.Equal(ts, cat.DeletedAt);
+        }
     }
 }

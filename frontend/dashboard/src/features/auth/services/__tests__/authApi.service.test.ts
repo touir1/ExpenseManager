@@ -29,7 +29,7 @@ describe('authApi.service', () => {
 
   describe('sessionCheck', () => {
     it('should call get with correct endpoint', async () => {
-      const mockResponse = { ok: true, data: { id: '1', email: 'test@test.com' } }
+      const mockResponse = { ok: true, status: 200, data: { id: '1', email: 'test@test.com' } }
       vi.mocked(api.get).mockResolvedValue(mockResponse)
 
       const result = await sessionCheck()
@@ -42,7 +42,7 @@ describe('authApi.service', () => {
     })
 
     it('should handle session check failure', async () => {
-      const mockResponse = { ok: false, error: 'Unauthorized' }
+      const mockResponse = { ok: false, status: 401, error: 'Unauthorized' }
       vi.mocked(api.get).mockResolvedValue(mockResponse)
 
       const result = await sessionCheck()
@@ -53,7 +53,7 @@ describe('authApi.service', () => {
 
   describe('refreshRequest', () => {
     it('should call post with correct endpoint', async () => {
-      const mockResponse = { ok: true, data: undefined }
+      const mockResponse = { ok: true, status: 200, data: undefined }
       vi.mocked(api.post).mockResolvedValue(mockResponse)
 
       const result = await refreshRequest()
@@ -66,7 +66,7 @@ describe('authApi.service', () => {
     })
 
     it('should handle refresh failure', async () => {
-      const mockResponse = { ok: false, error: 'Token expired' }
+      const mockResponse = { ok: false, status: 401, error: 'Token expired' }
       vi.mocked(api.post).mockResolvedValue(mockResponse)
 
       const result = await refreshRequest()
@@ -77,7 +77,7 @@ describe('authApi.service', () => {
 
   describe('loginRequest', () => {
     it('should call post with correct login credentials', async () => {
-      const mockResponse = { ok: true, data: { user: { id: '1', email: 'test@test.com' } } }
+      const mockResponse = { ok: true, status: 200, data: { user: { id: '1', email: 'test@test.com' } } }
       vi.mocked(api.post).mockResolvedValue(mockResponse)
 
       const result = await loginRequest('test@test.com', 'password123', 'EXPENSES_MANAGER', false)
@@ -92,7 +92,7 @@ describe('authApi.service', () => {
     })
 
     it('should handle login with rememberMe enabled', async () => {
-      const mockResponse = { ok: true, data: { user: { id: '1', email: 'test@test.com' } } }
+      const mockResponse = { ok: true, status: 200, data: { user: { id: '1', email: 'test@test.com' } } }
       vi.mocked(api.post).mockResolvedValue(mockResponse)
 
       await loginRequest('test@test.com', 'password123', 'EXPENSES_MANAGER', true)
@@ -105,7 +105,7 @@ describe('authApi.service', () => {
     })
 
     it('should handle login failure', async () => {
-      const mockResponse = { ok: false, error: 'Invalid credentials' }
+      const mockResponse = { ok: false, status: 401, error: 'Invalid credentials' }
       vi.mocked(api.post).mockResolvedValue(mockResponse)
 
       const result = await loginRequest('test@test.com', 'wrongpassword', 'EXPENSES_MANAGER', false)
@@ -116,7 +116,7 @@ describe('authApi.service', () => {
 
   describe('logoutRequest', () => {
     it('should call post with correct endpoint', async () => {
-      const mockResponse = { ok: true, data: null }
+      const mockResponse = { ok: true, status: 200, data: null }
       vi.mocked(api.post).mockResolvedValue(mockResponse)
 
       const result = await logoutRequest()
@@ -128,7 +128,7 @@ describe('authApi.service', () => {
     })
 
     it('should handle logout failure', async () => {
-      const mockResponse = { ok: false, error: 'Server error' }
+      const mockResponse = { ok: false, status: 500, error: 'Server error' }
       vi.mocked(api.post).mockResolvedValue(mockResponse)
 
       const result = await logoutRequest()
@@ -139,7 +139,7 @@ describe('authApi.service', () => {
 
   describe('registerRequest', () => {
     it('should call post with registration data', async () => {
-      const mockResponse = { ok: true, data: null }
+      const mockResponse = { ok: true, status: 200, data: null }
       vi.mocked(api.post).mockResolvedValue(mockResponse)
 
       const result = await registerRequest('John', 'Doe', 'john@test.com', 'EXPENSES_MANAGER')
@@ -154,7 +154,7 @@ describe('authApi.service', () => {
     })
 
     it('should handle registration failure', async () => {
-      const mockResponse = { ok: false, error: 'Email already exists' }
+      const mockResponse = { ok: false, status: 400, error: 'Email already exists' }
       vi.mocked(api.post).mockResolvedValue(mockResponse)
 
       const result = await registerRequest('Jane', 'Smith', 'jane@test.com', 'EXPENSES_MANAGER')
@@ -165,7 +165,7 @@ describe('authApi.service', () => {
 
   describe('changePasswordRequest', () => {
     it('should call post with password change data', async () => {
-      const mockResponse = { ok: true, data: null }
+      const mockResponse = { ok: true, status: 200, data: null }
       vi.mocked(api.post).mockResolvedValue(mockResponse)
 
       const result = await changePasswordRequest('test@test.com', 'oldpass', 'newpass')
@@ -179,10 +179,10 @@ describe('authApi.service', () => {
     })
 
     it('should handle password change with undefined email', async () => {
-      const mockResponse = { ok: true, data: null }
+      const mockResponse = { ok: true, status: 200, data: null }
       vi.mocked(api.post).mockResolvedValue(mockResponse)
 
-      const result = await changePasswordRequest(undefined, 'oldpass', 'newpass')
+      await changePasswordRequest(undefined, 'oldpass', 'newpass')
 
       expect(api.post).toHaveBeenCalledWith('/api/users/auth/change-password', {
         email: undefined,
@@ -192,7 +192,7 @@ describe('authApi.service', () => {
     })
 
     it('should handle password change failure', async () => {
-      const mockResponse = { ok: false, error: 'Incorrect password' }
+      const mockResponse = { ok: false, status: 400, error: 'Incorrect password' }
       vi.mocked(api.post).mockResolvedValue(mockResponse)
 
       const result = await changePasswordRequest('test@test.com', 'wrongold', 'newpass')
@@ -203,7 +203,7 @@ describe('authApi.service', () => {
 
   describe('createPasswordRequest', () => {
     it('should call post with create password data', async () => {
-      const mockResponse = { ok: true, data: null }
+      const mockResponse = { ok: true, status: 200, data: null }
       vi.mocked(api.post).mockResolvedValue(mockResponse)
 
       const result = await createPasswordRequest('test@test.com', 'hash123', 'newpass')
@@ -217,7 +217,7 @@ describe('authApi.service', () => {
     })
 
     it('should handle create password failure', async () => {
-      const mockResponse = { ok: false, error: 'Invalid verification hash' }
+      const mockResponse = { ok: false, status: 400, error: 'Invalid verification hash' }
       vi.mocked(api.post).mockResolvedValue(mockResponse)
 
       const result = await createPasswordRequest('test@test.com', 'invalihash', 'newpass')
@@ -228,7 +228,7 @@ describe('authApi.service', () => {
 
   describe('resetPasswordRequest', () => {
     it('should call post with reset password data', async () => {
-      const mockResponse = { ok: true, data: null }
+      const mockResponse = { ok: true, status: 200, data: null }
       vi.mocked(api.post).mockResolvedValue(mockResponse)
 
       const result = await resetPasswordRequest('test@test.com', 'hash123', 'newpass')
@@ -242,7 +242,7 @@ describe('authApi.service', () => {
     })
 
     it('should handle reset password failure', async () => {
-      const mockResponse = { ok: false, error: 'Link expired' }
+      const mockResponse = { ok: false, status: 400, error: 'Link expired' }
       vi.mocked(api.post).mockResolvedValue(mockResponse)
 
       const result = await resetPasswordRequest('test@test.com', 'expiredhash', 'newpass')
@@ -253,7 +253,7 @@ describe('authApi.service', () => {
 
   describe('requestPasswordResetRequest', () => {
     it('should call post with password reset request data', async () => {
-      const mockResponse = { ok: true, data: null }
+      const mockResponse = { ok: true, status: 200, data: null }
       vi.mocked(api.post).mockResolvedValue(mockResponse)
 
       const result = await requestPasswordResetRequest('test@test.com', 'EXPENSES_MANAGER')
@@ -266,7 +266,7 @@ describe('authApi.service', () => {
     })
 
     it('should handle password reset request failure', async () => {
-      const mockResponse = { ok: false, error: 'Email not found' }
+      const mockResponse = { ok: false, status: 400, error: 'Email not found' }
       vi.mocked(api.post).mockResolvedValue(mockResponse)
 
       const result = await requestPasswordResetRequest('nonexistent@test.com', 'EXPENSES_MANAGER')

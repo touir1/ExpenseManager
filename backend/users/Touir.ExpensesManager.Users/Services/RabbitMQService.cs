@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using Touir.ExpensesManager.Users.Infrastructure.Options;
@@ -5,6 +6,7 @@ using Touir.ExpensesManager.Users.Services.Contracts;
 
 namespace Touir.ExpensesManager.Users.Services
 {
+    [ExcludeFromCodeCoverage]
     public class RabbitMQService : IRabbitMQService
     {
         private readonly ConnectionFactory _connectionFactory;

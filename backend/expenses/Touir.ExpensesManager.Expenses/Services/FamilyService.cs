@@ -132,6 +132,9 @@ namespace Touir.ExpensesManager.Expenses.Services
             var family = await _familyRepo.GetByIdAsync(familyId)
                 ?? throw new FamilyNotFoundException();
 
+            if (family.IsDefault)
+                throw new FamilyForbiddenException("FAMILY_CANNOT_INVITE_DEFAULT");
+
             var membership = await _familyRepo.GetMembershipAsync(familyId, invitedById)
                 ?? throw new FamilyForbiddenException();
 
@@ -199,6 +202,12 @@ namespace Touir.ExpensesManager.Expenses.Services
             if (!string.Equals(user.Email, invitation.InviteeEmail, StringComparison.OrdinalIgnoreCase))
                 throw new FamilyForbiddenException();
 
+            var family = await _familyRepo.GetByIdAsync(invitation.FamilyId)
+                ?? throw new FamilyNotFoundException();
+
+            if (family.IsDefault)
+                throw new FamilyForbiddenException("FAMILY_CANNOT_INVITE_DEFAULT");
+
             if (await _familyRepo.IsMemberAsync(invitation.FamilyId, userId))
                 throw new FamilyConflictException("FAMILY_ALREADY_MEMBER");
 
@@ -219,6 +228,12 @@ namespace Touir.ExpensesManager.Expenses.Services
 
         public async Task RemoveMemberAsync(int familyId, int targetUserId, int removedById)
         {
+            var family = await _familyRepo.GetByIdAsync(familyId)
+                ?? throw new FamilyNotFoundException();
+
+            if (family.IsDefault)
+                throw new FamilyForbiddenException("FAMILY_CANNOT_REMOVE_DEFAULT");
+
             var removerMembership = await _familyRepo.GetMembershipAsync(familyId, removedById)
                 ?? throw new FamilyForbiddenException();
 

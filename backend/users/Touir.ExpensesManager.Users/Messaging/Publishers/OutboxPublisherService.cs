@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -6,6 +7,7 @@ using Touir.ExpensesManager.Users.Repositories.Contracts;
 
 namespace Touir.ExpensesManager.Users.Messaging
 {
+    [ExcludeFromCodeCoverage]
     public class OutboxPublisherService : BackgroundService
     {
         private const int PollIntervalMs = 5000;
