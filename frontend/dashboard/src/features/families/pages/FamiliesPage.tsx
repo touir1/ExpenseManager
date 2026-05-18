@@ -538,7 +538,7 @@ export default function FamiliesPage() {
   }, [refresh])
 
   const activeFamilies = useMemo(
-    () => families.filter(f => !f.isArchived),
+    () => families.filter(f => !f.isArchived && !f.isDefault),
     [families]
   )
   const archivedFamilies = useMemo(

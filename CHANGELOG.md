@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.103.5] - 2026-05-18
+### Changed
+- **FamiliesPage — hide default family from active list**: `activeFamilies` filter now excludes `isDefault` families (`!f.isArchived && !f.isDefault`). The default family is managed system-side and should not appear in the user-facing configuration UI. Updated all affected `FamiliesPage.test.tsx` tests to use a non-default fixture and replaced the obsolete "shows default badge" test with "does not show default family in active list".
+
 ## [0.103.4] - 2026-05-18
 ### Changed
 - **`ServiceErrors` constants class (expenses)**: New `Services/ServiceErrors.cs` (`internal static class`) consolidates all 16 domain error-code strings thrown by service-layer exceptions (`FAMILY_NOT_FOUND`, `USER_NOT_FOUND`, `FAMILY_NOT_MEMBER`, `FAMILY_ALREADY_MEMBER`, `FAMILY_FORBIDDEN`, `FAMILY_CANNOT_INVITE/REMOVE/REMOVE_SELF_HEAD/CHANGE_OWN_ROLE/ARCHIVE/LEAVE/LEAVE_LAST_HEAD _DEFAULT`, `TAG_NOT_VISIBLE`, `FAMILY_INVITATION_{INVALID/ALREADY_ACCEPTED/EXPIRED}`). All hardcoded string literals in `FamilyService`, `ExpenseService`, and `FamilyExceptions` (default ctor args) replaced with `ServiceErrors.*` references. Mirrors the existing `ControllerErrors` pattern.

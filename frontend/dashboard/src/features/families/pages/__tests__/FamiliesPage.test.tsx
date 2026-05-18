@@ -103,7 +103,7 @@ const mockDetail: FamilyDetail = {
 
 function makeCtx(overrides: Partial<ReturnType<typeof mockUseFamilies>> = {}) {
   mockUseFamilies.mockReturnValue({
-    families: [mockFamily],
+    families: [mockFamily2],
     isLoading: false,
     refresh: vi.fn(),
     ...overrides,
@@ -187,23 +187,23 @@ describe('FamiliesPage', () => {
 
   describe('tabs', () => {
     it('shows active families on active tab by default', () => {
-      makeCtx({ families: [mockFamily, mockArchivedFamily] })
+      makeCtx({ families: [mockFamily2, mockArchivedFamily] })
       render(<FamiliesPage />)
-      expect(screen.getByText('Smith household')).toBeInTheDocument()
+      expect(screen.getByText('Holiday')).toBeInTheDocument()
       expect(screen.queryByText('Old group')).not.toBeInTheDocument()
     })
 
     it('shows archived families when archived tab is clicked', async () => {
-      makeCtx({ families: [mockFamily, mockArchivedFamily] })
+      makeCtx({ families: [mockFamily2, mockArchivedFamily] })
       const user = userEvent.setup()
       render(<FamiliesPage />)
       await user.click(screen.getByRole('button', { name: /tabArchived/i }))
       expect(screen.getByText('Old group')).toBeInTheDocument()
-      expect(screen.queryByText('Smith household')).not.toBeInTheDocument()
+      expect(screen.queryByText('Holiday')).not.toBeInTheDocument()
     })
 
     it('shows family counts in tab labels', () => {
-      makeCtx({ families: [mockFamily, mockArchivedFamily] })
+      makeCtx({ families: [mockFamily2, mockArchivedFamily] })
       render(<FamiliesPage />)
       expect(screen.getByRole('button', { name: /tabActive/ }).textContent).toContain('1')
       expect(screen.getByRole('button', { name: /tabArchived/ }).textContent).toContain('1')
@@ -219,13 +219,13 @@ describe('FamiliesPage', () => {
     })
 
     it('clicking active tab after viewing archived switches back to active families', async () => {
-      makeCtx({ families: [mockFamily, mockArchivedFamily] })
+      makeCtx({ families: [mockFamily2, mockArchivedFamily] })
       const user = userEvent.setup()
       render(<FamiliesPage />)
       await user.click(screen.getByRole('button', { name: /tabArchived/i }))
-      expect(screen.queryByText('Smith household')).not.toBeInTheDocument()
+      expect(screen.queryByText('Holiday')).not.toBeInTheDocument()
       await user.click(screen.getByRole('button', { name: /tabActive/i }))
-      expect(screen.getByText('Smith household')).toBeInTheDocument()
+      expect(screen.getByText('Holiday')).toBeInTheDocument()
       expect(screen.queryByText('Old group')).not.toBeInTheDocument()
     })
   })
@@ -236,13 +236,14 @@ describe('FamiliesPage', () => {
     it('shows family name', () => {
       makeCtx()
       render(<FamiliesPage />)
-      expect(screen.getByText('Smith household')).toBeInTheDocument()
+      expect(screen.getByText('Holiday')).toBeInTheDocument()
     })
 
-    it('shows default badge for default family', () => {
-      makeCtx()
+    it('does not show default family in active list', () => {
+      makeCtx({ families: [mockFamily] })
       render(<FamiliesPage />)
-      expect(screen.getByText('families.default')).toBeInTheDocument()
+      expect(screen.queryByText('Smith household')).not.toBeInTheDocument()
+      expect(screen.getByText('families.emptyActive')).toBeInTheDocument()
     })
 
     it('shows archived badge for archived family', async () => {
@@ -269,7 +270,7 @@ describe('FamiliesPage', () => {
     it('loads and shows detail panel on expand click', async () => {
       makeCtx()
       vi.mocked(familyApi.getFamilyById).mockResolvedValue({
-        ok: true, status: 200, data: { ...mockFamily, members: [
+        ok: true, status: 200, data: { ...mockFamily2, members: [
           { userId: 10, firstName: 'Alice', lastName: 'Smith', email: 'alice@example.com', role: 'Head', joinedAt: '2024-01-01T00:00:00Z' }
         ]}
       })
@@ -277,12 +278,12 @@ describe('FamiliesPage', () => {
       render(<FamiliesPage />)
       await user.click(screen.getByRole('button', { name: /families\.expand/i }))
       await waitFor(() => expect(screen.getByText('Alice Smith')).toBeInTheDocument())
-      expect(familyApi.getFamilyById).toHaveBeenCalledWith(1)
+      expect(familyApi.getFamilyById).toHaveBeenCalledWith(2)
     })
 
     it('collapses detail panel on second expand click', async () => {
       makeCtx()
-      vi.mocked(familyApi.getFamilyById).mockResolvedValue({ ok: true, status: 200, data: { ...mockFamily, members: [] } })
+      vi.mocked(familyApi.getFamilyById).mockResolvedValue({ ok: true, status: 200, data: { ...mockFamily2, members: [] } })
       const user = userEvent.setup()
       render(<FamiliesPage />)
       const expandBtn = screen.getByRole('button', { name: /families\.expand/i })
@@ -298,7 +299,7 @@ describe('FamiliesPage', () => {
       const user = userEvent.setup()
       render(<FamiliesPage />)
       await user.click(screen.getByRole('button', { name: /families\.expand/i }))
-      await waitFor(() => expect(familyApi.getFamilyById).toHaveBeenCalledWith(1))
+      await waitFor(() => expect(familyApi.getFamilyById).toHaveBeenCalledWith(2))
       expect(screen.queryByText('families.members')).not.toBeInTheDocument()
     })
 
@@ -713,10 +714,9 @@ describe('FamiliesPage', () => {
       expect(screen.getByRole('button', { name: /families\.leaveAction/i })).toBeInTheDocument()
     })
 
-    it('does not show leave button for default family', async () => {
-      const defaultFamily: Family = { ...mockFamily2, isDefault: true }
-      const defaultDetail: FamilyDetail = { ...mockDetail, isDefault: true }
-      await renderExpanded({ family: defaultFamily, detail: defaultDetail })
+    it('does not show leave button for default family', () => {
+      makeCtx({ families: [mockFamily] })
+      render(<FamiliesPage />)
       expect(screen.queryByRole('button', { name: /families\.leaveAction/i })).not.toBeInTheDocument()
     })
 
