@@ -3,6 +3,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.104.0] - 2026-05-18
+### Added
+- **Dashboard API (Phase 7 — expenses service)**: 6 new aggregation endpoints under `GET /dashboard/*` powering all dashboard charts and summary cards.
+  - `GET /dashboard/summary` — total amount + expense count + previous-period delta (% change) + top category; accepts `?familyId`, `?dateFrom`, `?dateTo`, `?displayCurrencyId`
+  - `GET /dashboard/monthly` — per-month totals broken down by category; default range = Jan 1 of current year → today
+  - `GET /dashboard/categories` — category/subcategory breakdown with percentages for a period
+  - `GET /dashboard/same-month-across-years` — given `?month=1–12`, returns per-year totals across all recorded years
+  - `GET /dashboard/by-currency` — per-currency totals + converted amount + expense count
+  - `GET /dashboard/recent` — last 10 expenses (delegates to existing paged expense query)
+  - All endpoints accept `?familyId` (scopes to family-attributed expenses, verifies membership → 403 if not member), `?displayCurrencyId` (currency conversion via `ICurrencyRateService`), missing userId → 401, other errors → 400
+  - Currency conversion: `dateTo` for summary/categories/by-currency; last day of each month for monthly; Dec 31 of each year (or today for current year) for same-month-across-years
+  - **`DashboardRepository`**: hybrid SQL/C# approach — EF Core projects to anonymous types (WHERE filter in SQL), GroupBy/Sum in C# (SQLite test compatibility); family scoping via correlated EXISTS subquery on `ExpenseFamilyAttributions`
+  - **`DashboardService`**: membership check → currency conversion → DTO assembly; previous-period window = same duration ending the day before `dateFrom`
+  - **`ControllerErrors.InvalidMonth`** (`"INVALID_MONTH"`) added for month 0/13 validation
+  - **DI**: `IDashboardService`/`DashboardService` and `IDashboardRepository`/`DashboardRepository` registered Scoped in `Program.cs`
+  - **Tests**: 47 new tests — 13 `DashboardRepositoryTests` (integration, SQLite), 20 `DashboardServiceTests` (Moq), 14 `DashboardControllerTests` (Moq)
+
 ## [0.103.5] - 2026-05-18
 ### Changed
 - **FamiliesPage — hide default family from active list**: `activeFamilies` filter now excludes `isDefault` families (`!f.isArchived && !f.isDefault`). The default family is managed system-side and should not appear in the user-facing configuration UI. Updated all affected `FamiliesPage.test.tsx` tests to use a non-default fixture and replaced the obsolete "shows default badge" test with "does not show default family in active list".

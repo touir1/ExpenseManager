@@ -137,9 +137,10 @@ ExpenseManager/
 │   │   │   │       └── RabbitMQOptions.cs
 │   │   │   ├── Controllers/
 │   │   │   │   ├── CategoryController.cs    — GET /categories → IEnumerable<CategoryDto>
-│   │   │   │   ├── ControllerErrors.cs      — Shared internal static class: SERVER_ERROR, UNAUTHORIZED, EXPENSE_NOT_FOUND, MISSING_PARAMETERS, TAG_NOT_FOUND, RATE_NOT_FOUND, CONFLICT_NOT_FOUND
+│   │   │   │   ├── ControllerErrors.cs      — Shared internal static class: SERVER_ERROR, UNAUTHORIZED, EXPENSE_NOT_FOUND, MISSING_PARAMETERS, TAG_NOT_FOUND, RATE_NOT_FOUND, CONFLICT_NOT_FOUND, INVALID_MONTH
 │   │   │   │   ├── CurrencyController.cs    — GET /currencies → IEnumerable<CurrencyDto>
 │   │   │   │   ├── CurrencyRateController.cs — GET /rates/history, POST /rates (201), POST /rates/bulk (204), PUT /rates/default (204), GET /rates/conflicts, POST /rates/conflicts/{id}/resolve (204), POST /rates/refresh (204)
+│   │   │   │   ├── DashboardController.cs   — 6 GET /dashboard/* endpoints: summary, monthly, categories, same-month-across-years, by-currency, recent; default date ranges computed in controller; FamilyForbiddenException → 403
 │   │   │   │   ├── ExpenseController.cs     — POST/PUT/DELETE/GET/GET(paged) /expenses; GetByIdAsync accepts ?displayCurrencyId; FamilyForbiddenException → 403 on create/update
 │   │   │   │   ├── FamilyController.cs      — 10 endpoints: list, detail, create, rename, archive, unarchive, invite, accept-invite, remove-member, change-role
 │   │   │   │   ├── TagController.cs         — GET /tags → TagListDto; POST /tags → TagDto (idempotent); DELETE /tags/{id} → 204 or 404
@@ -148,7 +149,13 @@ ExpenseManager/
 │   │   │   │   │   ├── SubcategoryDto.cs    — Id, Name, Description? (reused for category + subcategory slots in ExpenseDto)
 │   │   │   │   │   ├── CurrencyDto.cs       — Id, Code, Name, Symbol, Decimals
 │   │   │   │   │   ├── ExpenseDto.cs        — Id, Amount, Currency: CurrencyDto?, Date, Category: SubcategoryDto?, Subcategory: SubcategoryDto?, Description?, CreatedAt, ModifiedAt?, ModifiedFrom?, Tags: TagDto[], ConvertedAmount?: decimal, DisplayCurrency?: CurrencyDto
+│   │   │   │   │   ├── CategoryAmountDto.cs — Category: SubcategoryDto?, Amount, ConvertedAmount?; used inside MonthlyBreakdownDto and CategoryBreakdownDto
+│   │   │   │   │   ├── CategoryBreakdownDto.cs — Category: SubcategoryDto?, TotalAmount, ConvertedTotal?, Percentage, Subcategories: CategoryAmountDto[]
+│   │   │   │   │   ├── CurrencyBreakdownDto.cs — Currency: CurrencyDto, TotalAmount, ConvertedAmount?, ExpenseCount
+│   │   │   │   │   ├── DashboardSummaryDto.cs — TotalAmount, ConvertedTotal?, DisplayCurrency?, ExpenseCount, PreviousPeriodTotal?, ChangePercent?, TopCategory?: SubcategoryDto, TopCategoryAmount?
 │   │   │   │   │   ├── ExpenseFilterDto.cs  — DateFrom?, DateTo?, CategoryId?, SubcategoryId?, CurrencyId?, AmountMin?, AmountMax?, Description?, TagIds?, DisplayCurrencyId?, Page (default 1), PageSize (default 20)
+│   │   │   │   │   ├── MonthlyBreakdownDto.cs — Year, Month, TotalAmount, ConvertedTotal?, ByCategory: CategoryAmountDto[]
+│   │   │   │   │   ├── SameMonthYearlyDto.cs — Year, TotalAmount, ConvertedTotal?
 │   │   │   │   │   ├── RateDto.cs           — SourceCurrencyId, DestinationCurrencyId, Date, Rate, RateSource
 │   │   │   │   │   ├── RateConflictDto.cs   — Id, SourceCurrencyId, DestinationCurrencyId, Date, AutomaticRate, ManualRate, Status, ResolvedAt?
 │   │   │   │   │   ├── TagDto.cs            — Id, Name
@@ -207,6 +214,7 @@ ExpenseManager/
 │   │   │   │   └── ChangeMemberRoleRequestValidator.cs — Role Must be "Head" or "Member" (case-insensitive)
 │   │   │   ├── Repositories/
 │   │   │   │   ├── CategoryRepository.cs    — GetAllActiveAsync(): top-level non-archived categories with Include(Children), AsNoTracking
+│   │   │   │   ├── DashboardRepository.cs   — Implements IDashboardRepository; hybrid SQL/C# (WHERE in EF Core, GroupBy/Sum in C#); BaseQuery uses correlated EXISTS on ExpenseFamilyAttributions for family scoping
 │   │   │   │   ├── CurrencyRepository.cs    — GetAllAsync(): all currencies, AsNoTracking
 │   │   │   │   ├── ExpenseRepository.cs     — AddAsync, UpdateAsync, SoftDeleteAsync, GetByIdAsync (ownership + !IsDeleted + ExpenseTags include), GetPagedAsync (filtered + paginated, desc by date; TagIds OR filter); ClearExpenseTagsAsync, AddExpenseTagsAsync
 │   │   │   │   ├── FamilyRepository.cs      — family CRUD, membership CRUD, invitation CRUD, attribution helpers (AddAttributionsAsync, ClearAttributionsAsync, RemoveMemberAttributionsAsync)
@@ -215,6 +223,7 @@ ExpenseManager/
 │   │   │   │   ├── CurrencyRateRepository.cs — GetExactAsync, GetMostRecentBeforeAsync, GetDefaultAsync, GetHistoryAsync, AddRateAsync, UpdateRateAsync, ManualRateExistsAsync, AddConflictAsync, GetPendingConflictsAsync, GetConflictByIdAsync, UpdateConflictAsync, SetDefaultAsync (upsert)
 │   │   │   │   ├── Contracts/
 │   │   │   │   │   ├── ICategoryRepository.cs
+│   │   │   │   │   ├── IDashboardRepository.cs — 5 query methods + 5 record types (CurrencyTotalRow, CategoryTotalRow, MonthlyTotalRow, MonthlyCategoryTotalRow, YearlyTotalRow)
 │   │   │   │   │   ├── ICurrencyRepository.cs
 │   │   │   │   │   ├── IExpenseRepository.cs — AddAsync, UpdateAsync, SoftDeleteAsync, GetByIdAsync, GetPagedAsync, ClearExpenseTagsAsync, AddExpenseTagsAsync
 │   │   │   │   │   ├── IFamilyRepository.cs  — family/membership/invitation/attribution methods; IsMemberAsync, HasDefaultFamilyAsync
@@ -228,6 +237,7 @@ ExpenseManager/
 │   │   │   ├── Services/
 │   │   │   │   ├── FamilyExceptions.cs      — FamilyNotFoundException (→404), FamilyForbiddenException (→403; also used for tag visibility violations), FamilyConflictException (→409), FamilyInvitationException (→400); default ctor args reference ServiceErrors constants
 │   │   │   │   ├── ServiceErrors.cs         — internal static class; 16 domain error-code constants (FAMILY_*, TAG_NOT_VISIBLE, USER_NOT_FOUND, invitation codes) used by service-layer exceptions; mirrors ControllerErrors pattern
+│   │   │   │   ├── DashboardService.cs      — Implements IDashboardService; membership check → currency conversion → DTO assembly; previous-period window same duration ending day before dateFrom
 │   │   │   │   ├── FamilyService.cs         — Implements IFamilyService; uses ILookupCacheService for role ID resolution; invite expiry from FamilyOptions
 │   │   │   │   ├── RabbitMQService.cs       — RabbitMQ connection and messaging
 │   │   │   │   ├── LookupCacheService.cs    — IMemoryCache-backed lookup; NeverRemove priority; loads entire table on first access
@@ -246,6 +256,7 @@ ExpenseManager/
 │   │   │   │       ├── IExpenseAuditService.cs — WriteAddAuditAsync, WriteUpdateAuditAsync, WriteDeleteAuditAsync (all accept string tags for snapshot)
 │   │   │   │       ├── IFamilyService.cs    — CreateDefaultAsync, CreateAsync, GetByUserAsync, GetByIdAsync, RenameAsync, InviteAsync, AcceptInviteAsync, RemoveMemberAsync, ChangeRoleAsync, ArchiveAsync, UnarchiveAsync
 │   │   │   │       ├── ITagService.cs       — GetVisibleAsync(userId) → TagListDto; UseTagAsync(name, userId) → TagDto; RemoveTagAsync(tagId, userId) → bool
+│   │   │   │       ├── IDashboardService.cs — GetSummaryAsync, GetMonthlyAsync, GetCategoriesAsync, GetSameMonthAcrossYearsAsync, GetByCurrencyAsync, GetRecentAsync
 │   │   │   │       └── ICurrencyRateService.cs — ResolveRateAsync, GetRateHistoryAsync, AddManualRateAsync, BulkAddManualRatesAsync, SetDefaultFallbackAsync, ResolveConflictAsync, GetPendingConflictsAsync, RunDailyUpdateAsync, RefreshRatesFromAsync
 │   │   │   └── Migrations/
 │   │   │       ├── 20260217225816_InitialCreate.cs
@@ -276,6 +287,7 @@ ExpenseManager/
 │   │       ├── Controllers/
 │   │       │   ├── CategoryControllerTests.cs
 │   │       │   ├── CurrencyControllerTests.cs
+│   │       │   ├── DashboardControllerTests.cs      — 14 tests: 401 no-cookie, 200 default/explicit date range, 403 FamilyForbidden, 400 generic exception, 400 invalid month (0 and 13), 200 success per endpoint
 │   │       │   ├── ExpenseControllerTests.cs        — 16 tests: 401 no-cookie × 5 endpoints, 201/400/403 create, 404/200/403 update, 404/204 delete, 404/200 getById, 200 getPaged
 │   │       │   ├── FamilyControllerTests.cs         — 34+ tests: 401 no-cookie paths, all 10 family endpoints (200/201/204/403/404/409 per action) incl. LeaveAsync 401/204/403/404
 │   │       │   ├── TagControllerTests.cs            — 13 tests: 401 no-cookie × 3 endpoints, GetTags 200 (list/empty/family), UseTag 200 (new/existing), RemoveTag 204/404
@@ -289,6 +301,7 @@ ExpenseManager/
 │   │       │   │   └── UserRepositoryTests.cs
 │   │       │   ├── CategoryRepositoryTests.cs       — 6 tests: top-level only, children included, archived excluded, empty, archived subs, Category.DeletedAt setter
 │   │       │   ├── CurrencyRepositoryTests.cs       — 4 tests: all currencies, field mapping, empty set, positive IDs
+│   │       │   ├── DashboardRepositoryTests.cs      — 13 integration tests: GetTotalsAsync×6, GetCategoryTotalsAsync×2, GetMonthlyTotalsAsync×2, GetMonthlyCategoryTotalsAsync×1, GetYearlyTotalsForMonthAsync×2
 │   │       │   ├── ExpenseRepositoryTests.cs        — 8 tests: AddAsync, GetByIdAsync (owned/wrong-user/soft-deleted), SoftDeleteAsync, GetPagedAsync (excludes deleted/other-users, pagination, UpdateAsync); BuildExpense static
 │   │       │   ├── FamilyRepositoryTests.cs         — family CRUD, membership, invitation, attribution, IsMemberAsync, HasDefaultFamilyAsync
 │   │       │   ├── InboxRepositoryTests.cs          — 7 tests: ExistsAsync×3, AddAsync×4
@@ -312,6 +325,7 @@ ExpenseManager/
 │   │           ├── ExpenseAuditServiceTests.cs      — 3 tests: WriteAddAuditAsync (log + after snapshot), WriteUpdateAuditAsync (log + before+after snapshots), WriteDeleteAuditAsync (log + before snapshot)
 │   │           ├── CurrencyRateServiceTests.cs      — 28 tests: ResolveRateAsync×5, AddManualRateAsync×2, BulkAdd×1, SetDefault×1, ResolveConflict×4, GetRateHistory×1, GetPendingConflicts×1, RunDailyUpdate×5, RefreshRatesFrom×7 (all/manualConflict/providerThrows/skipDest/sourceFilter/destFilter/unknownSource)
 │   │           ├── TagServiceTests.cs               — 10 unit tests (Moq): GetVisibleAsync×4, UseTagAsync×4, RemoveTagAsync×2
+│   │           ├── DashboardServiceTests.cs         — 20 unit tests: GetSummaryAsync×9 (empty, single-currency, conversion, null rate, +delta, -delta, null delta, top category, FamilyForbidden), GetMonthlyAsync×3 (grouping, category breakdown, rate date), GetCategoriesAsync×3 (subcategory grouping, uncategorised, percentages), GetSameMonthAcrossYearsAsync×2, GetByCurrencyAsync×1, GetRecentAsync×2
 │   │           └── FamilyServiceTests.cs            — 36 tests: CreateDefault, Create, GetByUser, GetById, Rename, Invite (incl. email send + failure non-propagation), AcceptInvite, RemoveMember, ChangeRole, Archive, Unarchive, Leave
 │   │
 │   └── users/

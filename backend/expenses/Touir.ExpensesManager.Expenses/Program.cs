@@ -147,6 +147,7 @@ builder.Services.AddScoped<IExpenseService, ExpenseService>();
 builder.Services.AddScoped<IFamilyService, FamilyService>();
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<ICurrencyRateService, CurrencyRateService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 #endregion
 
 #region Messaging
@@ -179,6 +180,7 @@ builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<ICurrencyRateRepository, CurrencyRateRepository>();
+builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 #endregion
 
 #region HttpClients

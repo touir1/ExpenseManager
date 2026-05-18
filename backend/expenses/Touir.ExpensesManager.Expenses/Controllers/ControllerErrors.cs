@@ -7,5 +7,6 @@ namespace Touir.ExpensesManager.Expenses.Controllers
         public const string ExpenseNotFound = "EXPENSE_NOT_FOUND";
         public const string MissingParameters = "MISSING_PARAMETERS";
         public const string TagNotFound = "TAG_NOT_FOUND";
+        public const string InvalidMonth = "INVALID_MONTH";
     }
 }

@@ -7,7 +7,7 @@ Reference: [application-description.md](application-description.md)
 | Area | Status |
 |------|--------|
 | Users service | ✅ Complete — auth, registration, JWT, refresh tokens, password management, FluentValidation |
-| Expenses service | ✅ Phase 1–6 complete — schema, categories/currencies, expense CRUD, family system, tags, currency rates (daily storage, resolution, auto-update via Quartz, backfill, conflict management, display currency conversion); Phase 7+ pending |
+| Expenses service | ✅ Phase 1–7 complete — schema, categories/currencies, expense CRUD, family system, tags, currency rates (daily storage, resolution, auto-update via Quartz, backfill, conflict management, display currency conversion), dashboard API; Phase 8+ pending |
 | Frontend | ⚠️ Auth + family management (incl. leave) + tag input + display currency selector (with search) complete; expense list/form + dashboard pending (Phase 8–9) |
 | Infrastructure | ✅ Docker Compose, nginx, PostgreSQL, RabbitMQ, Grafana, Prometheus |
 
@@ -372,14 +372,14 @@ Replace current model with:
 
 ### Backend — `DashboardController` / `DashboardService`
 
-- [ ] `GET /dashboard/summary` — total, vs. previous period, top category, count; params: `familyId`, `dateFrom`, `dateTo`, `displayCurrencyId`
-- [ ] `GET /dashboard/monthly` — total per month, last N months, broken down by category; params as above
-- [ ] `GET /dashboard/categories` — category + subcategory breakdown for period
-- [ ] `GET /dashboard/same-month-across-years` — given a month number, returns that month's total per year
-- [ ] `GET /dashboard/by-currency` — per-currency totals + converted sum
-- [ ] `GET /dashboard/recent` — last 10 expenses (same filters)
-- [ ] All endpoints scope to: Default family (all user expenses) or specific family (member vs. head rules apply)
-- [ ] Unit tests for aggregation logic
+- [x] `GET /dashboard/summary` — total, vs. previous period, top category, count; params: `familyId`, `dateFrom`, `dateTo`, `displayCurrencyId`
+- [x] `GET /dashboard/monthly` — total per month, last N months, broken down by category; params as above
+- [x] `GET /dashboard/categories` — category + subcategory breakdown for period
+- [x] `GET /dashboard/same-month-across-years` — given a month number, returns that month's total per year
+- [x] `GET /dashboard/by-currency` — per-currency totals + converted sum
+- [x] `GET /dashboard/recent` — last 10 expenses (same filters)
+- [x] All endpoints scope to: Default family (all user expenses) or specific family (member vs. head rules apply)
+- [x] Unit tests for aggregation logic (47 tests: 13 repository, 20 service, 14 controller)
 
 **Depends on:** Phase 4, Phase 5, Phase 6
 

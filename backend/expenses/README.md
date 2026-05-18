@@ -51,11 +51,19 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 | `GET` | `/rates/conflicts` | List pending rate conflicts → `RateConflictDto[]` |
 | `POST` | `/rates/conflicts/{id}/resolve` | Resolve conflict (AcceptAuto / KeepManual / Custom) → 204 or 400/404 |
 | `POST` | `/rates/refresh` | Backfill rates from provider → 204; body: `{ from: "YYYY-MM-DD", sourceCurrencyId?: int, destinationCurrencyId?: int }`; omit filters to refresh all pairs |
+| `GET` | `/dashboard/summary` | Total amount + count + previous-period delta (% change) + top category → `DashboardSummaryDto` |
+| `GET` | `/dashboard/monthly` | Per-month totals broken down by category → `MonthlyBreakdownDto[]`; default range = Jan 1 of current year → today |
+| `GET` | `/dashboard/categories` | Category/subcategory breakdown with percentages → `CategoryBreakdownDto[]` |
+| `GET` | `/dashboard/same-month-across-years` | Per-year totals for a given month (`?month=1–12`) → `SameMonthYearlyDto[]` |
+| `GET` | `/dashboard/by-currency` | Per-currency totals + converted amount + count → `CurrencyBreakdownDto[]` |
+| `GET` | `/dashboard/recent` | Last 10 expenses → `ExpensePagedResponse` |
 | `GET` | `/health` | Liveness/readiness probe |
 
 All endpoints (except `/health`) require authentication, enforced by nginx's `auth_request` subrequest to the users service before forwarding.
 
 `POST /expenses` and `PUT /expenses/{id}` return `403 Forbidden` if a provided `familyId` does not match a family the user belongs to, or if a `tagId` is not visible to the user (not in own tags or co-member tags).
+
+**Dashboard query params:** all dashboard endpoints accept `?familyId` (scope to family-attributed expenses; verifies membership → 403 if not member), `?displayCurrencyId` (currency conversion), `?dateFrom`/`?dateTo` (defaults: first day of current month → today for summary/categories/by-currency; Jan 1 of current year → today for monthly). `same-month-across-years` uses `?month=1–12` instead of date range.
 
 **Tag visibility:** a tag is visible if the user has adopted it (`UserTag` row exists) OR any co-member of a shared non-deleted family has adopted it. Attaching a tag to an expense auto-adopts it for the requesting user.
 
@@ -71,7 +79,13 @@ All endpoints (except `/health`) require authentication, enforced by nginx's `au
 **`TagListDto`** — `{ own: TagDto[], family: TagDto[] }`  
 **`ExpensePagedResponse`** — `{ items: ExpenseDto[], totalCount, page, pageSize, totalPages }`  
 **`RateDto`** — `{ sourceCurrencyId, destinationCurrencyId, date, rate, rateSource }`  
-**`RateConflictDto`** — `{ id, sourceCurrencyId, destinationCurrencyId, date, automaticRate, manualRate, status, resolvedAt? }`
+**`RateConflictDto`** — `{ id, sourceCurrencyId, destinationCurrencyId, date, automaticRate, manualRate, status, resolvedAt? }`  
+**`DashboardSummaryDto`** — `{ totalAmount, convertedTotal?, displayCurrency?: CurrencyDto, expenseCount, previousPeriodTotal?, changePercent?, topCategory?: SubcategoryDto, topCategoryAmount? }`  
+**`MonthlyBreakdownDto`** — `{ year, month, totalAmount, convertedTotal?, byCategory: CategoryAmountDto[] }`  
+**`CategoryAmountDto`** — `{ category?: SubcategoryDto, amount, convertedAmount? }`  
+**`CategoryBreakdownDto`** — `{ category?: SubcategoryDto, totalAmount, convertedTotal?, percentage, subcategories: CategoryAmountDto[] }`  
+**`SameMonthYearlyDto`** — `{ year, totalAmount, convertedTotal? }`  
+**`CurrencyBreakdownDto`** — `{ currency: CurrencyDto, totalAmount, convertedAmount?, expenseCount }`
 
 **Query params for `GET /expenses`:** `dateFrom`, `dateTo`, `categoryId`, `subcategoryId`, `currencyId`, `amountMin`, `amountMax`, `description` (substring), `tagIds[]` (OR filter), `displayCurrencyId`, `page` (default 1), `pageSize` (default 20)
 
