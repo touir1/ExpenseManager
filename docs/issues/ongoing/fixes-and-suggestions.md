@@ -10,7 +10,7 @@ These are the remaining unfixed issues from the [2026-03-22 QA report](qa_test_r
 
 | # | Priority | Area | Item |
 |---|----------|------|------|
-| QA-11 | 🟡 Moderate | Feature | Core "Expenses" feature is "Coming soon…" — the app's primary purpose is unimplemented |
+| ~~QA-11~~ | ~~🟡 Moderate~~ | ~~Feature~~ | ~~Core "Expenses" feature is "Coming soon…"~~ — ✅ resolved in v0.105.0: full expense CRUD UI shipped (list, add, edit, delete, filters, pagination). Dashboard card still shows "Coming soon…" placeholder text — see U-2 below. |
 | ~~QA-28~~ | ~~⚙️ Security~~ | ~~Feature~~ | ~~No brute-force / rate-limit protection on the Login form~~ — ✅ resolved in v0.92.0: backend rate limiting (10 req/1 min per IP) on login + all sensitive auth routes via .NET 8 `Microsoft.AspNetCore.RateLimiting` |
 
 ---
@@ -41,10 +41,10 @@ The dashboard currently uses vanilla `fetch`, React Hook Form + Zod for auth for
 
 *Moved to [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
 
-#### Phase 2 — Expenses feature (when expenses is built)
+#### Phase 2 — Expenses feature ✅ done ([v0.105.0](../../CHANGELOG.md))
 
-- **TanStack Query** (`@tanstack/react-query`): The expenses feature will need paginated lists, filters, background refetch, and cache invalidation. TanStack Query handles all of this and eliminates per-component `[loading, setLoading]` / `[data, setData]` patterns. `api.service.ts` stays as the low-level fetch layer; TanStack Query calls it. Auth mutations in `AuthContext` can remain as-is.
-- **Recharts** (`recharts`): An expense manager without charts is incomplete. Expected visualizations: spending over time (line), by category (pie/donut), monthly comparison (bar). Recharts is composable, TypeScript-friendly, and lightweight (~200 KB). New components go in `src/components/charts/`.
+- ~~**TanStack Query** (`@tanstack/react-query`): The expenses feature will need paginated lists, filters, background refetch, and cache invalidation.~~ ✅ Installed in v0.105.0 — `ExpensesPage` uses `useQuery(getExpenses)` + `refetch` after delete; `EditExpensePage` uses `useQuery(getExpenseById)`. `api.service.ts` remains the low-level fetch layer.
+- **Recharts** (`recharts`): An expense manager without charts is incomplete. Expected visualizations: spending over time (line), by category (pie/donut), monthly comparison (bar). Recharts is composable, TypeScript-friendly, and lightweight (~200 KB). New components go in `src/components/charts/`. *Dashboard charting (Phase 7 backend complete) awaits this frontend implementation.*
 
 #### Phase 3 — react-i18next ✅ done ([v0.72.0](../../CHANGELOG.md))
 
@@ -59,7 +59,7 @@ The dashboard currently uses vanilla `fetch`, React Hook Form + Zod for auth for
 
 | Priority | Issue | Note |
 |---|---|---|
-| Medium | `HomeDashboardPage.tsx` is a placeholder with no real content | Needs design before implementing |
+| Medium | `HomeDashboardPage.tsx` expenses card still shows "Coming soon…" | Phase 8 shipped the expenses routes; update card to link to `/expenses` and remove the placeholder text. Also wire the dashboard summary/charts cards using Phase 7 backend endpoints. |
 
 ---
 

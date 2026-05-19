@@ -42,6 +42,7 @@ export default function NavBar() {
     }
   }, [isAuthenticated, navigate])
 
+  const expensesClass = pathname.startsWith('/expenses') ? activeNavClass : inactiveNavClass
   const familiesClass = pathname === '/families' ? activeNavClass : inactiveNavClass
   const settingsClass =
     pathname === '/settings' || pathname === '/change-password' ? activeNavClass : inactiveNavClass
@@ -127,6 +128,9 @@ export default function NavBar() {
             <>
               <NavLink to="/dashboard" className={navLinkClass}>
                 {t('nav.dashboard')}
+              </NavLink>
+              <NavLink to="/expenses" className={() => expensesClass}>
+                {t('nav.expenses')}
               </NavLink>
               <NavLink to="/families" className={() => familiesClass}>
                 {t('nav.families')}
@@ -270,6 +274,13 @@ export default function NavBar() {
                 onClick={() => setMobileOpen(false)}
               >
                 {t('nav.dashboard')}
+              </NavLink>
+              <NavLink
+                to="/expenses"
+                className={() => expensesClass}
+                onClick={() => setMobileOpen(false)}
+              >
+                {t('nav.expenses')}
               </NavLink>
               <NavLink
                 to="/families"

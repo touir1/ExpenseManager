@@ -6,6 +6,19 @@ A record of improvement ideas from [fixes-and-suggestions.md](../ongoing/fixes-a
 
 ## Frontend
 
+### QA-11: Core Expenses feature — 2026-05-19 (v0.105.0)
+
+| Item | Resolution |
+|------|------------|
+| QA-11: "Coming soon…" placeholder | Full expense CRUD UI shipped: `ExpensesPage` (paginated list, filters, delete confirm), `AddExpensePage`, `EditExpensePage`, `ExpenseForm`, `ExpenseFilters`. Routes `/expenses`, `/expenses/add`, `/expenses/:id/edit` added. "Expenses" NavLink in desktop + mobile nav. 56 new tests, 644 total passing. |
+
+### Library adoption: Phase 2 (TanStack Query) — 2026-05-19 (v0.105.0)
+
+| Item | Resolution |
+|------|------------|
+| `@tanstack/react-query` | Installed v5.x; `QueryClientProvider` added to `AppProviders`. `ExpensesPage` uses `useQuery(getExpenses, filter)` + `refetch` after delete. `EditExpensePage` uses `useQuery(getExpenseById)`. Auth mutations in `AuthContext` remain unchanged. |
+| Zod v4 migration | `expense.schemas.ts` updated: `required_error`/`invalid_type_error` → `error:`; `z.preprocess` NaN coercion → `.catch(undefined)` to avoid type inference loss in Zod v4. |
+
 ### Library adoption: Phase 3 (react-i18next) — 2026-05-02 (v0.72.0)
 
 | Item | Resolution |

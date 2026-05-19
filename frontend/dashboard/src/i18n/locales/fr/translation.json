@@ -15,7 +15,8 @@
     "forFamilies": "Pour les familles",
     "pricing": "Tarifs",
     "help": "Aide",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "expenses": "Dépenses"
   },
   "auth": {
     "login": {
@@ -278,7 +279,72 @@
     "repeatPasswordRequired": "Veuillez répéter votre nouveau mot de passe.",
     "passwordsNoMatch": "Les nouveaux mots de passe ne correspondent pas.",
     "familyNameRequired": "Le nom de la famille est requis.",
-    "familyNameMax": "Le nom de la famille ne doit pas dépasser 30 caractères."
+    "familyNameMax": "Le nom de la famille ne doit pas dépasser 30 caractères.",
+    "required": "Ce champ est obligatoire."
+  },
+  "expenses": {
+    "pageTitle": "Dépenses",
+    "addTitle": "Ajouter une dépense",
+    "editTitle": "Modifier la dépense",
+    "noExpenses": "Aucune dépense trouvée.",
+    "addExpense": "Ajouter une dépense",
+    "firstExpense": "Ajoutez votre première dépense",
+    "fields": {
+      "amount": "Montant",
+      "currency": "Devise",
+      "date": "Date",
+      "category": "Catégorie",
+      "subcategory": "Sous-catégorie",
+      "noCategorySelected": "Sélectionnez d'abord une catégorie",
+      "description": "Description",
+      "tags": "Étiquettes",
+      "families": "Familles"
+    },
+    "filters": {
+      "title": "Filtres",
+      "toggle": "Filtres",
+      "dateFrom": "Du",
+      "dateTo": "Au",
+      "amountMin": "Montant min",
+      "amountMax": "Montant max",
+      "apply": "Appliquer",
+      "reset": "Réinitialiser"
+    },
+    "table": {
+      "date": "Date",
+      "amount": "Montant",
+      "category": "Catégorie",
+      "tags": "Étiquettes",
+      "actions": "Actions"
+    },
+    "actions": {
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "cancel": "Annuler"
+    },
+    "delete": {
+      "confirmTitle": "Supprimer la dépense ?",
+      "confirmBody": "Cette action est irréversible.",
+      "confirm": "Supprimer",
+      "cancel": "Annuler"
+    },
+    "errors": {
+      "loadFailed": "Échec du chargement des dépenses.",
+      "saveFailed": "Échec de l'enregistrement de la dépense.",
+      "deleteFailed": "Échec de la suppression de la dépense.",
+      "subcategoryRequiresCategory": "Sélectionnez d'abord une catégorie.",
+      "amountPositive": "Le montant doit être positif.",
+      "dateFormat": "Utilisez le format AAAA-MM-JJ."
+    },
+    "modifiedAt": "Dernière modification le {{date}} via {{source}}",
+    "uncategorised": "Non catégorisé",
+    "pagination": {
+      "prev": "← Précédent",
+      "next": "Suivant →",
+      "pageOf": "Page {{page}} sur {{total}}"
+    }
   },
   "language": {
     "label": "Langue",

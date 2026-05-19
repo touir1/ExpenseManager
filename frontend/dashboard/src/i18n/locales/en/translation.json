@@ -15,7 +15,8 @@
     "forFamilies": "For families",
     "pricing": "Pricing",
     "help": "Help",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "expenses": "Expenses"
   },
   "auth": {
     "login": {
@@ -278,7 +279,72 @@
     "repeatPasswordRequired": "Please repeat your new password.",
     "passwordsNoMatch": "New passwords do not match.",
     "familyNameRequired": "Family name is required.",
-    "familyNameMax": "Family name must be at most 30 characters."
+    "familyNameMax": "Family name must be at most 30 characters.",
+    "required": "This field is required."
+  },
+  "expenses": {
+    "pageTitle": "Expenses",
+    "addTitle": "Add Expense",
+    "editTitle": "Edit Expense",
+    "noExpenses": "No expenses found.",
+    "addExpense": "Add expense",
+    "firstExpense": "Add your first expense",
+    "fields": {
+      "amount": "Amount",
+      "currency": "Currency",
+      "date": "Date",
+      "category": "Category",
+      "subcategory": "Subcategory",
+      "noCategorySelected": "Select a category first",
+      "description": "Description",
+      "tags": "Tags",
+      "families": "Families"
+    },
+    "filters": {
+      "title": "Filters",
+      "toggle": "Filters",
+      "dateFrom": "From",
+      "dateTo": "To",
+      "amountMin": "Min amount",
+      "amountMax": "Max amount",
+      "apply": "Apply",
+      "reset": "Reset"
+    },
+    "table": {
+      "date": "Date",
+      "amount": "Amount",
+      "category": "Category",
+      "tags": "Tags",
+      "actions": "Actions"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel"
+    },
+    "delete": {
+      "confirmTitle": "Delete expense?",
+      "confirmBody": "This cannot be undone.",
+      "confirm": "Delete",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "loadFailed": "Failed to load expenses.",
+      "saveFailed": "Failed to save expense.",
+      "deleteFailed": "Failed to delete expense.",
+      "subcategoryRequiresCategory": "Select a category first.",
+      "amountPositive": "Amount must be positive.",
+      "dateFormat": "Use YYYY-MM-DD format."
+    },
+    "modifiedAt": "Last modified {{date}} via {{source}}",
+    "uncategorised": "Uncategorised",
+    "pagination": {
+      "prev": "← Previous",
+      "next": "Next →",
+      "pageOf": "Page {{page}} of {{total}}"
+    }
   },
   "language": {
     "label": "Language",

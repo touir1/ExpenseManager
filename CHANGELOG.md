@@ -3,6 +3,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.105.0] - 2026-05-19
+### Added
+- **Phase 8 — Frontend Expense List & Form**: Full CRUD UI for expenses.
+  - **`ExpensesPage`** (`/expenses`): paginated expense table with date, amount (converted if display currency differs), category, description, tags columns; inline Edit/Delete actions; `ConfirmDeleteModal` before deletion; `ExpenseFilters` panel integration; empty-state with "Add your first expense" link; pagination controls when `totalPages > 1`; uses TanStack Query `useQuery` + `deleteExpense`.
+  - **`AddExpensePage`** (`/expenses/add`): `ExpenseForm` wired to `addExpense`; navigates to `/expenses` on success.
+  - **`EditExpensePage`** (`/expenses/:id/edit`): fetches expense via `useQuery(getExpenseById)`; pre-fills `ExpenseForm`; wired to `updateExpense`; shows loading/not-found states.
+  - **`ExpenseForm`**: RHF + Zod form with amount, currency, date, category, subcategory (conditional), description, tags, families fields; `isSubmitting` prop for disabled state.
+  - **`ExpenseFilters`**: collapsible filter panel (date range, category/subcategory, currency, amount range, description); `aria-expanded` toggle; resets page to 1 on apply.
+  - **Router**: Added `/expenses`, `/expenses/add`, `/expenses/:id/edit` routes (all `ProtectedRoute`).
+  - **NavBar**: Added "Expenses" NavLink in desktop nav and mobile menu (active for all `/expenses/*` paths).
+  - **Zod schema fix**: `expense.schemas.ts` updated to Zod v4 API (`error:` replaces deprecated `required_error:`/`invalid_type_error:`); `categoryId`/`subcategoryId` use `.catch(undefined)` to silently coerce NaN (from disabled RHF selects) to `undefined`.
+  - **Tests**: 56 new tests across `ExpensesPage`, `AddExpensePage`, `EditExpensePage`, `ExpenseForm`, `ExpenseFilters`.
+
 ## [0.104.0] - 2026-05-18
 ### Added
 - **Dashboard API (Phase 7 — expenses service)**: 6 new aggregation endpoints under `GET /dashboard/*` powering all dashboard charts and summary cards.

@@ -15,7 +15,8 @@
     "forFamilies": "Für Familien",
     "pricing": "Preise",
     "help": "Hilfe",
-    "notifications": "Benachrichtigungen"
+    "notifications": "Benachrichtigungen",
+    "expenses": "Ausgaben"
   },
   "auth": {
     "login": {
@@ -278,7 +279,72 @@
     "repeatPasswordRequired": "Bitte wiederhole dein neues Passwort.",
     "passwordsNoMatch": "Die neuen Passwörter stimmen nicht überein.",
     "familyNameRequired": "Familienname ist erforderlich.",
-    "familyNameMax": "Familienname darf maximal 30 Zeichen lang sein."
+    "familyNameMax": "Familienname darf maximal 30 Zeichen lang sein.",
+    "required": "Dieses Feld ist erforderlich."
+  },
+  "expenses": {
+    "pageTitle": "Ausgaben",
+    "addTitle": "Ausgabe hinzufügen",
+    "editTitle": "Ausgabe bearbeiten",
+    "noExpenses": "Keine Ausgaben gefunden.",
+    "addExpense": "Ausgabe hinzufügen",
+    "firstExpense": "Füge deine erste Ausgabe hinzu",
+    "fields": {
+      "amount": "Betrag",
+      "currency": "Währung",
+      "date": "Datum",
+      "category": "Kategorie",
+      "subcategory": "Unterkategorie",
+      "noCategorySelected": "Zuerst eine Kategorie wählen",
+      "description": "Beschreibung",
+      "tags": "Schlagwörter",
+      "families": "Familien"
+    },
+    "filters": {
+      "title": "Filter",
+      "toggle": "Filter",
+      "dateFrom": "Von",
+      "dateTo": "Bis",
+      "amountMin": "Mindestbetrag",
+      "amountMax": "Höchstbetrag",
+      "apply": "Anwenden",
+      "reset": "Zurücksetzen"
+    },
+    "table": {
+      "date": "Datum",
+      "amount": "Betrag",
+      "category": "Kategorie",
+      "tags": "Schlagwörter",
+      "actions": "Aktionen"
+    },
+    "actions": {
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "save": "Speichern",
+      "saving": "Speichern…",
+      "cancel": "Abbrechen"
+    },
+    "delete": {
+      "confirmTitle": "Ausgabe löschen?",
+      "confirmBody": "Dies kann nicht rückgängig gemacht werden.",
+      "confirm": "Löschen",
+      "cancel": "Abbrechen"
+    },
+    "errors": {
+      "loadFailed": "Ausgaben konnten nicht geladen werden.",
+      "saveFailed": "Ausgabe konnte nicht gespeichert werden.",
+      "deleteFailed": "Ausgabe konnte nicht gelöscht werden.",
+      "subcategoryRequiresCategory": "Zuerst eine Kategorie wählen.",
+      "amountPositive": "Betrag muss positiv sein.",
+      "dateFormat": "Format JJJJ-MM-TT verwenden."
+    },
+    "modifiedAt": "Zuletzt geändert {{date}} via {{source}}",
+    "uncategorised": "Ohne Kategorie",
+    "pagination": {
+      "prev": "← Zurück",
+      "next": "Weiter →",
+      "pageOf": "Seite {{page}} von {{total}}"
+    }
   },
   "language": {
     "label": "Sprache",

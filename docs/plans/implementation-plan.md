@@ -8,7 +8,7 @@ Reference: [application-description.md](application-description.md)
 |------|--------|
 | Users service | ✅ Complete — auth, registration, JWT, refresh tokens, password management, FluentValidation |
 | Expenses service | ✅ Phase 1–7 complete — schema, categories/currencies, expense CRUD, family system, tags, currency rates (daily storage, resolution, auto-update via Quartz, backfill, conflict management, display currency conversion), dashboard API; Phase 8+ pending |
-| Frontend | ⚠️ Auth + family management (incl. leave) + tag input + display currency selector (with search) complete; expense list/form + dashboard pending (Phase 8–9) |
+| Frontend | ⚠️ Auth + family management (incl. accept invite, leave) + tag input + display currency selector + expense list/form (Phase 8 core) complete; dashboard charts, bulk ops, live currency preview pending (Phase 9) |
 | Infrastructure | ✅ Docker Compose, nginx, PostgreSQL, RabbitMQ, Grafana, Prometheus |
 
 ---
@@ -296,7 +296,7 @@ Replace current model with:
 - [x] `familyApi.service.ts`
 - [x] Family selector component (sidebar / top bar) — switch active family scope
 - [x] Family management screen (list, create, invite, archive, member management)
-- [ ] Update expense add/edit form — family multi-select (Default always checked) — deferred to Phase 8 (expense form not yet built)
+- [x] Update expense add/edit form — family multi-select (Default always checked) — implemented in Phase 8 via `ExpenseForm`
 
 **Depends on:** Phase 3
 
@@ -328,8 +328,8 @@ Replace current model with:
 - [x] `tag.type.ts` — `Tag { id, name }`, `TagList { own, family }`
 - [x] `tagsApi.service.ts` — `getTags()`, `useTag(name)`, `removeTag(id)`
 - [x] `TagInput.tsx` — grouped combobox: "My tags" / "Family tags" sections, chip display, "Create" option when no exact match, keyboard (Enter / Escape / Backspace); 13 component tests
-- [ ] Wire `TagInput` into add/edit expense form — deferred to Phase 8
-- [ ] Tag filter in expense list — deferred to Phase 8
+- [x] Wire `TagInput` into add/edit expense form — implemented in Phase 8 via `ExpenseForm`
+- [ ] Tag filter in expense list — deferred to Phase 9+
 
 **Depends on:** Phase 3
 
@@ -359,8 +359,8 @@ Replace current model with:
 ### Frontend
 
 - [x] `DisplayCurrencySelector` — session state (not persisted), search by code/name, NavBar integration
-- [ ] Expense list: show original + converted amount (deferred to Phase 8)
-- [ ] Add/edit form: live converted amount preview (deferred to Phase 8)
+- [x] Expense list: show original + converted amount — implemented in Phase 8 (`ExpensesPage` shows `convertedAmount`/`displayCurrency` when present)
+- [ ] Add/edit form: live converted amount preview — deferred to Phase 9+
 
 **Depends on:** Phase 2, Phase 3
 
@@ -391,23 +391,25 @@ Replace current model with:
 
 ### Tasks
 
-- [ ] Install TanStack Query (`@tanstack/react-query`) — replaces manual `[loading, data]` state for expense data
-- [ ] `ExpensesPage` — paginated table with filters sidebar
-  - Date range, category/subcategory (multi-select + "Uncategorised"), tags, currency, amount range, member (head view)
-  - Full-text search on description
-  - Edit inline or modal
-  - Delete (own only; head sees delete for others = "remove from family")
-  - Bulk select → bulk delete / export CSV
-- [ ] `AddExpensePage` / `EditExpensePage` (or modal)
-  - All fields per spec
-  - Category optional; subcategory cascades
-  - Tag autocomplete
-  - Family multi-select (Default always checked)
-  - Live converted amount preview
-  - Edit screen: shows modified by / at / from
-- [ ] Zod schemas + React Hook Form for add/edit
-- [ ] i18n coverage for all new strings
-- [ ] Tests: form validation, list rendering, filter state
+- [x] Install TanStack Query (`@tanstack/react-query`) v5 — `useQuery` for expense list + edit prefetch
+- [x] `ExpensesPage` — paginated table with filters sidebar
+  - [x] Date range, category/subcategory, currency, amount range filters (`ExpenseFilters`)
+  - [x] Description search
+  - [x] Delete own expense (confirm modal)
+  - [x] Shows original + converted amount when display currency differs
+  - [ ] Tag filter in `ExpenseFilters` — deferred to Phase 9+
+  - [ ] Bulk select → bulk delete / export CSV — deferred to Phase 11+
+  - [ ] Head "remove from family" action — deferred to Phase 9+
+- [x] `AddExpensePage` / `EditExpensePage` (separate pages, not modal)
+  - [x] All fields: amount, currency, date, category, subcategory, description
+  - [x] Category optional; subcategory cascades (disabled when no category selected)
+  - [x] Tag autocomplete via `TagInput`
+  - [x] Family multi-select (Default always included)
+  - [ ] Live converted amount preview — deferred to Phase 9+
+  - [ ] Edit screen: shows modified by / at / from — deferred to Phase 9+
+- [x] `ExpenseForm` — shared form component with Zod v4 schemas + React Hook Form
+- [x] i18n coverage for all new strings (en/fr/es/de)
+- [x] Tests: 56 new tests (13 `ExpensesPage`, 15 `AddExpensePage`, 14 `EditExpensePage`, 14 `ExpenseForm`); 644 total passing
 
 **Depends on:** Phase 4, Phase 5, Phase 6
 
@@ -448,7 +450,7 @@ Replace current model with:
 - [x] Archive / unarchive family (head only; Default family: no archive option rendered)
 - [x] Rename family, family settings
 - [x] Leave family — `DELETE /families/{id}/leave`; heads blocked if last head (`FAMILY_CANNOT_LEAVE_LAST_HEAD`); button in expanded detail panel; 6 service tests
-- [ ] Accept invite flow (email link → web page)
+- [x] Accept invite flow (email link → web page) — `AcceptInvitePage` at `/families/accept-invite?token=`
 - [ ] Notification when attribution removed (in-app)
 - [x] i18n coverage — all 4 locales (en/fr/es/de) complete for families + currencies sections
 - [ ] Tests — `FamiliesPage.test.tsx` exists (layout, cards, detail panel, create/rename modals) but missing coverage for leave button and `DisplayCurrencySelector` search

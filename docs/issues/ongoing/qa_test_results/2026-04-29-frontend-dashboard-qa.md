@@ -31,7 +31,7 @@ Fixed items: [F-1, F-2, F-3, F-4, U-1, U-3, S-1](../../../fixed/qa/2026-04-29-fr
 - **Pages tested:** `/` (home), `/login`, `/register`, `/reset-password`, `/dashboard`, `/settings`, `/change-password`
 - **API endpoints exercised:** `/auth/session`, `/auth/refresh`, `/auth/login`, `/auth/logout`, `/auth/register`, `/auth/validate-email`, `/auth/change-password-reset`
 - **Email flows tested:** Registration verification email (Mailpit)
-- **Expenses CRUD:** Not testable — feature stub ("Coming soon…")
+- **Expenses CRUD:** Not tested in this session — feature was a stub. Full CRUD UI shipped in v0.105.0; a fresh QA session on `/expenses` is needed.
 
 ---
 
@@ -51,11 +51,11 @@ Fixed items: [F-1, F-2, F-3, F-4, U-1, U-3, S-1](../../../fixed/qa/2026-04-29-fr
 
 ## UX/UI Issues
 
-### U-2 — Expenses card on dashboard shows "Coming soon…" with no context (Info)
+### U-2 — Expenses card on dashboard shows "Coming soon…" with no context (Info) — ⚠️ Partially addressed
 
-The Expenses card on `/dashboard` is a placeholder. No link, no ETA, no description of what it will do.
+The Expenses card on `/dashboard` still shows the placeholder text "Coming soon…". The route `/expenses` now exists (v0.105.0) but `HomeDashboardPage.tsx` has not been updated to link to it.
 
-**Recommendation:** Add a short descriptive sentence and either disable the card visually or hide it until the feature ships.
+**Remaining work:** Replace placeholder text with a link/summary card pointing to `/expenses` and wire Phase 7 dashboard API endpoints into the dashboard page.
 
 ---
 

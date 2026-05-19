@@ -642,16 +642,34 @@ ExpenseManager/
 │           │   │       └── DisplayCurrencyContext.test.tsx — 5 tests: default null, set/clear, persist on rerender, throws outside provider
 │           │   ├── expenses/          — Expense management feature
 │           │   │   ├── types/
-│           │   │   │   └── expenses.type.ts     — Category, Subcategory, Currency types
+│           │   │   │   └── expenses.type.ts     — Category, Subcategory, Currency, ExpenseDto, ExpenseFilter, ExpensePagedResponse types
 │           │   │   ├── services/
 │           │   │   │   ├── categoriesApi.service.ts — getCategories() → GET /api/expenses/categories
 │           │   │   │   ├── currenciesApi.service.ts — getCurrencies() → GET /api/expenses/currencies
+│           │   │   │   ├── expensesApi.service.ts  — getExpenses(filter), getExpenseById(id), addExpense, updateExpense, deleteExpense
 │           │   │   │   └── __tests__/
 │           │   │   │       ├── categoriesApi.service.test.ts
-│           │   │   │       └── currenciesApi.service.test.ts
+│           │   │   │       ├── currenciesApi.service.test.ts
+│           │   │   │       └── expensesApi.service.test.ts
+│           │   │   ├── components/
+│           │   │   │   ├── ExpenseForm.tsx     — RHF+Zod form: amount, currency, date, category, subcategory (conditional), description, tags, families
+│           │   │   │   ├── ExpenseFilters.tsx  — Collapsible filter panel; toggle with aria-expanded; resets page to 1 on apply
+│           │   │   │   └── __tests__/
+│           │   │   │       ├── ExpenseForm.test.tsx
+│           │   │   │       └── ExpenseFilters.test.tsx
+│           │   │   ├── pages/
+│           │   │   │   ├── ExpensesPage.tsx    — Paginated expense table; delete confirm modal; filter panel; empty state
+│           │   │   │   ├── AddExpensePage.tsx  — Add expense form page
+│           │   │   │   ├── EditExpensePage.tsx — Edit expense form page; fetches by id via useQuery
+│           │   │   │   └── __tests__/
+│           │   │   │       ├── ExpensesPage.test.tsx
+│           │   │   │       ├── AddExpensePage.test.tsx
+│           │   │   │       └── EditExpensePage.test.tsx
+│           │   │   ├── expense.schemas.ts  — makeExpenseSchema(t): Zod v4 schema; categoryId/subcategoryId use .catch(undefined) to coerce NaN
 │           │   │   ├── ExpensesDataContext.tsx  — ExpensesDataProvider / useExpensesData(); fetches categories + currencies on mount
 │           │   │   └── __tests__/
-│           │   │       └── ExpensesDataContext.test.tsx
+│           │   │       ├── ExpensesDataContext.test.tsx
+│           │   │       └── expense.schemas.test.ts
 │           │   ├── dashboard/         — Authenticated dashboard feature
 │           │   │   └── pages/
 │           │   │       ├── HomeDashboardPage.tsx — Dashboard home; shows user greeting and cards
