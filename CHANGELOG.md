@@ -3,6 +3,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.105.1] - 2026-05-19
+### Fixed
+- **ExpenseController route**: Changed `[Route("expenses")]` → `[Route("")]` so expense CRUD lives at the expenses service root; was reachable only at `/api/expenses/expenses` (double segment) through nginx.
+- **nginx expenses routing**: `location /api/expenses/` replaced with `location /api/expenses` + `rewrite ^/api/expenses/?(.*)$ /$1 break` so both bare `/api/expenses` (collection GET/POST) and `/api/expenses/{id}` (individual ops) route correctly; all sub-controller paths (`/categories`, `/currencies`, `/families`, `/tags`, `/rates`, `/dashboard`) continue to work unchanged.
+- **TagService concurrent DbContext crash**: `GetVisibleAsync` used `Task.WhenAll(GetOwnAsync, GetFamilyAsync)` — both tasks shared the same scoped `ExpensesDbContext`, causing `InvalidOperationException: A second operation was started on this context instance before a previous operation completed` on `GET /api/expenses/tags`. Fixed by awaiting sequentially.
+
 ## [0.105.0] - 2026-05-19
 ### Added
 - **Phase 8 — Frontend Expense List & Form**: Full CRUD UI for expenses.

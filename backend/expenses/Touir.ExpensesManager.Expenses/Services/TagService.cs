@@ -16,14 +16,13 @@ namespace Touir.ExpensesManager.Expenses.Services
 
         public async Task<TagListDto> GetVisibleAsync(int userId)
         {
-            var ownTask = _tagRepository.GetOwnAsync(userId);
-            var familyTask = _tagRepository.GetFamilyAsync(userId);
-            await Task.WhenAll(ownTask, familyTask);
+            var own = await _tagRepository.GetOwnAsync(userId);
+            var family = await _tagRepository.GetFamilyAsync(userId);
 
             return new TagListDto
             {
-                Own = ownTask.Result.Select(MapToDto),
-                Family = familyTask.Result.Select(MapToDto)
+                Own = own.Select(MapToDto),
+                Family = family.Select(MapToDto)
             };
         }
 

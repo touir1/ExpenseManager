@@ -26,11 +26,11 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 |--------|------|-------------|
 | `GET` | `/categories` | Active category tree (top-level + subcategories, archived excluded) → `CategoryDto[]` |
 | `GET` | `/currencies` | All currencies → `CurrencyDto[]` |
-| `POST` | `/expenses` | Create expense → `ExpenseDto` (201) |
-| `PUT` | `/expenses/{id}` | Update expense → `ExpenseDto` (200) or 404 |
-| `DELETE` | `/expenses/{id}` | Soft-delete expense → 204 or 404 |
-| `GET` | `/expenses/{id}` | Get expense by id → `ExpenseDto` (200) or 404 |
-| `GET` | `/expenses` | Paged + filtered expense list → `ExpensePagedResponse` |
+| `POST` | `/` | Create expense → `ExpenseDto` (201) |
+| `PUT` | `/{id}` | Update expense → `ExpenseDto` (200) or 404 |
+| `DELETE` | `/{id}` | Soft-delete expense → 204 or 404 |
+| `GET` | `/{id}` | Get expense by id → `ExpenseDto` (200) or 404 |
+| `GET` | `/` | Paged + filtered expense list → `ExpensePagedResponse` |
 | `GET` | `/families` | List families for authenticated user → `FamilyDto[]` |
 | `POST` | `/families` | Create a new family → `FamilyDto` (201) |
 | `GET` | `/families/{id}` | Family detail with members → `FamilyDetailDto` (200) or 403/404 |
