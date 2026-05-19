@@ -8,7 +8,7 @@ using Touir.ExpensesManager.Expenses.Services.Contracts;
 
 namespace Touir.ExpensesManager.Expenses.Controllers
 {
-    [Route("expenses")]
+    [Route("")]
     [ApiController]
     [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("expenses_global")]
     public class ExpenseController : ControllerBase
