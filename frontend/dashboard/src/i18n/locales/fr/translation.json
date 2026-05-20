@@ -102,8 +102,12 @@
   "dashboard": {
     "pageTitle": "Tableau de bord",
     "title": "Tableau de bord",
-    "welcome": "Bienvenue {{name}} ! Ceci est votre page d'accueil privée.",
+    "greeting": "Bonjour, {{name}}",
+    "defaultName": "vous",
     "loading": "Chargement du tableau de bord",
+    "empty": "Aucune dépense pour cette période",
+    "noData": "Aucune donnée disponible",
+    "noCurrencies": "Aucune devise pour cette période",
     "account": {
       "title": "Compte",
       "signedInAs": "Connecté en tant que"
@@ -115,6 +119,27 @@
     "expenses": {
       "title": "Dépenses",
       "comingSoon": "Bientôt disponible…"
+    },
+    "filters": {
+      "thisMonth": "Ce mois",
+      "thisYear": "Cette année"
+    },
+    "summary": {
+      "total": "Total des dépenses",
+      "vs": "vs période préc.",
+      "expenses": "dépenses",
+      "converted": "converti"
+    },
+    "charts": {
+      "monthly": "Dépenses mensuelles",
+      "categories": "Par catégorie",
+      "sameMonth": "{{month}} sur plusieurs années",
+      "currencies": "Par devise"
+    },
+    "recent": {
+      "title": "Dépenses récentes",
+      "viewAll": "Tout voir",
+      "empty": "Aucune dépense récente"
     }
   },
   "settings": {

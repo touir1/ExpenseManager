@@ -3,6 +3,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.106.0] - 2026-05-20
+### Added
+- **Phase 9 — Frontend Dashboard (Hearth design)**: Full data-driven dashboard replacing the placeholder `HomeDashboardPage`.
+  - **`dashboard.type.ts`**: TS types matching all 6 backend dashboard DTOs (`DashboardSummaryDto`, `MonthlyBreakdownDto`, `CategoryBreakdownDto`, `SameMonthYearlyDto`, `CurrencyBreakdownDto`, `DashboardFilter`).
+  - **`dashboardApi.service.ts`**: 6 API functions (`getSummary`, `getMonthly`, `getCategories`, `getSameMonthYearly`, `getByCurrency`, `getRecent`) — base path `/api/expenses/dashboard`.
+  - **`MonthHero`**: Summary card with total amount, ±% delta chip (green/red), expense count, top-category pill; skeleton on loading.
+  - **`SpendChart`**: Recharts `ComposedChart` — stacked bar by category + monthly-average line; 12-month window; empty state.
+  - **`CategoryDonut`**: Recharts `PieChart` (donut) + right-side legend with category name, amount, and %; empty state.
+  - **`SameMonthChart`**: Recharts `BarChart` — year-over-year comparison for the selected month; empty state.
+  - **`CurrenciesPanel`**: Per-currency rows showing symbol, code, total, converted amount (when present), and expense count.
+  - **`RecentExpenses`**: Scrollable list of 10 latest expenses — date, description, category pill, amount+symbol; "View all" → `/expenses`; skeleton + empty state.
+  - **`DashboardFilters`**: Family selector + display-currency select + date-range inputs; "This month"/"This year" preset buttons with `aria-pressed`; lifts filter state to page.
+  - **`HomeDashboardPage`**: Hearth 2-col grid layout (1-col mobile); 6 `useQuery` calls (TanStack React Query); filter state shared across all queries.
+  - **i18n**: Added `dashboard.*` keys to all 4 locale files (EN, FR, ES, DE).
+  - **`recharts`** package added to `frontend/dashboard/`.
+  - **Tests**: 9 test files — `dashboardApi.service.test.ts` (6 API functions), component tests for all 7 components, and updated `HomeDashboardPage.test.tsx` (7 integration tests with mocked contexts + React Query).
+
 ## [0.105.1] - 2026-05-19
 ### Fixed
 - **ExpenseController route**: Changed `[Route("expenses")]` → `[Route("")]` so expense CRUD lives at the expenses service root; was reachable only at `/api/expenses/expenses` (double segment) through nginx.

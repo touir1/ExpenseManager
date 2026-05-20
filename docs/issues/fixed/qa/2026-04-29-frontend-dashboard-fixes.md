@@ -5,6 +5,21 @@ Items below were identified in the 2026-04-29 QA session and subsequently resolv
 
 ---
 
+## U-2 — ~~Expenses card on dashboard shows "Coming soon…" with no context~~ ✅ FIXED
+
+**Severity:** Info  
+**Affected route:** `/dashboard`
+
+**Root cause:** `HomeDashboardPage.tsx` was a placeholder; Phase 7 backend dashboard endpoints existed but were not wired to any frontend.
+
+**Fix applied (v0.106.0 — Phase 9 Hearth dashboard):**
+- Full `HomeDashboardPage` replaced with the Hearth 2-col layout wiring all 6 Phase 7 endpoints (`/dashboard/summary`, `/monthly`, `/categories`, `/same-month-across-years`, `/by-currency`, `/recent`) via TanStack React Query.
+- New components: `MonthHero`, `SpendChart`, `CategoryDonut`, `SameMonthChart`, `CurrenciesPanel`, `RecentExpenses`, `DashboardFilters`.
+- `recharts` installed; charts render real data.
+- "Coming soon…" placeholder text completely removed.
+
+---
+
 ## F-4 — ~~No max-length validation on registration name fields~~ ✅ FIXED
 
 **Severity:** Medium  

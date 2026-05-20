@@ -102,8 +102,12 @@
   "dashboard": {
     "pageTitle": "Panel",
     "title": "Panel",
-    "welcome": "¡Bienvenido {{name}}! Esta es tu página de inicio privada.",
+    "greeting": "Hola, {{name}}",
+    "defaultName": "ahí",
     "loading": "Cargando panel",
+    "empty": "Sin gastos para este período",
+    "noData": "Sin datos disponibles",
+    "noCurrencies": "Sin divisas para este período",
     "account": {
       "title": "Cuenta",
       "signedInAs": "Conectado como"
@@ -115,6 +119,27 @@
     "expenses": {
       "title": "Gastos",
       "comingSoon": "Próximamente…"
+    },
+    "filters": {
+      "thisMonth": "Este mes",
+      "thisYear": "Este año"
+    },
+    "summary": {
+      "total": "Gasto total",
+      "vs": "vs período ant.",
+      "expenses": "gastos",
+      "converted": "convertido"
+    },
+    "charts": {
+      "monthly": "Gastos mensuales",
+      "categories": "Por categoría",
+      "sameMonth": "{{month}} en años anteriores",
+      "currencies": "Por divisa"
+    },
+    "recent": {
+      "title": "Gastos recientes",
+      "viewAll": "Ver todos",
+      "empty": "Sin gastos recientes"
     }
   },
   "settings": {

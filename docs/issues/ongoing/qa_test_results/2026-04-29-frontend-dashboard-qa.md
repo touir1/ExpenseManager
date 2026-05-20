@@ -18,9 +18,9 @@ The Expenses Manager frontend is well-structured and functional. Authentication,
 | High | 2 | 1 | 1 |
 | Medium | 4 | 0 | 4 |
 | Low | 4 | 3 | 1 |
-| Info | 3 | 3 | 0 |
+| Info | 3 | 2 | 1 |
 
-Fixed items: [F-1, F-2, F-3, F-4, U-1, U-3, S-1](../../../fixed/qa/2026-04-29-frontend-dashboard-fixes.md)
+Fixed items: [F-1, F-2, F-3, F-4, U-1, U-2, U-3, S-1](../../../fixed/qa/2026-04-29-frontend-dashboard-fixes.md)
 
 ---
 
@@ -51,11 +51,9 @@ Fixed items: [F-1, F-2, F-3, F-4, U-1, U-3, S-1](../../../fixed/qa/2026-04-29-fr
 
 ## UX/UI Issues
 
-### U-2 — Expenses card on dashboard shows "Coming soon…" with no context (Info) — ⚠️ Partially addressed
+### ~~U-2 — Expenses card on dashboard shows "Coming soon…" with no context (Info)~~ ✅ FIXED in v0.106.0
 
-The Expenses card on `/dashboard` still shows the placeholder text "Coming soon…". The route `/expenses` now exists (v0.105.0) but `HomeDashboardPage.tsx` has not been updated to link to it.
-
-**Remaining work:** Replace placeholder text with a link/summary card pointing to `/expenses` and wire Phase 7 dashboard API endpoints into the dashboard page.
+See [2026-04-29-frontend-dashboard-fixes.md](../../../fixed/qa/2026-04-29-frontend-dashboard-fixes.md) for details. Full Hearth dashboard implemented; all Phase 7 endpoints wired.
 
 ---
 

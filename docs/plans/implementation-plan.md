@@ -8,7 +8,7 @@ Reference: [application-description.md](application-description.md)
 |------|--------|
 | Users service | ✅ Complete — auth, registration, JWT, refresh tokens, password management, FluentValidation |
 | Expenses service | ✅ Phase 1–7 complete — schema, categories/currencies, expense CRUD, family system, tags, currency rates (daily storage, resolution, auto-update via Quartz, backfill, conflict management, display currency conversion), dashboard API; Phase 8+ pending |
-| Frontend | ⚠️ Auth + family management (incl. accept invite, leave) + tag input + display currency selector + expense list/form (Phase 8 core) complete; dashboard charts, bulk ops, live currency preview pending (Phase 9) |
+| Frontend | ⚠️ Auth + family management (incl. accept invite, leave) + tag input + display currency selector + expense list/form (Phase 8) + dashboard (Phase 9 — Hearth design) complete; bulk ops, live currency preview, admin screens pending (Phase 10+) |
 | Infrastructure | ✅ Docker Compose, nginx, PostgreSQL, RabbitMQ, Grafana, Prometheus |
 
 ---
@@ -25,7 +25,7 @@ Reference: [application-description.md](application-description.md)
 | 6 | Currency Rates | Daily rates, resolution logic, auto-update |
 | 7 | Dashboard API | Aggregation and stats endpoints |
 | 8 | Frontend — Expense List & Form | Web UI for expenses |
-| 9 | Frontend — Dashboard | Charts and summary |
+| 9 | Frontend — Dashboard ✅ | Charts and summary (Hearth design, v0.106.0) |
 | 10 | Frontend — Family Management | Web UI for families |
 | 11 | Admin Screens | Categories, currencies, rates, rate validation, users |
 | 12 | CSV Import | Bulk expense upload |
@@ -415,24 +415,29 @@ Replace current model with:
 
 ---
 
-## Phase 9 — Frontend: Dashboard
+## Phase 9 — Frontend: Dashboard ✅ Complete (v0.106.0)
 
 **Goal:** Replace "Coming soon" placeholder with real charts and stats.
 
 ### Tasks
 
-- [ ] Install Recharts (`recharts`)
-- [ ] Dashboard layout: family selector, display currency selector, date range picker
-- [ ] Summary cards (total, delta vs. previous, top category, count)
-- [ ] Monthly bar chart — stacked by category, 12 months
-- [ ] Category/subcategory donut chart (uncategorised as own segment)
-- [ ] Monthly average overlay line on bar chart
-- [ ] "Same month across years" chart
-- [ ] Per-currency breakdown panel
-- [ ] Recent expenses panel (last 10, links to expenses screen)
-- [ ] All charts respond to family scope and display currency changes
-- [ ] i18n coverage
-- [ ] Tests: chart rendering with mock data, currency conversion display
+- [x] Install Recharts (`recharts`)
+- [x] Dashboard layout: `DashboardFilters` — family selector, display currency selector, date range picker with "This month" / "This year" preset buttons (`aria-pressed`)
+- [x] `MonthHero` — total amount, ±% delta chip (green/red), expense count, top category pill; skeleton on loading
+- [x] `SpendChart` — Recharts `ComposedChart`: stacked bar by category + monthly average line overlay, 12-month window
+- [x] `CategoryDonut` — Recharts `PieChart` (donut) with right-side legend (name, amount, %)
+- [x] `SameMonthChart` — Recharts `BarChart`: year-over-year comparison for selected month
+- [x] `CurrenciesPanel` — per-currency rows: symbol, code, total, converted amount when present, count
+- [x] `RecentExpenses` — last 10 expenses feed; "View all" → `/expenses`; skeleton + empty states
+- [x] All components respond to `DashboardFilter` state (family, currency, date range) via `useQuery` refetch
+- [x] i18n coverage — `dashboard.*` keys in all 4 locale files (en/fr/es/de)
+- [x] `dashboard.type.ts` — `DashboardSummaryDto`, `MonthlyBreakdownDto`, `CategoryBreakdownDto`, `SameMonthYearlyDto`, `CurrencyBreakdownDto`, `DashboardFilter`
+- [x] `dashboardApi.service.ts` — 6 API functions wiring all Phase 7 endpoints
+- [x] Tests: 9 test files — `dashboardApi.service.test.ts`, 7 component tests, updated `HomeDashboardPage.test.tsx` (full mock suite + `QueryClientProvider`)
+- [ ] Tag filter in `ExpenseFilters` — deferred to Phase 10+
+- [ ] Live converted amount preview in add/edit form — deferred to Phase 10+
+- [ ] Edit screen: shows modified by / at / from — deferred to Phase 10+
+- [ ] Head "remove from family" action in expense list — deferred to Phase 10+
 
 **Depends on:** Phase 7, Phase 8 (for shared components)
 

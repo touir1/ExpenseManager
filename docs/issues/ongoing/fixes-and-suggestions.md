@@ -44,7 +44,7 @@ The dashboard currently uses vanilla `fetch`, React Hook Form + Zod for auth for
 #### Phase 2 — Expenses feature ✅ done ([v0.105.0](../../CHANGELOG.md))
 
 - ~~**TanStack Query** (`@tanstack/react-query`): The expenses feature will need paginated lists, filters, background refetch, and cache invalidation.~~ ✅ Installed in v0.105.0 — `ExpensesPage` uses `useQuery(getExpenses)` + `refetch` after delete; `EditExpensePage` uses `useQuery(getExpenseById)`. `api.service.ts` remains the low-level fetch layer.
-- **Recharts** (`recharts`): An expense manager without charts is incomplete. Expected visualizations: spending over time (line), by category (pie/donut), monthly comparison (bar). Recharts is composable, TypeScript-friendly, and lightweight (~200 KB). New components go in `src/components/charts/`. *Dashboard charting (Phase 7 backend complete) awaits this frontend implementation.*
+- ~~**Recharts** (`recharts`): An expense manager without charts is incomplete. Expected visualizations: spending over time (line), by category (pie/donut), monthly comparison (bar). Recharts is composable, TypeScript-friendly, and lightweight (~200 KB). New components go in `src/components/charts/`. *Dashboard charting (Phase 7 backend complete) awaits this frontend implementation.*~~ ✅ Installed in v0.106.0 — `SpendChart` (ComposedChart), `CategoryDonut` (PieChart), `SameMonthChart` (BarChart) all use Recharts; components live in `src/features/dashboard/components/`.
 
 #### Phase 3 — react-i18next ✅ done ([v0.72.0](../../CHANGELOG.md))
 
@@ -57,9 +57,7 @@ The dashboard currently uses vanilla `fetch`, React Hook Form + Zod for auth for
 
 #### Existing code refactors (independent of new libraries)
 
-| Priority | Issue | Note |
-|---|---|---|
-| Medium | `HomeDashboardPage.tsx` expenses card still shows "Coming soon…" | Phase 8 shipped the expenses routes; update card to link to `/expenses` and remove the placeholder text. Also wire the dashboard summary/charts cards using Phase 7 backend endpoints. |
+*All items resolved — see [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
 
 ---
 

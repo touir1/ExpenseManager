@@ -102,8 +102,12 @@
   "dashboard": {
     "pageTitle": "Dashboard",
     "title": "Dashboard",
-    "welcome": "Welcome {{name}}! This is your private home page.",
+    "greeting": "Hello, {{name}}",
+    "defaultName": "there",
     "loading": "Loading dashboard",
+    "empty": "No expenses for this period",
+    "noData": "No data available",
+    "noCurrencies": "No currencies for this period",
     "account": {
       "title": "Account",
       "signedInAs": "Signed in as"
@@ -115,6 +119,27 @@
     "expenses": {
       "title": "Expenses",
       "comingSoon": "Coming soon…"
+    },
+    "filters": {
+      "thisMonth": "This month",
+      "thisYear": "This year"
+    },
+    "summary": {
+      "total": "Total spending",
+      "vs": "vs prev. period",
+      "expenses": "expenses",
+      "converted": "converted"
+    },
+    "charts": {
+      "monthly": "Monthly spending",
+      "categories": "By category",
+      "sameMonth": "{{month}} across years",
+      "currencies": "By currency"
+    },
+    "recent": {
+      "title": "Recent expenses",
+      "viewAll": "View all",
+      "empty": "No recent expenses"
     }
   },
   "settings": {

@@ -670,9 +670,31 @@ ExpenseManager/
 │           │   │   └── __tests__/
 │           │   │       ├── ExpensesDataContext.test.tsx
 │           │   │       └── expense.schemas.test.ts
-│           │   ├── dashboard/         — Authenticated dashboard feature
+│           │   ├── dashboard/         — Authenticated dashboard feature (Phase 9 — Hearth design)
+│           │   │   ├── types/
+│           │   │   │   └── dashboard.type.ts — DashboardSummaryDto, MonthlyBreakdownDto, CategoryBreakdownDto, SameMonthYearlyDto, CurrencyBreakdownDto, DashboardFilter
+│           │   │   ├── services/
+│           │   │   │   ├── dashboardApi.service.ts — getSummary, getMonthly, getCategories, getSameMonthYearly, getByCurrency, getRecent
+│           │   │   │   └── __tests__/
+│           │   │   │       └── dashboardApi.service.test.ts
+│           │   │   ├── components/
+│           │   │   │   ├── MonthHero.tsx        — Summary card: total, ±% delta chip, expense count, top category pill
+│           │   │   │   ├── SpendChart.tsx        — Monthly stacked bar + average line (Recharts ComposedChart)
+│           │   │   │   ├── CategoryDonut.tsx     — Donut chart + legend (Recharts PieChart)
+│           │   │   │   ├── SameMonthChart.tsx    — Year-over-year bar chart (Recharts BarChart)
+│           │   │   │   ├── CurrenciesPanel.tsx   — Per-currency breakdown rows
+│           │   │   │   ├── RecentExpenses.tsx    — Last 10 expenses feed; "View all" → /expenses
+│           │   │   │   ├── DashboardFilters.tsx  — Family + display-currency + date-range selectors; "This month"/"This year" presets
+│           │   │   │   └── __tests__/
+│           │   │   │       ├── MonthHero.test.tsx
+│           │   │   │       ├── SpendChart.test.tsx
+│           │   │   │       ├── CategoryDonut.test.tsx
+│           │   │   │       ├── SameMonthChart.test.tsx
+│           │   │   │       ├── CurrenciesPanel.test.tsx
+│           │   │   │       ├── RecentExpenses.test.tsx
+│           │   │   │       └── DashboardFilters.test.tsx
 │           │   │   └── pages/
-│           │   │       ├── HomeDashboardPage.tsx — Dashboard home; shows user greeting and cards
+│           │   │       ├── HomeDashboardPage.tsx — Hearth layout; 6 useQuery calls; DashboardFilters + MonthHero + SpendChart + CategoryDonut + SameMonthChart + CurrenciesPanel + RecentExpenses
 │           │   │       ├── SettingsPage.tsx       — Settings hub; password card (link to /change-password)
 │           │   │       └── __tests__/
 │           │   │           ├── HomeDashboardPage.test.tsx

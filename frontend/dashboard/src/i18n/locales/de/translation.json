@@ -102,8 +102,12 @@
   "dashboard": {
     "pageTitle": "Übersicht",
     "title": "Übersicht",
-    "welcome": "Willkommen {{name}}! Dies ist deine private Startseite.",
+    "greeting": "Hallo, {{name}}",
+    "defaultName": "du",
     "loading": "Übersicht wird geladen",
+    "empty": "Keine Ausgaben für diesen Zeitraum",
+    "noData": "Keine Daten verfügbar",
+    "noCurrencies": "Keine Währungen für diesen Zeitraum",
     "account": {
       "title": "Konto",
       "signedInAs": "Angemeldet als"
@@ -115,6 +119,27 @@
     "expenses": {
       "title": "Ausgaben",
       "comingSoon": "Demnächst verfügbar…"
+    },
+    "filters": {
+      "thisMonth": "Dieser Monat",
+      "thisYear": "Dieses Jahr"
+    },
+    "summary": {
+      "total": "Gesamtausgaben",
+      "vs": "vs. vorh. Zeitr.",
+      "expenses": "Ausgaben",
+      "converted": "umgerechnet"
+    },
+    "charts": {
+      "monthly": "Monatliche Ausgaben",
+      "categories": "Nach Kategorie",
+      "sameMonth": "{{month}} im Jahresvergleich",
+      "currencies": "Nach Währung"
+    },
+    "recent": {
+      "title": "Aktuelle Ausgaben",
+      "viewAll": "Alle anzeigen",
+      "empty": "Keine aktuellen Ausgaben"
     }
   },
   "settings": {
