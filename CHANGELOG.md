@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.106.1] - 2026-05-20
+### Fixed
+- **`MonthHero.test.tsx` — CI locale mismatch**: `toLocaleString()` in GitLab CI uses C/POSIX locale → formats `2430.50` as `2,430.50` (comma thousands separator). Test matchers used `/[\s ]/g` strip pattern designed for French locale (space separator) but not English comma. Changed to `/[\s,]/g` — strips all whitespace (covers U+202F for FR) plus comma (covers en-US/CI); works across all locales.
+
 ## [0.106.0] - 2026-05-20
 ### Added
 - **Phase 9 — Frontend Dashboard (Hearth design)**: Full data-driven dashboard replacing the placeholder `HomeDashboardPage`.

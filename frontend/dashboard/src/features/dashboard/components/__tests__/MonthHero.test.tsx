@@ -17,7 +17,7 @@ const mockSummary: DashboardSummaryDto = {
 describe('MonthHero', () => {
   it('renders total amount', () => {
     render(<MonthHero data={mockSummary} isLoading={false} />)
-    expect(screen.getByText((text) => text.replace(/[\s  ]/g, '').includes('2430'))).toBeInTheDocument()
+    expect(screen.getByText((text) => text.replace(/[\s,]/g, '').includes('2430'))).toBeInTheDocument()
   })
 
   it('renders positive delta chip with green class', () => {
@@ -49,7 +49,7 @@ describe('MonthHero', () => {
       displayCurrency: { id: 2, code: 'USD', name: 'Dollar', symbol: '$', decimals: 2 },
     }
     render(<MonthHero data={data} isLoading={false} />)
-    expect(screen.getByText((text) => text.replace(/[\s  ]/g, '').includes('2200'))).toBeInTheDocument()
+    expect(screen.getByText((text) => text.replace(/[\s,]/g, '').includes('2200'))).toBeInTheDocument()
     expect(screen.getByText(/USD/)).toBeInTheDocument()
   })
 
