@@ -582,6 +582,153 @@ List all currencies.
 
 ---
 
+---
+
+## Expenses Service — Dashboard Endpoints
+
+All dashboard endpoints require authentication. Rate limit: `expenses_global` (100 req / 60 s sliding window per IP).
+
+Base path: `/dashboard` (direct port 9200) or `/api/expenses/dashboard` (via nginx)
+
+**Common query parameters (all except `same-month-across-years`):**
+
+| Parameter | Type | Default |
+|---|---|---|
+| `familyId` | int? | null (own expenses) |
+| `dateFrom` | DateOnly? | varies per endpoint |
+| `dateTo` | DateOnly? | today |
+| `displayCurrencyId` | int? | null (original currencies) |
+
+---
+
+### GET /dashboard/summary
+
+Returns aggregated totals for the period: total spend, delta vs. previous period, top category, expense count.
+
+**Default period:** current calendar month to today.
+
+**Response: 200 OK**
+
+```json
+{
+  "totalAmount": 430.00,
+  "convertedTotal": 395.20,
+  "displayCurrency": { "id": 2, "code": "EUR", "name": "Euro" },
+  "expenseCount": 12,
+  "previousPeriodTotal": 510.00,
+  "changePercent": -15.7,
+  "topCategory": { "id": 1, "name": "Food" },
+  "topCategoryAmount": 180.00
+}
+```
+
+**Response: 401** | **403** (invalid `familyId`) | **400** (`SERVER_ERROR`)
+
+---
+
+### GET /dashboard/monthly
+
+Returns monthly expense totals with per-category breakdown.
+
+**Default period:** Jan 1 of current year to today.
+
+**Response: 200 OK** — array of:
+
+```json
+[
+  {
+    "year": 2026,
+    "month": 5,
+    "totalAmount": 430.00,
+    "convertedTotal": null,
+    "byCategory": [
+      { "category": { "id": 1, "name": "Food" }, "amount": 180.00, "convertedAmount": null }
+    ]
+  }
+]
+```
+
+---
+
+### GET /dashboard/categories
+
+Returns per-category breakdown with subcategory detail and percentage.
+
+**Default period:** current calendar month to today.
+
+**Response: 200 OK** — array of:
+
+```json
+[
+  {
+    "category": { "id": 1, "name": "Food" },
+    "totalAmount": 180.00,
+    "convertedTotal": null,
+    "percentage": 41.9,
+    "subcategories": [
+      { "category": { "id": 3, "name": "Groceries" }, "amount": 120.00, "convertedAmount": null }
+    ]
+  }
+]
+```
+
+---
+
+### GET /dashboard/same-month-across-years
+
+Returns totals for the same calendar month number across all years that have data.
+
+**Query parameters:**
+
+| Parameter | Type | Default |
+|---|---|---|
+| `month` | int? | current month (1–12) |
+| `familyId` | int? | null |
+| `displayCurrencyId` | int? | null |
+
+**Response: 200 OK**
+
+```json
+[
+  { "year": 2024, "totalAmount": 390.00, "convertedTotal": null },
+  { "year": 2025, "totalAmount": 460.00, "convertedTotal": null },
+  { "year": 2026, "totalAmount": 430.00, "convertedTotal": null }
+]
+```
+
+**Response: 400** — `INVALID_MONTH` if `month` outside 1–12.
+
+---
+
+### GET /dashboard/by-currency
+
+Returns per-currency totals for the period.
+
+**Default period:** current calendar month to today.
+
+**Response: 200 OK**
+
+```json
+[
+  {
+    "currency": { "id": 1, "code": "USD", "name": "US Dollar" },
+    "totalAmount": 200.00,
+    "convertedAmount": 183.50,
+    "expenseCount": 7
+  }
+]
+```
+
+---
+
+### GET /dashboard/recent
+
+Returns the 10 most recent expenses, optionally filtered by family and date range. No `displayCurrencyId` support (returns expenses in their original currencies).
+
+**Response: 200 OK** — `ExpensePagedResponse` (same shape as `GET /expenses`, pageSize fixed at 10).
+
+---
+
 ## Expenses Service — Family Endpoints
 
 ### GET /families

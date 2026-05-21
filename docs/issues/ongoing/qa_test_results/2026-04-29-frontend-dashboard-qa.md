@@ -18,7 +18,7 @@ The Expenses Manager frontend is well-structured and functional. Authentication,
 | High | 2 | 1 | 1 |
 | Medium | 4 | 0 | 4 |
 | Low | 4 | 3 | 1 |
-| Info | 3 | 2 | 1 |
+| Info | 3 | 1 | 2 |
 
 Fixed items: [F-1, F-2, F-3, F-4, U-1, U-2, U-3, S-1](../../../fixed/qa/2026-04-29-frontend-dashboard-fixes.md)
 
@@ -50,12 +50,6 @@ Fixed items: [F-1, F-2, F-3, F-4, U-1, U-2, U-3, S-1](../../../fixed/qa/2026-04-
 ---
 
 ## UX/UI Issues
-
-### ~~U-2 — Expenses card on dashboard shows "Coming soon…" with no context (Info)~~ ✅ FIXED in v0.106.0
-
-See [2026-04-29-frontend-dashboard-fixes.md](../../../fixed/qa/2026-04-29-frontend-dashboard-fixes.md) for details. Full Hearth dashboard implemented; all Phase 7 endpoints wired.
-
----
 
 ### U-4 — No "skip to main content" link (Low)
 
@@ -183,4 +177,3 @@ Registering with an already-used email returns "Registration successful!" (HTTP 
 4. **[Low]** Add `aria-pressed` to the show/hide password toggle button. (U-5)
 5. ~~**[Low]** Update email template copyright year to dynamic current year. (U-3)~~ ✅ Fixed v0.103.0
 6. **[Info]** Pre-validate reset token on page load and redirect to error page if invalid. (U-6)
-7. **[Info]** Add description or hide Expenses "Coming soon…" card until feature ships. (U-2)

@@ -64,6 +64,12 @@ A record of improvement ideas from [fixes-and-suggestions.md](../ongoing/fixes-a
 | Remember me | Added "Remember me" checkbox to `Login.tsx`; unchecked (default) stores session in `sessionStorage` (clears on tab close), checked stores in `localStorage` (persists across sessions). `AuthProvider` login, logout, and session-restore all updated accordingly |
 | Loading skeleton on Dashboard | `HomeDashboard.tsx` renders animated skeleton cards while `isLoading` is `true`, avoiding layout shift during session restore |
 
+### QA-28: Backend rate limiting — 2026-05-08 (v0.92.0)
+
+| Item | Resolution |
+|------|------------|
+| No brute-force / rate-limit protection on login or any auth route | Added `Microsoft.AspNetCore.RateLimiting` (fixed-window, per-client-IP) to the users service. Policies: `login` 10 req/1 min, `register` 5 req/10 min, `resend_verification` 3 req/10 min, `validate_email` 10 req/5 min, `request_password_reset`/`change_password_reset`/`create_password` 5 req/10 min, `change_password` 10 req/5 min, `refresh` 20 req/1 min, `messaging_replay` 5 req/1 min. Exceeding any policy returns HTTP 429. No rate limiting on `GET /auth/check`, `GET /auth/session`, `POST /auth/logout`, `GET /messaging/outbox/stats`. |
+
 ### QA fixes — 2026-04-25 (v0.42.0)
 
 | QA # | Area | Item | Resolution |

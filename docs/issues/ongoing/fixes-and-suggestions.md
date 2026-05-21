@@ -4,17 +4,6 @@ A living document tracking open issues, improvement ideas, and technical debt ac
 
 ---
 
-## Frontend — Open QA Items
-
-These are the remaining unfixed issues from the [2026-03-22 QA report](qa_test_results/2026-03-22-frontend-dashboard-qa.md).
-
-| # | Priority | Area | Item |
-|---|----------|------|------|
-| ~~QA-11~~ | ~~🟡 Moderate~~ | ~~Feature~~ | ~~Core "Expenses" feature is "Coming soon…"~~ — ✅ resolved in v0.105.0: full expense CRUD UI shipped (list, add, edit, delete, filters, pagination). Dashboard card still shows "Coming soon…" placeholder text — see U-2 below. |
-| ~~QA-28~~ | ~~⚙️ Security~~ | ~~Feature~~ | ~~No brute-force / rate-limit protection on the Login form~~ — ✅ resolved in v0.92.0: backend rate limiting (10 req/1 min per IP) on login + all sensitive auth routes via .NET 8 `Microsoft.AspNetCore.RateLimiting` |
-
----
-
 ## Frontend — Additional Suggestions
 
 ### UX / Interaction
@@ -41,10 +30,9 @@ The dashboard currently uses vanilla `fetch`, React Hook Form + Zod for auth for
 
 *Moved to [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
 
-#### Phase 2 — Expenses feature ✅ done ([v0.105.0](../../CHANGELOG.md))
+#### Phase 2 — Expenses feature ✅ done ([v0.105.0](../../CHANGELOG.md) / [v0.106.0](../../CHANGELOG.md))
 
-- ~~**TanStack Query** (`@tanstack/react-query`): The expenses feature will need paginated lists, filters, background refetch, and cache invalidation.~~ ✅ Installed in v0.105.0 — `ExpensesPage` uses `useQuery(getExpenses)` + `refetch` after delete; `EditExpensePage` uses `useQuery(getExpenseById)`. `api.service.ts` remains the low-level fetch layer.
-- ~~**Recharts** (`recharts`): An expense manager without charts is incomplete. Expected visualizations: spending over time (line), by category (pie/donut), monthly comparison (bar). Recharts is composable, TypeScript-friendly, and lightweight (~200 KB). New components go in `src/components/charts/`. *Dashboard charting (Phase 7 backend complete) awaits this frontend implementation.*~~ ✅ Installed in v0.106.0 — `SpendChart` (ComposedChart), `CategoryDonut` (PieChart), `SameMonthChart` (BarChart) all use Recharts; components live in `src/features/dashboard/components/`.
+*Moved to [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
 
 #### Phase 3 — react-i18next ✅ done ([v0.72.0](../../CHANGELOG.md))
 
@@ -61,44 +49,14 @@ The dashboard currently uses vanilla `fetch`, React Hook Form + Zod for auth for
 
 ---
 
-## Backend — SOLID / Architecture Refactors
-
-*SRP and OCP refactors completed — see [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
-
-### LSP — Fix nullable contract mismatches
-
-*Both items resolved — see [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
-
-### ISP — Split fat interfaces
-
-*Both items obsolete — see [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
-
-### DIP — Replace concrete dependencies with abstractions
-
-*Both items obsolete — see [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
-
----
-
-## Validation Parity — Frontend vs Backend Mismatches
-
-Discrepancies found by cross-checking Zod schemas (`auth.schemas.ts`) against controller/service logic in `backend/users/`.
-
-*VAL-03 and VAL-04 resolved — see [fixes-and-suggestions-applied.md](../fixed/fixes-and-suggestions-applied.md).*
-
----
-
 ## Backend — Suggestions
 
 ### Users service
-- ✅ **Refresh token**: Implemented in v0.52.0 — `POST /auth/refresh` endpoint with DB-backed opaque tokens, cookie rotation, and transparent frontend retry on 401.
 - **Account lockout**: After N consecutive failed login attempts for a given email, lock the account for a time window and notify the user by email.
 - **Email change**: There is no endpoint to update an account's email address. Add a `PUT /users/email` flow with re-verification.
 - **`GET /auth/session` performance**: The session-check endpoint is called on every SPA load. Ensure the JWT validation path is lightweight (no DB hit on happy-path).
 
 ### Expenses service
-- ✅ **Implement expenses CRUD**: Phase 3 complete in v0.91.0 — `POST/PUT/DELETE/GET /expenses` + paged `GET /expenses` live; soft-delete, audit trail, ownership enforcement all implemented.
-- ✅ **Pagination**: Implemented in v0.91.0 — `GetPagedAsync` supports offset pagination with `Page`/`PageSize` and full filter set (date range, category, currency, amount range, description).
-- ✅ **Tags (Phase 5)**: Implemented in v0.98.0 — global tag table (unique by name, case-sensitive), `UserTags` junction for adoption tracking, `GET/POST/DELETE /tags`, tag visibility across family co-members, auto-adopt on expense attachment, `TagInput` component.
 - **Input sanitisation**: Validate and sanitise string fields (`description`, category name, etc.) at the controller layer before they reach the database.
 
 ---

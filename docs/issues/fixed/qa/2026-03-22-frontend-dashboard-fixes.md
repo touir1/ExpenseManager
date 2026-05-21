@@ -219,10 +219,18 @@ Exceeding any policy returns HTTP 429. No rate limiting on: `GET /auth/check`, `
 
 ---
 
+### 11. ~~Dashboard page says "Expenses — Coming soon…" for the core feature~~ ✅ FIXED (v0.105.0 / v0.106.0)
+**Page:** `/dashboard`
+**Root cause:** `HomeDashboardPage.tsx` was a placeholder with no expenses functionality.
+**Fix applied:** Full expense CRUD UI shipped in v0.105.0 (`ExpensesPage`, `AddExpensePage`, `EditExpensePage`, `ExpenseForm`, `ExpenseFilters`). Full Hearth dashboard shipped in v0.106.0 wiring all 6 Phase 7 backend dashboard endpoints via TanStack React Query; new components: `MonthHero`, `SpendChart` (Recharts ComposedChart), `CategoryDonut` (Recharts PieChart), `SameMonthChart` (Recharts BarChart), `CurrenciesPanel`, `RecentExpenses`, `DashboardFilters`. "Coming soon…" placeholder completely removed.
+
+---
+
 ## Fixed Items Summary
 
 | # | Severity | Category | Issue |
 |---|----------|----------|-------|
+| 11 | 🟡 Moderate | Feature | ~~Core "Expenses" feature is "Coming soon…"~~ |
 | 1 | 🔴 Critical | Bug | ~~Wrong login credentials show no error, silent redirect~~ |
 | 2 | 🔴 Critical | Bug | ~~Register submits with empty/partial fields silently~~ |
 | 3 | 🔴 Critical | Security | ~~JWT stored in localStorage (XSS risk)~~ |

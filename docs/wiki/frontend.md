@@ -70,9 +70,38 @@ frontend/dashboard/src/
 │   │       └── auth.schemas.ts     ← Zod validation schemas
 │   │
 │   ├── dashboard/
-│   │   └── pages/
-│   │       ├── HomeDashboardPage.tsx   ← Placeholder ("Coming soon…")
-│   │       └── SettingsPage.tsx
+│   │   ├── components/
+│   │   │   ├── CategoryDonut.tsx      ← PieChart (Recharts) — category breakdown
+│   │   │   ├── CurrenciesPanel.tsx    ← Per-currency totals panel
+│   │   │   ├── DashboardFilters.tsx   ← Date-range / family / currency filter bar
+│   │   │   ├── MonthHero.tsx          ← Current month total + delta vs. previous
+│   │   │   ├── RecentExpenses.tsx     ← Last 10 expenses mini-list
+│   │   │   ├── SameMonthChart.tsx     ← BarChart — same calendar month across years
+│   │   │   ├── SpendChart.tsx         ← ComposedChart — monthly spend over time
+│   │   │   └── __tests__/
+│   │   ├── pages/
+│   │   │   ├── HomeDashboardPage.tsx  ← Dashboard with all chart/stat components
+│   │   │   └── SettingsPage.tsx
+│   │   ├── services/
+│   │   │   └── dashboardApi.service.ts ← Dashboard API calls (summary, monthly, etc.)
+│   │   └── types/
+│   │       └── dashboard.type.ts      ← DashboardSummaryDto, MonthlyBreakdownDto, etc.
+│   │
+│   ├── expenses/
+│   │   ├── components/
+│   │   │   ├── ExpenseFilters.tsx     ← Filter panel (date, category, currency, tags, amount)
+│   │   │   ├── ExpenseForm.tsx        ← Shared add/edit form (RHF + Zod)
+│   │   │   └── __tests__/
+│   │   ├── pages/
+│   │   │   ├── ExpensesPage.tsx       ← Paginated expense list with filters + delete
+│   │   │   ├── AddExpensePage.tsx     ← Thin wrapper — renders ExpenseForm for create
+│   │   │   ├── EditExpensePage.tsx    ← Loads expense by id, renders ExpenseForm for update
+│   │   │   └── __tests__/
+│   │   ├── services/
+│   │   │   └── expensesApi.service.ts ← Expense CRUD + getById API calls
+│   │   ├── types/
+│   │   │   └── expenses.type.ts       ← ExpenseDto, ExpenseFilter, ExpenseRequest, etc.
+│   │   └── expense.schemas.ts         ← Zod schema for ExpenseForm
 │   │
 │   └── public/
 │       └── pages/
@@ -112,15 +141,20 @@ Defined in `router.tsx`:
 
 | Path | Guard | Component | Description |
 |---|---|---|---|
-| `/` | Public | `HomePublicPage` | Landing page |
+| `/` | PublicOnly | `HomePublicPage` | Landing page |
 | `/login` | PublicOnly | `LoginPage` | Login form |
 | `/register` | PublicOnly | `RegisterPage` | Registration form |
 | `/request-password-reset` | PublicOnly | `RequestPasswordResetPage` | Request reset email |
 | `/reset-password` | PublicOnly | `ResetPasswordPage` | Create or reset password |
 | `/verify-error` | Public | `VerifyErrorPage` | Expired verification link |
-| `/dashboard` | Protected | `HomeDashboardPage` | Main dashboard |
+| `/dashboard` | Protected | `HomeDashboardPage` | Dashboard with charts and stats |
 | `/settings` | Protected | `SettingsPage` | User settings |
 | `/change-password` | Protected | `ChangePasswordPage` | Change password form |
+| `/families` | Protected | `FamiliesPage` | Family management |
+| `/families/accept-invite` | Protected | `AcceptInvitePage` | Accept family invitation |
+| `/expenses` | Protected | `ExpensesPage` | Paginated expense list with filters |
+| `/expenses/add` | Protected | `AddExpensePage` | Add new expense |
+| `/expenses/:id/edit` | Protected | `EditExpensePage` | Edit existing expense |
 | `*` | Any | `NotFoundPage` | 404 fallback |
 
 **Route guards:**
@@ -320,11 +354,101 @@ npm test
 
 ---
 
+## Expenses Feature
+
+### Pages
+
+| Component | Description |
+|---|---|
+| `ExpensesPage` | Paginated list with filters. Uses TanStack Query (`useQuery`) for fetching. Delete triggers `refetch`. |
+| `AddExpensePage` | Thin wrapper — renders `ExpenseForm` in create mode. On success navigates to `/expenses`. |
+| `EditExpensePage` | Loads expense by route param `id` via `useQuery(getExpenseById)`. Renders `ExpenseForm` in edit mode. |
+
+### Components
+
+**`ExpenseForm`** — shared add/edit form driven by `expense.schemas.ts` (Zod) + React Hook Form. Fields: amount, currency, date, category, subcategory, description, tags, family attribution. Disabled selects use `.catch(undefined)` in the Zod schema to coerce NaN from `valueAsNumber` on unset `<select>`.
+
+**`ExpenseFilters`** — collapsible filter panel. Supported filters: `dateFrom`, `dateTo`, `categoryId`, `subcategoryId`, `currencyId`, `amountMin`, `amountMax`, `description`, `tagIds`, `displayCurrencyId`.
+
+### Service — `expensesApi.service.ts`
+
+| Function | HTTP | Endpoint |
+|---|---|---|
+| `getExpenses(filter)` | GET | `/api/expenses` |
+| `getExpenseById(id)` | GET | `/api/expenses/{id}` |
+| `createExpense(req)` | POST | `/api/expenses` |
+| `updateExpense(id, req)` | PUT | `/api/expenses/{id}` |
+| `deleteExpense(id)` | DELETE | `/api/expenses/{id}` |
+
+### Types — `expenses.type.ts`
+
+```typescript
+ExpenseDto         // id, amount, currency, date, category, subcategory, description, tags, convertedAmount, displayCurrency
+ExpensePagedResponse  // items, totalCount, page, pageSize, totalPages
+ExpenseFilter      // all filter query params
+ExpenseRequest     // POST/PUT body (amount, currencyId, date, categoryId?, subcategoryId?, description?, familyIds?, tagIds?)
+Currency, Subcategory, Category, TagDto  // shared DTO shapes
+```
+
+---
+
+## Dashboard Feature
+
+### HomeDashboardPage
+
+Composes all dashboard sub-components. Fetches data in parallel on mount (and on filter change) from the dashboard API. Each section shows a loading skeleton or error state independently.
+
+### Components
+
+| Component | Chart type | Data source |
+|---|---|---|
+| `MonthHero` | Stat card | `GET /dashboard/summary` — total, delta %, top category |
+| `SpendChart` | ComposedChart (Recharts) | `GET /dashboard/monthly` — monthly totals over date range |
+| `CategoryDonut` | PieChart (Recharts) | `GET /dashboard/categories` — breakdown by top-level category |
+| `SameMonthChart` | BarChart (Recharts) | `GET /dashboard/same-month-across-years` — current month across all years |
+| `CurrenciesPanel` | Stat list | `GET /dashboard/by-currency` — per-currency totals |
+| `RecentExpenses` | Mini-list | `GET /dashboard/recent` — 10 most recent expenses |
+| `DashboardFilters` | Filter bar | Controls `familyId`, `dateFrom`, `dateTo`, `displayCurrencyId` |
+
+### Service — `dashboardApi.service.ts`
+
+| Function | Endpoint |
+|---|---|
+| `getSummary(filter)` | `/api/expenses/dashboard/summary` |
+| `getMonthly(filter)` | `/api/expenses/dashboard/monthly` |
+| `getCategories(filter)` | `/api/expenses/dashboard/categories` |
+| `getSameMonthYearly(month, familyId?, displayCurrencyId?)` | `/api/expenses/dashboard/same-month-across-years` |
+| `getByCurrency(filter)` | `/api/expenses/dashboard/by-currency` |
+| `getRecent(filter)` | `/api/expenses/dashboard/recent` |
+
+All accept a `DashboardFilter` (`familyId?`, `dateFrom?`, `dateTo?`, `displayCurrencyId?`).
+
+### Types — `dashboard.type.ts`
+
+```typescript
+DashboardSummaryDto      // totalAmount, convertedTotal, displayCurrency, expenseCount, previousPeriodTotal, changePercent, topCategory, topCategoryAmount
+MonthlyBreakdownDto      // year, month, totalAmount, convertedTotal, byCategory: CategoryAmountDto[]
+CategoryBreakdownDto     // category, totalAmount, convertedTotal, percentage, subcategories
+SameMonthYearlyDto       // year, totalAmount, convertedTotal
+CurrencyBreakdownDto     // currency, totalAmount, convertedAmount, expenseCount
+DashboardFilter          // familyId?, dateFrom?, dateTo?, displayCurrencyId?
+```
+
+---
+
 ## NavBar
 
-`src/layouts/NavBar.tsx` renders navigation links conditionally based on auth state:
+`src/layouts/NavBar.tsx` renders navigation links conditionally based on auth state.
 
-- **Unauthenticated:** Login, Register links
-- **Authenticated:** Dashboard, Settings, (Change Password accessible from Settings), Logout button
+**Unauthenticated:** marketing anchor links (How it Works, For Families, Pricing, Help), Language Switcher, Sign In, Get Started button.
 
-Active link detection: `/settings` and `/change-password` both highlight the Settings nav item as active (`settingsClass` logic groups them as one navigation group).
+**Authenticated (desktop):**
+- Nav links: Dashboard, Expenses, Families
+- Right-side controls: `FamilySelector` dropdown, `DisplayCurrencySelector` dropdown, notifications placeholder, user avatar with dropdown (Settings, Language Switcher, Sign Out)
+
+**Authenticated (mobile):** hamburger menu with focus trap — Dashboard, Expenses, Families, Settings, Sign Out, Language Switcher.
+
+**Active link detection:**
+- `/expenses/*` → Expenses link active (`pathname.startsWith('/expenses')`)
+- `/families` → Families link active
+- `/settings` or `/change-password` → Settings dropdown item active
