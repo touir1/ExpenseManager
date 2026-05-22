@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.106.2] - 2026-05-22
+### Changed
+- **`FrankfurterRateProvider` — Frankfurter API v2 migration**: Updated from deprecated `api.frankfurter.app` to `api.frankfurter.dev/v2`. Endpoint format changed: single-date now `v2/rates?date={date}&base={code}`, range now `v2/rates?from={from}&to={to}&base={code}`. Response format changed from nested `{ rates: { CODE: value } }` object to flat array of `{ date, base, quote, rate }` entries — parsing logic updated accordingly.
+
 ## [0.106.1] - 2026-05-20
 ### Fixed
 - **`MonthHero.test.tsx` — CI locale mismatch**: `toLocaleString()` in GitLab CI uses C/POSIX locale → formats `2430.50` as `2,430.50` (comma thousands separator). Test matchers used `/[\s ]/g` strip pattern designed for French locale (space separator) but not English comma. Changed to `/[\s,]/g` — strips all whitespace (covers U+202F for FR) plus comma (covers en-US/CI); works across all locales.

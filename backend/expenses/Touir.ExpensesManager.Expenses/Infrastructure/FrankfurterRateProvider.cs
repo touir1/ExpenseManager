@@ -8,7 +8,7 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
     [ExcludeFromCodeCoverage]
     public class FrankfurterRateProvider : IRateProvider
     {
-        private const string BaseUrl = "https://api.frankfurter.app/";
+        private const string BaseUrl = "https://api.frankfurter.dev/";
         private const string DateFormat = "yyyy-MM-dd";
 
         private readonly HttpClient _http;
@@ -22,16 +22,15 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
         public async Task<Dictionary<string, decimal>> FetchRatesAsync(string sourceCurrencyCode, DateOnly date, CancellationToken ct = default)
         {
             var dateStr = date.ToString(DateFormat, CultureInfo.InvariantCulture);
-            var response = await _http.GetAsync($"{dateStr}?from={sourceCurrencyCode}", ct);
+            var response = await _http.GetAsync($"v2/rates?date={dateStr}&base={sourceCurrencyCode}", ct);
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadAsStringAsync(ct);
             using var doc = JsonDocument.Parse(json);
-            var rates = doc.RootElement.GetProperty("rates");
 
             var result = new Dictionary<string, decimal>();
-            foreach (var prop in rates.EnumerateObject())
-                result[prop.Name] = prop.Value.GetDecimal();
+            foreach (var entry in doc.RootElement.EnumerateArray())
+                result[entry.GetProperty("quote").GetString()!] = entry.GetProperty("rate").GetDecimal();
 
             return result;
         }
@@ -41,21 +40,22 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
         {
             var fromStr = from.ToString(DateFormat, CultureInfo.InvariantCulture);
             var toStr = to.ToString(DateFormat, CultureInfo.InvariantCulture);
-            var response = await _http.GetAsync($"{fromStr}..{toStr}?from={sourceCurrencyCode}", ct);
+            var response = await _http.GetAsync($"v2/rates?from={fromStr}&to={toStr}&base={sourceCurrencyCode}", ct);
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadAsStringAsync(ct);
             using var doc = JsonDocument.Parse(json);
-            var ratesByDate = doc.RootElement.GetProperty("rates");
 
             var result = new Dictionary<DateOnly, Dictionary<string, decimal>>();
-            foreach (var dateProp in ratesByDate.EnumerateObject())
+            foreach (var entry in doc.RootElement.EnumerateArray())
             {
-                var date = DateOnly.ParseExact(dateProp.Name, DateFormat, CultureInfo.InvariantCulture);
-                var dayRates = new Dictionary<string, decimal>();
-                foreach (var currProp in dateProp.Value.EnumerateObject())
-                    dayRates[currProp.Name] = currProp.Value.GetDecimal();
-                result[date] = dayRates;
+                var date = DateOnly.ParseExact(entry.GetProperty("date").GetString()!, DateFormat, CultureInfo.InvariantCulture);
+                if (!result.TryGetValue(date, out var dayRates))
+                {
+                    dayRates = [];
+                    result[date] = dayRates;
+                }
+                dayRates[entry.GetProperty("quote").GetString()!] = entry.GetProperty("rate").GetDecimal();
             }
 
             return result;
