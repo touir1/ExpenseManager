@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useExpensesData } from '@/features/expenses/ExpensesDataContext'
 import type { ExpenseFilter } from '@/features/expenses/types/expenses.type'
@@ -6,6 +6,96 @@ import type { ExpenseFilter } from '@/features/expenses/types/expenses.type'
 interface ExpenseFiltersProps {
   readonly filter: ExpenseFilter
   readonly onApply: (filter: ExpenseFilter) => void
+}
+
+interface ComboOption {
+  value: number
+  label: string
+}
+
+interface FilterComboboxProps {
+  id: string
+  value: number | undefined
+  options: ComboOption[]
+  onChange: (value: number | undefined) => void
+}
+
+function FilterCombobox({ id, value, options, onChange }: FilterComboboxProps) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const selectedLabel = options.find(o => o.value === value)?.label ?? ''
+  const filtered = query
+    ? options.filter(o => o.label.toLowerCase().includes(query.toLowerCase()))
+    : options
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+        setQuery('')
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  return (
+    <div ref={containerRef} className="relative">
+      <input
+        id={id}
+        type="text"
+        autoComplete="off"
+        className="field-input"
+        value={open ? query : selectedLabel}
+        placeholder={open ? '' : '—'}
+        onFocus={() => {
+          setOpen(true)
+          setQuery('')
+        }}
+        onChange={e => setQuery(e.target.value)}
+      />
+      {open && (
+        <ul
+          role="listbox"
+          className="absolute z-30 w-full mt-1 bg-surface-card border border-surface-border rounded-lg shadow-lg max-h-48 overflow-y-auto"
+        >
+          <li
+            role="option"
+            aria-selected={value === undefined}
+            className="px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-subtle text-text-muted"
+            onMouseDown={() => {
+              onChange(undefined)
+              setOpen(false)
+              setQuery('')
+            }}
+          >
+            —
+          </li>
+          {filtered.map(o => (
+            <li
+              key={o.value}
+              role="option"
+              aria-selected={o.value === value}
+              className={`px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-subtle ${o.value === value ? 'font-semibold' : ''}`}
+              onMouseDown={() => {
+                onChange(o.value)
+                setOpen(false)
+                setQuery('')
+              }}
+            >
+              {o.label}
+            </li>
+          ))}
+          {filtered.length === 0 && (
+            <li className="px-3 py-1.5 text-sm text-text-muted">—</li>
+          )}
+        </ul>
+      )}
+    </div>
+  )
 }
 
 export default function ExpenseFilters({ filter, onApply }: ExpenseFiltersProps) {
@@ -17,6 +107,10 @@ export default function ExpenseFilters({ filter, onApply }: ExpenseFiltersProps)
 
   const selectedCategory = categories.find(c => c.id === local.categoryId)
   const subcategories = selectedCategory?.subcategories ?? []
+
+  const categoryOptions: ComboOption[] = categories.map(c => ({ value: c.id, label: c.name }))
+  const subcategoryOptions: ComboOption[] = subcategories.map(s => ({ value: s.id, label: s.name }))
+  const currencyOptions: ComboOption[] = currencies.map(c => ({ value: c.id, label: c.code }))
 
   const set = <K extends keyof ExpenseFilter>(key: K, value: ExpenseFilter[K]) => {
     setLocal(prev => ({ ...prev, [key]: value || undefined }))
@@ -34,8 +128,7 @@ export default function ExpenseFilters({ filter, onApply }: ExpenseFiltersProps)
     setOpen(false)
   }
 
-  const handleCategoryChange = (val: string) => {
-    const id = val ? Number(val) : undefined
+  const handleCategoryChange = (id: number | undefined) => {
     setLocal(prev => ({ ...prev, categoryId: id, subcategoryId: undefined }))
   }
 
@@ -64,7 +157,7 @@ export default function ExpenseFilters({ filter, onApply }: ExpenseFiltersProps)
         >
           {/* Date range */}
           <div className="flex gap-3">
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <label htmlFor="filter-dateFrom" className="field-label">
                 {t('expenses.filters.dateFrom')}
               </label>
@@ -76,7 +169,7 @@ export default function ExpenseFilters({ filter, onApply }: ExpenseFiltersProps)
                 onChange={e => set('dateFrom', e.target.value || undefined)}
               />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <label htmlFor="filter-dateTo" className="field-label">
                 {t('expenses.filters.dateTo')}
               </label>
@@ -95,19 +188,12 @@ export default function ExpenseFilters({ filter, onApply }: ExpenseFiltersProps)
             <label htmlFor="filter-category" className="field-label">
               {t('expenses.fields.category')}
             </label>
-            <select
+            <FilterCombobox
               id="filter-category"
-              className="field-input"
-              value={local.categoryId ?? ''}
-              onChange={e => handleCategoryChange(e.target.value)}
-            >
-              <option value="">—</option>
-              {categories.map(c => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+              value={local.categoryId}
+              options={categoryOptions}
+              onChange={handleCategoryChange}
+            />
           </div>
 
           {subcategories.length > 0 && (
@@ -115,19 +201,12 @@ export default function ExpenseFilters({ filter, onApply }: ExpenseFiltersProps)
               <label htmlFor="filter-subcategory" className="field-label">
                 {t('expenses.fields.subcategory')}
               </label>
-              <select
+              <FilterCombobox
                 id="filter-subcategory"
-                className="field-input"
-                value={local.subcategoryId ?? ''}
-                onChange={e => set('subcategoryId', e.target.value ? Number(e.target.value) : undefined)}
-              >
-                <option value="">—</option>
-                {subcategories.map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
+                value={local.subcategoryId}
+                options={subcategoryOptions}
+                onChange={id => set('subcategoryId', id)}
+              />
             </div>
           )}
 
@@ -136,24 +215,17 @@ export default function ExpenseFilters({ filter, onApply }: ExpenseFiltersProps)
             <label htmlFor="filter-currency" className="field-label">
               {t('expenses.fields.currency')}
             </label>
-            <select
+            <FilterCombobox
               id="filter-currency"
-              className="field-input"
-              value={local.currencyId ?? ''}
-              onChange={e => set('currencyId', e.target.value ? Number(e.target.value) : undefined)}
-            >
-              <option value="">—</option>
-              {currencies.map(c => (
-                <option key={c.id} value={c.id}>
-                  {c.code}
-                </option>
-              ))}
-            </select>
+              value={local.currencyId}
+              options={currencyOptions}
+              onChange={id => set('currencyId', id)}
+            />
           </div>
 
           {/* Amount range */}
           <div className="flex gap-3">
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <label htmlFor="filter-amountMin" className="field-label">
                 {t('expenses.filters.amountMin')}
               </label>
@@ -167,7 +239,7 @@ export default function ExpenseFilters({ filter, onApply }: ExpenseFiltersProps)
                 onChange={e => set('amountMin', e.target.value ? Number(e.target.value) : undefined)}
               />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <label htmlFor="filter-amountMax" className="field-label">
                 {t('expenses.filters.amountMax')}
               </label>

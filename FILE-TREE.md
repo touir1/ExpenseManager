@@ -653,7 +653,7 @@ ExpenseManager/
 │           │   │   │       └── expensesApi.service.test.ts
 │           │   │   ├── components/
 │           │   │   │   ├── ExpenseForm.tsx     — RHF+Zod form: amount, currency, date, category, subcategory (conditional), description, tags, families
-│           │   │   │   ├── ExpenseFilters.tsx  — Collapsible filter panel; toggle with aria-expanded; resets page to 1 on apply
+│           │   │   │   ├── ExpenseFilters.tsx  — Collapsible filter panel; toggle with aria-expanded; resets page to 1 on apply; FilterCombobox for category/subcategory/currency (case-insensitive search)
 │           │   │   │   └── __tests__/
 │           │   │   │       ├── ExpenseForm.test.tsx
 │           │   │   │       └── ExpenseFilters.test.tsx

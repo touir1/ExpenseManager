@@ -3,6 +3,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.106.4] - 2026-05-23
+### Fixed
+- **Frontend — Expenses filter panel**: `dateTo` input (and amount min/max inputs) no longer overflow the panel; added `min-w-0` to flex children to constrain `<input type="date">` intrinsic width.
+### Changed
+- **Frontend — Expenses filter panel**: Replaced native `<select>` elements for Category, Subcategory, and Currency filters with a custom `FilterCombobox` component — supports case-insensitive text search as you type, click-outside closes the dropdown, accessible via `role="listbox"` / `role="option"`.
+
 ## [0.106.3] - 2026-05-23
 ### Changed
 - **`CurrencyRateService` — performance optimization**: Eliminated N+1 DB queries and over-fetching from the Frankfurter API.
