@@ -20,5 +20,10 @@ namespace Touir.ExpensesManager.Expenses.Repositories
                 .AsNoTracking()
                 .ToListAsync();
         }
+
+        public async Task<Currency?> GetByIdAsync(int id)
+            => await _dbContext.Currencies
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == id);
     }
 }

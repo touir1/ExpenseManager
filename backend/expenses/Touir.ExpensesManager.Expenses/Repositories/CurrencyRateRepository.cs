@@ -125,5 +125,55 @@ namespace Touir.ExpensesManager.Expenses.Repositories
 
             await _db.SaveChangesAsync();
         }
+
+        public async Task<Dictionary<int, (decimal Rate, int RateSourceId)>> GetExistingOnDateAsync(int sourceId, DateOnly date)
+            => await _db.CurrencyDailyRates
+                .Where(r => r.SourceCurrencyId == sourceId && r.Date == date)
+                .Select(r => new { r.DestinationCurrencyId, r.Rate, r.RateSourceId })
+                .ToDictionaryAsync(r => r.DestinationCurrencyId, r => (r.Rate, r.RateSourceId));
+
+        public async Task<Dictionary<(int DestId, DateOnly Date), (decimal Rate, int RateSourceId)>> GetExistingInRangeAsync(int sourceId, DateOnly from, DateOnly to)
+            => await _db.CurrencyDailyRates
+                .Where(r => r.SourceCurrencyId == sourceId && r.Date >= from && r.Date <= to)
+                .Select(r => new { r.DestinationCurrencyId, r.Date, r.Rate, r.RateSourceId })
+                .ToDictionaryAsync(r => (r.DestinationCurrencyId, r.Date), r => (r.Rate, r.RateSourceId));
+
+        public async Task<Dictionary<(int SrcId, int DestId, DateOnly Date), (decimal Rate, int RateSourceId)>> GetExistingForPairsAsync(
+            IEnumerable<(int srcId, int destId, DateOnly date)> pairs)
+        {
+            var result = new Dictionary<(int, int, DateOnly), (decimal, int)>();
+            var grouped = pairs.GroupBy(p => p.srcId);
+
+            foreach (var group in grouped)
+            {
+                var srcId = group.Key;
+                var dates = group.Select(p => p.date).Distinct().ToList();
+                var destIds = group.Select(p => p.destId).Distinct().ToList();
+
+                var rows = await _db.CurrencyDailyRates
+                    .Where(r => r.SourceCurrencyId == srcId
+                        && dates.Contains(r.Date)
+                        && destIds.Contains(r.DestinationCurrencyId))
+                    .Select(r => new { r.DestinationCurrencyId, r.Date, r.Rate, r.RateSourceId })
+                    .ToListAsync();
+
+                foreach (var row in rows)
+                    result[(srcId, row.DestinationCurrencyId, row.Date)] = (row.Rate, row.RateSourceId);
+            }
+
+            return result;
+        }
+
+        public async Task AddRatesBatchAsync(IEnumerable<CurrencyDailyRate> rates)
+        {
+            _db.CurrencyDailyRates.AddRange(rates);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task AddConflictsBatchAsync(IEnumerable<CurrencyRateConflict> conflicts)
+        {
+            _db.CurrencyRateConflicts.AddRange(conflicts);
+            await _db.SaveChangesAsync();
+        }
     }
 }

@@ -67,7 +67,7 @@ All endpoints (except `/health`) require authentication, enforced by nginx's `au
 
 **Tag visibility:** a tag is visible if the user has adopted it (`UserTag` row exists) OR any co-member of a shared non-deleted family has adopted it. Attaching a tag to an expense auto-adopts it for the requesting user.
 
-**Display currency conversion:** `GET /expenses/{id}` and `GET /expenses` accept an optional `?displayCurrencyId={id}` query param. When set and the expense currency differs, `ExpenseDto.convertedAmount` and `ExpenseDto.displayCurrency` are populated. The rate resolution chain: same currency → 1.0; exact date match → most-recent-before fallback → global pair default → null (no conversion).
+**Display currency conversion:** `GET /expenses/{id}` and `GET /expenses` accept an optional `?displayCurrencyId={id}` query param. When set and the expense currency differs, `ExpenseDto.convertedAmount` and `ExpenseDto.displayCurrency` are populated. The rate resolution chain: same currency → 1.0; exact date match → most-recent-before fallback → global pair default → on-demand Frankfurter API fetch (result stored as auto rate) → null (no conversion).
 
 ### Response DTOs
 

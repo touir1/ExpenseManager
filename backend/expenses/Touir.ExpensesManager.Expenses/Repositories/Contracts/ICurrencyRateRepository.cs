@@ -15,5 +15,10 @@ namespace Touir.ExpensesManager.Expenses.Repositories.Contracts
         Task<CurrencyRateConflict?> GetConflictByIdAsync(int id);
         Task UpdateConflictAsync(CurrencyRateConflict conflict);
         Task SetDefaultAsync(CurrencyPairDefault pair);
+        Task<Dictionary<int, (decimal Rate, int RateSourceId)>> GetExistingOnDateAsync(int sourceId, DateOnly date);
+        Task<Dictionary<(int DestId, DateOnly Date), (decimal Rate, int RateSourceId)>> GetExistingInRangeAsync(int sourceId, DateOnly from, DateOnly to);
+        Task<Dictionary<(int SrcId, int DestId, DateOnly Date), (decimal Rate, int RateSourceId)>> GetExistingForPairsAsync(IEnumerable<(int srcId, int destId, DateOnly date)> pairs);
+        Task AddRatesBatchAsync(IEnumerable<CurrencyDailyRate> rates);
+        Task AddConflictsBatchAsync(IEnumerable<CurrencyRateConflict> conflicts);
     }
 }

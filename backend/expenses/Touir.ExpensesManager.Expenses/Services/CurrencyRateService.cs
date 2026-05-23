@@ -17,17 +17,20 @@ namespace Touir.ExpensesManager.Expenses.Services
 
         private readonly ICurrencyRateRepository _rateRepo;
         private readonly ICurrencyRepository _currencyRepo;
+        private readonly IExpenseRepository _expenseRepo;
         private readonly IRateProvider _rateProvider;
         private readonly ILookupCacheService _lookupCache;
 
         public CurrencyRateService(
             ICurrencyRateRepository rateRepo,
             ICurrencyRepository currencyRepo,
+            IExpenseRepository expenseRepo,
             IRateProvider rateProvider,
             ILookupCacheService lookupCache)
         {
             _rateRepo = rateRepo;
             _currencyRepo = currencyRepo;
+            _expenseRepo = expenseRepo;
             _rateProvider = rateProvider;
             _lookupCache = lookupCache;
         }
@@ -46,7 +49,34 @@ namespace Touir.ExpensesManager.Expenses.Services
                 return recent.Rate;
 
             var fallback = await _rateRepo.GetDefaultAsync(sourceCurrencyId, destCurrencyId);
-            return fallback?.Rate;
+            if (fallback is not null)
+                return fallback.Rate;
+
+            var source = await _currencyRepo.GetByIdAsync(sourceCurrencyId);
+            if (source is null)
+                return null;
+
+            try
+            {
+                var fetched = await _rateProvider.FetchRatesAsync(source.Code, date);
+                var dest = await _currencyRepo.GetByIdAsync(destCurrencyId);
+                if (dest is null || !fetched.TryGetValue(dest.Code, out var rate))
+                    return null;
+
+                await _rateRepo.AddRateAsync(new CurrencyDailyRate
+                {
+                    SourceCurrencyId = sourceCurrencyId,
+                    DestinationCurrencyId = destCurrencyId,
+                    Date = date,
+                    Rate = rate,
+                    RateSourceId = RateSourceAuto
+                });
+                return rate;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public async Task<IEnumerable<RateDto>> GetRateHistoryAsync(int sourceCurrencyId, int destCurrencyId)
@@ -90,8 +120,47 @@ namespace Touir.ExpensesManager.Expenses.Services
 
         public async Task BulkAddManualRatesAsync(BulkAddRatesRequest request, int adminUserId)
         {
+            if (request.Rates.Count == 0)
+                return;
+
+            var pairs = request.Rates.Select(r => (r.SourceCurrencyId, r.DestinationCurrencyId, r.Date));
+            var existing = await _rateRepo.GetExistingForPairsAsync(pairs);
+
+            var newRates = new List<CurrencyDailyRate>();
+            var newConflicts = new List<CurrencyRateConflict>();
+
             foreach (var entry in request.Rates)
-                await AddManualRateAsync(entry, adminUserId);
+            {
+                var key = (entry.SourceCurrencyId, entry.DestinationCurrencyId, entry.Date);
+                if (existing.TryGetValue(key, out var found))
+                {
+                    newConflicts.Add(new CurrencyRateConflict
+                    {
+                        SourceCurrencyId = entry.SourceCurrencyId,
+                        DestinationCurrencyId = entry.DestinationCurrencyId,
+                        Date = entry.Date,
+                        AutomaticRate = found.Rate,
+                        ManualRate = entry.Rate,
+                        StatusId = ConflictStatusPending
+                    });
+                }
+                else
+                {
+                    newRates.Add(new CurrencyDailyRate
+                    {
+                        SourceCurrencyId = entry.SourceCurrencyId,
+                        DestinationCurrencyId = entry.DestinationCurrencyId,
+                        Date = entry.Date,
+                        Rate = entry.Rate,
+                        RateSourceId = RateSourceManual
+                    });
+                }
+            }
+
+            if (newRates.Count > 0)
+                await _rateRepo.AddRatesBatchAsync(newRates);
+            if (newConflicts.Count > 0)
+                await _rateRepo.AddConflictsBatchAsync(newConflicts);
         }
 
         public async Task SetDefaultFallbackAsync(SetDefaultRateRequest request, int adminUserId)
@@ -140,7 +209,6 @@ namespace Touir.ExpensesManager.Expenses.Services
                     await _rateRepo.UpdateRateAsync(existingRate);
                 }
             }
-            // KeepManual (2): existing rate stays as is — no rate update needed
 
             await _rateRepo.UpdateConflictAsync(conflict);
         }
@@ -154,12 +222,22 @@ namespace Touir.ExpensesManager.Expenses.Services
         public async Task RefreshRatesFromAsync(DateOnly from, int? sourceCurrencyId = null, int? destinationCurrencyId = null, CancellationToken ct = default)
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var currencies = (await _currencyRepo.GetAllAsync()).ToList();
+            var usedIds = (await _expenseRepo.GetDistinctCurrencyIdsAsync()).ToHashSet();
+
+            if (usedIds.Count == 0)
+                return;
+
+            var currencies = (await _currencyRepo.GetAllAsync())
+                .Where(c => usedIds.Contains(c.Id))
+                .ToList();
             var codeToId = currencies.ToDictionary(c => c.Code, c => c.Id);
 
             var sourceCurrencies = sourceCurrencyId.HasValue
                 ? currencies.Where(c => c.Id == sourceCurrencyId.Value).ToList()
                 : currencies;
+
+            var newRates = new List<CurrencyDailyRate>();
+            var newConflicts = new List<CurrencyRateConflict>();
 
             foreach (var source in sourceCurrencies)
             {
@@ -173,6 +251,8 @@ namespace Touir.ExpensesManager.Expenses.Services
                     continue;
                 }
 
+                var existing = await _rateRepo.GetExistingInRangeAsync(source.Id, from, today);
+
                 foreach (var (date, dayRates) in ratesByDate)
                 {
                     foreach (var (destCode, rate) in dayRates)
@@ -180,26 +260,28 @@ namespace Touir.ExpensesManager.Expenses.Services
                         if (!codeToId.TryGetValue(destCode, out var destCurrencyId))
                             continue;
 
+                        if (!usedIds.Contains(destCurrencyId))
+                            continue;
+
                         if (destinationCurrencyId.HasValue && destCurrencyId != destinationCurrencyId.Value)
                             continue;
 
-                        var existing = await _rateRepo.GetExactAsync(source.Id, destCurrencyId, date);
-
-                        if (existing is not null && existing.RateSourceId == RateSourceManual)
+                        var key = (destCurrencyId, date);
+                        if (existing.TryGetValue(key, out var found) && found.RateSourceId == RateSourceManual)
                         {
-                            await _rateRepo.AddConflictAsync(new CurrencyRateConflict
+                            newConflicts.Add(new CurrencyRateConflict
                             {
                                 SourceCurrencyId = source.Id,
                                 DestinationCurrencyId = destCurrencyId,
                                 Date = date,
                                 AutomaticRate = rate,
-                                ManualRate = existing.Rate,
+                                ManualRate = found.Rate,
                                 StatusId = ConflictStatusPending
                             });
                         }
-                        else if (existing is null)
+                        else if (!existing.ContainsKey(key))
                         {
-                            await _rateRepo.AddRateAsync(new CurrencyDailyRate
+                            newRates.Add(new CurrencyDailyRate
                             {
                                 SourceCurrencyId = source.Id,
                                 DestinationCurrencyId = destCurrencyId,
@@ -211,13 +293,28 @@ namespace Touir.ExpensesManager.Expenses.Services
                     }
                 }
             }
+
+            if (newRates.Count > 0)
+                await _rateRepo.AddRatesBatchAsync(newRates);
+            if (newConflicts.Count > 0)
+                await _rateRepo.AddConflictsBatchAsync(newConflicts);
         }
 
         public async Task RunDailyUpdateAsync(CancellationToken ct = default)
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var currencies = (await _currencyRepo.GetAllAsync()).ToList();
+            var usedIds = (await _expenseRepo.GetDistinctCurrencyIdsAsync()).ToHashSet();
+
+            if (usedIds.Count == 0)
+                return;
+
+            var currencies = (await _currencyRepo.GetAllAsync())
+                .Where(c => usedIds.Contains(c.Id))
+                .ToList();
             var codeToId = currencies.ToDictionary(c => c.Code, c => c.Id);
+
+            var newRates = new List<CurrencyDailyRate>();
+            var newConflicts = new List<CurrencyRateConflict>();
 
             foreach (var source in currencies)
             {
@@ -231,28 +328,31 @@ namespace Touir.ExpensesManager.Expenses.Services
                     continue;
                 }
 
+                var existing = await _rateRepo.GetExistingOnDateAsync(source.Id, today);
+
                 foreach (var (destCode, rate) in fetchedRates)
                 {
                     if (!codeToId.TryGetValue(destCode, out var destCurrencyId))
                         continue;
 
-                    var existing = await _rateRepo.GetExactAsync(source.Id, destCurrencyId, today);
+                    if (!usedIds.Contains(destCurrencyId))
+                        continue;
 
-                    if (existing is not null && existing.RateSourceId == RateSourceManual)
+                    if (existing.TryGetValue(destCurrencyId, out var found) && found.RateSourceId == RateSourceManual)
                     {
-                        await _rateRepo.AddConflictAsync(new CurrencyRateConflict
+                        newConflicts.Add(new CurrencyRateConflict
                         {
                             SourceCurrencyId = source.Id,
                             DestinationCurrencyId = destCurrencyId,
                             Date = today,
                             AutomaticRate = rate,
-                            ManualRate = existing.Rate,
+                            ManualRate = found.Rate,
                             StatusId = ConflictStatusPending
                         });
                     }
-                    else if (existing is null)
+                    else if (!existing.ContainsKey(destCurrencyId))
                     {
-                        await _rateRepo.AddRateAsync(new CurrencyDailyRate
+                        newRates.Add(new CurrencyDailyRate
                         {
                             SourceCurrencyId = source.Id,
                             DestinationCurrencyId = destCurrencyId,
@@ -263,6 +363,11 @@ namespace Touir.ExpensesManager.Expenses.Services
                     }
                 }
             }
+
+            if (newRates.Count > 0)
+                await _rateRepo.AddRatesBatchAsync(newRates);
+            if (newConflicts.Count > 0)
+                await _rateRepo.AddConflictsBatchAsync(newConflicts);
         }
 
         private static RateDto MapToRateDto(CurrencyDailyRate r, string? sourceName = null) => new()

@@ -355,5 +355,166 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
             conflict.Resolution = resolution;
             Assert.Same(resolution, conflict.Resolution);
         }
+
+        // ── GetExistingOnDateAsync ─────────────────────────────────────────────────
+
+        [Fact]
+        public async Task GetExistingOnDateAsync_ReturnsEmpty_WhenNoneExist()
+        {
+            var (src, dst) = await SeedCurrencyPairAsync();
+            var date = new DateOnly(2024, 6, 1);
+
+            var result = await _sut.GetExistingOnDateAsync(src, date);
+
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetExistingOnDateAsync_ReturnsCorrectMap_ForSourceAndDate()
+        {
+            var (src, dst) = await SeedCurrencyPairAsync();
+            var date = new DateOnly(2024, 6, 1);
+            await SeedRateAsync(src, dst, date, 0.92m, rateSourceId: 1);
+
+            var result = await _sut.GetExistingOnDateAsync(src, date);
+
+            Assert.Single(result);
+            Assert.True(result.ContainsKey(dst));
+            Assert.Equal(0.92m, result[dst].Rate);
+            Assert.Equal(1, result[dst].RateSourceId);
+        }
+
+        [Fact]
+        public async Task GetExistingOnDateAsync_DoesNotReturnOtherSourceOrDate()
+        {
+            var (src, dst) = await SeedCurrencyPairAsync();
+            var date = new DateOnly(2024, 6, 1);
+            await SeedRateAsync(src, dst, date, 0.92m);
+            await SeedRateAsync(src, dst, date.AddDays(1), 0.93m); // different date
+            await SeedRateAsync(dst, src, date, 1.08m);             // different source
+
+            var result = await _sut.GetExistingOnDateAsync(src, date);
+
+            Assert.Single(result);
+            Assert.Equal(0.92m, result[dst].Rate);
+        }
+
+        // ── GetExistingInRangeAsync ────────────────────────────────────────────────
+
+        [Fact]
+        public async Task GetExistingInRangeAsync_ReturnsAllRatesInRange()
+        {
+            var (src, dst) = await SeedCurrencyPairAsync();
+            var d1 = new DateOnly(2024, 6, 1);
+            var d2 = new DateOnly(2024, 6, 2);
+            await SeedRateAsync(src, dst, d1, 0.92m);
+            await SeedRateAsync(src, dst, d2, 0.93m);
+
+            var result = await _sut.GetExistingInRangeAsync(src, d1, d2);
+
+            Assert.Equal(2, result.Count);
+            Assert.True(result.ContainsKey((dst, d1)));
+            Assert.True(result.ContainsKey((dst, d2)));
+        }
+
+        [Fact]
+        public async Task GetExistingInRangeAsync_ExcludesOutsideRange()
+        {
+            var (src, dst) = await SeedCurrencyPairAsync();
+            var d1 = new DateOnly(2024, 6, 1);
+            var d3 = new DateOnly(2024, 6, 3);
+            await SeedRateAsync(src, dst, d1, 0.92m);
+            await SeedRateAsync(src, dst, d3, 0.94m); // outside [d1, d2]
+
+            var result = await _sut.GetExistingInRangeAsync(src, d1, d1.AddDays(1));
+
+            Assert.Single(result);
+            Assert.True(result.ContainsKey((dst, d1)));
+        }
+
+        [Fact]
+        public async Task GetExistingInRangeAsync_KeyIncludesDestAndDate()
+        {
+            var (src, dst) = await SeedCurrencyPairAsync();
+            var date = new DateOnly(2024, 6, 1);
+            await SeedRateAsync(src, dst, date, 0.92m, rateSourceId: 2);
+
+            var result = await _sut.GetExistingInRangeAsync(src, date, date);
+
+            Assert.True(result.ContainsKey((dst, date)));
+            Assert.Equal(0.92m, result[(dst, date)].Rate);
+            Assert.Equal(2, result[(dst, date)].RateSourceId);
+        }
+
+        // ── GetExistingForPairsAsync ───────────────────────────────────────────────
+
+        [Fact]
+        public async Task GetExistingForPairsAsync_ReturnsEmpty_WhenNoneMatch()
+        {
+            var (src, dst) = await SeedCurrencyPairAsync();
+            var date = new DateOnly(2024, 6, 1);
+
+            var result = await _sut.GetExistingForPairsAsync([(src, dst, date)]);
+
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetExistingForPairsAsync_ReturnsOnlyMatchingPairs()
+        {
+            var (src, dst) = await SeedCurrencyPairAsync();
+            var date = new DateOnly(2024, 6, 1);
+            await SeedRateAsync(src, dst, date, 0.92m, rateSourceId: 1);
+            await SeedRateAsync(src, dst, date.AddDays(1), 0.93m); // different date — not in query
+
+            var result = await _sut.GetExistingForPairsAsync([(src, dst, date)]);
+
+            Assert.Single(result);
+            Assert.True(result.ContainsKey((src, dst, date)));
+            Assert.Equal(0.92m, result[(src, dst, date)].Rate);
+            Assert.Equal(1, result[(src, dst, date)].RateSourceId);
+        }
+
+        // ── AddRatesBatchAsync ─────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task AddRatesBatchAsync_EmptyList_DoesNotThrow()
+        {
+            await _sut.AddRatesBatchAsync([]);
+            Assert.Empty(_wrapper.Context.CurrencyDailyRates);
+        }
+
+        [Fact]
+        public async Task AddRatesBatchAsync_InsertsAllRates()
+        {
+            var (src, dst) = await SeedCurrencyPairAsync();
+            var date = new DateOnly(2024, 6, 1);
+            var rates = new List<CurrencyDailyRate>
+            {
+                new() { SourceCurrencyId = src, DestinationCurrencyId = dst, Date = date, Rate = 0.92m, RateSourceId = 1 },
+                new() { SourceCurrencyId = dst, DestinationCurrencyId = src, Date = date, Rate = 1.08m, RateSourceId = 1 }
+            };
+
+            await _sut.AddRatesBatchAsync(rates);
+
+            Assert.Equal(2, _wrapper.Context.CurrencyDailyRates.Count());
+        }
+
+        // ── AddConflictsBatchAsync ─────────────────────────────────────────────────
+
+        [Fact]
+        public async Task AddConflictsBatchAsync_InsertsAllConflicts()
+        {
+            var (src, dst) = await SeedCurrencyPairAsync();
+            var conflicts = new List<CurrencyRateConflict>
+            {
+                new() { SourceCurrencyId = src, DestinationCurrencyId = dst, Date = new DateOnly(2024, 6, 1), AutomaticRate = 0.91m, ManualRate = 0.92m, StatusId = 1 },
+                new() { SourceCurrencyId = src, DestinationCurrencyId = dst, Date = new DateOnly(2024, 6, 2), AutomaticRate = 0.90m, ManualRate = 0.89m, StatusId = 1 }
+            };
+
+            await _sut.AddConflictsBatchAsync(conflicts);
+
+            Assert.Equal(2, _wrapper.Context.CurrencyRateConflicts.Count());
+        }
     }
 }

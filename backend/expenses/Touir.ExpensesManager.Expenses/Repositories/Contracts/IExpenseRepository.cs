@@ -12,5 +12,6 @@ namespace Touir.ExpensesManager.Expenses.Repositories.Contracts
         Task SoftDeleteAsync(Expense expense);
         Task ClearExpenseTagsAsync(long expenseId);
         Task AddExpenseTagsAsync(IEnumerable<ExpenseTag> expenseTags);
+        Task<IEnumerable<int>> GetDistinctCurrencyIdsAsync();
     }
 }

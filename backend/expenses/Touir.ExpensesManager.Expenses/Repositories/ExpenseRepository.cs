@@ -108,5 +108,12 @@ namespace Touir.ExpensesManager.Expenses.Repositories
 
             return (items, totalCount);
         }
+
+        public async Task<IEnumerable<int>> GetDistinctCurrencyIdsAsync()
+            => await _dbContext.Expenses
+                .Where(e => !e.IsDeleted)
+                .Select(e => e.CurrencyId)
+                .Distinct()
+                .ToListAsync();
     }
 }

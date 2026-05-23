@@ -14,12 +14,14 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         private static CurrencyRateService CreateService(
             ICurrencyRateRepository? rateRepo = null,
             ICurrencyRepository? currencyRepo = null,
+            IExpenseRepository? expenseRepo = null,
             IRateProvider? rateProvider = null,
             ILookupCacheService? lookupCache = null)
         {
             return new CurrencyRateService(
                 rateRepo ?? Mock.Of<ICurrencyRateRepository>(),
                 currencyRepo ?? Mock.Of<ICurrencyRepository>(),
+                expenseRepo ?? Mock.Of<IExpenseRepository>(),
                 rateProvider ?? Mock.Of<IRateProvider>(),
                 lookupCache ?? Mock.Of<ILookupCacheService>());
         }
@@ -34,6 +36,15 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             RateSourceId = rateSourceId,
             RateSource = new RateSource { Id = rateSourceId, Name = rateSourceId == 1 ? "Auto" : "Manual" }
         };
+
+        private static Currency MakeCurrency(int id, string code) => new() { Id = id, Code = code, Name = code, Symbol = code, Decimals = 2 };
+
+        private static Mock<IExpenseRepository> ExpenseRepoWithIds(params int[] ids)
+        {
+            var mock = new Mock<IExpenseRepository>();
+            mock.Setup(r => r.GetDistinctCurrencyIdsAsync()).ReturnsAsync(ids);
+            return mock;
+        }
 
         // ── ResolveRateAsync ────────────────────────────────────────────────────────
 
@@ -92,7 +103,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         }
 
         [Fact]
-        public async Task ResolveRateAsync_NoRateAnywhere_ReturnsNull()
+        public async Task ResolveRateAsync_NoStoredRate_FetchesFromApiAndStores()
         {
             var date = new DateOnly(2024, 6, 5);
             var repo = new Mock<ICurrencyRateRepository>();
@@ -100,9 +111,127 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             repo.Setup(r => r.GetMostRecentBeforeAsync(1, 2, date)).ReturnsAsync((CurrencyDailyRate?)null);
             repo.Setup(r => r.GetDefaultAsync(1, 2)).ReturnsAsync((CurrencyPairDefault?)null);
 
-            var result = await CreateService(rateRepo: repo.Object).ResolveRateAsync(1, 2, date);
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(MakeCurrency(1, "USD"));
+            currencyRepo.Setup(r => r.GetByIdAsync(2)).ReturnsAsync(MakeCurrency(2, "EUR"));
+
+            var provider = new Mock<IRateProvider>();
+            provider.Setup(p => p.FetchRatesAsync("USD", date, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<string, decimal> { ["EUR"] = 0.92m });
+
+            var result = await CreateService(rateRepo: repo.Object, currencyRepo: currencyRepo.Object, rateProvider: provider.Object)
+                .ResolveRateAsync(1, 2, date);
+
+            Assert.Equal(0.92m, result);
+            repo.Verify(r => r.AddRateAsync(It.Is<CurrencyDailyRate>(x =>
+                x.SourceCurrencyId == 1 && x.DestinationCurrencyId == 2 &&
+                x.Rate == 0.92m && x.RateSourceId == 1)), Times.Once);
+        }
+
+        [Fact]
+        public async Task ResolveRateAsync_NoStoredRate_SourceCurrencyNotFound_ReturnsNull()
+        {
+            var date = new DateOnly(2024, 6, 5);
+            var repo = new Mock<ICurrencyRateRepository>();
+            repo.Setup(r => r.GetExactAsync(1, 2, date)).ReturnsAsync((CurrencyDailyRate?)null);
+            repo.Setup(r => r.GetMostRecentBeforeAsync(1, 2, date)).ReturnsAsync((CurrencyDailyRate?)null);
+            repo.Setup(r => r.GetDefaultAsync(1, 2)).ReturnsAsync((CurrencyPairDefault?)null);
+
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((Currency?)null);
+
+            var result = await CreateService(rateRepo: repo.Object, currencyRepo: currencyRepo.Object)
+                .ResolveRateAsync(1, 2, date);
 
             Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task ResolveRateAsync_NoStoredRate_DestNotInApiResponse_ReturnsNull()
+        {
+            var date = new DateOnly(2024, 6, 5);
+            var repo = new Mock<ICurrencyRateRepository>();
+            repo.Setup(r => r.GetExactAsync(1, 2, date)).ReturnsAsync((CurrencyDailyRate?)null);
+            repo.Setup(r => r.GetMostRecentBeforeAsync(1, 2, date)).ReturnsAsync((CurrencyDailyRate?)null);
+            repo.Setup(r => r.GetDefaultAsync(1, 2)).ReturnsAsync((CurrencyPairDefault?)null);
+
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(MakeCurrency(1, "USD"));
+            currencyRepo.Setup(r => r.GetByIdAsync(2)).ReturnsAsync(MakeCurrency(2, "EUR"));
+
+            var provider = new Mock<IRateProvider>();
+            provider.Setup(p => p.FetchRatesAsync("USD", date, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<string, decimal> { ["GBP"] = 0.79m }); // EUR missing
+
+            var result = await CreateService(rateRepo: repo.Object, currencyRepo: currencyRepo.Object, rateProvider: provider.Object)
+                .ResolveRateAsync(1, 2, date);
+
+            Assert.Null(result);
+            repo.Verify(r => r.AddRateAsync(It.IsAny<CurrencyDailyRate>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task ResolveRateAsync_NoStoredRate_ApiFetchFails_ReturnsNull()
+        {
+            var date = new DateOnly(2024, 6, 5);
+            var repo = new Mock<ICurrencyRateRepository>();
+            repo.Setup(r => r.GetExactAsync(1, 2, date)).ReturnsAsync((CurrencyDailyRate?)null);
+            repo.Setup(r => r.GetMostRecentBeforeAsync(1, 2, date)).ReturnsAsync((CurrencyDailyRate?)null);
+            repo.Setup(r => r.GetDefaultAsync(1, 2)).ReturnsAsync((CurrencyPairDefault?)null);
+
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(MakeCurrency(1, "USD"));
+
+            var provider = new Mock<IRateProvider>();
+            provider.Setup(p => p.FetchRatesAsync("USD", date, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("network error"));
+
+            var result = await CreateService(rateRepo: repo.Object, currencyRepo: currencyRepo.Object, rateProvider: provider.Object)
+                .ResolveRateAsync(1, 2, date);
+
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task ResolveRateAsync_DoesNotFetch_WhenExactRateExists()
+        {
+            var date = new DateOnly(2024, 6, 5);
+            var repo = new Mock<ICurrencyRateRepository>();
+            repo.Setup(r => r.GetExactAsync(1, 2, date)).ReturnsAsync(MakeRate(1, 2, date, 0.92m));
+            var provider = new Mock<IRateProvider>();
+
+            await CreateService(rateRepo: repo.Object, rateProvider: provider.Object).ResolveRateAsync(1, 2, date);
+
+            provider.Verify(p => p.FetchRatesAsync(It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task ResolveRateAsync_DoesNotFetch_WhenRecentRateExists()
+        {
+            var date = new DateOnly(2024, 6, 5);
+            var repo = new Mock<ICurrencyRateRepository>();
+            repo.Setup(r => r.GetExactAsync(1, 2, date)).ReturnsAsync((CurrencyDailyRate?)null);
+            repo.Setup(r => r.GetMostRecentBeforeAsync(1, 2, date)).ReturnsAsync(MakeRate(1, 2, date.AddDays(-1), 0.91m));
+            var provider = new Mock<IRateProvider>();
+
+            await CreateService(rateRepo: repo.Object, rateProvider: provider.Object).ResolveRateAsync(1, 2, date);
+
+            provider.Verify(p => p.FetchRatesAsync(It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task ResolveRateAsync_DoesNotFetch_WhenFallbackExists()
+        {
+            var date = new DateOnly(2024, 6, 5);
+            var repo = new Mock<ICurrencyRateRepository>();
+            repo.Setup(r => r.GetExactAsync(1, 2, date)).ReturnsAsync((CurrencyDailyRate?)null);
+            repo.Setup(r => r.GetMostRecentBeforeAsync(1, 2, date)).ReturnsAsync((CurrencyDailyRate?)null);
+            repo.Setup(r => r.GetDefaultAsync(1, 2)).ReturnsAsync(new CurrencyPairDefault { SourceCurrencyId = 1, DestinationCurrencyId = 2, Rate = 0.90m });
+            var provider = new Mock<IRateProvider>();
+
+            await CreateService(rateRepo: repo.Object, rateProvider: provider.Object).ResolveRateAsync(1, 2, date);
+
+            provider.Verify(p => p.FetchRatesAsync(It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         // ── AddManualRateAsync ─────────────────────────────────────────────────────
@@ -136,13 +265,28 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             repo.Verify(r => r.AddRateAsync(It.IsAny<CurrencyDailyRate>()), Times.Never);
         }
 
+        // ── BulkAddManualRatesAsync ────────────────────────────────────────────────
+
         [Fact]
-        public async Task BulkAddManualRatesAsync_MultipleEntries_CallsAddForEach()
+        public async Task BulkAddManualRatesAsync_EmptyRequest_DoesNotCallBatch()
+        {
+            var repo = new Mock<ICurrencyRateRepository>();
+            var request = new BulkAddRatesRequest { Rates = [] };
+
+            await CreateService(rateRepo: repo.Object).BulkAddManualRatesAsync(request, adminUserId: 1);
+
+            repo.Verify(r => r.GetExistingForPairsAsync(It.IsAny<IEnumerable<(int, int, DateOnly)>>()), Times.Never);
+            repo.Verify(r => r.AddRatesBatchAsync(It.IsAny<IEnumerable<CurrencyDailyRate>>()), Times.Never);
+            repo.Verify(r => r.AddConflictsBatchAsync(It.IsAny<IEnumerable<CurrencyRateConflict>>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task BulkAddManualRatesAsync_CallsGetExistingForPairs_Once()
         {
             var date = new DateOnly(2024, 6, 1);
             var repo = new Mock<ICurrencyRateRepository>();
-            repo.Setup(r => r.GetExactAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateOnly>()))
-                .ReturnsAsync((CurrencyDailyRate?)null);
+            repo.Setup(r => r.GetExistingForPairsAsync(It.IsAny<IEnumerable<(int, int, DateOnly)>>()))
+                .ReturnsAsync(new Dictionary<(int, int, DateOnly), (decimal, int)>());
 
             var request = new BulkAddRatesRequest
             {
@@ -154,8 +298,58 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
 
             await CreateService(rateRepo: repo.Object).BulkAddManualRatesAsync(request, adminUserId: 1);
 
-            repo.Verify(r => r.AddRateAsync(It.IsAny<CurrencyDailyRate>()), Times.Exactly(2));
+            repo.Verify(r => r.GetExistingForPairsAsync(It.IsAny<IEnumerable<(int, int, DateOnly)>>()), Times.Once);
         }
+
+        [Fact]
+        public async Task BulkAddManualRatesAsync_BatchInserts_NewRates()
+        {
+            var date = new DateOnly(2024, 6, 1);
+            var repo = new Mock<ICurrencyRateRepository>();
+            repo.Setup(r => r.GetExistingForPairsAsync(It.IsAny<IEnumerable<(int, int, DateOnly)>>()))
+                .ReturnsAsync(new Dictionary<(int, int, DateOnly), (decimal, int)>());
+
+            var request = new BulkAddRatesRequest
+            {
+                Rates = [
+                    new AddRateRequest { SourceCurrencyId = 1, DestinationCurrencyId = 2, Date = date, Rate = 0.92m },
+                    new AddRateRequest { SourceCurrencyId = 1, DestinationCurrencyId = 3, Date = date, Rate = 1.10m }
+                ]
+            };
+
+            await CreateService(rateRepo: repo.Object).BulkAddManualRatesAsync(request, adminUserId: 1);
+
+            repo.Verify(r => r.AddRatesBatchAsync(It.Is<IEnumerable<CurrencyDailyRate>>(l => l.Count() == 2)), Times.Once);
+            repo.Verify(r => r.AddRateAsync(It.IsAny<CurrencyDailyRate>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task BulkAddManualRatesAsync_BatchInserts_ConflictsForExistingRates()
+        {
+            var date = new DateOnly(2024, 6, 1);
+            var repo = new Mock<ICurrencyRateRepository>();
+            repo.Setup(r => r.GetExistingForPairsAsync(It.IsAny<IEnumerable<(int, int, DateOnly)>>()))
+                .ReturnsAsync(new Dictionary<(int, int, DateOnly), (decimal, int)>
+                {
+                    [(1, 2, date)] = (0.91m, 1) // existing auto rate
+                });
+
+            var request = new BulkAddRatesRequest
+            {
+                Rates = [
+                    new AddRateRequest { SourceCurrencyId = 1, DestinationCurrencyId = 2, Date = date, Rate = 0.92m }, // conflict
+                    new AddRateRequest { SourceCurrencyId = 1, DestinationCurrencyId = 3, Date = date, Rate = 1.10m }  // new
+                ]
+            };
+
+            await CreateService(rateRepo: repo.Object).BulkAddManualRatesAsync(request, adminUserId: 1);
+
+            repo.Verify(r => r.AddRatesBatchAsync(It.Is<IEnumerable<CurrencyDailyRate>>(l => l.Count() == 1)), Times.Once);
+            repo.Verify(r => r.AddConflictsBatchAsync(It.Is<IEnumerable<CurrencyRateConflict>>(l =>
+                l.Count() == 1 && l.First().AutomaticRate == 0.91m && l.First().ManualRate == 0.92m)), Times.Once);
+        }
+
+        // ── SetDefaultFallbackAsync ────────────────────────────────────────────────
 
         [Fact]
         public async Task SetDefaultFallbackAsync_UpsertsCurrencyPairDefault()
@@ -264,6 +458,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
                     .ResolveConflictAsync(1, new ResolveConflictRequest { Resolution = "Custom", CustomRate = null }, adminUserId: 1));
         }
 
+        // ── GetRateHistoryAsync ────────────────────────────────────────────────────
+
         [Fact]
         public async Task GetRateHistoryAsync_ReturnsAllHistoryMappedToDto()
         {
@@ -282,292 +478,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             Assert.Equal(0.92m, result[0].Rate);
         }
 
-        // ── RunDailyUpdateAsync ────────────────────────────────────────────────────
-
-        private static Currency MakeCurrency(int id, string code) => new() { Id = id, Code = code, Name = code, Symbol = code, Decimals = 2 };
-
-        [Fact]
-        public async Task RunDailyUpdateAsync_InsertsAutoRates_ForAllCurrencyPairs()
-        {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var currencies = new List<Currency> { MakeCurrency(1, "USD"), MakeCurrency(2, "EUR") };
-            var currencyRepo = new Mock<ICurrencyRepository>();
-            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(currencies);
-            var provider = new Mock<IRateProvider>();
-            provider.Setup(p => p.FetchRatesAsync("USD", today, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Dictionary<string, decimal> { ["EUR"] = 0.92m });
-            provider.Setup(p => p.FetchRatesAsync("EUR", today, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Dictionary<string, decimal> { ["USD"] = 1.08m });
-            var rateRepo = new Mock<ICurrencyRateRepository>();
-            rateRepo.Setup(r => r.GetExactAsync(It.IsAny<int>(), It.IsAny<int>(), today))
-                .ReturnsAsync((CurrencyDailyRate?)null);
-
-            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object, rateProvider: provider.Object)
-                .RunDailyUpdateAsync();
-
-            rateRepo.Verify(r => r.AddRateAsync(It.Is<CurrencyDailyRate>(x => x.RateSourceId == 1)), Times.Exactly(2));
-        }
-
-        [Fact]
-        public async Task RunDailyUpdateAsync_ManualRateExists_CreatesConflict_NotNewRate()
-        {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var currencies = new List<Currency> { MakeCurrency(1, "USD"), MakeCurrency(2, "EUR") };
-            var currencyRepo = new Mock<ICurrencyRepository>();
-            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(currencies);
-            var provider = new Mock<IRateProvider>();
-            provider.Setup(p => p.FetchRatesAsync("USD", today, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Dictionary<string, decimal> { ["EUR"] = 0.92m });
-            provider.Setup(p => p.FetchRatesAsync("EUR", today, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Dictionary<string, decimal>());
-            var existingManual = MakeRate(1, 2, today, 0.90m, rateSourceId: 2);
-            var rateRepo = new Mock<ICurrencyRateRepository>();
-            rateRepo.Setup(r => r.GetExactAsync(1, 2, today)).ReturnsAsync(existingManual);
-
-            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object, rateProvider: provider.Object)
-                .RunDailyUpdateAsync();
-
-            rateRepo.Verify(r => r.AddConflictAsync(It.Is<CurrencyRateConflict>(
-                c => c.AutomaticRate == 0.92m && c.ManualRate == 0.90m && c.StatusId == 1)), Times.Once);
-            rateRepo.Verify(r => r.AddRateAsync(It.IsAny<CurrencyDailyRate>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task RunDailyUpdateAsync_AutoRateAlreadyExists_Skips()
-        {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var currencies = new List<Currency> { MakeCurrency(1, "USD"), MakeCurrency(2, "EUR") };
-            var currencyRepo = new Mock<ICurrencyRepository>();
-            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(currencies);
-            var provider = new Mock<IRateProvider>();
-            provider.Setup(p => p.FetchRatesAsync("USD", today, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Dictionary<string, decimal> { ["EUR"] = 0.92m });
-            provider.Setup(p => p.FetchRatesAsync("EUR", today, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Dictionary<string, decimal>());
-            var existingAuto = MakeRate(1, 2, today, 0.91m, rateSourceId: 1);
-            var rateRepo = new Mock<ICurrencyRateRepository>();
-            rateRepo.Setup(r => r.GetExactAsync(1, 2, today)).ReturnsAsync(existingAuto);
-
-            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object, rateProvider: provider.Object)
-                .RunDailyUpdateAsync();
-
-            rateRepo.Verify(r => r.AddRateAsync(It.IsAny<CurrencyDailyRate>()), Times.Never);
-            rateRepo.Verify(r => r.AddConflictAsync(It.IsAny<CurrencyRateConflict>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task RunDailyUpdateAsync_ProviderThrows_ContinuesToNextCurrency()
-        {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var currencies = new List<Currency> { MakeCurrency(1, "USD"), MakeCurrency(2, "EUR") };
-            var currencyRepo = new Mock<ICurrencyRepository>();
-            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(currencies);
-            var provider = new Mock<IRateProvider>();
-            provider.Setup(p => p.FetchRatesAsync("USD", today, It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new HttpRequestException("network error"));
-            provider.Setup(p => p.FetchRatesAsync("EUR", today, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Dictionary<string, decimal> { ["USD"] = 1.08m });
-            var rateRepo = new Mock<ICurrencyRateRepository>();
-            rateRepo.Setup(r => r.GetExactAsync(It.IsAny<int>(), It.IsAny<int>(), today))
-                .ReturnsAsync((CurrencyDailyRate?)null);
-
-            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object, rateProvider: provider.Object)
-                .RunDailyUpdateAsync();
-
-            rateRepo.Verify(r => r.AddRateAsync(It.IsAny<CurrencyDailyRate>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task RunDailyUpdateAsync_SkipsDestCode_NotInDatabase()
-        {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var currencies = new List<Currency> { MakeCurrency(1, "USD") };
-            var currencyRepo = new Mock<ICurrencyRepository>();
-            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(currencies);
-            var provider = new Mock<IRateProvider>();
-            provider.Setup(p => p.FetchRatesAsync("USD", today, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Dictionary<string, decimal> { ["XXX"] = 1.5m });
-            var rateRepo = new Mock<ICurrencyRateRepository>();
-
-            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object, rateProvider: provider.Object)
-                .RunDailyUpdateAsync();
-
-            rateRepo.Verify(r => r.AddRateAsync(It.IsAny<CurrencyDailyRate>()), Times.Never);
-        }
-
-        // ── RefreshRatesFromAsync ──────────────────────────────────────────────────
-
-        [Fact]
-        public async Task RefreshRatesFromAsync_InsertsAutoRates_ForAllDatesAndPairs()
-        {
-            var from = new DateOnly(2024, 6, 1);
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var currencies = new List<Currency> { MakeCurrency(1, "USD"), MakeCurrency(2, "EUR") };
-            var currencyRepo = new Mock<ICurrencyRepository>();
-            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(currencies);
-            var provider = new Mock<IRateProvider>();
-            provider.Setup(p => p.FetchRatesRangeAsync("USD", from, today, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Dictionary<DateOnly, Dictionary<string, decimal>>
-                {
-                    [from] = new() { ["EUR"] = 0.92m },
-                    [from.AddDays(1)] = new() { ["EUR"] = 0.93m }
-                });
-            provider.Setup(p => p.FetchRatesRangeAsync("EUR", from, today, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Dictionary<DateOnly, Dictionary<string, decimal>>());
-            var rateRepo = new Mock<ICurrencyRateRepository>();
-            rateRepo.Setup(r => r.GetExactAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateOnly>()))
-                .ReturnsAsync((CurrencyDailyRate?)null);
-
-            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object, rateProvider: provider.Object)
-                .RefreshRatesFromAsync(from);
-
-            rateRepo.Verify(r => r.AddRateAsync(It.Is<CurrencyDailyRate>(x => x.RateSourceId == 1)), Times.Exactly(2));
-        }
-
-        [Fact]
-        public async Task RefreshRatesFromAsync_ManualRateExists_CreatesConflict()
-        {
-            var from = new DateOnly(2024, 6, 1);
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var currencies = new List<Currency> { MakeCurrency(1, "USD"), MakeCurrency(2, "EUR") };
-            var currencyRepo = new Mock<ICurrencyRepository>();
-            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(currencies);
-            var provider = new Mock<IRateProvider>();
-            provider.Setup(p => p.FetchRatesRangeAsync("USD", from, today, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Dictionary<DateOnly, Dictionary<string, decimal>>
-                {
-                    [from] = new() { ["EUR"] = 0.92m }
-                });
-            provider.Setup(p => p.FetchRatesRangeAsync("EUR", from, today, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Dictionary<DateOnly, Dictionary<string, decimal>>());
-            var existingManual = MakeRate(1, 2, from, 0.90m, rateSourceId: 2);
-            var rateRepo = new Mock<ICurrencyRateRepository>();
-            rateRepo.Setup(r => r.GetExactAsync(1, 2, from)).ReturnsAsync(existingManual);
-
-            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object, rateProvider: provider.Object)
-                .RefreshRatesFromAsync(from);
-
-            rateRepo.Verify(r => r.AddConflictAsync(It.Is<CurrencyRateConflict>(
-                c => c.AutomaticRate == 0.92m && c.ManualRate == 0.90m && c.StatusId == 1)), Times.Once);
-            rateRepo.Verify(r => r.AddRateAsync(It.IsAny<CurrencyDailyRate>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task RefreshRatesFromAsync_ProviderThrows_ContinuesToNextCurrency()
-        {
-            var from = new DateOnly(2024, 6, 1);
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var currencies = new List<Currency> { MakeCurrency(1, "USD"), MakeCurrency(2, "EUR") };
-            var currencyRepo = new Mock<ICurrencyRepository>();
-            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(currencies);
-            var provider = new Mock<IRateProvider>();
-            provider.Setup(p => p.FetchRatesRangeAsync("USD", from, today, It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new HttpRequestException("network error"));
-            provider.Setup(p => p.FetchRatesRangeAsync("EUR", from, today, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Dictionary<DateOnly, Dictionary<string, decimal>>
-                {
-                    [from] = new() { ["USD"] = 1.08m }
-                });
-            var rateRepo = new Mock<ICurrencyRateRepository>();
-            rateRepo.Setup(r => r.GetExactAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateOnly>()))
-                .ReturnsAsync((CurrencyDailyRate?)null);
-
-            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object, rateProvider: provider.Object)
-                .RefreshRatesFromAsync(from);
-
-            rateRepo.Verify(r => r.AddRateAsync(It.IsAny<CurrencyDailyRate>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task RefreshRatesFromAsync_SkipsDestCode_NotInDatabase()
-        {
-            var from = new DateOnly(2024, 6, 1);
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var currencies = new List<Currency> { MakeCurrency(1, "USD") };
-            var currencyRepo = new Mock<ICurrencyRepository>();
-            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(currencies);
-            var provider = new Mock<IRateProvider>();
-            provider.Setup(p => p.FetchRatesRangeAsync("USD", from, today, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Dictionary<DateOnly, Dictionary<string, decimal>>
-                {
-                    [from] = new() { ["XXX"] = 1.5m }
-                });
-            var rateRepo = new Mock<ICurrencyRateRepository>();
-
-            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object, rateProvider: provider.Object)
-                .RefreshRatesFromAsync(from);
-
-            rateRepo.Verify(r => r.AddRateAsync(It.IsAny<CurrencyDailyRate>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task RefreshRatesFromAsync_SourceCurrencyFilter_OnlyFetchesForThatSource()
-        {
-            var from = new DateOnly(2024, 6, 1);
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var currencies = new List<Currency> { MakeCurrency(1, "USD"), MakeCurrency(2, "EUR") };
-            var currencyRepo = new Mock<ICurrencyRepository>();
-            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(currencies);
-            var provider = new Mock<IRateProvider>();
-            provider.Setup(p => p.FetchRatesRangeAsync("USD", from, today, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Dictionary<DateOnly, Dictionary<string, decimal>>
-                {
-                    [from] = new() { ["EUR"] = 0.92m }
-                });
-            var rateRepo = new Mock<ICurrencyRateRepository>();
-            rateRepo.Setup(r => r.GetExactAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateOnly>()))
-                .ReturnsAsync((CurrencyDailyRate?)null);
-
-            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object, rateProvider: provider.Object)
-                .RefreshRatesFromAsync(from, sourceCurrencyId: 1);
-
-            provider.Verify(p => p.FetchRatesRangeAsync("USD", from, today, It.IsAny<CancellationToken>()), Times.Once);
-            provider.Verify(p => p.FetchRatesRangeAsync("EUR", from, today, It.IsAny<CancellationToken>()), Times.Never);
-            rateRepo.Verify(r => r.AddRateAsync(It.Is<CurrencyDailyRate>(x => x.RateSourceId == 1)), Times.Once);
-        }
-
-        [Fact]
-        public async Task RefreshRatesFromAsync_DestinationCurrencyFilter_OnlyInsertsMatchingDest()
-        {
-            var from = new DateOnly(2024, 6, 1);
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var currencies = new List<Currency> { MakeCurrency(1, "USD"), MakeCurrency(2, "EUR"), MakeCurrency(3, "GBP") };
-            var currencyRepo = new Mock<ICurrencyRepository>();
-            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(currencies);
-            var provider = new Mock<IRateProvider>();
-            provider.Setup(p => p.FetchRatesRangeAsync(It.IsAny<string>(), from, today, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Dictionary<DateOnly, Dictionary<string, decimal>>
-                {
-                    [from] = new() { ["EUR"] = 0.92m, ["GBP"] = 0.79m }
-                });
-            var rateRepo = new Mock<ICurrencyRateRepository>();
-            rateRepo.Setup(r => r.GetExactAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateOnly>()))
-                .ReturnsAsync((CurrencyDailyRate?)null);
-
-            // Only refresh USD→EUR (destCurrencyId=2), not USD→GBP
-            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object, rateProvider: provider.Object)
-                .RefreshRatesFromAsync(from, sourceCurrencyId: 1, destinationCurrencyId: 2);
-
-            rateRepo.Verify(r => r.AddRateAsync(It.Is<CurrencyDailyRate>(x => x.DestinationCurrencyId == 2)), Times.Once);
-            rateRepo.Verify(r => r.AddRateAsync(It.Is<CurrencyDailyRate>(x => x.DestinationCurrencyId == 3)), Times.Never);
-        }
-
-        [Fact]
-        public async Task RefreshRatesFromAsync_UnknownSourceCurrencyId_FetchesNothing()
-        {
-            var from = new DateOnly(2024, 6, 1);
-            var currencies = new List<Currency> { MakeCurrency(1, "USD") };
-            var currencyRepo = new Mock<ICurrencyRepository>();
-            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(currencies);
-            var provider = new Mock<IRateProvider>();
-            var rateRepo = new Mock<ICurrencyRateRepository>();
-
-            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object, rateProvider: provider.Object)
-                .RefreshRatesFromAsync(from, sourceCurrencyId: 999);
-
-            provider.Verify(p => p.FetchRatesRangeAsync(It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()), Times.Never);
-            rateRepo.Verify(r => r.AddRateAsync(It.IsAny<CurrencyDailyRate>()), Times.Never);
-        }
+        // ── GetPendingConflictsAsync ───────────────────────────────────────────────
 
         [Fact]
         public async Task GetPendingConflictsAsync_ReturnsMappedConflicts()
@@ -588,6 +499,441 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
 
             Assert.Single(result);
             Assert.Equal("Pending", result[0].Status);
+        }
+
+        // ── RunDailyUpdateAsync ────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task RunDailyUpdateAsync_NoOp_WhenNoExpenseCurrencies()
+        {
+            var expenseRepo = ExpenseRepoWithIds(); // empty
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            var provider = new Mock<IRateProvider>();
+
+            await CreateService(expenseRepo: expenseRepo.Object, currencyRepo: currencyRepo.Object, rateProvider: provider.Object)
+                .RunDailyUpdateAsync();
+
+            provider.Verify(p => p.FetchRatesAsync(It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()), Times.Never);
+            currencyRepo.Verify(r => r.GetAllAsync(), Times.Never);
+        }
+
+        [Fact]
+        public async Task RunDailyUpdateAsync_OnlyFetchesApi_ForUsedCurrencies()
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var expenseRepo = ExpenseRepoWithIds(1, 2); // USD and EUR used; GBP not used
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Currency>
+            {
+                MakeCurrency(1, "USD"), MakeCurrency(2, "EUR"), MakeCurrency(3, "GBP")
+            });
+            var provider = new Mock<IRateProvider>();
+            provider.Setup(p => p.FetchRatesAsync(It.IsAny<string>(), today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<string, decimal>());
+            var rateRepo = new Mock<ICurrencyRateRepository>();
+            rateRepo.Setup(r => r.GetExistingOnDateAsync(It.IsAny<int>(), today))
+                .ReturnsAsync(new Dictionary<int, (decimal, int)>());
+
+            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object,
+                expenseRepo: expenseRepo.Object, rateProvider: provider.Object).RunDailyUpdateAsync();
+
+            provider.Verify(p => p.FetchRatesAsync("USD", today, It.IsAny<CancellationToken>()), Times.Once);
+            provider.Verify(p => p.FetchRatesAsync("EUR", today, It.IsAny<CancellationToken>()), Times.Once);
+            provider.Verify(p => p.FetchRatesAsync("GBP", today, It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task RunDailyUpdateAsync_SkipsUnusedDestinationCurrencies()
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var expenseRepo = ExpenseRepoWithIds(1, 2); // only USD and EUR used
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Currency>
+            {
+                MakeCurrency(1, "USD"), MakeCurrency(2, "EUR"), MakeCurrency(3, "GBP")
+            });
+            var provider = new Mock<IRateProvider>();
+            provider.Setup(p => p.FetchRatesAsync("USD", today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<string, decimal> { ["EUR"] = 0.92m, ["GBP"] = 0.79m });
+            provider.Setup(p => p.FetchRatesAsync("EUR", today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<string, decimal>());
+            var rateRepo = new Mock<ICurrencyRateRepository>();
+            rateRepo.Setup(r => r.GetExistingOnDateAsync(It.IsAny<int>(), today))
+                .ReturnsAsync(new Dictionary<int, (decimal, int)>());
+
+            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object,
+                expenseRepo: expenseRepo.Object, rateProvider: provider.Object).RunDailyUpdateAsync();
+
+            // Only EUR (id=2, in usedIds) inserted, GBP (id=3, not in usedIds) skipped
+            rateRepo.Verify(r => r.AddRatesBatchAsync(It.Is<IEnumerable<CurrencyDailyRate>>(
+                l => l.Count() == 1 && l.First().DestinationCurrencyId == 2)), Times.Once);
+        }
+
+        [Fact]
+        public async Task RunDailyUpdateAsync_InsertsAutoRates_BatchedInSingleCall()
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var expenseRepo = ExpenseRepoWithIds(1, 2);
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Currency>
+            {
+                MakeCurrency(1, "USD"), MakeCurrency(2, "EUR")
+            });
+            var provider = new Mock<IRateProvider>();
+            provider.Setup(p => p.FetchRatesAsync("USD", today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<string, decimal> { ["EUR"] = 0.92m });
+            provider.Setup(p => p.FetchRatesAsync("EUR", today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<string, decimal> { ["USD"] = 1.08m });
+            var rateRepo = new Mock<ICurrencyRateRepository>();
+            rateRepo.Setup(r => r.GetExistingOnDateAsync(It.IsAny<int>(), today))
+                .ReturnsAsync(new Dictionary<int, (decimal, int)>());
+
+            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object,
+                expenseRepo: expenseRepo.Object, rateProvider: provider.Object).RunDailyUpdateAsync();
+
+            // Both rates accumulated and inserted in one batch call
+            rateRepo.Verify(r => r.AddRatesBatchAsync(It.Is<IEnumerable<CurrencyDailyRate>>(
+                l => l.Count() == 2 && l.All(x => x.RateSourceId == 1))), Times.Once);
+            rateRepo.Verify(r => r.AddRateAsync(It.IsAny<CurrencyDailyRate>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task RunDailyUpdateAsync_ManualRateExists_BatchesConflict_NotNewRate()
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var expenseRepo = ExpenseRepoWithIds(1, 2);
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Currency>
+            {
+                MakeCurrency(1, "USD"), MakeCurrency(2, "EUR")
+            });
+            var provider = new Mock<IRateProvider>();
+            provider.Setup(p => p.FetchRatesAsync("USD", today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<string, decimal> { ["EUR"] = 0.92m });
+            provider.Setup(p => p.FetchRatesAsync("EUR", today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<string, decimal>());
+            var rateRepo = new Mock<ICurrencyRateRepository>();
+            rateRepo.Setup(r => r.GetExistingOnDateAsync(1, today))
+                .ReturnsAsync(new Dictionary<int, (decimal, int)> { [2] = (0.90m, 2) }); // Manual rate exists
+            rateRepo.Setup(r => r.GetExistingOnDateAsync(2, today))
+                .ReturnsAsync(new Dictionary<int, (decimal, int)>());
+
+            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object,
+                expenseRepo: expenseRepo.Object, rateProvider: provider.Object).RunDailyUpdateAsync();
+
+            rateRepo.Verify(r => r.AddConflictsBatchAsync(It.Is<IEnumerable<CurrencyRateConflict>>(
+                l => l.Count() == 1 && l.First().AutomaticRate == 0.92m && l.First().ManualRate == 0.90m && l.First().StatusId == 1)), Times.Once);
+            rateRepo.Verify(r => r.AddRatesBatchAsync(It.IsAny<IEnumerable<CurrencyDailyRate>>()), Times.Never);
+            rateRepo.Verify(r => r.AddConflictAsync(It.IsAny<CurrencyRateConflict>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task RunDailyUpdateAsync_AutoRateAlreadyExists_Skips()
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var expenseRepo = ExpenseRepoWithIds(1, 2);
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Currency>
+            {
+                MakeCurrency(1, "USD"), MakeCurrency(2, "EUR")
+            });
+            var provider = new Mock<IRateProvider>();
+            provider.Setup(p => p.FetchRatesAsync("USD", today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<string, decimal> { ["EUR"] = 0.92m });
+            provider.Setup(p => p.FetchRatesAsync("EUR", today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<string, decimal>());
+            var rateRepo = new Mock<ICurrencyRateRepository>();
+            rateRepo.Setup(r => r.GetExistingOnDateAsync(1, today))
+                .ReturnsAsync(new Dictionary<int, (decimal, int)> { [2] = (0.91m, 1) }); // Auto rate exists
+            rateRepo.Setup(r => r.GetExistingOnDateAsync(2, today))
+                .ReturnsAsync(new Dictionary<int, (decimal, int)>());
+
+            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object,
+                expenseRepo: expenseRepo.Object, rateProvider: provider.Object).RunDailyUpdateAsync();
+
+            rateRepo.Verify(r => r.AddRatesBatchAsync(It.IsAny<IEnumerable<CurrencyDailyRate>>()), Times.Never);
+            rateRepo.Verify(r => r.AddConflictsBatchAsync(It.IsAny<IEnumerable<CurrencyRateConflict>>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task RunDailyUpdateAsync_ProviderThrows_ContinuesToNextCurrency()
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var expenseRepo = ExpenseRepoWithIds(1, 2);
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Currency>
+            {
+                MakeCurrency(1, "USD"), MakeCurrency(2, "EUR")
+            });
+            var provider = new Mock<IRateProvider>();
+            provider.Setup(p => p.FetchRatesAsync("USD", today, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("network error"));
+            provider.Setup(p => p.FetchRatesAsync("EUR", today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<string, decimal> { ["USD"] = 1.08m });
+            var rateRepo = new Mock<ICurrencyRateRepository>();
+            rateRepo.Setup(r => r.GetExistingOnDateAsync(2, today))
+                .ReturnsAsync(new Dictionary<int, (decimal, int)>());
+
+            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object,
+                expenseRepo: expenseRepo.Object, rateProvider: provider.Object).RunDailyUpdateAsync();
+
+            rateRepo.Verify(r => r.AddRatesBatchAsync(It.Is<IEnumerable<CurrencyDailyRate>>(l => l.Count() == 1)), Times.Once);
+        }
+
+        [Fact]
+        public async Task RunDailyUpdateAsync_SkipsDestCode_NotInDatabase()
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var expenseRepo = ExpenseRepoWithIds(1);
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Currency> { MakeCurrency(1, "USD") });
+            var provider = new Mock<IRateProvider>();
+            provider.Setup(p => p.FetchRatesAsync("USD", today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<string, decimal> { ["XXX"] = 1.5m });
+            var rateRepo = new Mock<ICurrencyRateRepository>();
+            rateRepo.Setup(r => r.GetExistingOnDateAsync(1, today))
+                .ReturnsAsync(new Dictionary<int, (decimal, int)>());
+
+            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object,
+                expenseRepo: expenseRepo.Object, rateProvider: provider.Object).RunDailyUpdateAsync();
+
+            rateRepo.Verify(r => r.AddRatesBatchAsync(It.IsAny<IEnumerable<CurrencyDailyRate>>()), Times.Never);
+        }
+
+        // ── RefreshRatesFromAsync ──────────────────────────────────────────────────
+
+        [Fact]
+        public async Task RefreshRatesFromAsync_NoOp_WhenNoExpenseCurrencies()
+        {
+            var from = new DateOnly(2024, 6, 1);
+            var expenseRepo = ExpenseRepoWithIds(); // empty
+            var provider = new Mock<IRateProvider>();
+
+            await CreateService(expenseRepo: expenseRepo.Object, rateProvider: provider.Object)
+                .RefreshRatesFromAsync(from);
+
+            provider.Verify(p => p.FetchRatesRangeAsync(It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task RefreshRatesFromAsync_OnlyFetchesApi_ForUsedCurrencies()
+        {
+            var from = new DateOnly(2024, 6, 1);
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var expenseRepo = ExpenseRepoWithIds(1, 2); // USD and EUR; GBP not used
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Currency>
+            {
+                MakeCurrency(1, "USD"), MakeCurrency(2, "EUR"), MakeCurrency(3, "GBP")
+            });
+            var provider = new Mock<IRateProvider>();
+            provider.Setup(p => p.FetchRatesRangeAsync(It.IsAny<string>(), from, today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<DateOnly, Dictionary<string, decimal>>());
+            var rateRepo = new Mock<ICurrencyRateRepository>();
+            rateRepo.Setup(r => r.GetExistingInRangeAsync(It.IsAny<int>(), from, today))
+                .ReturnsAsync(new Dictionary<(int, DateOnly), (decimal, int)>());
+
+            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object,
+                expenseRepo: expenseRepo.Object, rateProvider: provider.Object).RefreshRatesFromAsync(from);
+
+            provider.Verify(p => p.FetchRatesRangeAsync("USD", from, today, It.IsAny<CancellationToken>()), Times.Once);
+            provider.Verify(p => p.FetchRatesRangeAsync("EUR", from, today, It.IsAny<CancellationToken>()), Times.Once);
+            provider.Verify(p => p.FetchRatesRangeAsync("GBP", from, today, It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task RefreshRatesFromAsync_BatchInsertsNewRates()
+        {
+            var from = new DateOnly(2024, 6, 1);
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var expenseRepo = ExpenseRepoWithIds(1, 2);
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Currency>
+            {
+                MakeCurrency(1, "USD"), MakeCurrency(2, "EUR")
+            });
+            var provider = new Mock<IRateProvider>();
+            provider.Setup(p => p.FetchRatesRangeAsync("USD", from, today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<DateOnly, Dictionary<string, decimal>>
+                {
+                    [from] = new() { ["EUR"] = 0.92m },
+                    [from.AddDays(1)] = new() { ["EUR"] = 0.93m }
+                });
+            provider.Setup(p => p.FetchRatesRangeAsync("EUR", from, today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<DateOnly, Dictionary<string, decimal>>());
+            var rateRepo = new Mock<ICurrencyRateRepository>();
+            rateRepo.Setup(r => r.GetExistingInRangeAsync(It.IsAny<int>(), from, today))
+                .ReturnsAsync(new Dictionary<(int, DateOnly), (decimal, int)>());
+
+            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object,
+                expenseRepo: expenseRepo.Object, rateProvider: provider.Object).RefreshRatesFromAsync(from);
+
+            rateRepo.Verify(r => r.AddRatesBatchAsync(It.Is<IEnumerable<CurrencyDailyRate>>(
+                l => l.Count() == 2 && l.All(x => x.RateSourceId == 1))), Times.Once);
+            rateRepo.Verify(r => r.AddRateAsync(It.IsAny<CurrencyDailyRate>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task RefreshRatesFromAsync_BatchInsertsConflicts_ForManualRates()
+        {
+            var from = new DateOnly(2024, 6, 1);
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var expenseRepo = ExpenseRepoWithIds(1, 2);
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Currency>
+            {
+                MakeCurrency(1, "USD"), MakeCurrency(2, "EUR")
+            });
+            var provider = new Mock<IRateProvider>();
+            provider.Setup(p => p.FetchRatesRangeAsync("USD", from, today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<DateOnly, Dictionary<string, decimal>>
+                {
+                    [from] = new() { ["EUR"] = 0.92m }
+                });
+            provider.Setup(p => p.FetchRatesRangeAsync("EUR", from, today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<DateOnly, Dictionary<string, decimal>>());
+            var rateRepo = new Mock<ICurrencyRateRepository>();
+            rateRepo.Setup(r => r.GetExistingInRangeAsync(1, from, today))
+                .ReturnsAsync(new Dictionary<(int, DateOnly), (decimal, int)> { [(2, from)] = (0.90m, 2) }); // Manual exists
+            rateRepo.Setup(r => r.GetExistingInRangeAsync(2, from, today))
+                .ReturnsAsync(new Dictionary<(int, DateOnly), (decimal, int)>());
+
+            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object,
+                expenseRepo: expenseRepo.Object, rateProvider: provider.Object).RefreshRatesFromAsync(from);
+
+            rateRepo.Verify(r => r.AddConflictsBatchAsync(It.Is<IEnumerable<CurrencyRateConflict>>(
+                l => l.Count() == 1 && l.First().AutomaticRate == 0.92m && l.First().ManualRate == 0.90m)), Times.Once);
+            rateRepo.Verify(r => r.AddRatesBatchAsync(It.IsAny<IEnumerable<CurrencyDailyRate>>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task RefreshRatesFromAsync_SourceCurrencyFilter_OnlyFetchesForThatSource()
+        {
+            var from = new DateOnly(2024, 6, 1);
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var expenseRepo = ExpenseRepoWithIds(1, 2);
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Currency>
+            {
+                MakeCurrency(1, "USD"), MakeCurrency(2, "EUR")
+            });
+            var provider = new Mock<IRateProvider>();
+            provider.Setup(p => p.FetchRatesRangeAsync("USD", from, today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<DateOnly, Dictionary<string, decimal>>
+                {
+                    [from] = new() { ["EUR"] = 0.92m }
+                });
+            var rateRepo = new Mock<ICurrencyRateRepository>();
+            rateRepo.Setup(r => r.GetExistingInRangeAsync(1, from, today))
+                .ReturnsAsync(new Dictionary<(int, DateOnly), (decimal, int)>());
+
+            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object,
+                expenseRepo: expenseRepo.Object, rateProvider: provider.Object)
+                .RefreshRatesFromAsync(from, sourceCurrencyId: 1);
+
+            provider.Verify(p => p.FetchRatesRangeAsync("USD", from, today, It.IsAny<CancellationToken>()), Times.Once);
+            provider.Verify(p => p.FetchRatesRangeAsync("EUR", from, today, It.IsAny<CancellationToken>()), Times.Never);
+            rateRepo.Verify(r => r.AddRatesBatchAsync(It.Is<IEnumerable<CurrencyDailyRate>>(l => l.Count() == 1)), Times.Once);
+        }
+
+        [Fact]
+        public async Task RefreshRatesFromAsync_DestinationCurrencyFilter_OnlyInsertsMatchingDest()
+        {
+            var from = new DateOnly(2024, 6, 1);
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var expenseRepo = ExpenseRepoWithIds(1, 2, 3);
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Currency>
+            {
+                MakeCurrency(1, "USD"), MakeCurrency(2, "EUR"), MakeCurrency(3, "GBP")
+            });
+            var provider = new Mock<IRateProvider>();
+            provider.Setup(p => p.FetchRatesRangeAsync(It.IsAny<string>(), from, today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<DateOnly, Dictionary<string, decimal>>
+                {
+                    [from] = new() { ["EUR"] = 0.92m, ["GBP"] = 0.79m }
+                });
+            var rateRepo = new Mock<ICurrencyRateRepository>();
+            rateRepo.Setup(r => r.GetExistingInRangeAsync(It.IsAny<int>(), from, today))
+                .ReturnsAsync(new Dictionary<(int, DateOnly), (decimal, int)>());
+
+            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object,
+                expenseRepo: expenseRepo.Object, rateProvider: provider.Object)
+                .RefreshRatesFromAsync(from, sourceCurrencyId: 1, destinationCurrencyId: 2);
+
+            rateRepo.Verify(r => r.AddRatesBatchAsync(It.Is<IEnumerable<CurrencyDailyRate>>(
+                l => l.Count() == 1 && l.First().DestinationCurrencyId == 2)), Times.Once);
+        }
+
+        [Fact]
+        public async Task RefreshRatesFromAsync_ProviderThrows_ContinuesToNextCurrency()
+        {
+            var from = new DateOnly(2024, 6, 1);
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var expenseRepo = ExpenseRepoWithIds(1, 2);
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Currency>
+            {
+                MakeCurrency(1, "USD"), MakeCurrency(2, "EUR")
+            });
+            var provider = new Mock<IRateProvider>();
+            provider.Setup(p => p.FetchRatesRangeAsync("USD", from, today, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("network error"));
+            provider.Setup(p => p.FetchRatesRangeAsync("EUR", from, today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<DateOnly, Dictionary<string, decimal>>
+                {
+                    [from] = new() { ["USD"] = 1.08m }
+                });
+            var rateRepo = new Mock<ICurrencyRateRepository>();
+            rateRepo.Setup(r => r.GetExistingInRangeAsync(2, from, today))
+                .ReturnsAsync(new Dictionary<(int, DateOnly), (decimal, int)>());
+
+            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object,
+                expenseRepo: expenseRepo.Object, rateProvider: provider.Object).RefreshRatesFromAsync(from);
+
+            rateRepo.Verify(r => r.AddRatesBatchAsync(It.Is<IEnumerable<CurrencyDailyRate>>(l => l.Count() == 1)), Times.Once);
+        }
+
+        [Fact]
+        public async Task RefreshRatesFromAsync_SkipsDestCode_NotInDatabase()
+        {
+            var from = new DateOnly(2024, 6, 1);
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var expenseRepo = ExpenseRepoWithIds(1);
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Currency> { MakeCurrency(1, "USD") });
+            var provider = new Mock<IRateProvider>();
+            provider.Setup(p => p.FetchRatesRangeAsync("USD", from, today, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<DateOnly, Dictionary<string, decimal>>
+                {
+                    [from] = new() { ["XXX"] = 1.5m }
+                });
+            var rateRepo = new Mock<ICurrencyRateRepository>();
+            rateRepo.Setup(r => r.GetExistingInRangeAsync(1, from, today))
+                .ReturnsAsync(new Dictionary<(int, DateOnly), (decimal, int)>());
+
+            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object,
+                expenseRepo: expenseRepo.Object, rateProvider: provider.Object).RefreshRatesFromAsync(from);
+
+            rateRepo.Verify(r => r.AddRatesBatchAsync(It.IsAny<IEnumerable<CurrencyDailyRate>>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task RefreshRatesFromAsync_UnknownSourceCurrencyId_FetchesNothing()
+        {
+            var from = new DateOnly(2024, 6, 1);
+            var expenseRepo = ExpenseRepoWithIds(1);
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Currency> { MakeCurrency(1, "USD") });
+            var provider = new Mock<IRateProvider>();
+            var rateRepo = new Mock<ICurrencyRateRepository>();
+
+            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object,
+                expenseRepo: expenseRepo.Object, rateProvider: provider.Object)
+                .RefreshRatesFromAsync(from, sourceCurrencyId: 999);
+
+            provider.Verify(p => p.FetchRatesRangeAsync(It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()), Times.Never);
+            rateRepo.Verify(r => r.AddRatesBatchAsync(It.IsAny<IEnumerable<CurrencyDailyRate>>()), Times.Never);
         }
     }
 }

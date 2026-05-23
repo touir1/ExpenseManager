@@ -3,6 +3,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.106.3] - 2026-05-23
+### Changed
+- **`CurrencyRateService` — performance optimization**: Eliminated N+1 DB queries and over-fetching from the Frankfurter API.
+  - `RunDailyUpdateAsync` + `RefreshRatesFromAsync`: now query `IExpenseRepository.GetDistinctCurrencyIdsAsync()` first and restrict both API calls and DB writes to currencies that actually appear in expenses. Pre-load existing rates per source currency in one query (`GetExistingOnDateAsync` / `GetExistingInRangeAsync`) instead of one `GetExactAsync` per rate. Accumulate new rates and conflicts then flush with `AddRatesBatchAsync` / `AddConflictsBatchAsync` (single `SaveChangesAsync` each) instead of one save per row.
+  - `BulkAddManualRatesAsync`: replaced sequential per-entry `GetExactAsync` + `AddRateAsync`/`AddConflictAsync` loop with a single `GetExistingForPairsAsync` bulk-read then two batch writes.
+  - `ResolveRateAsync`: when all three lookups fail (exact → most-recent → default), fetches live from the Frankfurter API and persists the result as an auto rate before returning — eliminates silent null returns for valid pairs.
+- **`ICurrencyRateRepository` + `CurrencyRateRepository`**: added `GetExistingOnDateAsync`, `GetExistingInRangeAsync`, `GetExistingForPairsAsync` (projection-only, no nav-prop Includes), `AddRatesBatchAsync`, `AddConflictsBatchAsync`.
+- **`ICurrencyRepository` + `CurrencyRepository`**: added `GetByIdAsync(int id)`.
+- **`IExpenseRepository` + `ExpenseRepository`**: added `GetDistinctCurrencyIdsAsync()` (distinct non-deleted `CurrencyId` values).
+- **Tests**: 599 passing. `CurrencyRateServiceTests` fully updated to new batch API; 20+ new service tests added. 11 new `CurrencyRateRepositoryTests` (bulk-read and batch-write methods). 4 new `ExpenseRepositoryTests` (`GetDistinctCurrencyIdsAsync`).
+
 ## [0.106.2] - 2026-05-22
 ### Changed
 - **`FrankfurterRateProvider` — Frankfurter API v2 migration**: Updated from deprecated `api.frankfurter.app` to `api.frankfurter.dev/v2`. Endpoint format changed: single-date now `v2/rates?date={date}&base={code}`, range now `v2/rates?from={from}&to={to}&base={code}`. Response format changed from nested `{ rates: { CODE: value } }` object to flat array of `{ date, base, quote, rate }` entries — parsing logic updated accordingly.

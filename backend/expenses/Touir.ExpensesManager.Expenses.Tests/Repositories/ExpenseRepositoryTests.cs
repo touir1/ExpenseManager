@@ -366,5 +366,69 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
 
             Assert.Equal(1, total);
         }
+
+        // ── GetDistinctCurrencyIdsAsync ────────────────────────────────────────────
+
+        [Fact]
+        public async Task GetDistinctCurrencyIdsAsync_ReturnsEmpty_WhenNoExpenses()
+        {
+            await SeedBaseDataAsync();
+
+            var result = (await _sut.GetDistinctCurrencyIdsAsync()).ToList();
+
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetDistinctCurrencyIdsAsync_ReturnsDistinctIds_WhenMultipleExpensesSameCurrency()
+        {
+            await SeedBaseDataAsync();
+            _wrapper.Context.Expenses.AddRange(BuildExpense(), BuildExpense());
+            await _wrapper.Context.SaveChangesAsync();
+
+            var result = (await _sut.GetDistinctCurrencyIdsAsync()).ToList();
+
+            Assert.Single(result);
+            Assert.Equal(1000, result[0]);
+        }
+
+        [Fact]
+        public async Task GetDistinctCurrencyIdsAsync_ReturnsMultipleIds_WhenDifferentCurrencies()
+        {
+            await SeedBaseDataAsync();
+            var cur2 = new Currency { Id = 1001, Code = "TS2", Name = "Test2", Symbol = "T", Decimals = 2 };
+            _wrapper.Context.Currencies.Add(cur2);
+            await _wrapper.Context.SaveChangesAsync();
+
+            var e1 = BuildExpense(); e1.CurrencyId = 1000;
+            var e2 = BuildExpense(); e2.CurrencyId = 1001;
+            _wrapper.Context.Expenses.AddRange(e1, e2);
+            await _wrapper.Context.SaveChangesAsync();
+
+            var result = (await _sut.GetDistinctCurrencyIdsAsync()).OrderBy(x => x).ToList();
+
+            Assert.Equal(2, result.Count);
+            Assert.Equal(1000, result[0]);
+            Assert.Equal(1001, result[1]);
+        }
+
+        [Fact]
+        public async Task GetDistinctCurrencyIdsAsync_ExcludesDeletedExpenses()
+        {
+            await SeedBaseDataAsync();
+            var cur2 = new Currency { Id = 1001, Code = "TS2", Name = "Test2", Symbol = "T", Decimals = 2 };
+            _wrapper.Context.Currencies.Add(cur2);
+            await _wrapper.Context.SaveChangesAsync();
+
+            var active = BuildExpense(); active.CurrencyId = 1000;
+            var deleted = BuildExpense(); deleted.CurrencyId = 1001; deleted.IsDeleted = true; deleted.DeletedAt = DateTime.UtcNow;
+            _wrapper.Context.Expenses.AddRange(active, deleted);
+            await _wrapper.Context.SaveChangesAsync();
+
+            var result = (await _sut.GetDistinctCurrencyIdsAsync()).ToList();
+
+            Assert.Single(result);
+            Assert.Equal(1000, result[0]);
+        }
     }
 }
