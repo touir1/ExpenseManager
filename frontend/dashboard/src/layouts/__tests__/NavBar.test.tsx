@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import NavBar from '@/layouts/NavBar'
 
 const mockUseAuth = vi.fn()
@@ -29,14 +30,28 @@ vi.mock('react-router-dom', async () => {
   return { ...actual, useNavigate: () => mockNavigate }
 })
 
+vi.mock('@/features/expenses/components/AddExpenseModal', () => ({
+  default: () => <div data-testid="add-expense-modal" />,
+}))
+
+function makeQc() {
+  return new QueryClient({ defaultOptions: { queries: { retry: false } } })
+}
+
 function renderNavBar(path = '/') {
-  return render(
-    <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route path="*" element={<NavBar />} />
-      </Routes>
-    </MemoryRouter>
-  )
+  const qc = makeQc()
+  return {
+    qc,
+    ...render(
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={[path]}>
+          <Routes>
+            <Route path="*" element={<NavBar />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    ),
+  }
 }
 
 describe('NavBar', () => {
@@ -76,7 +91,7 @@ describe('NavBar', () => {
 
     it('does not show add expense button', () => {
       renderNavBar('/')
-      expect(screen.queryByRole('link', { name: /add expense/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /add expense/i })).not.toBeInTheDocument()
     })
 
     it('links logo to /', () => {
@@ -109,11 +124,9 @@ describe('NavBar', () => {
       expect(nav).not.toHaveTextContent('Get started')
     })
 
-    it('shows add expense button linking to /expenses/add', () => {
+    it('shows add expense button', () => {
       renderNavBar('/dashboard')
-      const btn = screen.getByRole('link', { name: /add expense/i })
-      expect(btn).toBeInTheDocument()
-      expect(btn).toHaveAttribute('href', '/expenses/add')
+      expect(screen.getByRole('button', { name: /add expense/i })).toBeInTheDocument()
     })
 
     it('links logo to /dashboard', () => {
@@ -187,7 +200,7 @@ describe('NavBar', () => {
       mockUseAuth.mockReturnValue({ isAuthenticated: true, logout })
       const user = userEvent.setup()
 
-      const { rerender } = renderNavBar('/dashboard')
+      const { qc, rerender } = renderNavBar('/dashboard')
 
       const signOut = screen.getAllByRole('button', { name: /sign out/i })[0]
       await user.click(signOut)
@@ -198,11 +211,13 @@ describe('NavBar', () => {
       mockUseAuth.mockReturnValue({ isAuthenticated: false, logout })
       await act(async () => {
         rerender(
-          <MemoryRouter initialEntries={['/dashboard']}>
-            <Routes>
-              <Route path="*" element={<NavBar />} />
-            </Routes>
-          </MemoryRouter>
+          <QueryClientProvider client={qc}>
+            <MemoryRouter initialEntries={['/dashboard']}>
+              <Routes>
+                <Route path="*" element={<NavBar />} />
+              </Routes>
+            </MemoryRouter>
+          </QueryClientProvider>
         )
       })
 
@@ -350,7 +365,7 @@ describe('NavBar', () => {
       const logout = vi.fn()
       mockUseAuth.mockReturnValue({ isAuthenticated: true, logout })
       const user = userEvent.setup()
-      const { rerender } = renderNavBar('/dashboard')
+      const { qc, rerender } = renderNavBar('/dashboard')
 
       await user.click(screen.getByRole('button', { name: /toggle menu/i }))
 
@@ -363,11 +378,13 @@ describe('NavBar', () => {
       mockUseAuth.mockReturnValue({ isAuthenticated: false, logout })
       await act(async () => {
         rerender(
-          <MemoryRouter initialEntries={['/dashboard']}>
-            <Routes>
-              <Route path="*" element={<NavBar />} />
-            </Routes>
-          </MemoryRouter>
+          <QueryClientProvider client={qc}>
+            <MemoryRouter initialEntries={['/dashboard']}>
+              <Routes>
+                <Route path="*" element={<NavBar />} />
+              </Routes>
+            </MemoryRouter>
+          </QueryClientProvider>
         )
       })
 

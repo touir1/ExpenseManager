@@ -3,6 +3,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.106.8] - 2026-05-24
+### Tests
+- **`NavBar.test.tsx`**: Fixed all 41 tests failing with `No QueryClient set` after `NavBar` started calling `useQueryClient()` (added in v0.106.7). Added `QueryClient`/`QueryClientProvider` import and `vi.mock` for `AddExpenseModal`; updated `renderNavBar` to wrap with `QueryClientProvider` and return `{ qc, ...render }` so logout `rerender` calls can reuse the same client. Updated 2 button-vs-link assertions (Add Expense is now a `<button>`, not a `<Link>`).
+
+## [0.106.7] - 2026-05-24
+### Changed
+- **Frontend — Add Expense: modal instead of full-screen page**: `/expenses/add` now renders `ExpensesPage` with an `AddExpenseModal` overlay instead of a standalone `AddExpensePage`. `AddExpenseModal` extracted to `components/AddExpenseModal.tsx`. Modal closes via X button or Cancel and navigates back to `/expenses` on success or dismiss. `AddExpensePage.tsx` and its test file deleted.
+### Tests
+- **`ExpensesPage.test.tsx`**: Added 7 modal tests — does not show modal on `/expenses`; shows modal on `/expenses/add`; modal contains form; cancel navigates to `/expenses`; X button closes modal; successful submit calls `addExpense` and navigates; failed submit does not navigate. Upgraded `renderPage` to accept a path and wrap with `Routes`/`Route` to support route-based modal detection.
+
 ## [0.106.6] - 2026-05-23
 ### Tests
 - **`ExpensesDataContext.test.tsx`**: Added 4 new cases — sets tags from own + family response, deduplicates overlapping tags, leaves tags empty on API failure, clears tags when unauthenticated. Updated `clears data when unauthenticated` to also assert `tags: []`. Refactored mock setup to use `mockUseExpensesData = vi.fn()` pattern so individual tests can override context data.

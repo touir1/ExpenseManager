@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/features/auth/AuthContext'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import FamilySelector from '@/features/families/components/FamilySelector'
 import DisplayCurrencySelector from '@/features/currencies/components/DisplayCurrencySelector'
+import AddExpenseModal from '@/features/expenses/components/AddExpenseModal'
 
 const baseNavClass = 'text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors duration-150'
 const activeNavClass = `${baseNavClass} bg-brand-100 text-brand-600`
@@ -18,8 +20,10 @@ export default function NavBar() {
   const { isAuthenticated, logout, user } = useAuth()
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const queryClient = useQueryClient()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [addExpenseOpen, setAddExpenseOpen] = useState(false)
   const loggingOutRef = useRef(false)
   const hamburgerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -96,6 +100,7 @@ export default function NavBar() {
     : '?'
 
   return (
+    <>
     <header
       className="sticky top-0 z-40 bg-surface-card border-b border-surface-border"
       style={{ boxShadow: '0 1px 0 rgba(60,30,10,0.06)' }}
@@ -142,15 +147,15 @@ export default function NavBar() {
                 <DisplayCurrencySelector />
 
                 {/* Add expense */}
-                <Link
-                  to="/expenses/add"
+                <button
+                  onClick={() => setAddExpenseOpen(true)}
                   aria-label={t('nav.addExpense')}
                   className="h-8 w-8 rounded-lg bg-brand-500 hover:bg-brand-600 text-white flex items-center justify-center transition-colors duration-150"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                   </svg>
-                </Link>
+                </button>
 
                 {/* Notifications (placeholder) */}
                 <button
@@ -346,5 +351,16 @@ export default function NavBar() {
         </nav>
       )}
     </header>
+
+    {addExpenseOpen && (
+      <AddExpenseModal
+        onSuccess={() => {
+          setAddExpenseOpen(false)
+          queryClient.invalidateQueries({ queryKey: ['expenses'] })
+        }}
+        onClose={() => setAddExpenseOpen(false)}
+      />
+    )}
+  </>
   )
 }

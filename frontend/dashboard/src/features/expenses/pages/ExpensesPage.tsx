@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { getExpenses, deleteExpense } from '@/features/expenses/services/expensesApi.service'
 import ExpenseFilters from '@/features/expenses/components/ExpenseFilters'
+import AddExpenseModal from '@/features/expenses/components/AddExpenseModal'
 import type { ExpenseDto, ExpenseFilter } from '@/features/expenses/types/expenses.type'
 
 const DEFAULT_PAGE_SIZE = 20
@@ -88,6 +89,9 @@ function ExpenseRow({
 export default function ExpensesPage() {
   const { t } = useTranslation()
   usePageTitle(t('expenses.pageTitle'))
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const isAddOpen = pathname === '/expenses/add'
   const [filter, setFilter] = useState<ExpenseFilter>({ page: 1, pageSize: DEFAULT_PAGE_SIZE })
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
@@ -205,6 +209,13 @@ export default function ExpensesPage() {
         <ConfirmDeleteModal
           onConfirm={handleDelete}
           onCancel={() => setDeleteId(null)}
+        />
+      )}
+
+      {isAddOpen && (
+        <AddExpenseModal
+          onSuccess={() => { refetch(); navigate('/expenses') }}
+          onClose={() => navigate('/expenses')}
         />
       )}
     </div>

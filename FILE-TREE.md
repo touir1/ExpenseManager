@@ -652,18 +652,17 @@ ExpenseManager/
 │           │   │   │       ├── currenciesApi.service.test.ts
 │           │   │   │       └── expensesApi.service.test.ts
 │           │   │   ├── components/
+│           │   │   │   ├── AddExpenseModal.tsx  — Modal overlay with ExpenseForm; calls addExpense; onSuccess/onClose callbacks
 │           │   │   │   ├── ExpenseForm.tsx     — RHF+Zod form: amount, currency, date, category, subcategory (conditional), description, tags, families
 │           │   │   │   ├── ExpenseFilters.tsx  — Collapsible filter panel; toggle with aria-expanded; resets page to 1 on apply; FilterCombobox for category/subcategory/currency (case-insensitive search)
 │           │   │   │   └── __tests__/
 │           │   │   │       ├── ExpenseForm.test.tsx
 │           │   │   │       └── ExpenseFilters.test.tsx
 │           │   │   ├── pages/
-│           │   │   │   ├── ExpensesPage.tsx    — Paginated expense table; delete confirm modal; filter panel; empty state
-│           │   │   │   ├── AddExpensePage.tsx  — Add expense form page
+│           │   │   │   ├── ExpensesPage.tsx    — Paginated expense table; delete confirm modal; filter panel; empty state; AddExpenseModal (route-based: opens when pathname === '/expenses/add')
 │           │   │   │   ├── EditExpensePage.tsx — Edit expense form page; fetches by id via useQuery
 │           │   │   │   └── __tests__/
 │           │   │   │       ├── ExpensesPage.test.tsx
-│           │   │   │       ├── AddExpensePage.test.tsx
 │           │   │   │       └── EditExpensePage.test.tsx
 │           │   │   ├── expense.schemas.ts  — makeExpenseSchema(t): Zod v4 schema; categoryId/subcategoryId use .catch(undefined) to coerce NaN
 │           │   │   ├── ExpensesDataContext.tsx  — ExpensesDataProvider / useExpensesData(); fetches categories + currencies on mount
@@ -715,7 +714,7 @@ ExpenseManager/
 │           ├── hooks/                 — Shared hooks
 │           │   └── usePageTitle.ts    — Sets document.title per page
 │           ├── layouts/               — App-wide layout components
-│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive; right-side controls: FamilySelector → DisplayCurrencySelector → notification bell → user avatar dropdown (cog Settings, labeled LanguageSwitcher, logout-icon Sign out); unauthenticated desktop nav also shows LanguageSwitcher
+│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive; right-side controls: FamilySelector → DisplayCurrencySelector → Add Expense `+` button (opens AddExpenseModal inline) → notification bell → user avatar dropdown (cog Settings, labeled LanguageSwitcher, logout-icon Sign out); unauthenticated desktop nav also shows LanguageSwitcher
 │           │   └── __tests__/
 │           │       └── NavBar.test.tsx
 │           ├── services/              — Shared base services

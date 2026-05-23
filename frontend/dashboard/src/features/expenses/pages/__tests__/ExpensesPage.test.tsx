@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import ExpensesPage from '../ExpensesPage'
 import type { ExpenseDto, ExpensePagedResponse } from '@/features/expenses/types/expenses.type'
@@ -18,16 +18,32 @@ vi.mock('@/features/expenses/ExpensesDataContext', () => ({
   useExpensesData: () => ({
     categories: [],
     currencies: [],
+    tags: [],
     isLoading: false,
     refresh: vi.fn(),
   }),
 }))
 
+vi.mock('@/features/families/FamilyContext', () => ({
+  useFamilies: () => ({ families: [], activeFamilyId: null, setActiveFamilyId: vi.fn(), isLoading: false, refresh: vi.fn() }),
+}))
+
+vi.mock('@/features/expenses/components/ExpenseForm', () => ({
+  default: ({ onSubmit, onCancel }: { onSubmit: (d: unknown) => void; onCancel: () => void }) => (
+    <div data-testid="expense-form">
+      <button onClick={() => onSubmit({ amount: 25, currencyId: 1, date: '2026-05-01' })}>Save</button>
+      <button onClick={onCancel}>Cancel</button>
+    </div>
+  ),
+}))
+
 const mockGetExpenses = vi.fn()
 const mockDeleteExpense = vi.fn()
+const mockAddExpense = vi.fn()
 vi.mock('@/features/expenses/services/expensesApi.service', () => ({
   getExpenses: (...args: unknown[]) => mockGetExpenses(...args),
   deleteExpense: (...args: unknown[]) => mockDeleteExpense(...args),
+  addExpense: (...args: unknown[]) => mockAddExpense(...args),
 }))
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -66,12 +82,15 @@ const emptyPagedResponse: ExpensePagedResponse = {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function renderPage() {
+function renderPage(path = '/expenses') {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   render(
     <QueryClientProvider client={qc}>
-      <MemoryRouter>
-        <ExpensesPage />
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route path="/expenses" element={<ExpensesPage />} />
+          <Route path="/expenses/add" element={<ExpensesPage />} />
+        </Routes>
       </MemoryRouter>
     </QueryClientProvider>
   )
@@ -84,6 +103,7 @@ describe('ExpensesPage', () => {
     vi.clearAllMocks()
     mockGetExpenses.mockResolvedValue({ ok: true, data: pagedResponse })
     mockDeleteExpense.mockResolvedValue({ ok: true })
+    mockAddExpense.mockResolvedValue({ ok: true })
   })
 
   it('renders page heading', () => {
@@ -187,5 +207,65 @@ describe('ExpensesPage', () => {
     renderPage()
     await waitFor(() => screen.getByText('2026-05-01'))
     expect(screen.queryByText(/page/i)).not.toBeInTheDocument()
+  })
+
+  describe('add expense modal', () => {
+    it('does not show modal when on /expenses', () => {
+      renderPage('/expenses')
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+
+    it('shows modal when on /expenses/add', async () => {
+      renderPage('/expenses/add')
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument()
+      })
+    })
+
+    it('modal contains the expense form', async () => {
+      renderPage('/expenses/add')
+      await waitFor(() => {
+        expect(screen.getByTestId('expense-form')).toBeInTheDocument()
+      })
+    })
+
+    it('closes modal and navigates to /expenses on cancel', async () => {
+      const user = userEvent.setup()
+      renderPage('/expenses/add')
+      await waitFor(() => screen.getByRole('dialog'))
+      await user.click(screen.getByRole('button', { name: /^cancel$/i }))
+      expect(mockNavigate).toHaveBeenCalledWith('/expenses')
+    })
+
+    it('closes modal via X button', async () => {
+      const user = userEvent.setup()
+      renderPage('/expenses/add')
+      await waitFor(() => screen.getByRole('dialog'))
+      await user.click(screen.getByRole('button', { name: /close/i }))
+      expect(mockNavigate).toHaveBeenCalledWith('/expenses')
+    })
+
+    it('calls addExpense and navigates on successful submit', async () => {
+      const user = userEvent.setup()
+      renderPage('/expenses/add')
+      await waitFor(() => screen.getByRole('dialog'))
+      await user.click(screen.getByRole('button', { name: /^save$/i }))
+      await waitFor(() => {
+        expect(mockAddExpense).toHaveBeenCalledOnce()
+      })
+      expect(mockNavigate).toHaveBeenCalledWith('/expenses')
+    })
+
+    it('does not navigate when addExpense fails', async () => {
+      mockAddExpense.mockResolvedValue({ ok: false })
+      const user = userEvent.setup()
+      renderPage('/expenses/add')
+      await waitFor(() => screen.getByRole('dialog'))
+      await user.click(screen.getByRole('button', { name: /^save$/i }))
+      await waitFor(() => {
+        expect(mockAddExpense).toHaveBeenCalledOnce()
+      })
+      expect(mockNavigate).not.toHaveBeenCalledWith('/expenses')
+    })
   })
 })
