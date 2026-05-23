@@ -3,6 +3,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.106.5] - 2026-05-23
+### Added
+- **Frontend — NavBar**: Add Expense button (brand `+` icon) inserted between the display-currency selector and the notifications button; visible whenever the user is authenticated; links to `/expenses/add`.
+- **Frontend — Expenses filter panel**: Tags multi-select filter — shows own and family tags (deduped by id) from `ExpensesDataContext`; hidden when no tags exist; uses `FilterTagCombobox` with checkbox items and case-insensitive search.
+### Changed
+- **Frontend — `ExpensesDataContext`**: Now fetches tags via `getTags()` in the same `Promise.all` as categories and currencies; deduplicates own + family tags by id; exposes `tags: Tag[]` on the context value.
+### Fixed
+- **Frontend — `ExpenseFilters`**: Destructures `tags` with a `= []` default to prevent crash when mocks or context omit the field.
+
 ## [0.106.4] - 2026-05-23
 ### Fixed
 - **Frontend — Expenses filter panel**: `dateTo` input (and amount min/max inputs) no longer overflow the panel; added `min-w-0` to flex children to constrain `<input type="date">` intrinsic width.

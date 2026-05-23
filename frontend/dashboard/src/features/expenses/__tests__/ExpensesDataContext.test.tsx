@@ -3,6 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { ExpensesDataProvider, useExpensesData } from '../ExpensesDataContext'
 import * as categoriesService from '@/features/expenses/services/categoriesApi.service'
 import * as currenciesService from '@/features/expenses/services/currenciesApi.service'
+import * as tagsService from '@/features/tags/services/tagsApi.service'
 import type { Category, Currency } from '../types/expenses.type'
 
 vi.mock('@/features/expenses/services/categoriesApi.service', () => ({
@@ -11,6 +12,10 @@ vi.mock('@/features/expenses/services/categoriesApi.service', () => ({
 
 vi.mock('@/features/expenses/services/currenciesApi.service', () => ({
   getCurrencies: vi.fn(),
+}))
+
+vi.mock('@/features/tags/services/tagsApi.service', () => ({
+  getTags: vi.fn(),
 }))
 
 vi.mock('@/features/auth/AuthContext', () => ({
@@ -29,6 +34,7 @@ describe('ExpensesDataContext', () => {
     vi.clearAllMocks()
     vi.mocked(categoriesService.getCategories).mockResolvedValue({ ok: true, status: 200, data: mockCategories })
     vi.mocked(currenciesService.getCurrencies).mockResolvedValue({ ok: true, status: 200, data: mockCurrencies })
+    vi.mocked(tagsService.getTags).mockResolvedValue({ ok: true, status: 200, data: { own: [], family: [] } })
   })
 
   describe('ExpensesDataProvider initialization', () => {

@@ -15,7 +15,7 @@ const mockCurrencies = [
 ]
 
 vi.mock('@/features/expenses/ExpensesDataContext', () => ({
-  useExpensesData: () => ({ categories: mockCategories, currencies: mockCurrencies, isLoading: false, refresh: vi.fn() }),
+  useExpensesData: () => ({ categories: mockCategories, currencies: mockCurrencies, tags: [], isLoading: false, refresh: vi.fn() }),
 }))
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

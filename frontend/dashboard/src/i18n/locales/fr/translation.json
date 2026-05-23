@@ -16,7 +16,8 @@
     "pricing": "Tarifs",
     "help": "Aide",
     "notifications": "Notifications",
-    "expenses": "Dépenses"
+    "expenses": "Dépenses",
+    "addExpense": "Ajouter une dépense"
   },
   "auth": {
     "login": {
@@ -333,7 +334,8 @@
       "amountMin": "Montant min",
       "amountMax": "Montant max",
       "apply": "Appliquer",
-      "reset": "Réinitialiser"
+      "reset": "Réinitialiser",
+      "tags": "Étiquettes"
     },
     "table": {
       "date": "Date",
