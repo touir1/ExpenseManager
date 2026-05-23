@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ExpenseFilters from '../ExpenseFilters'
 import type { ExpenseFilter } from '@/features/expenses/types/expenses.type'
@@ -13,9 +13,16 @@ const mockCategories = [
 const mockCurrencies = [
   { id: 1, code: 'EUR', name: 'Euro', symbol: '€', decimals: 2 },
 ]
+const mockTags = [
+  { id: 1, name: 'groceries' },
+  { id: 2, name: 'work' },
+  { id: 3, name: 'family' },
+]
+
+const mockUseExpensesData = vi.fn()
 
 vi.mock('@/features/expenses/ExpensesDataContext', () => ({
-  useExpensesData: () => ({ categories: mockCategories, currencies: mockCurrencies, tags: [], isLoading: false, refresh: vi.fn() }),
+  useExpensesData: () => mockUseExpensesData(),
 }))
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -28,7 +35,16 @@ function renderFilters(filter: ExpenseFilter = {}, onApply = vi.fn()) {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('ExpenseFilters', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockUseExpensesData.mockReturnValue({
+      categories: mockCategories,
+      currencies: mockCurrencies,
+      tags: [],
+      isLoading: false,
+      refresh: vi.fn(),
+    })
+  })
 
   describe('toggle', () => {
     it('filter panel hidden by default', () => {
@@ -62,6 +78,15 @@ describe('ExpenseFilters', () => {
       renderFilters()
       await user.click(screen.getByRole('button', { name: /filter/i }))
       expect(screen.getByRole('button', { name: /filter/i })).toHaveAttribute('aria-expanded', 'true')
+    })
+
+    it('closes filter panel when clicking outside', async () => {
+      const user = userEvent.setup()
+      renderFilters()
+      await user.click(screen.getByRole('button', { name: /filter/i }))
+      expect(screen.getByRole('region')).toBeInTheDocument()
+      fireEvent.mouseDown(document.body)
+      expect(screen.queryByRole('region')).not.toBeInTheDocument()
     })
   })
 
@@ -285,6 +310,117 @@ describe('ExpenseFilters', () => {
       await user.click(screen.getAllByRole('option', { name: '—' })[0])
       await user.click(screen.getByRole('button', { name: /apply/i }))
       expect(onApply).toHaveBeenCalledWith(expect.not.objectContaining({ categoryId: expect.anything() }))
+    })
+  })
+
+  describe('tags filter', () => {
+    it('does not show tags filter when no tags exist', async () => {
+      const user = userEvent.setup()
+      renderFilters()
+      await user.click(screen.getByRole('button', { name: /filter/i }))
+      expect(screen.queryByLabelText(/^tags$/i)).not.toBeInTheDocument()
+    })
+
+    it('shows tags filter when tags exist', async () => {
+      mockUseExpensesData.mockReturnValue({
+        categories: mockCategories,
+        currencies: mockCurrencies,
+        tags: mockTags,
+        isLoading: false,
+        refresh: vi.fn(),
+      })
+      const user = userEvent.setup()
+      renderFilters()
+      await user.click(screen.getByRole('button', { name: /filter/i }))
+      expect(screen.getByLabelText(/^tags$/i)).toBeInTheDocument()
+    })
+
+    it('shows tag options in listbox', async () => {
+      mockUseExpensesData.mockReturnValue({
+        categories: mockCategories,
+        currencies: mockCurrencies,
+        tags: mockTags,
+        isLoading: false,
+        refresh: vi.fn(),
+      })
+      const user = userEvent.setup()
+      renderFilters()
+      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByLabelText(/^tags$/i))
+      expect(screen.getByRole('option', { name: 'groceries' })).toBeInTheDocument()
+      expect(screen.getByRole('option', { name: 'work' })).toBeInTheDocument()
+    })
+
+    it('includes tagIds in applied filter when tags selected', async () => {
+      mockUseExpensesData.mockReturnValue({
+        categories: mockCategories,
+        currencies: mockCurrencies,
+        tags: mockTags,
+        isLoading: false,
+        refresh: vi.fn(),
+      })
+      const user = userEvent.setup()
+      const { onApply } = renderFilters()
+      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByLabelText(/^tags$/i))
+      await user.click(screen.getByRole('option', { name: 'groceries' }))
+      await user.click(screen.getByRole('option', { name: 'work' }))
+      await user.click(screen.getByRole('button', { name: /apply/i }))
+      expect(onApply).toHaveBeenCalledWith(expect.objectContaining({ tagIds: [1, 2] }))
+    })
+
+    it('deselecting a tag removes it from tagIds', async () => {
+      mockUseExpensesData.mockReturnValue({
+        categories: mockCategories,
+        currencies: mockCurrencies,
+        tags: mockTags,
+        isLoading: false,
+        refresh: vi.fn(),
+      })
+      const user = userEvent.setup()
+      const { onApply } = renderFilters()
+      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByLabelText(/^tags$/i))
+      await user.click(screen.getByRole('option', { name: 'groceries' }))
+      await user.click(screen.getByRole('option', { name: 'work' }))
+      await user.click(screen.getByRole('option', { name: 'groceries' }))
+      await user.click(screen.getByRole('button', { name: /apply/i }))
+      expect(onApply).toHaveBeenCalledWith(expect.objectContaining({ tagIds: [2] }))
+    })
+
+    it('filters tag options case-insensitively as user types', async () => {
+      mockUseExpensesData.mockReturnValue({
+        categories: mockCategories,
+        currencies: mockCurrencies,
+        tags: mockTags,
+        isLoading: false,
+        refresh: vi.fn(),
+      })
+      const user = userEvent.setup()
+      renderFilters()
+      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByLabelText(/^tags$/i))
+      await user.type(screen.getByLabelText(/^tags$/i), 'GRO')
+      expect(screen.getByRole('option', { name: 'groceries' })).toBeInTheDocument()
+      expect(screen.queryByRole('option', { name: 'work' })).not.toBeInTheDocument()
+    })
+
+    it('omits tagIds from applied filter when all tags deselected', async () => {
+      mockUseExpensesData.mockReturnValue({
+        categories: mockCategories,
+        currencies: mockCurrencies,
+        tags: mockTags,
+        isLoading: false,
+        refresh: vi.fn(),
+      })
+      const user = userEvent.setup()
+      const { onApply } = renderFilters()
+      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByLabelText(/^tags$/i))
+      await user.click(screen.getByRole('option', { name: 'groceries' }))
+      await user.click(screen.getByRole('option', { name: 'groceries' }))
+      await user.click(screen.getByRole('button', { name: /apply/i }))
+      expect(onApply).toHaveBeenCalledWith(expect.not.objectContaining({ tagIds: expect.anything() }))
     })
   })
 })

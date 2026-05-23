@@ -5,6 +5,7 @@ import * as categoriesService from '@/features/expenses/services/categoriesApi.s
 import * as currenciesService from '@/features/expenses/services/currenciesApi.service'
 import * as tagsService from '@/features/tags/services/tagsApi.service'
 import type { Category, Currency } from '../types/expenses.type'
+import type { Tag } from '@/features/tags/types/tag.type'
 
 vi.mock('@/features/expenses/services/categoriesApi.service', () => ({
   getCategories: vi.fn(),
@@ -28,6 +29,8 @@ const mockCategories: Category[] = [
 const mockCurrencies: Currency[] = [
   { id: 1, code: 'USD', name: 'US Dollar', symbol: '$', decimals: 2 },
 ]
+const mockTagsOwn = [{ id: 1, name: 'groceries' }, { id: 2, name: 'work' }]
+const mockTagsFamily = [{ id: 3, name: 'shared' }]
 
 describe('ExpensesDataContext', () => {
   beforeEach(() => {
@@ -89,6 +92,42 @@ describe('ExpensesDataContext', () => {
       expect(result.current.currencies).toEqual([])
     })
 
+    it('sets tags from successful API response (own + family merged)', async () => {
+      vi.mocked(tagsService.getTags).mockResolvedValue({
+        ok: true, status: 200, data: { own: mockTagsOwn, family: mockTagsFamily },
+      })
+
+      const { result } = renderHook(() => useExpensesData(), { wrapper: ExpensesDataProvider })
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      expect(result.current.tags).toEqual([...mockTagsOwn, ...mockTagsFamily])
+    })
+
+    it('deduplicates tags appearing in both own and family', async () => {
+      const sharedTag: Tag = { id: 2, name: 'work' }
+      vi.mocked(tagsService.getTags).mockResolvedValue({
+        ok: true, status: 200, data: { own: [sharedTag], family: [sharedTag, { id: 3, name: 'shared' }] },
+      })
+
+      const { result } = renderHook(() => useExpensesData(), { wrapper: ExpensesDataProvider })
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      expect(result.current.tags).toHaveLength(2)
+      expect(result.current.tags.map(t => t.id)).toEqual([2, 3])
+    })
+
+    it('leaves tags empty when API fails', async () => {
+      vi.mocked(tagsService.getTags).mockResolvedValue({ ok: false, status: 500 })
+
+      const { result } = renderHook(() => useExpensesData(), { wrapper: ExpensesDataProvider })
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      expect(result.current.tags).toEqual([])
+    })
+
     it('fetches both APIs in parallel on mount', async () => {
       const order: string[] = []
       vi.mocked(categoriesService.getCategories).mockImplementation(async () => {
@@ -133,6 +172,7 @@ describe('ExpensesDataContext', () => {
 
       expect(result.current.categories).toEqual([])
       expect(result.current.currencies).toEqual([])
+      expect(result.current.tags).toEqual([])
 
       vi.mocked(useAuth).mockReturnValue({ isAuthenticated: true } as any)
     })

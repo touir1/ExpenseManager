@@ -3,6 +3,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.106.6] - 2026-05-23
+### Tests
+- **`ExpensesDataContext.test.tsx`**: Added 4 new cases — sets tags from own + family response, deduplicates overlapping tags, leaves tags empty on API failure, clears tags when unauthenticated. Updated `clears data when unauthenticated` to also assert `tags: []`. Refactored mock setup to use `mockUseExpensesData = vi.fn()` pattern so individual tests can override context data.
+- **`NavBar.test.tsx`**: Added 2 new cases — Add Expense button visible and linking to `/expenses/add` when authenticated; not present when unauthenticated.
+- **`ExpenseFilters.test.tsx`**: Added 8 new cases — outer-click closes filter panel; tags filter hidden when no tags; shows tag options; selecting tags includes `tagIds` in applied filter; deselecting removes from `tagIds`; case-insensitive tag search; all-deselected omits `tagIds`. Refactored mock to `vi.fn()` pattern to allow per-test tag data overrides.
+
 ## [0.106.5] - 2026-05-23
 ### Added
 - **Frontend — NavBar**: Add Expense button (brand `+` icon) inserted between the display-currency selector and the notifications button; visible whenever the user is authenticated; links to `/expenses/add`.

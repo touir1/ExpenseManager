@@ -74,6 +74,11 @@ describe('NavBar', () => {
       expect(nav).not.toHaveTextContent('Sign out')
     })
 
+    it('does not show add expense button', () => {
+      renderNavBar('/')
+      expect(screen.queryByRole('link', { name: /add expense/i })).not.toBeInTheDocument()
+    })
+
     it('links logo to /', () => {
       renderNavBar('/')
       const logo = screen.getByRole('link', { name: /expensemanager/i })
@@ -102,6 +107,13 @@ describe('NavBar', () => {
       expect(nav).not.toHaveTextContent('Home')
       expect(nav).not.toHaveTextContent('Sign in')
       expect(nav).not.toHaveTextContent('Get started')
+    })
+
+    it('shows add expense button linking to /expenses/add', () => {
+      renderNavBar('/dashboard')
+      const btn = screen.getByRole('link', { name: /add expense/i })
+      expect(btn).toBeInTheDocument()
+      expect(btn).toHaveAttribute('href', '/expenses/add')
     })
 
     it('links logo to /dashboard', () => {
