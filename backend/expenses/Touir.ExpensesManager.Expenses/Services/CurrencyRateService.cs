@@ -227,14 +227,15 @@ namespace Touir.ExpensesManager.Expenses.Services
             if (usedIds.Count == 0)
                 return;
 
-            var currencies = (await _currencyRepo.GetAllAsync())
+            var allCurrencies = (await _currencyRepo.GetAllAsync()).ToList();
+            var codeToId = allCurrencies.ToDictionary(c => c.Code, c => c.Id);
+
+            var sourceCurrencies = allCurrencies
                 .Where(c => usedIds.Contains(c.Id))
                 .ToList();
-            var codeToId = currencies.ToDictionary(c => c.Code, c => c.Id);
 
-            var sourceCurrencies = sourceCurrencyId.HasValue
-                ? currencies.Where(c => c.Id == sourceCurrencyId.Value).ToList()
-                : currencies;
+            if (sourceCurrencyId.HasValue)
+                sourceCurrencies = [.. sourceCurrencies.Where(c => c.Id == sourceCurrencyId.Value)];
 
             var newRates = new List<CurrencyDailyRate>();
             var newConflicts = new List<CurrencyRateConflict>();
@@ -258,9 +259,6 @@ namespace Touir.ExpensesManager.Expenses.Services
                     foreach (var (destCode, rate) in dayRates)
                     {
                         if (!codeToId.TryGetValue(destCode, out var destCurrencyId))
-                            continue;
-
-                        if (!usedIds.Contains(destCurrencyId))
                             continue;
 
                         if (destinationCurrencyId.HasValue && destCurrencyId != destinationCurrencyId.Value)
@@ -308,15 +306,14 @@ namespace Touir.ExpensesManager.Expenses.Services
             if (usedIds.Count == 0)
                 return;
 
-            var currencies = (await _currencyRepo.GetAllAsync())
-                .Where(c => usedIds.Contains(c.Id))
-                .ToList();
-            var codeToId = currencies.ToDictionary(c => c.Code, c => c.Id);
+            var allCurrencies = (await _currencyRepo.GetAllAsync()).ToList();
+            var codeToId = allCurrencies.ToDictionary(c => c.Code, c => c.Id);
+            var sourceCurrencies = allCurrencies.Where(c => usedIds.Contains(c.Id)).ToList();
 
             var newRates = new List<CurrencyDailyRate>();
             var newConflicts = new List<CurrencyRateConflict>();
 
-            foreach (var source in currencies)
+            foreach (var source in sourceCurrencies)
             {
                 Dictionary<string, decimal> fetchedRates;
                 try
@@ -333,9 +330,6 @@ namespace Touir.ExpensesManager.Expenses.Services
                 foreach (var (destCode, rate) in fetchedRates)
                 {
                     if (!codeToId.TryGetValue(destCode, out var destCurrencyId))
-                        continue;
-
-                    if (!usedIds.Contains(destCurrencyId))
                         continue;
 
                     if (existing.TryGetValue(destCurrencyId, out var found) && found.RateSourceId == RateSourceManual)

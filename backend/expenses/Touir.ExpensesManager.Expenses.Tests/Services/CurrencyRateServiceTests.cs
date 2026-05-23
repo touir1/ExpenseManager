@@ -543,10 +543,10 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         }
 
         [Fact]
-        public async Task RunDailyUpdateAsync_SkipsUnusedDestinationCurrencies()
+        public async Task RunDailyUpdateAsync_StoresAllDestinations_NotJustUsedOnes()
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var expenseRepo = ExpenseRepoWithIds(1, 2); // only USD and EUR used
+            var expenseRepo = ExpenseRepoWithIds(1, 2); // USD and EUR used as source; GBP not used as source
             var currencyRepo = new Mock<ICurrencyRepository>();
             currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Currency>
             {
@@ -564,9 +564,9 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object,
                 expenseRepo: expenseRepo.Object, rateProvider: provider.Object).RunDailyUpdateAsync();
 
-            // Only EUR (id=2, in usedIds) inserted, GBP (id=3, not in usedIds) skipped
+            // Both EUR and GBP inserted — dest filtering not applied, only source is restricted to usedIds
             rateRepo.Verify(r => r.AddRatesBatchAsync(It.Is<IEnumerable<CurrencyDailyRate>>(
-                l => l.Count() == 1 && l.First().DestinationCurrencyId == 2)), Times.Once);
+                l => l.Count() == 2)), Times.Once);
         }
 
         [Fact]
