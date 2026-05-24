@@ -42,10 +42,20 @@ describe('CategoryDonut', () => {
     expect(screen.getByText('Transport')).toBeInTheDocument()
   })
 
-  it('renders percentage in legend', () => {
+  it('renders amount and percentage in legend', () => {
     render(<CategoryDonut data={mockCategories} isLoading={false} />)
-    expect(screen.getByText('37%')).toBeInTheDocument()
-    expect(screen.getByText('14%')).toBeInTheDocument()
+    expect(screen.getByText('890.00 (37%)')).toBeInTheDocument()
+    expect(screen.getByText('340.00 (14%)')).toBeInTheDocument()
+  })
+
+  it('renders converted amount and percentage when displayCurrency provided', () => {
+    const withConverted: CategoryBreakdownDto[] = [
+      { ...mockCategories[0], convertedTotal: 950 },
+      { ...mockCategories[1], convertedTotal: 360 },
+    ]
+    render(<CategoryDonut data={withConverted} isLoading={false} displayCurrency={{ symbol: '€', decimals: 2 }} />)
+    expect(screen.getByText('€950.00 (37%)')).toBeInTheDocument()
+    expect(screen.getByText('€360.00 (14%)')).toBeInTheDocument()
   })
 
   it('shows empty state when no data', () => {

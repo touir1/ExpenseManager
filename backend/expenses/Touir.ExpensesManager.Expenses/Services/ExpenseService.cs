@@ -231,6 +231,9 @@ namespace Touir.ExpensesManager.Expenses.Services
             ModifiedAt = e.ModifiedAt,
             ModifiedFrom = e.ModifiedFrom?.Name,
             Tags = explicitTags ?? e.ExpenseTags.Select(et => new TagDto { Id = et.Tag.Id, Name = et.Tag.Name }),
+            Families = e.ExpenseFamilyAttributions
+                .Where(a => !a.Family.IsDeleted && !a.Family.IsDefault)
+                .Select(a => new FamilyNameDto { Id = a.Family.Id, Name = a.Family.Name }),
             ConvertedAmount = convertedAmount,
             DisplayCurrency = displayCurrency
         };

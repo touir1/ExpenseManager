@@ -2,11 +2,14 @@ import { useTranslation } from 'react-i18next'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import type { CategoryBreakdownDto } from '@/features/dashboard/types/dashboard.type'
 
-const COLORS = ['#c8623e', '#e8927c', '#f5c3b0', '#94a3b8', '#64748b', '#cbd5e1']
+const COLORS = ['#C8623E', '#6B8E5A', '#D6A23F', '#5C8C9E', '#B5443F', '#E8B89A']
+
+type DisplayCurrency = { symbol: string; decimals: number }
 
 type Props = {
   data: CategoryBreakdownDto[]
   isLoading: boolean
+  displayCurrency?: DisplayCurrency | null
 }
 
 function Skeleton() {
@@ -32,7 +35,7 @@ function Skeleton() {
   )
 }
 
-export function CategoryDonut({ data, isLoading }: Props) {
+export function CategoryDonut({ data, isLoading, displayCurrency }: Props) {
   const { t } = useTranslation()
 
   if (isLoading) return <Skeleton />
@@ -52,7 +55,7 @@ export function CategoryDonut({ data, isLoading }: Props) {
               <PieChart>
                 <Pie
                   data={data}
-                  dataKey="totalAmount"
+                  dataKey={displayCurrency ? 'convertedTotal' : 'totalAmount'}
                   cx="50%"
                   cy="50%"
                   innerRadius="55%"
@@ -82,7 +85,9 @@ export function CategoryDonut({ data, isLoading }: Props) {
                   {item.category?.name ?? t('expenses.uncategorised')}
                 </span>
                 <span className="text-xs font-semibold text-ink shrink-0 tabular-nums">
-                  {item.percentage.toFixed(0)}%
+                  {displayCurrency
+                    ? `${displayCurrency.symbol}${(item.convertedTotal ?? item.totalAmount).toFixed(displayCurrency.decimals)} (${item.percentage.toFixed(0)}%)`
+                    : `${item.totalAmount.toFixed(2)} (${item.percentage.toFixed(0)}%)`}
                 </span>
               </li>
             ))}

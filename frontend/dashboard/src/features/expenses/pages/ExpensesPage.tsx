@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useNavigate, useLocation, useMatch } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { getExpenses, deleteExpense } from '@/features/expenses/services/expensesApi.service'
 import ExpenseFilters from '@/features/expenses/components/ExpenseFilters'
 import AddExpenseModal from '@/features/expenses/components/AddExpenseModal'
+import EditExpenseModal from '@/features/expenses/components/EditExpenseModal'
 import type { ExpenseDto, ExpenseFilter } from '@/features/expenses/types/expenses.type'
 
 const DEFAULT_PAGE_SIZE = 20
@@ -68,6 +69,15 @@ function ExpenseRow({
             ))
           : '—'}
       </td>
+      <td className="px-4 py-3 text-sm text-ink-mute">
+        {expense.families && expense.families.length > 0
+          ? expense.families.map(f => (
+              <span key={f.id} className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-brand-100 text-brand-700 mr-1">
+                {f.name}
+              </span>
+            ))
+          : '—'}
+      </td>
       <td className="px-4 py-3 text-sm whitespace-nowrap">
         <button
           onClick={() => navigate(`/expenses/${expense.id}/edit`)}
@@ -91,6 +101,8 @@ export default function ExpensesPage() {
   usePageTitle(t('expenses.pageTitle'))
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const editMatch = useMatch('/expenses/:id/edit')
+  const editId = editMatch ? parseInt(editMatch.params.id ?? '') : null
   const isAddOpen = pathname === '/expenses/add'
   const [filter, setFilter] = useState<ExpenseFilter>({ page: 1, pageSize: DEFAULT_PAGE_SIZE })
   const [deleteId, setDeleteId] = useState<number | null>(null)
@@ -168,6 +180,7 @@ export default function ExpensesPage() {
                     <th className="px-4 py-3 text-left text-xs font-semibold text-ink-mute uppercase tracking-wide">{t('expenses.table.category')}</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-ink-mute uppercase tracking-wide">{t('expenses.fields.description')}</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-ink-mute uppercase tracking-wide">{t('expenses.table.tags')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-ink-mute uppercase tracking-wide">{t('expenses.table.families')}</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-ink-mute uppercase tracking-wide">{t('expenses.table.actions')}</th>
                   </tr>
                 </thead>
@@ -214,6 +227,14 @@ export default function ExpensesPage() {
 
       {isAddOpen && (
         <AddExpenseModal
+          onSuccess={() => { refetch(); navigate('/expenses') }}
+          onClose={() => navigate('/expenses')}
+        />
+      )}
+
+      {editId != null && (
+        <EditExpenseModal
+          expenseId={editId}
           onSuccess={() => { refetch(); navigate('/expenses') }}
           onClose={() => navigate('/expenses')}
         />

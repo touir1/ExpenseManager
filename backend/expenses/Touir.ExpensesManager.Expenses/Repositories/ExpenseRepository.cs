@@ -59,6 +59,7 @@ namespace Touir.ExpensesManager.Expenses.Repositories
                 .Include(e => e.Subcategory)
                 .Include(e => e.ModifiedFrom)
                 .Include(e => e.ExpenseTags).ThenInclude(et => et.Tag)
+                .Include(e => e.ExpenseFamilyAttributions).ThenInclude(a => a.Family)
                 .Where(e => e.Id == id && e.UserId == userId && !e.IsDeleted)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -72,6 +73,7 @@ namespace Touir.ExpensesManager.Expenses.Repositories
                 .Include(e => e.Subcategory)
                 .Include(e => e.ModifiedFrom)
                 .Include(e => e.ExpenseTags).ThenInclude(et => et.Tag)
+                .Include(e => e.ExpenseFamilyAttributions).ThenInclude(a => a.Family)
                 .Where(e => e.UserId == userId && !e.IsDeleted);
 
             if (filter.DateFrom.HasValue)

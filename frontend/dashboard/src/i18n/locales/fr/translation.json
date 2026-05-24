@@ -342,6 +342,7 @@
       "amount": "Montant",
       "category": "Catégorie",
       "tags": "Étiquettes",
+      "families": "Familles",
       "actions": "Actions"
     },
     "actions": {

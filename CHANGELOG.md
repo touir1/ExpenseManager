@@ -3,6 +3,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.106.9] - 2026-05-24
+### Changed
+- **Frontend — Expenses: Edit expense as modal**: `/expenses/:id/edit` now renders `ExpensesPage` with an `EditExpenseModal` overlay (pre-filled via `useQuery`) instead of `EditExpensePage`. `EditExpensePage.tsx` and its test deleted.
+- **Frontend — Expenses table: Families column**: Added "Families" column (between Tags and Actions) showing non-default family attribution badges for each expense row; "—" when none. Added `expenses.table.families` translation key to all 4 locale files.
+- **Frontend — ExpenseForm: FormCombobox for selects**: Currency, Category, and Subcategory selects replaced with `FormCombobox` (case-insensitive text search, `role="listbox"` dropdown). Default family checkbox hidden (it added no user-facing information).
+- **Frontend — CategoryDonut: design palette + amounts in legend**: Chart now uses brand design palette (`#C8623E`, `#6B8E5A`, `#D6A23F`, `#5C8C9E`, `#B5443F`, `#E8B89A`). Legend entries now show amount + percentage (e.g. `€70.00 (63%)`). Accepts optional `displayCurrency` prop; shows converted totals when set.
+- **Frontend — HomeDashboardPage**: Passes `displayCurrency` from summary to `CategoryDonut`.
+- **Backend — ExpenseDto: families field**: `ExpenseDto` now includes `Families: FamilyNameDto[]` (non-default family attributions for the expense). `ExpenseService.MapToDto` populates this via `ExpenseFamilyAttributions` nav prop.
+### Tests
+- **`ExpenseForm.test.tsx`**: Updated 6 tests for `FormCombobox` interaction (`fireEvent.focus` opens dropdown, `fireEvent.mouseDown` selects option) and removed default-family checkbox assertion.
+- **`CategoryDonut.test.tsx`**: Updated legend assertions to `amount (percentage)` format; added test for `displayCurrency` converted amount display.
+
 ## [0.106.8] - 2026-05-24
 ### Tests
 - **`NavBar.test.tsx`**: Fixed all 41 tests failing with `No QueryClient set` after `NavBar` started calling `useQueryClient()` (added in v0.106.7). Added `QueryClient`/`QueryClientProvider` import and `vi.mock` for `AddExpenseModal`; updated `renderNavBar` to wrap with `QueryClientProvider` and return `{ qc, ...render }` so logout `rerender` calls can reuse the same client. Updated 2 button-vs-link assertions (Add Expense is now a `<button>`, not a `<Link>`).

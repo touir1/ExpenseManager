@@ -14,7 +14,6 @@ import VerifyError from '@/features/public/pages/VerifyErrorPage'
 import FamiliesPage from '@/features/families/pages/FamiliesPage'
 import AcceptInvitePage from '@/features/families/pages/AcceptInvitePage'
 import ExpensesPage from '@/features/expenses/pages/ExpensesPage'
-import EditExpensePage from '@/features/expenses/pages/EditExpensePage'
 
 export default function AppRoutes() {
   return (
@@ -34,7 +33,7 @@ export default function AppRoutes() {
       <Route path="/families/accept-invite" element={<ProtectedRoute><AcceptInvitePage /></ProtectedRoute>} />
       <Route path="/expenses" element={<ProtectedRoute><ExpensesPage /></ProtectedRoute>} />
       <Route path="/expenses/add" element={<ProtectedRoute><ExpensesPage /></ProtectedRoute>} />
-      <Route path="/expenses/:id/edit" element={<ProtectedRoute><EditExpensePage /></ProtectedRoute>} />
+      <Route path="/expenses/:id/edit" element={<ProtectedRoute><ExpensesPage /></ProtectedRoute>} />
 
       {/* Standalone public pages */}
       <Route path="/verify-error" element={<VerifyError />} />

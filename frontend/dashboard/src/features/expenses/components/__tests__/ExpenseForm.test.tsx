@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ExpenseForm from '../ExpenseForm'
 import type { ExpenseDto } from '@/features/expenses/types/expenses.type'
@@ -90,12 +90,13 @@ describe('ExpenseForm', () => {
 
     it('renders family checkboxes', () => {
       renderForm()
-      expect(screen.getByText('My Family')).toBeInTheDocument()
+      expect(screen.queryByText('My Family')).not.toBeInTheDocument()
       expect(screen.getByText('Smith')).toBeInTheDocument()
     })
 
     it('renders currency options from context', () => {
       renderForm()
+      fireEvent.focus(screen.getByLabelText(/^currency$/i))
       expect(screen.getByRole('option', { name: 'EUR' })).toBeInTheDocument()
       expect(screen.getByRole('option', { name: 'USD' })).toBeInTheDocument()
     })
@@ -108,34 +109,41 @@ describe('ExpenseForm', () => {
     })
 
     it('enables subcategory select when category with subcategories is selected', async () => {
-      const user = userEvent.setup()
       renderForm()
-      await user.selectOptions(screen.getByLabelText(/^category$/i), '1')
-      expect(screen.getByLabelText(/^subcategory$/i)).not.toBeDisabled()
+      fireEvent.focus(screen.getByLabelText(/^category$/i))
+      fireEvent.mouseDown(screen.getByRole('option', { name: 'Food' }))
+      await waitFor(() => {
+        expect(screen.getByLabelText(/^subcategory$/i)).not.toBeDisabled()
+      })
     })
 
     it('shows subcategory options for selected category', async () => {
-      const user = userEvent.setup()
       renderForm()
-      await user.selectOptions(screen.getByLabelText(/^category$/i), '1')
-      expect(screen.getByRole('option', { name: 'Groceries' })).toBeInTheDocument()
-      expect(screen.getByRole('option', { name: 'Restaurants' })).toBeInTheDocument()
+      fireEvent.focus(screen.getByLabelText(/^category$/i))
+      fireEvent.mouseDown(screen.getByRole('option', { name: 'Food' }))
+      fireEvent.focus(screen.getByLabelText(/^subcategory$/i))
+      await waitFor(() => {
+        expect(screen.getByRole('option', { name: 'Groceries' })).toBeInTheDocument()
+        expect(screen.getByRole('option', { name: 'Restaurants' })).toBeInTheDocument()
+      })
     })
 
     it('keeps subcategory disabled when selected category has no subcategories', async () => {
-      const user = userEvent.setup()
       renderForm()
-      await user.selectOptions(screen.getByLabelText(/^category$/i), '2')
-      expect(screen.getByLabelText(/^subcategory$/i)).toBeDisabled()
+      fireEvent.focus(screen.getByLabelText(/^category$/i))
+      fireEvent.mouseDown(screen.getByRole('option', { name: 'Transport' }))
+      await waitFor(() => {
+        expect(screen.getByLabelText(/^subcategory$/i)).toBeDisabled()
+      })
     })
   })
 
   describe('family checkboxes', () => {
-    it('default family checkbox is disabled (pre-checked)', () => {
+    it('default family is not shown as a checkbox', () => {
       renderForm()
       const labels = screen.getAllByRole('checkbox')
       const defaultCheckbox = labels.find(el => el.closest('label')?.textContent?.includes('My Family'))
-      expect(defaultCheckbox).toBeDisabled()
+      expect(defaultCheckbox).toBeUndefined()
     })
 
     it('non-default family checkbox is enabled', () => {

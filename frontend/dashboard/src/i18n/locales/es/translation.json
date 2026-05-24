@@ -342,6 +342,7 @@
       "amount": "Importe",
       "category": "Categoría",
       "tags": "Etiquetas",
+      "families": "Familias",
       "actions": "Acciones"
     },
     "actions": {

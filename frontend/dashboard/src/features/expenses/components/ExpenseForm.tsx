@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
@@ -16,6 +16,90 @@ interface ExpenseFormProps {
   readonly onSubmit: (data: ExpenseFormData) => Promise<void>
   readonly isSubmitting: boolean
   readonly onCancel: () => void
+}
+
+interface ComboOption {
+  value: number
+  label: string
+}
+
+interface FormComboboxProps {
+  id?: string
+  value: number | undefined
+  onChange: (value: number | undefined) => void
+  options: ComboOption[]
+  disabled?: boolean
+  'aria-describedby'?: string
+  'aria-invalid'?: boolean
+}
+
+function FormCombobox({ id, value, onChange, options, disabled, ...ariaProps }: FormComboboxProps) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const selectedLabel = options.find(o => o.value === value)?.label ?? ''
+  const filtered = query
+    ? options.filter(o => o.label.toLowerCase().includes(query.toLowerCase()))
+    : options
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+        setQuery('')
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  return (
+    <div ref={containerRef} className="relative">
+      <input
+        id={id}
+        type="text"
+        autoComplete="off"
+        className={`field-input ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        disabled={disabled}
+        value={open ? query : selectedLabel}
+        placeholder="—"
+        onFocus={() => { if (!disabled) { setOpen(true); setQuery('') } }}
+        onChange={e => setQuery(e.target.value)}
+        {...ariaProps}
+      />
+      {open && !disabled && (
+        <ul
+          role="listbox"
+          className="absolute z-30 w-full mt-1 bg-surface-card border border-surface-border rounded-lg shadow-lg max-h-48 overflow-y-auto"
+        >
+          <li
+            role="option"
+            aria-selected={value === undefined}
+            className="px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-subtle text-ink-mute"
+            onMouseDown={() => { onChange(undefined); setOpen(false); setQuery('') }}
+          >
+            —
+          </li>
+          {filtered.map(o => (
+            <li
+              key={o.value}
+              role="option"
+              aria-selected={o.value === value}
+              className={`px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-subtle ${o.value === value ? 'font-semibold' : ''}`}
+              onMouseDown={() => { onChange(o.value); setOpen(false); setQuery('') }}
+            >
+              {o.label}
+            </li>
+          ))}
+          {filtered.length === 0 && (
+            <li className="px-3 py-1.5 text-sm text-ink-mute">—</li>
+          )}
+        </ul>
+      )}
+    </div>
+  )
 }
 
 function today(): string {
@@ -65,8 +149,8 @@ export default function ExpenseForm({ initialValues, onSubmit, isSubmitting, onC
     }
   }, [selectedCategoryId, initialValues, setValue])
 
-  const defaultFamily = families.find(f => f.isDefault)
   const nonDefaultFamilies = families.filter(f => !f.isDefault && !f.isArchived)
+  const defaultFamily = families.find(f => f.isDefault)
 
   const [checkedFamilyIds, setCheckedFamilyIds] = useState<Set<number>>(() => {
     if (initialValues) return new Set<number>()
@@ -94,6 +178,10 @@ export default function ExpenseForm({ initialValues, onSubmit, isSubmitting, onC
     })
   }
 
+  const currencyOptions: ComboOption[] = currencies.map(c => ({ value: c.id, label: c.code }))
+  const categoryOptions: ComboOption[] = categories.map(c => ({ value: c.id, label: c.name }))
+  const subcategoryOptions: ComboOption[] = subcategories.map(s => ({ value: s.id, label: s.name }))
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
       {/* Amount + Currency row */}
@@ -119,20 +207,20 @@ export default function ExpenseForm({ initialValues, onSubmit, isSubmitting, onC
           <label htmlFor="currencyId" className="field-label">
             {t('expenses.fields.currency')}
           </label>
-          <select
-            id="currencyId"
-            className="field-input"
-            aria-describedby="currencyId-error"
-            aria-invalid={!!errors.currencyId}
-            {...register('currencyId', { valueAsNumber: true })}
-          >
-            <option value="">—</option>
-            {currencies.map(c => (
-              <option key={c.id} value={c.id}>
-                {c.code}
-              </option>
-            ))}
-          </select>
+          <Controller
+            name="currencyId"
+            control={control}
+            render={({ field }) => (
+              <FormCombobox
+                id="currencyId"
+                value={field.value as number | undefined}
+                onChange={v => field.onChange(v)}
+                options={currencyOptions}
+                aria-describedby="currencyId-error"
+                aria-invalid={!!errors.currencyId}
+              />
+            )}
+          />
           <FieldError id="currencyId-error" message={errors.currencyId?.message} />
         </div>
       </div>
@@ -159,41 +247,39 @@ export default function ExpenseForm({ initialValues, onSubmit, isSubmitting, onC
           <label htmlFor="categoryId" className="field-label">
             {t('expenses.fields.category')}
           </label>
-          <select
-            id="categoryId"
-            className="field-input"
-            {...register('categoryId', { valueAsNumber: true })}
-          >
-            <option value="">—</option>
-            {categories.map(c => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <Controller
+            name="categoryId"
+            control={control}
+            render={({ field }) => (
+              <FormCombobox
+                id="categoryId"
+                value={field.value as number | undefined}
+                onChange={v => field.onChange(v)}
+                options={categoryOptions}
+              />
+            )}
+          />
         </div>
 
         <div className="flex-1">
           <label htmlFor="subcategoryId" className="field-label">
             {t('expenses.fields.subcategory')}
           </label>
-          <select
-            id="subcategoryId"
-            className="field-input"
-            disabled={!selectedCategoryId || subcategories.length === 0}
-            aria-describedby="subcategoryId-error"
-            aria-invalid={!!errors.subcategoryId}
-            {...register('subcategoryId', { valueAsNumber: true })}
-          >
-            <option value="">
-              {selectedCategoryId ? '—' : t('expenses.fields.noCategorySelected')}
-            </option>
-            {subcategories.map(s => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
+          <Controller
+            name="subcategoryId"
+            control={control}
+            render={({ field }) => (
+              <FormCombobox
+                id="subcategoryId"
+                value={field.value as number | undefined}
+                onChange={v => field.onChange(v)}
+                options={subcategoryOptions}
+                disabled={!selectedCategoryId || subcategories.length === 0}
+                aria-describedby="subcategoryId-error"
+                aria-invalid={!!errors.subcategoryId}
+              />
+            )}
+          />
           <FieldError id="subcategoryId-error" message={errors.subcategoryId?.message} />
         </div>
       </div>
@@ -224,23 +310,11 @@ export default function ExpenseForm({ initialValues, onSubmit, isSubmitting, onC
         />
       </div>
 
-      {/* Families */}
-      {(defaultFamily || nonDefaultFamilies.length > 0) && (
+      {/* Non-default families (default is always included silently) */}
+      {nonDefaultFamilies.length > 0 && (
         <div>
           <label className="field-label">{t('expenses.fields.families')}</label>
           <div className="space-y-1.5">
-            {defaultFamily && (
-              <label className="flex items-center gap-2 text-sm text-ink-body cursor-not-allowed">
-                <input
-                  type="checkbox"
-                  checked={checkedFamilyIds.has(defaultFamily.id)}
-                  disabled
-                  readOnly
-                  className="h-4 w-4 rounded border-surface-border accent-brand-500"
-                />
-                {defaultFamily.name}
-              </label>
-            )}
             {nonDefaultFamilies.map(f => (
               <label key={f.id} className="flex items-center gap-2 text-sm text-ink-body cursor-pointer">
                 <input

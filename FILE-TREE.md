@@ -148,7 +148,7 @@ ExpenseManager/
 │   │   │   │   │   ├── CategoryDto.cs       — Id, Name, Description?, Subcategories: IEnumerable<SubcategoryDto>
 │   │   │   │   │   ├── SubcategoryDto.cs    — Id, Name, Description? (reused for category + subcategory slots in ExpenseDto)
 │   │   │   │   │   ├── CurrencyDto.cs       — Id, Code, Name, Symbol, Decimals
-│   │   │   │   │   ├── ExpenseDto.cs        — Id, Amount, Currency: CurrencyDto?, Date, Category: SubcategoryDto?, Subcategory: SubcategoryDto?, Description?, CreatedAt, ModifiedAt?, ModifiedFrom?, Tags: TagDto[], ConvertedAmount?: decimal, DisplayCurrency?: CurrencyDto
+│   │   │   │   │   ├── ExpenseDto.cs        — Id, Amount, Currency: CurrencyDto?, Date, Category: SubcategoryDto?, Subcategory: SubcategoryDto?, Description?, CreatedAt, ModifiedAt?, ModifiedFrom?, Tags: TagDto[], ConvertedAmount?: decimal, DisplayCurrency?: CurrencyDto, Families: FamilyNameDto[]
 │   │   │   │   │   ├── CategoryAmountDto.cs — Category: SubcategoryDto?, Amount, ConvertedAmount?; used inside MonthlyBreakdownDto and CategoryBreakdownDto
 │   │   │   │   │   ├── CategoryBreakdownDto.cs — Category: SubcategoryDto?, TotalAmount, ConvertedTotal?, Percentage, Subcategories: CategoryAmountDto[]
 │   │   │   │   │   ├── CurrencyBreakdownDto.cs — Currency: CurrencyDto, TotalAmount, ConvertedAmount?, ExpenseCount
@@ -653,17 +653,16 @@ ExpenseManager/
 │           │   │   │       └── expensesApi.service.test.ts
 │           │   │   ├── components/
 │           │   │   │   ├── AddExpenseModal.tsx  — Modal overlay with ExpenseForm; calls addExpense; onSuccess/onClose callbacks
-│           │   │   │   ├── ExpenseForm.tsx     — RHF+Zod form: amount, currency, date, category, subcategory (conditional), description, tags, families
+│           │   │   │   ├── EditExpenseModal.tsx — Modal overlay with pre-filled ExpenseForm; fetches expense by id via useQuery; onSuccess/onClose callbacks
+│           │   │   │   ├── ExpenseForm.tsx     — RHF+Zod form: amount, currency (FormCombobox), date, category (FormCombobox), subcategory (FormCombobox, conditional), description, tags, families (default family hidden)
 │           │   │   │   ├── ExpenseFilters.tsx  — Collapsible filter panel; toggle with aria-expanded; resets page to 1 on apply; FilterCombobox for category/subcategory/currency (case-insensitive search)
 │           │   │   │   └── __tests__/
 │           │   │   │       ├── ExpenseForm.test.tsx
 │           │   │   │       └── ExpenseFilters.test.tsx
 │           │   │   ├── pages/
-│           │   │   │   ├── ExpensesPage.tsx    — Paginated expense table; delete confirm modal; filter panel; empty state; AddExpenseModal (route-based: opens when pathname === '/expenses/add')
-│           │   │   │   ├── EditExpensePage.tsx — Edit expense form page; fetches by id via useQuery
+│           │   │   │   ├── ExpensesPage.tsx    — Paginated expense table with Families column; delete confirm modal; filter panel; empty state; AddExpenseModal (/expenses/add) + EditExpenseModal (/expenses/:id/edit) route-based overlays
 │           │   │   │   └── __tests__/
-│           │   │   │       ├── ExpensesPage.test.tsx
-│           │   │   │       └── EditExpensePage.test.tsx
+│           │   │   │       └── ExpensesPage.test.tsx
 │           │   │   ├── expense.schemas.ts  — makeExpenseSchema(t): Zod v4 schema; categoryId/subcategoryId use .catch(undefined) to coerce NaN
 │           │   │   ├── ExpensesDataContext.tsx  — ExpensesDataProvider / useExpensesData(); fetches categories + currencies on mount
 │           │   │   └── __tests__/
@@ -679,7 +678,7 @@ ExpenseManager/
 │           │   │   ├── components/
 │           │   │   │   ├── MonthHero.tsx        — Summary card: total, ±% delta chip, expense count, top category pill
 │           │   │   │   ├── SpendChart.tsx        — Monthly stacked bar + average line (Recharts ComposedChart)
-│           │   │   │   ├── CategoryDonut.tsx     — Donut chart + legend (Recharts PieChart)
+│           │   │   │   ├── CategoryDonut.tsx     — Donut chart + legend (Recharts PieChart); design-palette colors; legend shows amount + percentage; optional displayCurrency prop for converted totals
 │           │   │   │   ├── SameMonthChart.tsx    — Year-over-year bar chart (Recharts BarChart)
 │           │   │   │   ├── CurrenciesPanel.tsx   — Per-currency breakdown rows
 │           │   │   │   ├── RecentExpenses.tsx    — Last 10 expenses feed; "View all" → /expenses

@@ -74,7 +74,8 @@ All endpoints (except `/health`) require authentication, enforced by nginx's `au
 **`CategoryDto`** — `{ id, name, description?, subcategories: SubcategoryDto[] }`  
 **`SubcategoryDto`** — `{ id, name, description? }`  
 **`CurrencyDto`** — `{ id, code, name, symbol, decimals }`  
-**`ExpenseDto`** — `{ id, amount, currency: CurrencyDto?, date, category: SubcategoryDto?, subcategory: SubcategoryDto?, description?, createdAt, modifiedAt?, modifiedFrom?, tags: TagDto[], convertedAmount?: decimal, displayCurrency?: CurrencyDto }`  
+**`ExpenseDto`** — `{ id, amount, currency: CurrencyDto?, date, category: SubcategoryDto?, subcategory: SubcategoryDto?, description?, createdAt, modifiedAt?, modifiedFrom?, tags: TagDto[], convertedAmount?: decimal, displayCurrency?: CurrencyDto, families: FamilyNameDto[] }`  
+**`FamilyNameDto`** — `{ id, name }` (non-default family attributions only)  
 **`TagDto`** — `{ id, name }`  
 **`TagListDto`** — `{ own: TagDto[], family: TagDto[] }`  
 **`ExpensePagedResponse`** — `{ items: ExpenseDto[], totalCount, page, pageSize, totalPages }`  

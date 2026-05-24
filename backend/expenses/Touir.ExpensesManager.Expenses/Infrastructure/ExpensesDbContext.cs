@@ -280,7 +280,7 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
             {
                 entity.HasKey(e => e.Id);
                 entity.HasOne(e => e.Expense)
-                      .WithMany()
+                      .WithMany(e => e.ExpenseFamilyAttributions)
                       .HasForeignKey(e => e.ExpenseId)
                       .OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(e => e.Family)

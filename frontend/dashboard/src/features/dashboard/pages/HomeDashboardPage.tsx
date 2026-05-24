@@ -123,7 +123,7 @@ export default function HomeDashboardPage() {
 
       {/* Row 2: Category Donut + Recent Expenses */}
       <div className="grid gap-4 lg:grid-cols-2 mb-4">
-        <CategoryDonut data={categories} isLoading={categoriesQ.isLoading} />
+        <CategoryDonut data={categories} isLoading={categoriesQ.isLoading} displayCurrency={displayCurrency} />
         <RecentExpenses data={recentItems} isLoading={recentQ.isLoading} />
       </div>
 

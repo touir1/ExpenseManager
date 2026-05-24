@@ -24,6 +24,11 @@ export type TagDto = {
   name: string
 }
 
+export type FamilyNameDto = {
+  id: number
+  name: string
+}
+
 export type ExpenseDto = {
   id: number
   amount: number
@@ -36,6 +41,7 @@ export type ExpenseDto = {
   modifiedAt: string | null
   modifiedFrom: string | null
   tags: TagDto[]
+  families?: FamilyNameDto[]
   convertedAmount: number | null
   displayCurrency: Currency | null
 }

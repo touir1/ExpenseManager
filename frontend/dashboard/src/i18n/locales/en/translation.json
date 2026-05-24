@@ -342,6 +342,7 @@
       "amount": "Amount",
       "category": "Category",
       "tags": "Tags",
+      "families": "Families",
       "actions": "Actions"
     },
     "actions": {

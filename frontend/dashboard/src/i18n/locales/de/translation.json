@@ -342,6 +342,7 @@
       "amount": "Betrag",
       "category": "Kategorie",
       "tags": "Schlagwörter",
+      "families": "Familien",
       "actions": "Aktionen"
     },
     "actions": {
