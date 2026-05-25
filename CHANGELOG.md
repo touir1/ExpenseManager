@@ -3,6 +3,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.107.2] - 2026-05-25
+### Fixed
+- **Backend — ExpenseService: `DisplayCurrency` always null on conversion**: `ResolveConversionAsync` was computing `convertedAmount` correctly but returning `null` for `displayCurrency`. Frontend's `hasConversion` check requires both fields non-null, so the secondary `≈` line in Recent Expenses was never rendered. Fixed by injecting `ICurrencyRepository` into `ExpenseService` and fetching + returning the display currency DTO alongside the converted amount.
+### Tests
+- **`ExpenseServiceConversionTests.cs`**: Updated `GetByIdAsync_DisplayCurrencySet` and `GetPagedAsync_DisplayCurrencySet` tests to mock `ICurrencyRepository.GetByIdAsync` and assert `DisplayCurrency` is populated (code + symbol). Added `DisplayCurrency` null assertion to `NoRateResolved` test. Renamed methods to reflect the expanded assertions.
+- **`ExpenseServiceTests.cs`**: Added `ICurrencyRepository` parameter to `CreateService` factory.
+
 ## [0.107.1] - 2026-05-25
 ### Fixed
 - **Frontend — Dashboard: currency display in Recent Expenses**: Primary amount now shows original expense currency; secondary `≈` line shows converted display currency. Previously the two were reversed.

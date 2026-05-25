@@ -13,19 +13,22 @@ namespace Touir.ExpensesManager.Expenses.Services
         private readonly IFamilyRepository _familyRepository;
         private readonly ITagRepository _tagRepository;
         private readonly ICurrencyRateService _currencyRateService;
+        private readonly ICurrencyRepository _currencyRepository;
 
         public ExpenseService(
             IExpenseRepository expenseRepository,
             IExpenseAuditService auditService,
             IFamilyRepository familyRepository,
             ITagRepository tagRepository,
-            ICurrencyRateService currencyRateService)
+            ICurrencyRateService currencyRateService,
+            ICurrencyRepository currencyRepository)
         {
             _expenseRepository = expenseRepository;
             _auditService = auditService;
             _familyRepository = familyRepository;
             _tagRepository = tagRepository;
             _currencyRateService = currencyRateService;
+            _currencyRepository = currencyRepository;
         }
 
         public async Task<ExpenseDto> AddAsync(CreateExpenseRequest request, int userId, int sourceId)
@@ -142,7 +145,19 @@ namespace Touir.ExpensesManager.Expenses.Services
             if (rate is null)
                 return (null, null);
 
-            return (Math.Round(amount * rate.Value, 4), null);
+            var currency = await _currencyRepository.GetByIdAsync(displayCurrencyId.Value);
+            if (currency is null)
+                return (null, null);
+
+            var currencyDto = new CurrencyDto
+            {
+                Id = currency.Id,
+                Code = currency.Code,
+                Name = currency.Name,
+                Symbol = currency.Symbol,
+                Decimals = currency.Decimals
+            };
+            return (Math.Round(amount * rate.Value, 4), currencyDto);
         }
 
         private async Task<IEnumerable<TagDto>> WriteExpenseTagsAsync(long expenseId, int[]? tagIds, int userId)
