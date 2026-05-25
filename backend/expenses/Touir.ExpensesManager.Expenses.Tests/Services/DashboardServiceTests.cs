@@ -388,13 +388,29 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
                            .Callback<ExpenseFilterDto, int>((f, _) => capturedFilter = f)
                            .ReturnsAsync(expected);
 
-            var result = await CreateSut().GetRecentAsync(UserId, null, DateFrom, DateTo);
+            var result = await CreateSut().GetRecentAsync(UserId, null, DateFrom, DateTo, null);
 
             Assert.Same(expected, result);
             Assert.NotNull(capturedFilter);
             Assert.Equal(1, capturedFilter!.Page);
             Assert.Equal(10, capturedFilter.PageSize);
             Assert.Equal(DateFrom, capturedFilter.DateFrom);
+            Assert.Null(capturedFilter.DisplayCurrencyId);
+        }
+
+        [Fact]
+        public async Task GetRecentAsync_WithDisplayCurrencyId_PassesToExpenseFilter()
+        {
+            ExpenseFilterDto? capturedFilter = null;
+            var expected = new ExpensePagedResult { Items = [], TotalCount = 0, Page = 1, PageSize = 10, TotalPages = 0 };
+            _expenseService.Setup(s => s.GetPagedAsync(It.IsAny<ExpenseFilterDto>(), UserId))
+                           .Callback<ExpenseFilterDto, int>((f, _) => capturedFilter = f)
+                           .ReturnsAsync(expected);
+
+            await CreateSut().GetRecentAsync(UserId, null, DateFrom, DateTo, DisplayCurrencyId);
+
+            Assert.NotNull(capturedFilter);
+            Assert.Equal(DisplayCurrencyId, capturedFilter!.DisplayCurrencyId);
         }
 
         [Fact]
@@ -403,7 +419,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             _familyRepo.Setup(r => r.IsMemberAsync(FamilyId, UserId)).ReturnsAsync(false);
 
             await Assert.ThrowsAsync<FamilyForbiddenException>(
-                () => CreateSut().GetRecentAsync(UserId, FamilyId, null, null));
+                () => CreateSut().GetRecentAsync(UserId, FamilyId, null, null, null));
         }
     }
 }

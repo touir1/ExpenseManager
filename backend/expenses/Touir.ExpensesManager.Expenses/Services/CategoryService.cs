@@ -22,13 +22,15 @@ namespace Touir.ExpensesManager.Expenses.Services
                 Id = c.Id,
                 Name = c.Name,
                 Description = c.Description,
+                Icon = c.Icon,
                 Subcategories = c.Children
                     .Where(s => !s.IsDeleted)
                     .Select(s => new SubcategoryDto
                     {
                         Id = s.Id,
                         Name = s.Name,
-                        Description = s.Description
+                        Description = s.Description,
+                        Icon = s.Icon
                     })
             });
         }

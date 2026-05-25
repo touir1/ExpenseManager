@@ -37,10 +37,10 @@ describe('DisplayCurrencySelector', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('renders trigger button with no-conversion label when displayCurrencyId is null', () => {
+  it('renders trigger button with first currency label when displayCurrencyId is null', () => {
     renderSelector()
     expect(screen.getByRole('button', { name: /display currency/i })).toBeInTheDocument()
-    expect(screen.getByText(/no conversion/i)).toBeInTheDocument()
+    expect(screen.getByText('USD $')).toBeInTheDocument()
   })
 
   it('renders trigger button with currency label when one is selected', () => {
@@ -54,11 +54,10 @@ describe('DisplayCurrencySelector', () => {
     expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
 
-  it('opens dropdown on click and shows all currencies plus no-conversion', async () => {
+  it('opens dropdown on click and shows all currencies', async () => {
     renderSelector()
     await userEvent.click(screen.getByRole('button', { name: /display currency/i }))
     expect(screen.getByRole('menu')).toBeInTheDocument()
-    expect(screen.getByRole('menuitemradio', { name: /no conversion/i })).toBeInTheDocument()
     expect(screen.getByRole('menuitemradio', { name: /USD/i })).toBeInTheDocument()
     expect(screen.getByRole('menuitemradio', { name: /EUR/i })).toBeInTheDocument()
   })
@@ -68,14 +67,6 @@ describe('DisplayCurrencySelector', () => {
     await userEvent.click(screen.getByRole('button', { name: /display currency/i }))
     await userEvent.click(screen.getByRole('menuitemradio', { name: /EUR/i }))
     expect(mockSetDisplayCurrencyId).toHaveBeenCalledWith(2)
-  })
-
-  it('selecting no-conversion calls setDisplayCurrencyId with null', async () => {
-    mockUseDisplayCurrency.mockReturnValue({ displayCurrencyId: 2, setDisplayCurrencyId: mockSetDisplayCurrencyId })
-    renderSelector()
-    await userEvent.click(screen.getByRole('button', { name: /display currency/i }))
-    await userEvent.click(screen.getByRole('menuitemradio', { name: /no conversion/i }))
-    expect(mockSetDisplayCurrencyId).toHaveBeenCalledWith(null)
   })
 
   it('closes dropdown after selecting a currency', async () => {
@@ -93,13 +84,6 @@ describe('DisplayCurrencySelector', () => {
     expect(usdItem).toHaveAttribute('aria-checked', 'true')
     const eurItem = screen.getByRole('menuitemradio', { name: /EUR/i })
     expect(eurItem).toHaveAttribute('aria-checked', 'false')
-  })
-
-  it('no-conversion item has aria-checked=true when displayCurrencyId is null', async () => {
-    renderSelector()
-    await userEvent.click(screen.getByRole('button', { name: /display currency/i }))
-    const noConvItem = screen.getByRole('menuitemradio', { name: /no conversion/i })
-    expect(noConvItem).toHaveAttribute('aria-checked', 'true')
   })
 
   it('renders search input when dropdown is open', async () => {

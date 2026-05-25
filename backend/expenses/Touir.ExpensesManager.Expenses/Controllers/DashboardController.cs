@@ -211,7 +211,8 @@ namespace Touir.ExpensesManager.Expenses.Controllers
         public async Task<IActionResult> GetRecentAsync(
             [FromQuery] int? familyId,
             [FromQuery] DateOnly? dateFrom,
-            [FromQuery] DateOnly? dateTo)
+            [FromQuery] DateOnly? dateTo,
+            [FromQuery] int? displayCurrencyId)
         {
             try
             {
@@ -219,7 +220,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers
                 if (userId is null)
                     return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingUser });
 
-                var dto = await _dashboardService.GetRecentAsync(userId.Value, familyId, dateFrom, dateTo);
+                var dto = await _dashboardService.GetRecentAsync(userId.Value, familyId, dateFrom, dateTo, displayCurrencyId);
                 return Ok(dto);
             }
             catch (FamilyForbiddenException ex)

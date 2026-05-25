@@ -20,6 +20,6 @@ namespace Touir.ExpensesManager.Expenses.Services.Contracts
             int userId, int? familyId, DateOnly dateFrom, DateOnly dateTo, int? displayCurrencyId);
 
         Task<ExpensePagedResult> GetRecentAsync(
-            int userId, int? familyId, DateOnly? dateFrom, DateOnly? dateTo);
+            int userId, int? familyId, DateOnly? dateFrom, DateOnly? dateTo, int? displayCurrencyId);
     }
 }

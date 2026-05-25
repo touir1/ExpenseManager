@@ -150,7 +150,7 @@ namespace Touir.ExpensesManager.Expenses.Services
                         : null;
 
                     SubcategoryDto? subDto = subGroup.Key.HasValue && categories.TryGetValue(subGroup.Key.Value, out var sc)
-                        ? new SubcategoryDto { Id = sc.Id, Name = sc.Name, Description = sc.Description }
+                        ? new SubcategoryDto { Id = sc.Id, Name = sc.Name, Description = sc.Description, Icon = sc.Icon }
                         : null;
 
                     subcategories.Add(new CategoryAmountDto
@@ -173,7 +173,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             return breakdowns.Select(b =>
             {
                 SubcategoryDto? catDto = b.catId.HasValue && categories.TryGetValue(b.catId.Value, out var c)
-                    ? new SubcategoryDto { Id = c.Id, Name = c.Name, Description = c.Description }
+                    ? new SubcategoryDto { Id = c.Id, Name = c.Name, Description = c.Description, Icon = c.Icon }
                     : null;
                 decimal thisBase = b.converted ?? b.raw;
                 decimal pct = grandBase > 0 ? Math.Round(thisBase / grandBase * 100, 2) : 0;
@@ -251,7 +251,7 @@ namespace Touir.ExpensesManager.Expenses.Services
         }
 
         public async Task<ExpensePagedResult> GetRecentAsync(
-            int userId, int? familyId, DateOnly? dateFrom, DateOnly? dateTo)
+            int userId, int? familyId, DateOnly? dateFrom, DateOnly? dateTo, int? displayCurrencyId)
         {
             await CheckMembershipAsync(familyId, userId);
 
@@ -259,6 +259,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             {
                 DateFrom = dateFrom,
                 DateTo = dateTo,
+                DisplayCurrencyId = displayCurrencyId,
                 Page = 1,
                 PageSize = 10
             };
@@ -328,7 +329,7 @@ namespace Touir.ExpensesManager.Expenses.Services
 
             var topKey = parentTotals.MaxBy(kvp => kvp.Value).Key;
             SubcategoryDto? dto = topKey != uncategorisedKey && categories.TryGetValue(topKey, out var c)
-                ? new SubcategoryDto { Id = c.Id, Name = c.Name, Description = c.Description }
+                ? new SubcategoryDto { Id = c.Id, Name = c.Name, Description = c.Description, Icon = c.Icon }
                 : null;
 
             return (dto, parentTotals[topKey]);
@@ -352,7 +353,7 @@ namespace Touir.ExpensesManager.Expenses.Services
                     displayCurrencyId, rateDate);
 
                 SubcategoryDto? catDto = group.Key.HasValue && categories.TryGetValue(group.Key.Value, out var c)
-                    ? new SubcategoryDto { Id = c.Id, Name = c.Name, Description = c.Description }
+                    ? new SubcategoryDto { Id = c.Id, Name = c.Name, Description = c.Description, Icon = c.Icon }
                     : null;
 
                 result.Add(new CategoryAmountDto

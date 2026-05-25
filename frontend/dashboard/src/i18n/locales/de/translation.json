@@ -129,7 +129,8 @@
       "total": "Gesamtausgaben",
       "vs": "vs. vorh. Zeitr.",
       "expenses": "Ausgaben",
-      "converted": "umgerechnet"
+      "converted": "umgerechnet",
+      "topCategory": "Höchste Ausgabe:"
     },
     "charts": {
       "monthly": "Monatliche Ausgaben",
@@ -151,6 +152,14 @@
       "title": "Passwort",
       "description": "Aktualisiere das Passwort für die Anmeldung an deinem Konto.",
       "changeLink": "Passwort ändern"
+    },
+    "currency": {
+      "title": "Standardwährung",
+      "description": "Wähle die Währung, in der Gesamtbeträge angezeigt werden.",
+      "save": "Speichern",
+      "saving": "Wird gespeichert…",
+      "success": "Standardwährung aktualisiert.",
+      "error": "Standardwährung konnte nicht aktualisiert werden."
     },
     "language": {
       "title": "Sprache",

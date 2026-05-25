@@ -79,6 +79,8 @@ export function MonthHero({ data, isLoading }: Props) {
 
         {data.topCategory && (
           <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-brand-50 text-brand-700">
+            <span className="font-normal opacity-75">{t('dashboard.summary.topCategory')}</span>
+            {data.topCategory.icon && <span>{data.topCategory.icon}</span>}
             {data.topCategory.name}
           </span>
         )}

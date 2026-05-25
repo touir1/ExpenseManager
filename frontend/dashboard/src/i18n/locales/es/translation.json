@@ -129,7 +129,8 @@
       "total": "Gasto total",
       "vs": "vs período ant.",
       "expenses": "gastos",
-      "converted": "convertido"
+      "converted": "convertido",
+      "topCategory": "Mayor gasto:"
     },
     "charts": {
       "monthly": "Gastos mensuales",
@@ -151,6 +152,14 @@
       "title": "Contraseña",
       "description": "Actualiza la contraseña usada para iniciar sesión.",
       "changeLink": "Cambiar contraseña"
+    },
+    "currency": {
+      "title": "Moneda predeterminada",
+      "description": "Elige la moneda utilizada para mostrar los totales en la app.",
+      "save": "Guardar",
+      "saving": "Guardando…",
+      "success": "Moneda predeterminada actualizada.",
+      "error": "Error al actualizar la moneda predeterminada."
     },
     "language": {
       "title": "Idioma",

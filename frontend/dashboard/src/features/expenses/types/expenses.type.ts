@@ -2,6 +2,7 @@ export type Subcategory = {
   id: number
   name: string
   description?: string
+  icon?: string
 }
 
 export type Category = {

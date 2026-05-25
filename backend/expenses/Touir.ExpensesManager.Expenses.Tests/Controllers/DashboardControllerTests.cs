@@ -180,10 +180,10 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         public async Task GetRecentAsync_Returns200_OnSuccess()
         {
             var service = new Mock<IDashboardService>();
-            service.Setup(s => s.GetRecentAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<DateOnly?>(), It.IsAny<DateOnly?>()))
+            service.Setup(s => s.GetRecentAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<DateOnly?>(), It.IsAny<DateOnly?>(), It.IsAny<int?>()))
                    .ReturnsAsync(new ExpensePagedResult { Items = [], TotalCount = 0, Page = 1, PageSize = 10, TotalPages = 0 });
 
-            var result = await CreateController(service.Object).GetRecentAsync(null, null, null);
+            var result = await CreateController(service.Object).GetRecentAsync(null, null, null, null);
 
             Assert.IsType<OkObjectResult>(result);
         }
@@ -192,10 +192,10 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         public async Task GetRecentAsync_Returns403_OnFamilyForbiddenException()
         {
             var service = new Mock<IDashboardService>();
-            service.Setup(s => s.GetRecentAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<DateOnly?>(), It.IsAny<DateOnly?>()))
+            service.Setup(s => s.GetRecentAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<DateOnly?>(), It.IsAny<DateOnly?>(), It.IsAny<int?>()))
                    .ThrowsAsync(new FamilyForbiddenException());
 
-            var result = await CreateController(service.Object).GetRecentAsync(null, null, null);
+            var result = await CreateController(service.Object).GetRecentAsync(null, null, null, null);
 
             Assert.Equal(StatusCodes.Status403Forbidden, ((ObjectResult)result).StatusCode);
         }

@@ -3,6 +3,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.107.0] - 2026-05-25
+### Changed
+- **Backend — UserConfig: per-user default display currency**: New `UserConfigs` table, `UserConfigRepository`, `UserConfigService`, `UserConfigController` (`GET /config` + `PUT /config`). Returns `{ defaultCurrencyId, defaultCurrency }` — null fields when no row yet.
+- **Backend — Category icons**: `Icon?` field added to `Category` model, `SubcategoryDto`, `CategoryDto`. `CategoryService` maps icon through. Seed data updated with emojis for all 17 top-level categories via `AddCategoryIcon` migration.
+- **Backend — Dashboard recent: displayCurrencyId param**: `GET /dashboard/recent` now accepts `?displayCurrencyId=N`; forwarded through `IDashboardService.GetRecentAsync` → `ExpenseFilterDto.DisplayCurrencyId`.
+- **Frontend — Settings page: default currency card**: New card in `SettingsPage` with currency dropdown + Save button. Loads current config via `useQuery(['userConfig'])`, saves via `updateConfig`.
+- **Frontend — DisplayCurrencyContext: init from user config**: Context now loads user config on mount (when authenticated + currencies ready), initializing display currency from `defaultCurrencyId` → EUR fallback → first currency. `initialized` ref prevents re-init after manual override.
+- **Frontend — DisplayCurrencySelector: remove "No conversion" option**: The "No conversion" button removed; selector always shows a currency.
+- **Frontend — RecentExpenses: category icon + subcategory + conversion**: Category pill shows `icon + name + " / " + subcategory` format. Secondary line `≈ {symbol}{amount}` shown when `convertedAmount` set and differs from display.
+- **Frontend — MonthHero: top spending label**: Top category badge now prefixed with `t('dashboard.summary.topCategory')` ("Top spending:" in EN).
+- **Frontend — i18n**: Added `dashboard.summary.topCategory` key and full settings section (`settings.*`) to EN/FR/ES/DE locale files.
+- **Frontend — New files**: `features/settings/types/userConfig.type.ts`, `features/settings/services/userConfigApi.service.ts`.
+### Tests
+- **`UserConfigControllerTests.cs`** (NEW — 6 tests): GET 200 null/populated, GET 401, PUT 200 valid/null, PUT 400 invalid currency, PUT 401.
+- **`UserConfigServiceTests.cs`** (NEW — 6 tests): GetAsync no-row/row, UpdateAsync invalid/valid/null currency, Upsert called, currency check skipped for null.
+- **`UserConfigRepositoryTests.cs`** (NEW — 7 tests): GetByUserIdAsync null/found/loads-nav/wrong-user, UpsertAsync insert/update/clear/no-duplicate/loads-nav.
+- **`CategoryServiceTests.cs`**: Added 3 icon-mapping tests (icon mapped, null mapped, subcategory icon mapped).
+- **`userConfigApi.service.test.ts`** (NEW — 10 tests): getConfig 5 tests, updateConfig 5 tests.
+- **`DisplayCurrencyContext.test.tsx`**: Updated to mock `useAuth`, `useExpensesData`, `getConfig`; added 4 init tests (from config, EUR fallback, no re-init after manual override, unauthenticated).
+- **`DisplayCurrencySelector.test.tsx`**: Removed 6 no-conversion tests; updated trigger label and dropdown content expectations.
+- **`RecentExpenses.test.tsx`**: Added 4 tests: category+subcategory slash, icon prefix, converted amount line, no secondary line when no conversion.
+- **`MonthHero.test.tsx`**: Updated top category assertion from exact string to regex.
+- **`SettingsPage.test.tsx`**: Added `QueryClientProvider` + mocks for `useExpensesData`/`getConfig`/`useToast`; added 3 new tests (default currency heading, Save button, pre-selects from config).
+
 ## [0.106.9] - 2026-05-24
 ### Changed
 - **Frontend — Expenses: Edit expense as modal**: `/expenses/:id/edit` now renders `ExpensesPage` with an `EditExpenseModal` overlay (pre-filled via `useQuery`) instead of `EditExpensePage`. `EditExpensePage.tsx` and its test deleted.

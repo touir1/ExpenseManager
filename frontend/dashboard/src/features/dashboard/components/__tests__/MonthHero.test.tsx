@@ -39,7 +39,7 @@ describe('MonthHero', () => {
 
   it('renders top category name', () => {
     render(<MonthHero data={mockSummary} isLoading={false} />)
-    expect(screen.getByText('Food')).toBeInTheDocument()
+    expect(screen.getByText(/Food/)).toBeInTheDocument()
   })
 
   it('renders converted total when displayCurrency present', () => {

@@ -117,5 +117,43 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
 
             mockRepo.Verify(r => r.GetAllActiveAsync(), Times.Once);
         }
+
+        [Fact]
+        public async Task GetAllAsync_MapsIconField_WhenCategoryHasIcon()
+        {
+            var cat = new Category { Id = 1, Name = "Food", Icon = "🍽️", IsDeleted = false, Children = [] };
+            var mockRepo = new Mock<ICategoryRepository>();
+            mockRepo.Setup(r => r.GetAllActiveAsync()).ReturnsAsync([cat]);
+
+            var result = (await CreateService(mockRepo.Object).GetAllAsync()).ToList();
+
+            Assert.Equal("🍽️", result[0].Icon);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_MapsIconField_AsNull_WhenCategoryHasNoIcon()
+        {
+            var cat = new Category { Id = 1, Name = "Health", Icon = null, IsDeleted = false, Children = [] };
+            var mockRepo = new Mock<ICategoryRepository>();
+            mockRepo.Setup(r => r.GetAllActiveAsync()).ReturnsAsync([cat]);
+
+            var result = (await CreateService(mockRepo.Object).GetAllAsync()).ToList();
+
+            Assert.Null(result[0].Icon);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_MapsSubcategoryIconField_WhenSubcategoryHasIcon()
+        {
+            var child = new Category { Id = 2, Name = "Groceries", Icon = "🛒", IsDeleted = false };
+            var parent = new Category { Id = 1, Name = "Food", IsDeleted = false, Children = [child] };
+            var mockRepo = new Mock<ICategoryRepository>();
+            mockRepo.Setup(r => r.GetAllActiveAsync()).ReturnsAsync([parent]);
+
+            var result = (await CreateService(mockRepo.Object).GetAllAsync()).ToList();
+
+            var sub = result[0].Subcategories.First();
+            Assert.Equal("🛒", sub.Icon);
+        }
     }
 }

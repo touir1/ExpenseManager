@@ -129,7 +129,8 @@
       "total": "Total spending",
       "vs": "vs prev. period",
       "expenses": "expenses",
-      "converted": "converted"
+      "converted": "converted",
+      "topCategory": "Top spending:"
     },
     "charts": {
       "monthly": "Monthly spending",
@@ -151,6 +152,14 @@
       "title": "Password",
       "description": "Update the password used to sign in to your account.",
       "changeLink": "Change Password"
+    },
+    "currency": {
+      "title": "Default Currency",
+      "description": "Choose the currency used to display totals across the app.",
+      "save": "Save",
+      "saving": "Saving…",
+      "success": "Default currency updated.",
+      "error": "Failed to update default currency."
     },
     "language": {
       "title": "Language",

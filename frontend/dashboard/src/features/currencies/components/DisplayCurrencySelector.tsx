@@ -12,7 +12,12 @@ export default function DisplayCurrencySelector() {
   const ref = useRef<HTMLDivElement>(null)
 
   const selected = displayCurrencyId ? currencies.find(c => c.id === displayCurrencyId) : null
-  const label = selected ? `${selected.code} ${selected.symbol}` : t('currencies.noConversion', 'No conversion')
+  const fallback = currencies[0]
+  const label = selected
+    ? `${selected.code} ${selected.symbol}`
+    : fallback
+      ? `${fallback.code} ${fallback.symbol}`
+      : ''
 
   const filtered = search
     ? currencies.filter(c =>
@@ -72,19 +77,6 @@ export default function DisplayCurrencySelector() {
             />
           </div>
           <div className="overflow-y-auto py-1">
-          <button
-            role="menuitemradio"
-            aria-checked={displayCurrencyId === null}
-            onClick={() => { setDisplayCurrencyId(null); setOpen(false) }}
-            className={`w-full text-left px-3 py-2 text-sm transition-colors duration-100 cursor-pointer ${
-              displayCurrencyId === null
-                ? 'text-brand-700 bg-brand-50 font-medium'
-                : 'text-slate-700 hover:bg-slate-50'
-            }`}
-          >
-            {t('currencies.noConversion', 'No conversion')}
-          </button>
-
           {filtered.map(currency => (
             <button
               key={currency.id}

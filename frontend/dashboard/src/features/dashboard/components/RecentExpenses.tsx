@@ -36,6 +36,20 @@ function formatDate(dateStr: string): string {
   return `${day}/${month}/${String(year).slice(2)}`
 }
 
+function buildCategoryLabel(expense: ExpenseDto): string | null {
+  const { category, subcategory } = expense
+  if (!category && !subcategory) return null
+  const icon = category?.icon ?? subcategory?.icon
+  const parts: string[] = []
+  if (icon) parts.push(icon)
+  if (category) parts.push(category.name)
+  if (subcategory) parts.push(subcategory.name)
+  if (category && subcategory) {
+    return `${icon ? icon + ' ' : ''}${category.name} / ${subcategory.name}`
+  }
+  return parts.join(' ')
+}
+
 export function RecentExpenses({ data, isLoading }: Props) {
   const { t } = useTranslation()
 
@@ -60,11 +74,15 @@ export function RecentExpenses({ data, isLoading }: Props) {
       ) : (
         <ul>
           {data.map(expense => {
+            const showConverted = expense.convertedAmount != null && expense.currency != null
             const displayAmount = expense.convertedAmount ?? expense.amount
             const displayCurrency = expense.displayCurrency ?? expense.currency
             const symbol = displayCurrency?.symbol ?? ''
             const decimals = displayCurrency?.decimals ?? 2
-            const category = expense.subcategory ?? expense.category
+            const categoryLabel = buildCategoryLabel(expense)
+
+            const originalSymbol = expense.currency?.symbol ?? ''
+            const originalDecimals = expense.currency?.decimals ?? 2
 
             return (
               <li
@@ -79,16 +97,23 @@ export function RecentExpenses({ data, isLoading }: Props) {
                     <p className="text-sm text-ink-body truncate leading-tight">
                       {expense.description ?? t('expenses.uncategorised')}
                     </p>
-                    {category && (
+                    {categoryLabel && (
                       <span className="inline-block text-[11px] px-1.5 py-0.5 rounded bg-surface-subtle text-ink-mute mt-0.5">
-                        {category.name}
+                        {categoryLabel}
                       </span>
                     )}
                   </div>
                 </div>
-                <span className="text-sm font-semibold text-ink shrink-0 tabular-nums">
-                  {symbol}{displayAmount.toFixed(decimals)}
-                </span>
+                <div className="text-right shrink-0">
+                  <span className="text-sm font-semibold text-ink tabular-nums">
+                    {symbol}{displayAmount.toFixed(decimals)}
+                  </span>
+                  {showConverted && (
+                    <p className="text-[11px] text-ink-faint tabular-nums">
+                      ≈ {originalSymbol}{expense.amount.toFixed(originalDecimals)}
+                    </p>
+                  )}
+                </div>
               </li>
             )
           })}

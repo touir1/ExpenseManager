@@ -28,6 +28,7 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
         public DbSet<ExpenseAuditSnapshot> ExpenseAuditSnapshots { get; set; }
 
         public DbSet<InboxEvent> InboxEvents { get; set; }
+        public DbSet<UserConfig> UserConfigs { get; set; }
 
         // Lookup tables
         public DbSet<OperationSource> OperationSources { get; set; }
@@ -159,6 +160,7 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.Icon).HasMaxLength(50);
                 entity.Property(e => e.IsDeleted).HasDefaultValue(false);
                 entity.Property(e => e.DeletedAt).IsRequired(false);
                 entity.HasOne(e => e.ParentCategory)
@@ -447,6 +449,18 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
                       .WithMany()
                       .HasForeignKey(e => e.SnapshotTypeId)
                       .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ── UserConfig ────────────────────────────────────────────────────
+
+            modelBuilder.Entity<UserConfig>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.UserId).IsUnique();
+                entity.HasOne(e => e.DefaultCurrency)
+                      .WithMany()
+                      .HasForeignKey(e => e.DefaultCurrencyId)
+                      .OnDelete(DeleteBehavior.SetNull);
             });
 
             // ── Inbox ─────────────────────────────────────────────────────────

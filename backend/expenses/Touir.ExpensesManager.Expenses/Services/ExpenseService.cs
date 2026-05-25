@@ -218,13 +218,15 @@ namespace Touir.ExpensesManager.Expenses.Services
             {
                 Id = e.Category.Id,
                 Name = e.Category.Name,
-                Description = e.Category.Description
+                Description = e.Category.Description,
+                Icon = e.Category.Icon
             },
             Subcategory = e.Subcategory is null ? null : new SubcategoryDto
             {
                 Id = e.Subcategory.Id,
                 Name = e.Subcategory.Name,
-                Description = e.Subcategory.Description
+                Description = e.Subcategory.Description,
+                Icon = e.Subcategory.Icon
             },
             Description = e.Description,
             CreatedAt = e.CreatedAt,
