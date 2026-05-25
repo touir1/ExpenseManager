@@ -135,7 +135,7 @@ export default function HomeDashboardPage() {
           selectedMonth={currentMonth}
           displayCurrency={displayCurrency}
         />
-        <CurrenciesPanel data={currencies} isLoading={currenciesQ.isLoading} />
+        <CurrenciesPanel data={currencies} isLoading={currenciesQ.isLoading} displayCurrency={displayCurrency} />
       </div>
     </div>
   )

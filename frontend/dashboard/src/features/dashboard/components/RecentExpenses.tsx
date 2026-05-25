@@ -74,15 +74,12 @@ export function RecentExpenses({ data, isLoading }: Props) {
       ) : (
         <ul>
           {data.map(expense => {
-            const showConverted = expense.convertedAmount != null && expense.currency != null
-            const displayAmount = expense.convertedAmount ?? expense.amount
-            const displayCurrency = expense.displayCurrency ?? expense.currency
-            const symbol = displayCurrency?.symbol ?? ''
-            const decimals = displayCurrency?.decimals ?? 2
+            const hasConversion = expense.convertedAmount != null && expense.displayCurrency != null
+            const symbol = expense.currency?.symbol ?? ''
+            const decimals = expense.currency?.decimals ?? 2
+            const convSymbol = expense.displayCurrency?.symbol ?? ''
+            const convDecimals = expense.displayCurrency?.decimals ?? 2
             const categoryLabel = buildCategoryLabel(expense)
-
-            const originalSymbol = expense.currency?.symbol ?? ''
-            const originalDecimals = expense.currency?.decimals ?? 2
 
             return (
               <li
@@ -106,11 +103,11 @@ export function RecentExpenses({ data, isLoading }: Props) {
                 </div>
                 <div className="text-right shrink-0">
                   <span className="text-sm font-semibold text-ink tabular-nums">
-                    {symbol}{displayAmount.toFixed(decimals)}
+                    {symbol} {expense.amount.toFixed(decimals)}
                   </span>
-                  {showConverted && (
+                  {hasConversion && (
                     <p className="text-[11px] text-ink-faint tabular-nums">
-                      ≈ {originalSymbol}{expense.amount.toFixed(originalDecimals)}
+                      ≈ {convSymbol} {expense.convertedAmount!.toFixed(convDecimals)}
                     </p>
                   )}
                 </div>

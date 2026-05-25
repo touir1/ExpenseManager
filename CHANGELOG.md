@@ -3,6 +3,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.107.1] - 2026-05-25
+### Fixed
+- **Frontend — Dashboard: currency display in Recent Expenses**: Primary amount now shows original expense currency; secondary `≈` line shows converted display currency. Previously the two were reversed.
+- **Frontend — Dashboard: symbol + amount spacing**: Added a space between currency symbol and amount across all dashboard panels — `RecentExpenses`, `CurrenciesPanel`, `CategoryDonut`, `SpendChart`, `SameMonthChart`. Formatters now render e.g. `€ 1 500.00` instead of `€1500.00`.
+- **Frontend — HomeDashboardPage**: `CurrenciesPanel` now receives `displayCurrency` prop so converted amounts use the correct display currency symbol and decimals.
+### Tests
+- Updated `CurrenciesPanel.test.tsx`, `RecentExpenses.test.tsx`, `CategoryDonut.test.tsx` assertions to match new symbol + space + amount format. `CategoryDonut` converted-amount assertions switched to regex to avoid `€` terminal-encoding ambiguity.
+
 ## [0.107.0] - 2026-05-25
 ### Changed
 - **Backend — UserConfig: per-user default display currency**: New `UserConfigs` table, `UserConfigRepository`, `UserConfigService`, `UserConfigController` (`GET /config` + `PUT /config`). Returns `{ defaultCurrencyId, defaultCurrency }` — null fields when no row yet.

@@ -27,8 +27,8 @@ describe('CurrenciesPanel', () => {
 
   it('renders total amount for each currency', () => {
     render(<CurrenciesPanel data={mockCurrencies} isLoading={false} />)
-    expect(screen.getByText('€1500.00')).toBeInTheDocument()
-    expect(screen.getByText('$400.00')).toBeInTheDocument()
+    expect(screen.getByText('€ 1500.00')).toBeInTheDocument()
+    expect(screen.getByText('$ 400.00')).toBeInTheDocument()
   })
 
   it('shows converted amount when present', () => {

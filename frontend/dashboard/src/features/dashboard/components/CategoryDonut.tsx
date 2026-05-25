@@ -86,7 +86,7 @@ export function CategoryDonut({ data, isLoading, displayCurrency }: Props) {
                 </span>
                 <span className="text-xs font-semibold text-ink shrink-0 tabular-nums">
                   {displayCurrency
-                    ? `${displayCurrency.symbol}${(item.convertedTotal ?? item.totalAmount).toFixed(displayCurrency.decimals)} (${item.percentage.toFixed(0)}%)`
+                    ? `${displayCurrency.symbol} ${(item.convertedTotal ?? item.totalAmount).toFixed(displayCurrency.decimals)} (${item.percentage.toFixed(0)}%)`
                     : `${item.totalAmount.toFixed(2)} (${item.percentage.toFixed(0)}%)`}
                 </span>
               </li>

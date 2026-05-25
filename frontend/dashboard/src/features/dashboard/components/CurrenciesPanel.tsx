@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next'
-import type { CurrencyBreakdownDto } from '@/features/dashboard/types/dashboard.type'
+import type { CurrencyBreakdownDto, Currency } from '@/features/dashboard/types/dashboard.type'
 
 type Props = {
   data: CurrencyBreakdownDto[]
   isLoading: boolean
+  displayCurrency?: Currency | null
 }
 
 function Skeleton() {
@@ -27,7 +28,7 @@ function Skeleton() {
   )
 }
 
-export function CurrenciesPanel({ data, isLoading }: Props) {
+export function CurrenciesPanel({ data, isLoading, displayCurrency }: Props) {
   const { t } = useTranslation()
 
   if (isLoading) return <Skeleton />
@@ -61,11 +62,13 @@ export function CurrenciesPanel({ data, isLoading }: Props) {
 
               <div className="text-right">
                 <p className="text-sm font-semibold text-ink tabular-nums">
-                  {item.currency.symbol}{item.totalAmount.toFixed(item.currency.decimals)}
+                  {item.currency.symbol} {item.totalAmount.toFixed(item.currency.decimals)}
                 </p>
                 {item.convertedAmount != null && (
                   <p className="text-[11px] text-ink-faint tabular-nums">
-                    ≈ {item.convertedAmount.toFixed(2)}
+                    {displayCurrency
+                      ? `≈ ${displayCurrency.symbol} ${item.convertedAmount.toFixed(displayCurrency.decimals)}`
+                      : `≈ ${item.convertedAmount.toFixed(2)}`}
                   </p>
                 )}
               </div>

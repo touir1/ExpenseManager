@@ -72,7 +72,7 @@ describe('RecentExpenses', () => {
 
   it('renders amount with currency symbol', () => {
     renderPanel()
-    expect(screen.getAllByText('€10.50').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('€ 10.50').length).toBeGreaterThan(0)
   })
 
   it('shows category and subcategory separated by slash when both present', () => {
@@ -100,7 +100,7 @@ describe('RecentExpenses', () => {
       displayCurrency: { id: 2, code: 'EUR', name: 'Euro', symbol: '€', decimals: 2 },
     })
     renderPanel([expense])
-    expect(screen.getByText('≈ $10.50')).toBeInTheDocument()
+    expect(screen.getByText('≈ € 9.00')).toBeInTheDocument()
   })
 
   it('does not show secondary line when no conversion', () => {

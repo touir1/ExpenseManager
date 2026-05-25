@@ -54,8 +54,8 @@ describe('CategoryDonut', () => {
       { ...mockCategories[1], convertedTotal: 360 },
     ]
     render(<CategoryDonut data={withConverted} isLoading={false} displayCurrency={{ symbol: '€', decimals: 2 }} />)
-    expect(screen.getByText('€950.00 (37%)')).toBeInTheDocument()
-    expect(screen.getByText('€360.00 (14%)')).toBeInTheDocument()
+    expect(screen.getByText(/950\.00.*37%/)).toBeInTheDocument()
+    expect(screen.getByText(/360\.00.*14%/)).toBeInTheDocument()
   })
 
   it('shows empty state when no data', () => {

@@ -61,11 +61,11 @@ export function SameMonthChart({ data, isLoading, selectedMonth, displayCurrency
               tick={{ fontSize: 11, fill: '#94a3b8' }}
               axisLine={false}
               tickLine={false}
-              tickFormatter={v => `${currSymbol}${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`}
+              tickFormatter={v => `${currSymbol}${currSymbol ? ' ' : ''}${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`}
               width={44}
             />
             <Tooltip
-              formatter={(value: number) => [`${currSymbol}${value.toFixed(2)}`, '']}
+              formatter={(value: number) => [`${currSymbol}${currSymbol ? ' ' : ''}${value.toFixed(2)}`, '']}
               contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 12 }}
             />
             <Bar dataKey="amount" fill="#c8623e" radius={[4, 4, 0, 0]} maxBarSize={40} />
