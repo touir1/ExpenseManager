@@ -1,21 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { CHART_COLORS, getCategoryColor } from '../categoryColors'
+import { getCategoryColor } from '../categoryColors'
 
-describe('CHART_COLORS', () => {
-  it('has 6 entries', () => {
-    expect(CHART_COLORS).toHaveLength(6)
-  })
-
-  it('contains only valid hex colors', () => {
-    CHART_COLORS.forEach(c => {
-      expect(c).toMatch(/^#[0-9A-Fa-f]{6}$/)
-    })
-  })
-
-  it('all values are unique', () => {
-    expect(new Set(CHART_COLORS).size).toBe(CHART_COLORS.length)
-  })
-})
+const PALETTE_SIZE = 17
 
 describe('getCategoryColor', () => {
   it('returns fallback color for undefined', () => {
@@ -34,10 +20,10 @@ describe('getCategoryColor', () => {
     expect(c0).not.toEqual(c1)
   })
 
-  it('wraps around after 6 entries', () => {
-    expect(getCategoryColor(0)).toEqual(getCategoryColor(6))
-    expect(getCategoryColor(1)).toEqual(getCategoryColor(7))
-    expect(getCategoryColor(5)).toEqual(getCategoryColor(11))
+  it('wraps around after palette size', () => {
+    expect(getCategoryColor(0)).toEqual(getCategoryColor(PALETTE_SIZE))
+    expect(getCategoryColor(1)).toEqual(getCategoryColor(PALETTE_SIZE + 1))
+    expect(getCategoryColor(5)).toEqual(getCategoryColor(PALETTE_SIZE + 5))
   })
 
   it('returns object with bg and text fields', () => {
@@ -46,14 +32,19 @@ describe('getCategoryColor', () => {
     expect(result).toHaveProperty('text')
   })
 
-  it('text color is in CHART_COLORS', () => {
-    for (let i = 0; i < 6; i++) {
-      expect(CHART_COLORS).toContain(getCategoryColor(i).text)
+  it('all palette slots return valid 6-digit hex text colors', () => {
+    for (let i = 0; i < PALETTE_SIZE; i++) {
+      expect(getCategoryColor(i).text).toMatch(/^#[0-9A-Fa-f]{6}$/)
     }
   })
 
+  it('all palette slots return unique text colors', () => {
+    const texts = Array.from({ length: PALETTE_SIZE }, (_, i) => getCategoryColor(i).text)
+    expect(new Set(texts).size).toBe(PALETTE_SIZE)
+  })
+
   it('handles large ids via modulo', () => {
-    expect(getCategoryColor(1000)).toEqual(getCategoryColor(1000 % 6))
+    expect(getCategoryColor(1000)).toEqual(getCategoryColor(1000 % PALETTE_SIZE))
   })
 
   it('handles id 0', () => {
