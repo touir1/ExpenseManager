@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import type { CategoryBreakdownDto } from '@/features/dashboard/types/dashboard.type'
-
-const COLORS = ['#C8623E', '#6B8E5A', '#D6A23F', '#5C8C9E', '#B5443F', '#E8B89A']
+import { CHART_COLORS } from '@/features/dashboard/utils/categoryColors'
 
 type DisplayCurrency = { symbol: string; decimals: number }
 
@@ -63,7 +62,7 @@ export function CategoryDonut({ data, isLoading, displayCurrency }: Props) {
                   paddingAngle={2}
                 >
                   {data.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip
@@ -79,7 +78,7 @@ export function CategoryDonut({ data, isLoading, displayCurrency }: Props) {
               <li key={i} className="flex items-center gap-2 min-w-0">
                 <span
                   className="w-2 h-2 rounded-full shrink-0"
-                  style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                  style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }}
                 />
                 <span className="text-xs text-ink-body truncate flex-1">
                   {item.category?.name ?? t('expenses.uncategorised')}

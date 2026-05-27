@@ -3,6 +3,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.107.4] - 2026-05-27
+### Tests
+- **Frontend — `categoryColors.ts`**: 11 unit tests covering `CHART_COLORS` (length, hex format, uniqueness) and `getCategoryColor` (undefined fallback, determinism, modulo wrap, shape, text-in-palette, large IDs). 100% statement/branch/function/line coverage.
+
+## [0.107.3] - 2026-05-27
+### Changed
+- **Frontend — Dashboard: category label styling in Recent Expenses**: Labels are now pill-shaped (`rounded-full`), use the same 6-color design palette as the `CategoryDonut` chart, and assign colors deterministically by `category.id` so the same category always renders with the same background/text pair. Colors extracted to a shared `utils/categoryColors.ts` utility; `CategoryDonut` updated to import `CHART_COLORS` from there.
+
 ## [0.107.2] - 2026-05-25
 ### Fixed
 - **Backend — ExpenseService: `DisplayCurrency` always null on conversion**: `ResolveConversionAsync` was computing `convertedAmount` correctly but returning `null` for `displayCurrency`. Frontend's `hasConversion` check requires both fields non-null, so the secondary `≈` line in Recent Expenses was never rendered. Fixed by injecting `ICurrencyRepository` into `ExpenseService` and fetching + returning the display currency DTO alongside the converted amount.

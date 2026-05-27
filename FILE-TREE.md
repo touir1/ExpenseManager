@@ -687,6 +687,10 @@ ExpenseManager/
 │           │   │   │   ├── dashboardApi.service.ts — getSummary, getMonthly, getCategories, getSameMonthYearly, getByCurrency, getRecent
 │           │   │   │   └── __tests__/
 │           │   │   │       └── dashboardApi.service.test.ts
+│           │   │   ├── utils/
+│           │   │   │   ├── categoryColors.ts    — Shared 6-color design palette; CHART_COLORS for recharts; getCategoryColor(id) → {bg, text} for labels
+│           │   │   │   └── __tests__/
+│           │   │   │       └── categoryColors.test.ts — 11 tests: CHART_COLORS (length/hex/unique), getCategoryColor (fallback/determinism/modulo/shape/palette membership)
 │           │   │   ├── components/
 │           │   │   │   ├── MonthHero.tsx        — Summary card: total, ±% delta chip, expense count, top category pill
 │           │   │   │   ├── SpendChart.tsx        — Monthly stacked bar + average line (Recharts ComposedChart)

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { ExpenseDto } from '@/features/expenses/types/expenses.type'
+import { getCategoryColor } from '@/features/dashboard/utils/categoryColors'
 
 type Props = {
   data: ExpenseDto[]
@@ -80,6 +81,7 @@ export function RecentExpenses({ data, isLoading }: Props) {
             const convSymbol = expense.displayCurrency?.symbol ?? ''
             const convDecimals = expense.displayCurrency?.decimals ?? 2
             const categoryLabel = buildCategoryLabel(expense)
+            const categoryColor = getCategoryColor(expense.category?.id)
 
             return (
               <li
@@ -95,7 +97,10 @@ export function RecentExpenses({ data, isLoading }: Props) {
                       {expense.description ?? t('expenses.uncategorised')}
                     </p>
                     {categoryLabel && (
-                      <span className="inline-block text-[11px] px-1.5 py-0.5 rounded bg-surface-subtle text-ink-mute mt-0.5">
+                      <span
+                        className="inline-block text-[11px] px-2 py-0.5 rounded-full mt-0.5 font-medium"
+                        style={{ backgroundColor: categoryColor.bg, color: categoryColor.text }}
+                      >
                         {categoryLabel}
                       </span>
                     )}
