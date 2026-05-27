@@ -3,6 +3,79 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.108.0] - 2026-05-27
+### Added — Phase 11: Admin Screens
+#### Backend — Admin Role System
+- **Users service — `isAdmin` JWT claim**: `JwtTokenService` now checks if the authenticated user has a role with `Code == "APP_ADMIN"` and embeds `isAdmin: true` in the JWT.
+- **Users service — `GET /auth/session` response**: `SessionResponse` now includes `isAdmin: bool` so the frontend can determine admin status without parsing the JWT.
+- **Users service — `AdminAuthorizeAttribute`**: New action filter (`Filters/`) reads `isAdmin` JWT claim from the cookie (or `Authorization: Bearer` header for Swagger); returns `403 Forbidden` if missing or false.
+- **Expenses service — `JwtCookieReader.GetIsAdmin()`**: New static method alongside the existing `GetUserId()`; same token extraction logic (cookie → Authorization header fallback).
+- **Expenses service — `AppAdminAttribute`**: New action filter (`Filters/`) calls `JwtCookieReader.GetIsAdmin`; returns `403` if false.
+
+#### Backend — Admin Category Management (Expenses service)
+- **`IAdminCategoryService` / `AdminCategoryService`**: Add/update/archive/unarchive top-level categories and subcategories. Validates parent exists and is not archived before adding subcategory; blocks archiving a category that has active subcategories.
+- **`AdminCategoryController`** at `[Route("admin/categories")]` (→ `/api/expenses/admin/categories` via nginx), all actions `[AppAdmin]`:
+  - `POST /admin/categories` — Add top-level category
+  - `PUT /admin/categories/{id}` — Edit name/description
+  - `POST /admin/categories/{id}/archive` — Archive category
+  - `POST /admin/categories/{id}/unarchive` — Unarchive category
+  - `POST /admin/categories/{id}/subcategories` — Add subcategory
+  - `PUT /admin/categories/{id}/subcategories/{subId}` — Edit subcategory
+  - `POST /admin/categories/{id}/subcategories/{subId}/archive` — Archive subcategory
+  - `POST /admin/categories/{id}/subcategories/{subId}/unarchive` — Unarchive subcategory
+- **`AdminCategoryRequestValidator`**: name required + max 100 chars.
+- **`AdminCategoryDto`**: `{ id, name, description?, isArchived, subcategories: AdminCategoryDto[] }`
+
+#### Backend — Admin Currency Management (Expenses service)
+- **`IAdminCurrencyService` / `AdminCurrencyService`**: Add new currency; set default fallback rate delegates to existing `CurrencyRateService.SetDefaultFallbackAsync`.
+- **`AdminCurrencyController`** at `[Route("admin/currencies")]`, all actions `[AppAdmin]`:
+  - `POST /admin/currencies` — Add currency (code, name, symbol, decimals)
+  - `POST /admin/currencies/defaults` — Set default fallback rate for a pair
+- **`AdminAddCurrencyRequestValidator`**: code required/3 chars, name required/max 50, symbol required/max 10.
+
+#### Backend — Admin Rate Management (Expenses service)
+- **`AdminRateController`** at `[Route("admin/rates")]`, all actions `[AppAdmin]`: replaces the removed `CurrencyRateController`. All rate management now under `/api/expenses/admin/rates/*`:
+  - `GET /admin/rates/history` — Rate history for a currency pair
+  - `POST /admin/rates` — Add manual rate (201)
+  - `POST /admin/rates/bulk` — Bulk add manual rates (204)
+  - `PUT /admin/rates/default` — Set default fallback rate (204)
+  - `GET /admin/rates/conflicts` — List pending conflicts
+  - `POST /admin/rates/conflicts/{id}/resolve` — Resolve conflict (204)
+  - `POST /admin/rates/refresh` — Backfill rates from provider (204)
+- **Removed**: `CurrencyRateController.cs` and its tests (moved to `AdminRateController`).
+
+#### Backend — Admin User Management (Users service)
+- **`IAdminUserService` / `AdminUserService`**: Paged user list with search, disable/enable accounts, set user roles.
+- **`AdminUserController`** at `[Route("admin/users")]`, all actions `[AdminAuthorize]`:
+  - `GET /admin/users` — Paged list with `?search=&page=&pageSize=`
+  - `PATCH /admin/users/{id}/disable` — Disable account
+  - `PATCH /admin/users/{id}/enable` — Enable account
+  - `PUT /admin/users/{id}/roles` — Set roles (replace list)
+- **`AdminUserDto`**: `{ id, email, firstName, lastName, isDisabled, isDeleted, isEmailValidated, createdAt, roles[] }`
+
+#### Backend — Swagger Bearer Auth (both services)
+- Added `AddSecurityDefinition("Bearer")` + `AddSecurityRequirement` to both `Program.cs` files; Swagger UI now shows an Authorize button to pass JWT from `POST /auth/login`.
+- **Expenses service — `JwtCookieReader` header fallback**: `GetUserId` and `GetIsAdmin` now try `Authorization: Bearer <token>` header when the `auth_token` cookie is absent (covers Swagger calls). Normal traffic unchanged.
+
+#### Frontend — Admin Screens
+- **`AdminRoute.tsx`**: Route guard wrapping admin pages; redirects to `/dashboard` when `isAdmin=false`.
+- **`AdminLayout.tsx`**: Sidebar nav with links (Users, Categories, Currencies, Conversion Rates, Rate Conflicts) and breadcrumb header.
+- **`AdminUsersPage.tsx`**: Searchable paginated table; row actions Disable/Enable; Manage Roles modal with checkboxes.
+- **`AdminCategoriesPage.tsx`**: Tree view of categories/subcategories; Add/Edit modals; Archive/Unarchive per row; "Show archived" toggle.
+- **`AdminCurrenciesPage.tsx`**: Currency list; Add Currency modal; Set Default Rate modal.
+- **`AdminRatesPage.tsx`**: Pair selector; rate history table; Add Manual Rate modal; Backfill modal (date range + currency filter).
+- **`AdminRateConflictsPage.tsx`**: Pending conflicts table; per-row resolve (Accept Auto / Keep Manual / Custom with input); "Resolve All as Accept Auto" bulk button.
+- **Admin service layer** (`features/admin/services/`): `adminUsersApi.service.ts`, `adminCategoriesApi.service.ts`, `adminCurrenciesApi.service.ts`, `adminRatesApi.service.ts`.
+- **Router**: Admin routes under `<AdminRoute>` at `/admin`, `/admin/users`, `/admin/categories`, `/admin/currencies`, `/admin/rates`, `/admin/rate-conflicts`.
+- **NavBar**: "Admin" link shown only when `isAdmin === true`.
+- **Auth types**: `User` type extended with `isAdmin?: boolean`; `AuthContext` propagates `isAdmin` from session response.
+- **i18n**: `"admin"` key added to all 4 locale files (en/fr/es/de) covering nav, users, categories, currencies, rates, and rateConflicts sub-keys.
+
+#### Tests
+- **Expenses service** (+63 backend tests, 659 total): `AdminCategoryServiceTests`, `AdminCurrencyServiceTests`, `AdminCategoryControllerTests`, `AdminCurrencyControllerTests`, `AdminRateControllerTests`, `AppAdminAttributeTests`, `JwtCookieReaderIsAdminTests`; removed `CurrencyRateControllerTests`.
+- **Users service** (+23 backend tests, 345 total): `AdminUserServiceTests`, `AdminUserControllerTests`; extended `JwtTokenServiceTests` (isAdmin claim) and `AuthenticationControllerTests` (session includes isAdmin).
+- **Frontend** (+6 test files, 798 total): `AdminRoute.test.tsx`, `AdminUsersPage.test.tsx`, `AdminCategoriesPage.test.tsx`, `AdminCurrenciesPage.test.tsx`, `AdminRatesPage.test.tsx`, `AdminRateConflictsPage.test.tsx`.
+
 ## [0.107.4] - 2026-05-27
 ### Tests
 - **Frontend — `categoryColors.ts`**: 11 unit tests covering `CHART_COLORS` (length, hex format, uniqueness) and `getCategoryColor` (undefined fallback, determinism, modulo wrap, shape, text-in-palette, large IDs). 100% statement/branch/function/line coverage.

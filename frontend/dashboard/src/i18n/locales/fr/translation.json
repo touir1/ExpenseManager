@@ -17,7 +17,8 @@
     "help": "Aide",
     "notifications": "Notifications",
     "expenses": "Dépenses",
-    "addExpense": "Ajouter une dépense"
+    "addExpense": "Ajouter une dépense",
+    "admin": "Admin"
   },
   "auth": {
     "login": {
@@ -389,5 +390,74 @@
     "fr": "Français",
     "es": "Español",
     "de": "Deutsch"
+  },
+  "admin": {
+    "nav": {
+      "users": "Utilisateurs",
+      "categories": "Catégories",
+      "currencies": "Devises",
+      "rates": "Taux",
+      "rateConflicts": "Conflits de taux"
+    },
+    "users": {
+      "pageTitle": "Admin — Utilisateurs",
+      "search": "Rechercher des utilisateurs…",
+      "disable": "Désactiver",
+      "enable": "Activer",
+      "manageRoles": "Gérer les rôles",
+      "active": "Actif",
+      "disabled": "Désactivé",
+      "roles": "Rôles",
+      "noUsers": "Aucun utilisateur trouvé.",
+      "saveRoles": "Enregistrer les rôles",
+      "saving": "Enregistrement…"
+    },
+    "categories": {
+      "pageTitle": "Admin — Catégories",
+      "add": "Ajouter une catégorie",
+      "addSub": "Ajouter une sous-catégorie",
+      "edit": "Modifier",
+      "archive": "Archiver",
+      "unarchive": "Désarchiver",
+      "showArchived": "Afficher les archivés",
+      "nameLabel": "Nom",
+      "descriptionLabel": "Description",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "cancel": "Annuler"
+    },
+    "currencies": {
+      "pageTitle": "Admin — Devises",
+      "add": "Ajouter une devise",
+      "setDefaultRate": "Définir le taux par défaut",
+      "codeLabel": "Code (ex. EUR)",
+      "nameLabel": "Nom",
+      "symbolLabel": "Symbole",
+      "destinationLabel": "Devise destination",
+      "rateLabel": "Taux",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "cancel": "Annuler"
+    },
+    "rates": {
+      "pageTitle": "Admin — Taux",
+      "addManual": "Ajouter un taux manuel",
+      "backfill": "Remplissage",
+      "source": "Source",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "cancel": "Annuler"
+    },
+    "rateConflicts": {
+      "pageTitle": "Admin — Conflits de taux",
+      "autoRate": "Taux automatique",
+      "manualRate": "Taux manuel",
+      "resolve": "Résoudre",
+      "acceptAuto": "Accepter auto",
+      "keepManual": "Garder manuel",
+      "custom": "Personnalisé",
+      "resolveAll": "Tout résoudre en auto",
+      "noConflicts": "Aucun conflit en attente."
+    }
   }
 }

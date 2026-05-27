@@ -17,7 +17,8 @@
     "help": "Ayuda",
     "notifications": "Notificaciones",
     "expenses": "Gastos",
-    "addExpense": "Añadir gasto"
+    "addExpense": "Añadir gasto",
+    "admin": "Admin"
   },
   "auth": {
     "login": {
@@ -389,5 +390,74 @@
     "fr": "Français",
     "es": "Español",
     "de": "Deutsch"
+  },
+  "admin": {
+    "nav": {
+      "users": "Usuarios",
+      "categories": "Categorías",
+      "currencies": "Divisas",
+      "rates": "Tipos",
+      "rateConflicts": "Conflictos de tipos"
+    },
+    "users": {
+      "pageTitle": "Admin — Usuarios",
+      "search": "Buscar usuarios…",
+      "disable": "Desactivar",
+      "enable": "Activar",
+      "manageRoles": "Gestionar roles",
+      "active": "Activo",
+      "disabled": "Desactivado",
+      "roles": "Roles",
+      "noUsers": "No se encontraron usuarios.",
+      "saveRoles": "Guardar roles",
+      "saving": "Guardando…"
+    },
+    "categories": {
+      "pageTitle": "Admin — Categorías",
+      "add": "Añadir categoría",
+      "addSub": "Añadir subcategoría",
+      "edit": "Editar",
+      "archive": "Archivar",
+      "unarchive": "Desarchivar",
+      "showArchived": "Mostrar archivados",
+      "nameLabel": "Nombre",
+      "descriptionLabel": "Descripción",
+      "save": "Guardar",
+      "saving": "Guardando…",
+      "cancel": "Cancelar"
+    },
+    "currencies": {
+      "pageTitle": "Admin — Divisas",
+      "add": "Añadir divisa",
+      "setDefaultRate": "Establecer tipo por defecto",
+      "codeLabel": "Código (ej. EUR)",
+      "nameLabel": "Nombre",
+      "symbolLabel": "Símbolo",
+      "destinationLabel": "Divisa destino",
+      "rateLabel": "Tipo",
+      "save": "Guardar",
+      "saving": "Guardando…",
+      "cancel": "Cancelar"
+    },
+    "rates": {
+      "pageTitle": "Admin — Tipos",
+      "addManual": "Añadir tipo manual",
+      "backfill": "Rellenar",
+      "source": "Fuente",
+      "save": "Guardar",
+      "saving": "Guardando…",
+      "cancel": "Cancelar"
+    },
+    "rateConflicts": {
+      "pageTitle": "Admin — Conflictos de tipos",
+      "autoRate": "Tipo automático",
+      "manualRate": "Tipo manual",
+      "resolve": "Resolver",
+      "acceptAuto": "Aceptar auto",
+      "keepManual": "Mantener manual",
+      "custom": "Personalizado",
+      "resolveAll": "Resolver todo como auto",
+      "noConflicts": "No hay conflictos pendientes."
+    }
   }
 }

@@ -92,7 +92,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync(user);
             var mockJwtService = new Mock<IJwtTokenService>();
-            mockJwtService.Setup(s => s.GenerateJwtToken(user.Id!.Value, user.Email, user.FirstName, user.LastName)).Returns("access_token");
+            mockJwtService.Setup(s => s.GenerateJwtToken(user.Id!.Value, user.Email, user.FirstName, user.LastName, It.IsAny<bool>())).Returns("access_token");
             var mockRoleService = new Mock<IRoleService>();
             mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id!.Value))
                 .ReturnsAsync(new List<RoleDto> { new RoleDto { Code = "ADMIN", Name = "Admin" } });
@@ -124,7 +124,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync(user);
             var mockJwtService = new Mock<IJwtTokenService>();
-            mockJwtService.Setup(s => s.GenerateJwtToken(user.Id!.Value, user.Email, user.FirstName, user.LastName)).Returns("access_token");
+            mockJwtService.Setup(s => s.GenerateJwtToken(user.Id!.Value, user.Email, user.FirstName, user.LastName, It.IsAny<bool>())).Returns("access_token");
             var mockRoleService = new Mock<IRoleService>();
             mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id!.Value))
                 .ReturnsAsync(new List<RoleDto> { new RoleDto { Code = "ADMIN", Name = "Admin" } });
@@ -156,7 +156,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync(user);
             var mockJwtService = new Mock<IJwtTokenService>();
-            mockJwtService.Setup(s => s.GenerateJwtToken(user.Id!.Value, user.Email, user.FirstName, user.LastName)).Returns("access_token");
+            mockJwtService.Setup(s => s.GenerateJwtToken(user.Id!.Value, user.Email, user.FirstName, user.LastName, It.IsAny<bool>())).Returns("access_token");
             var mockRoleService = new Mock<IRoleService>();
             mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id!.Value))
                 .ReturnsAsync(new List<RoleDto> { new RoleDto { Code = "ADMIN", Name = "Admin" } });
@@ -185,7 +185,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var mockAuthService = new Mock<IAuthenticationService>();
             mockAuthService.Setup(s => s.AuthenticateAsync("john@doe.com", "password")).ReturnsAsync(user);
             var mockJwtService = new Mock<IJwtTokenService>();
-            mockJwtService.Setup(s => s.GenerateJwtToken(user.Id!.Value, user.Email, user.FirstName, user.LastName)).Returns("access_token");
+            mockJwtService.Setup(s => s.GenerateJwtToken(user.Id!.Value, user.Email, user.FirstName, user.LastName, It.IsAny<bool>())).Returns("access_token");
             var mockRoleService = new Mock<IRoleService>();
             mockRoleService.Setup(s => s.GetUserRolesByApplicationCodeAsync("APP1", user.Id!.Value))
                 .ReturnsAsync(new List<RoleDto> { new RoleDto { Code = "ADMIN", Name = "Admin" } });
@@ -492,7 +492,7 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
             var mockUserRepo = new Mock<IUserRepository>();
             mockUserRepo.Setup(r => r.GetUserByIdAsync(1)).ReturnsAsync(user);
             var mockJwtService = new Mock<IJwtTokenService>();
-            mockJwtService.Setup(s => s.GenerateJwtToken(1, user.Email, user.FirstName, user.LastName)).Returns("new_access_token");
+            mockJwtService.Setup(s => s.GenerateJwtToken(1, user.Email, user.FirstName, user.LastName, It.IsAny<bool>())).Returns("new_access_token");
             var httpContext = new DefaultHttpContext();
             var controller = CreateController(
                 jwtTokenService: mockJwtService.Object,

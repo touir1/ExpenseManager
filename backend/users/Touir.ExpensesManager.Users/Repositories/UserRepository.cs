@@ -89,5 +89,47 @@ namespace Touir.ExpensesManager.Users.Repositories
             user.EmailValidationHashExpiresAt = expiresAt;
             await _context.SaveChangesAsync();
         }
+
+        public async Task<(IEnumerable<User> Users, int Total)> GetPagedAsync(string? search, int page, int pageSize)
+        {
+            var query = _context.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .Where(u => !u.IsDeleted);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var lower = search.ToLowerInvariant();
+                query = query.Where(u =>
+                    u.Email.Contains(lower) ||
+                    u.FirstName.ToLower().Contains(lower) ||
+                    u.LastName.ToLower().Contains(lower));
+            }
+
+            var total = await query.CountAsync();
+            var users = await query
+                .OrderBy(u => u.Email)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (users, total);
+        }
+
+        public async Task<bool> DisableAsync(int userId)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted);
+            if (user == null) return false;
+            user.IsDisabled = true;
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> EnableAsync(int userId)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted);
+            if (user == null) return false;
+            user.IsDisabled = false;
+            return await _context.SaveChangesAsync() > 0;
+        }
     }
 }

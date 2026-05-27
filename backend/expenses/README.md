@@ -44,13 +44,23 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 | `GET` | `/tags` | Tags visible to user → `TagListDto { own, family }` |
 | `POST` | `/tags` | Create/adopt tag by name (idempotent, case-sensitive) → `TagDto` (200) |
 | `DELETE` | `/tags/{id}` | Remove user's adoption of tag → 204 or 404 (tag entity and expense history preserved) |
-| `GET` | `/rates/history` | Rate history for a currency pair → `RateDto[]` (query: `sourceCurrencyId`, `destinationCurrencyId`) |
-| `POST` | `/rates` | Add manual rate → `RateDto` (201); if auto rate exists for that date, creates a conflict instead |
-| `POST` | `/rates/bulk` | Bulk add manual rates → 204 |
-| `PUT` | `/rates/default` | Set/update global fallback rate for a currency pair → 204 |
-| `GET` | `/rates/conflicts` | List pending rate conflicts → `RateConflictDto[]` |
-| `POST` | `/rates/conflicts/{id}/resolve` | Resolve conflict (AcceptAuto / KeepManual / Custom) → 204 or 400/404 |
-| `POST` | `/rates/refresh` | Backfill rates from provider → 204; body: `{ from: "YYYY-MM-DD", sourceCurrencyId?: int, destinationCurrencyId?: int }`; omit filters to refresh all pairs |
+| `GET` | `/admin/rates/history` | **[AppAdmin]** Rate history for a currency pair → `RateDto[]` (query: `sourceCurrencyId`, `destinationCurrencyId`) |
+| `POST` | `/admin/rates` | **[AppAdmin]** Add manual rate → `RateDto` (201); conflict created if auto rate exists for that date |
+| `POST` | `/admin/rates/bulk` | **[AppAdmin]** Bulk add manual rates → 204 |
+| `PUT` | `/admin/rates/default` | **[AppAdmin]** Set/update global fallback rate for a currency pair → 204 |
+| `GET` | `/admin/rates/conflicts` | **[AppAdmin]** List pending rate conflicts → `RateConflictDto[]` |
+| `POST` | `/admin/rates/conflicts/{id}/resolve` | **[AppAdmin]** Resolve conflict (AcceptAuto / KeepManual / Custom) → 204 or 400/404 |
+| `POST` | `/admin/rates/refresh` | **[AppAdmin]** Backfill rates from provider → 204; body: `{ from, sourceCurrencyId?, destinationCurrencyId? }` |
+| `POST` | `/admin/categories` | **[AppAdmin]** Add top-level category → `AdminCategoryDto` (201) |
+| `PUT` | `/admin/categories/{id}` | **[AppAdmin]** Edit category name/description → 200 or 404 |
+| `POST` | `/admin/categories/{id}/archive` | **[AppAdmin]** Archive category → 204 or 400/404 |
+| `POST` | `/admin/categories/{id}/unarchive` | **[AppAdmin]** Unarchive category → 204 or 404 |
+| `POST` | `/admin/categories/{id}/subcategories` | **[AppAdmin]** Add subcategory → `AdminCategoryDto` (201) or 400/404 |
+| `PUT` | `/admin/categories/{id}/subcategories/{subId}` | **[AppAdmin]** Edit subcategory → 200 or 404 |
+| `POST` | `/admin/categories/{id}/subcategories/{subId}/archive` | **[AppAdmin]** Archive subcategory → 204 or 404 |
+| `POST` | `/admin/categories/{id}/subcategories/{subId}/unarchive` | **[AppAdmin]** Unarchive subcategory → 204 or 404 |
+| `POST` | `/admin/currencies` | **[AppAdmin]** Add currency → `CurrencyDto` (201) |
+| `POST` | `/admin/currencies/defaults` | **[AppAdmin]** Set default fallback rate for a pair → 204 |
 | `GET` | `/dashboard/summary` | Total amount + count + previous-period delta (% change) + top category → `DashboardSummaryDto` |
 | `GET` | `/dashboard/monthly` | Per-month totals broken down by category → `MonthlyBreakdownDto[]`; default range = Jan 1 of current year → today |
 | `GET` | `/dashboard/categories` | Category/subcategory breakdown with percentages → `CategoryBreakdownDto[]` |
@@ -59,7 +69,7 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 | `GET` | `/dashboard/recent` | Last 10 expenses → `ExpensePagedResponse` |
 | `GET` | `/health` | Liveness/readiness probe |
 
-All endpoints (except `/health`) require authentication, enforced by nginx's `auth_request` subrequest to the users service before forwarding.
+All endpoints (except `/health`) require authentication, enforced by nginx's `auth_request` subrequest to the users service before forwarding. `/admin/*` endpoints additionally require the `APP_ADMIN` role (`[AppAdmin]` filter checks the `isAdmin` JWT claim; returns 403 if absent or false).
 
 `POST /expenses` and `PUT /expenses/{id}` return `403 Forbidden` if a provided `familyId` does not match a family the user belongs to, or if a `tagId` is not visible to the user (not in own tags or co-member tags).
 
@@ -81,6 +91,7 @@ All endpoints (except `/health`) require authentication, enforced by nginx's `au
 **`ExpensePagedResponse`** — `{ items: ExpenseDto[], totalCount, page, pageSize, totalPages }`  
 **`RateDto`** — `{ sourceCurrencyId, destinationCurrencyId, date, rate, rateSource }`  
 **`RateConflictDto`** — `{ id, sourceCurrencyId, destinationCurrencyId, date, automaticRate, manualRate, status, resolvedAt? }`  
+**`AdminCategoryDto`** — `{ id, name, description?, isArchived, subcategories: AdminCategoryDto[] }`  
 **`DashboardSummaryDto`** — `{ totalAmount, convertedTotal?, displayCurrency?: CurrencyDto, expenseCount, previousPeriodTotal?, changePercent?, topCategory?: SubcategoryDto, topCategoryAmount? }`  
 **`MonthlyBreakdownDto`** — `{ year, month, totalAmount, convertedTotal?, byCategory: CategoryAmountDto[] }`  
 **`CategoryAmountDto`** — `{ category?: SubcategoryDto, amount, convertedAmount? }`  

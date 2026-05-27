@@ -65,7 +65,8 @@ namespace Touir.ExpensesManager.Users.Controllers
                 if (!roles.Any())
                     return Unauthorized(new ErrorResponse { Message = ControllerErrors.NoAssignedRole });
 
-                var accessToken = _jwtTokenService.GenerateJwtToken(user.Id!.Value, user.Email, user.FirstName, user.LastName);
+                var isAdmin = await _roleService.IsAdminAsync(user.Id!.Value);
+                var accessToken = _jwtTokenService.GenerateJwtToken(user.Id!.Value, user.Email, user.FirstName, user.LastName, isAdmin);
                 var rememberMe = request.RememberMe ?? false;
                 var refreshTokenValue = await _refreshTokenService.GenerateAsync(user.Id!.Value, rememberMe);
 
@@ -158,8 +159,9 @@ namespace Touir.ExpensesManager.Users.Controllers
                 var email = jwtToken?.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? string.Empty;
                 var firstName = jwtToken?.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value;
                 var lastName = jwtToken?.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value;
+                var isAdmin = jwtToken?.Claims.FirstOrDefault(c => c.Type == "isAdmin")?.Value == "true";
 
-                return Ok(new SessionResponse { Email = email, FirstName = firstName, LastName = lastName });
+                return Ok(new SessionResponse { Email = email, FirstName = firstName, LastName = lastName, IsAdmin = isAdmin });
             }
             catch (Exception)
             {
@@ -192,10 +194,12 @@ namespace Touir.ExpensesManager.Users.Controllers
                 if (user == null)
                     return Unauthorized(new ErrorResponse { Message = ControllerErrors.UserNotFound });
 
+                var isAdminOnRefresh = await _roleService.IsAdminAsync(userId);
+
                 // Rotate refresh token
                 await _refreshTokenService.RevokeAsync(refreshToken);
                 var newRefreshToken = await _refreshTokenService.GenerateAsync(userId, rememberMe: true);
-                var newAccessToken = _jwtTokenService.GenerateJwtToken(user.Id, user.Email, user.FirstName, user.LastName);
+                var newAccessToken = _jwtTokenService.GenerateJwtToken(user.Id, user.Email, user.FirstName, user.LastName, isAdminOnRefresh);
 
                 var cookieOptions = BuildCookieOptions(rememberMe: true, _jwtAuthOptions.ExpiryInMinutes);
                 var refreshCookieOptions = BuildCookieOptions(rememberMe: true, _jwtAuthOptions.RefreshExpiryInDays * 24 * 60);

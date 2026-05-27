@@ -25,7 +25,7 @@ Service runs on port **9100** by default. Configuration via `appsettings.json` a
 Public (no auth required, accessible via `/api/users/auth/` through nginx):
 - `POST /auth/login` — Authenticate user; sets `auth_token` + `refresh_token` as `HttpOnly; Secure; SameSite=Strict` cookies; `RememberMe=true` → persistent cookies with `Expires`, `false` → session cookies
 - `POST /auth/logout` — Revoke refresh token and delete both `auth_token` + `refresh_token` cookies
-- `GET  /auth/session` — Validate `auth_token` cookie; returns `{ email, firstName, lastName }` from JWT claims if valid, 401 otherwise (used for session restore on page load)
+- `GET  /auth/session` — Validate `auth_token` cookie; returns `{ email, firstName, lastName, isAdmin }` from JWT claims if valid, 401 otherwise (used for session restore on page load)
 - `POST /auth/refresh` — Validate `refresh_token` cookie, issue new `auth_token`, rotate `refresh_token` (used transparently by the frontend on 401)
 - `POST /auth/register` — User registration; if email exists but is unverified, silently resends a new verification link (old link invalidated) and returns success
 - `GET  /auth/validate-email` — Verify email from link; link expires after 24 h; on success redirects to `{app.ResetPasswordUrlPath}?email=…&h=…&mode=create`; on failure redirects to `{app.UrlPath}{app.VerifyEmailErrorUrlPath}?email=…&app_code=…` if configured, otherwise returns `{"message":"EMAIL_VERIFICATION_FAILED"}`
@@ -39,6 +39,12 @@ Protected:
 - `POST /auth/change-password` — Change password (requires email + old password)
 - `GET/POST/PUT/DELETE /users` — User CRUD
 - `GET /health` — Liveness/readiness probe
+
+Admin (require `APP_ADMIN` role; `[AdminAuthorize]` filter checks `isAdmin` JWT claim → 403 if absent/false):
+- `GET  /admin/users` — Paged user list; query params: `search`, `page`, `pageSize`; returns `{ users: AdminUserDto[], total, page, pageSize }`
+- `PATCH /admin/users/{id}/disable` — Disable user account → 204 or 404
+- `PATCH /admin/users/{id}/enable` — Enable user account → 204 or 404
+- `PUT  /admin/users/{id}/roles` — Replace user role list; body: `{ roles: string[] }` → 204 or 404
 
 ## API Documentation
 

@@ -17,7 +17,8 @@
     "help": "Hilfe",
     "notifications": "Benachrichtigungen",
     "expenses": "Ausgaben",
-    "addExpense": "Ausgabe hinzufügen"
+    "addExpense": "Ausgabe hinzufügen",
+    "admin": "Admin"
   },
   "auth": {
     "login": {
@@ -389,5 +390,74 @@
     "fr": "Français",
     "es": "Español",
     "de": "Deutsch"
+  },
+  "admin": {
+    "nav": {
+      "users": "Benutzer",
+      "categories": "Kategorien",
+      "currencies": "Währungen",
+      "rates": "Kurse",
+      "rateConflicts": "Kurskonflikte"
+    },
+    "users": {
+      "pageTitle": "Admin — Benutzer",
+      "search": "Benutzer suchen…",
+      "disable": "Deaktivieren",
+      "enable": "Aktivieren",
+      "manageRoles": "Rollen verwalten",
+      "active": "Aktiv",
+      "disabled": "Deaktiviert",
+      "roles": "Rollen",
+      "noUsers": "Keine Benutzer gefunden.",
+      "saveRoles": "Rollen speichern",
+      "saving": "Speichern…"
+    },
+    "categories": {
+      "pageTitle": "Admin — Kategorien",
+      "add": "Kategorie hinzufügen",
+      "addSub": "Unterkategorie hinzufügen",
+      "edit": "Bearbeiten",
+      "archive": "Archivieren",
+      "unarchive": "Dearchivieren",
+      "showArchived": "Archivierte anzeigen",
+      "nameLabel": "Name",
+      "descriptionLabel": "Beschreibung",
+      "save": "Speichern",
+      "saving": "Speichern…",
+      "cancel": "Abbrechen"
+    },
+    "currencies": {
+      "pageTitle": "Admin — Währungen",
+      "add": "Währung hinzufügen",
+      "setDefaultRate": "Standardkurs festlegen",
+      "codeLabel": "Code (z.B. EUR)",
+      "nameLabel": "Name",
+      "symbolLabel": "Symbol",
+      "destinationLabel": "Zielwährung",
+      "rateLabel": "Kurs",
+      "save": "Speichern",
+      "saving": "Speichern…",
+      "cancel": "Abbrechen"
+    },
+    "rates": {
+      "pageTitle": "Admin — Kurse",
+      "addManual": "Manuellen Kurs hinzufügen",
+      "backfill": "Auffüllen",
+      "source": "Quelle",
+      "save": "Speichern",
+      "saving": "Speichern…",
+      "cancel": "Abbrechen"
+    },
+    "rateConflicts": {
+      "pageTitle": "Admin — Kurskonflikte",
+      "autoRate": "Automatischer Kurs",
+      "manualRate": "Manueller Kurs",
+      "resolve": "Auflösen",
+      "acceptAuto": "Auto akzeptieren",
+      "keepManual": "Manuell beibehalten",
+      "custom": "Benutzerdefiniert",
+      "resolveAll": "Alle als Auto auflösen",
+      "noConflicts": "Keine ausstehenden Konflikte."
+    }
   }
 }

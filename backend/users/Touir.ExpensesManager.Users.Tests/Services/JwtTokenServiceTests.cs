@@ -1,6 +1,7 @@
 using Touir.ExpensesManager.Users.Infrastructure.Options;
 using Touir.ExpensesManager.Users.Services;
 using Microsoft.Extensions.Options;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Touir.ExpensesManager.Users.Tests.Services
 {
@@ -78,6 +79,46 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             Assert.False(string.IsNullOrWhiteSpace(token));
             var result = service.ValidateToken(token);
             Assert.True(result.IsValid);
+        }
+
+        [Fact]
+        public void GenerateJwtToken_ContainsIsAdminTrue_WhenAdminUser()
+        {
+            var service = CreateService();
+            var token = service.GenerateJwtToken(1, "admin@test.com", "Admin", "User", isAdmin: true);
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(token);
+            var claim = jwt.Claims.FirstOrDefault(c => c.Type == "isAdmin");
+            Assert.NotNull(claim);
+            Assert.Equal("true", claim.Value);
+        }
+
+        [Fact]
+        public void GenerateJwtToken_ContainsIsAdminFalse_WhenNonAdminUser()
+        {
+            var service = CreateService();
+            var token = service.GenerateJwtToken(2, "user@test.com", "User", "One", isAdmin: false);
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(token);
+            var claim = jwt.Claims.FirstOrDefault(c => c.Type == "isAdmin");
+            Assert.NotNull(claim);
+            Assert.Equal("false", claim.Value);
+        }
+
+        [Fact]
+        public void GenerateJwtToken_DefaultsIsAdminToFalse()
+        {
+            var service = CreateService();
+            // call without isAdmin param — default should be false
+            var token = service.GenerateJwtToken(3, "regular@test.com", "R", "U");
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(token);
+            var claim = jwt.Claims.FirstOrDefault(c => c.Type == "isAdmin");
+            Assert.NotNull(claim);
+            Assert.Equal("false", claim.Value);
         }
     }
 }

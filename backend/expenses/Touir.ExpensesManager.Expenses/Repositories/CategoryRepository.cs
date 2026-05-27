@@ -22,5 +22,52 @@ namespace Touir.ExpensesManager.Expenses.Repositories
                 .AsNoTracking()
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Category>> GetAllWithArchivedAsync()
+        {
+            return await _dbContext.Categories
+                .Include(c => c.Children)
+                .Where(c => c.ParentCategoryId == null)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<Category?> GetByIdAsync(int id)
+        {
+            return await _dbContext.Categories
+                .Include(c => c.Children)
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
+
+        public async Task<Category> AddAsync(Category category)
+        {
+            _dbContext.Categories.Add(category);
+            await _dbContext.SaveChangesAsync();
+            return category;
+        }
+
+        public async Task UpdateAsync(Category category)
+        {
+            _dbContext.Categories.Update(category);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task ArchiveAsync(int id)
+        {
+            var category = await _dbContext.Categories.FindAsync(id);
+            if (category is null) return;
+            category.IsDeleted = true;
+            category.DeletedAt = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task UnarchiveAsync(int id)
+        {
+            var category = await _dbContext.Categories.FindAsync(id);
+            if (category is null) return;
+            category.IsDeleted = false;
+            category.DeletedAt = null;
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

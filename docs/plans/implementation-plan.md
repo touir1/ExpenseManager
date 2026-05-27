@@ -6,9 +6,9 @@ Reference: [application-description.md](application-description.md)
 
 | Area | Status |
 |------|--------|
-| Users service | ✅ Complete — auth, registration, JWT, refresh tokens, password management, FluentValidation |
-| Expenses service | ✅ Phase 1–7 complete — schema, categories/currencies, expense CRUD, family system, tags, currency rates (daily storage, resolution, auto-update via Quartz, backfill, conflict management, display currency conversion), dashboard API; Phase 8+ pending |
-| Frontend | ⚠️ Auth + family management (incl. accept invite, leave) + tag input + display currency selector + expense list/form (Phase 8) + dashboard (Phase 9 — Hearth design) complete; bulk ops, live currency preview, admin screens pending (Phase 10+) |
+| Users service | ✅ Complete — auth, registration, JWT (incl. `isAdmin` claim), refresh tokens, password management, FluentValidation, admin user management (`AdminUserController`) |
+| Expenses service | ✅ Phase 1–11 complete — schema, categories/currencies, expense CRUD, family system, tags, currency rates (daily storage, resolution, auto-update via Quartz, backfill, conflict management, display currency conversion), dashboard API, admin controllers (categories, currencies, rates) |
+| Frontend | ✅ Auth + family management + tag input + display currency selector + expense list/form (Phase 8) + dashboard (Phase 9 — Hearth design) + admin screens (Phase 11: users, categories, currencies, rates, rate conflicts, AdminRoute guard, AdminLayout, i18n) complete; bulk ops, live currency preview pending (Phase 12+) |
 | Infrastructure | ✅ Docker Compose, nginx, PostgreSQL, RabbitMQ, Grafana, Prometheus |
 
 ---
@@ -27,7 +27,7 @@ Reference: [application-description.md](application-description.md)
 | 8 | Frontend — Expense List & Form | Web UI for expenses |
 | 9 | Frontend — Dashboard ✅ | Charts and summary (Hearth design, v0.106.0) |
 | 10 | Frontend — Family Management | Web UI for families |
-| 11 | Admin Screens | Categories, currencies, rates, rate validation, users |
+| 11 | Admin Screens ✅ | Categories, currencies, rates, rate validation, users (v0.108.0) |
 | 12 | CSV Import | Bulk expense upload |
 | 13 | Notifications | In-app + email on attribution removal |
 | 14 | PWA / Mobile | Progressive web app, offline, quick-add |
@@ -353,7 +353,7 @@ Replace current model with:
   - `RefreshRatesFromAsync(from, sourceCurrencyId?, destinationCurrencyId?, ct)` — date-range backfill
 - [x] Auto-update background service — `RateAutoUpdateJob` (`IJob` with `[DisallowConcurrentExecution]`, Quartz cron `0 {m} {h} * * ?` from `CurrencyRateOptions.UpdateTime`)
 - [x] Update `ExpenseService.GetPagedAsync` and `GetByIdAsync` to accept `displayCurrencyId` parameter; compute `ConvertedAmount` + `DisplayCurrency` via `ResolveRateAsync` per expense date
-- [x] `CurrencyRateController` (`/rates`) — `GET /rates/history`, `POST /rates`, `POST /rates/bulk`, `DELETE /rates/{id}`, `GET /rates/conflicts/pending`, `PUT /rates/conflicts/{id}/resolve`, `POST /rates/refresh`; no separate admin role — all authenticated users can access
+- [x] `CurrencyRateController` (`/rates`) — initial implementation; **moved to `AdminRateController` (`/admin/rates`) in Phase 11** with `[AppAdmin]` guard; `CurrencyRateController` removed
 - [x] Unit tests — `CurrencyRateServiceTests` (27 cases), `RateAutoUpdateJobTests`
 
 ### Frontend
@@ -464,28 +464,60 @@ Replace current model with:
 
 ---
 
-## Phase 11 — Admin Screens
+## Phase 11 — Admin Screens ✅ Complete (v0.108.0)
 
 **Goal:** App admin can manage categories, currencies, rates, and users.
 
-### Backend
+### Backend — Admin Role System
 
-- [ ] Role guard middleware — `[AppAdmin]` attribute; returns 403 for non-admins
-- [ ] `AdminCategoryService` — add/edit/archive category, add/edit/archive subcategory
-- [ ] `AdminCurrencyService` — add currency, set default fallback rate
-- [ ] Rate endpoints already in Phase 6; wire admin auth guard
+- [x] `isAdmin` JWT claim in `JwtTokenService` — true when user has `APP_ADMIN` role (`Code == "APP_ADMIN"`)
+- [x] `GET /auth/session` response extended with `IsAdmin: bool`
+- [x] `AdminAuthorizeAttribute` (users service) — reads `isAdmin` claim from cookie; 403 if absent/false
+- [x] `AppAdminAttribute` (expenses service) — reads `isAdmin` via `JwtCookieReader.GetIsAdmin`; 403 if false
+- [x] `JwtCookieReader` extended with `GetIsAdmin()` + `Authorization: Bearer` header fallback for Swagger
+- [x] Swagger Bearer auth in both `Program.cs` files
+
+### Backend — Admin Category Management (Expenses)
+
+- [x] `IAdminCategoryService` / `AdminCategoryService` — add/update/archive/unarchive categories and subcategories; validates parent not archived before adding sub; blocks archiving category with active children
+- [x] `AdminCategoryController` at `[Route("admin/categories")]`; all actions `[AppAdmin]`; 8 endpoints
+- [x] `AdminCategoryRequestValidator` — name required + max 100 chars
+
+### Backend — Admin Currency Management (Expenses)
+
+- [x] `IAdminCurrencyService` / `AdminCurrencyService` — `AddCurrencyAsync`; set default delegates to `CurrencyRateService`
+- [x] `AdminCurrencyController` at `[Route("admin/currencies")]`; 2 endpoints
+- [x] `AdminAddCurrencyRequestValidator`
+
+### Backend — Admin Rate Management (Expenses)
+
+- [x] `AdminRateController` at `[Route("admin/rates")]`; replaces `CurrencyRateController`; all 7 endpoints; all `[AppAdmin]`
+- [x] `CurrencyRateController` removed
+
+### Backend — Admin User Management (Users)
+
+- [x] `IAdminUserService` / `AdminUserService` — paged list with search, disable/enable, set roles
+- [x] `AdminUserController` at `[Route("admin/users")]`; 4 endpoints; all `[AdminAuthorize]`
 
 ### Frontend
 
-- [ ] Admin layout / navigation (separate from user app)
-- [ ] **Users screen** — list, disable/enable, assign app role
-- [ ] **Categories screen** — tree view, add/edit/archive category + subcategory
-- [ ] **Currencies screen** — list, add currency, set fallback rate per pair
-- [ ] **Conversion rates screen** — select pair, view history by date, add/edit rate, CSV upload
-- [ ] **Rate validation screen** — list pending conflicts (date, pair, auto vs. manual, delta); resolve each (accept auto / keep manual / set custom); bulk resolve
-- [ ] **Platform audit log** — rate changes, user management events (not expense data)
-- [ ] i18n coverage for admin strings
-- [ ] Tests
+- [x] `AdminRoute.tsx` — guard component; redirects to `/dashboard` when `isAdmin=false`
+- [x] `AdminLayout.tsx` — sidebar nav (Users/Categories/Currencies/Rates/Rate Conflicts) + breadcrumb
+- [x] `AdminUsersPage.tsx` — searchable paginated table; Disable/Enable; Manage Roles modal
+- [x] `AdminCategoriesPage.tsx` — tree view; Add/Edit/Archive modals; subcategory management; "Show archived" toggle
+- [x] `AdminCurrenciesPage.tsx` — currency list; Add Currency modal; Set Default Rate modal
+- [x] `AdminRatesPage.tsx` — pair selector; rate history table; Add Manual Rate + Backfill modals
+- [x] `AdminRateConflictsPage.tsx` — pending conflicts; per-row resolve (Accept Auto / Keep Manual / Custom); bulk resolve
+- [x] Admin service layer — `adminUsersApi.service.ts`, `adminCategoriesApi.service.ts`, `adminCurrenciesApi.service.ts`, `adminRatesApi.service.ts`
+- [x] Router — admin routes under `<AdminRoute>` at `/admin/*`
+- [x] NavBar — "Admin" link visible only when `isAdmin === true`
+- [x] `User` type extended with `isAdmin?: boolean`; `AuthContext` propagates from session response
+- [x] i18n — `"admin"` key in all 4 locale files (en/fr/es/de)
+- [x] Tests — 6 test files: `AdminRoute`, `AdminUsersPage`, `AdminCategoriesPage`, `AdminCurrenciesPage`, `AdminRatesPage`, `AdminRateConflictsPage`; 798 frontend tests total
+
+### Deferred
+
+- [ ] **Platform audit log** — rate changes and user management events; deferred to Phase 15
 
 **Depends on:** Phase 6
 

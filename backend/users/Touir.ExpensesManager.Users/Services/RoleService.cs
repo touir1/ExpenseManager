@@ -11,6 +11,11 @@ namespace Touir.ExpensesManager.Users.Services
         {
             _roleRepository = roleRepository;
         }
+        public async Task<bool> IsAdminAsync(int userId)
+        {
+            return await _roleRepository.IsAdminAsync(userId);
+        }
+
         public async Task<IEnumerable<RoleDto>> GetUserRolesByApplicationCodeAsync(string applicationCode, int userId)
         {
             if (applicationCode == null)

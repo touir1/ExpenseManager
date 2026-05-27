@@ -1,6 +1,13 @@
-import { Routes, Route } from 'react-router-dom'
+import { Navigate, Routes, Route } from 'react-router-dom'
 import ProtectedRoute from '@/features/auth/components/ProtectedRoute'
 import PublicOnlyRoute from '@/features/auth/components/PublicOnlyRoute'
+import AdminRoute from '@/features/admin/components/AdminRoute'
+import AdminLayout from '@/features/admin/components/AdminLayout'
+import AdminUsersPage from '@/features/admin/pages/AdminUsersPage'
+import AdminCategoriesPage from '@/features/admin/pages/AdminCategoriesPage'
+import AdminCurrenciesPage from '@/features/admin/pages/AdminCurrenciesPage'
+import AdminRatesPage from '@/features/admin/pages/AdminRatesPage'
+import AdminRateConflictsPage from '@/features/admin/pages/AdminRateConflictsPage'
 import HomePublic from '@/features/public/pages/HomePublicPage'
 import HomeDashboardPage from '@/features/dashboard/pages/HomeDashboardPage'
 import Login from '@/features/auth/pages/LoginPage'
@@ -34,6 +41,16 @@ export default function AppRoutes() {
       <Route path="/expenses" element={<ProtectedRoute><ExpensesPage /></ProtectedRoute>} />
       <Route path="/expenses/add" element={<ProtectedRoute><ExpensesPage /></ProtectedRoute>} />
       <Route path="/expenses/:id/edit" element={<ProtectedRoute><ExpensesPage /></ProtectedRoute>} />
+
+      {/* Admin */}
+      <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+        <Route index element={<Navigate to="/admin/users" replace />} />
+        <Route path="users" element={<AdminUsersPage />} />
+        <Route path="categories" element={<AdminCategoriesPage />} />
+        <Route path="currencies" element={<AdminCurrenciesPage />} />
+        <Route path="rates" element={<AdminRatesPage />} />
+        <Route path="rate-conflicts" element={<AdminRateConflictsPage />} />
+      </Route>
 
       {/* Standalone public pages */}
       <Route path="/verify-error" element={<VerifyError />} />

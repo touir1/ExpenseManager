@@ -17,7 +17,8 @@
     "help": "Help",
     "notifications": "Notifications",
     "expenses": "Expenses",
-    "addExpense": "Add expense"
+    "addExpense": "Add expense",
+    "admin": "Admin"
   },
   "auth": {
     "login": {
@@ -389,5 +390,74 @@
     "fr": "Français",
     "es": "Español",
     "de": "Deutsch"
+  },
+  "admin": {
+    "nav": {
+      "users": "Users",
+      "categories": "Categories",
+      "currencies": "Currencies",
+      "rates": "Rates",
+      "rateConflicts": "Rate Conflicts"
+    },
+    "users": {
+      "pageTitle": "Admin — Users",
+      "search": "Search users…",
+      "disable": "Disable",
+      "enable": "Enable",
+      "manageRoles": "Manage roles",
+      "active": "Active",
+      "disabled": "Disabled",
+      "roles": "Roles",
+      "noUsers": "No users found.",
+      "saveRoles": "Save roles",
+      "saving": "Saving…"
+    },
+    "categories": {
+      "pageTitle": "Admin — Categories",
+      "add": "Add category",
+      "addSub": "Add subcategory",
+      "edit": "Edit",
+      "archive": "Archive",
+      "unarchive": "Unarchive",
+      "showArchived": "Show archived",
+      "nameLabel": "Name",
+      "descriptionLabel": "Description",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel"
+    },
+    "currencies": {
+      "pageTitle": "Admin — Currencies",
+      "add": "Add currency",
+      "setDefaultRate": "Set default rate",
+      "codeLabel": "Code (e.g. USD)",
+      "nameLabel": "Name",
+      "symbolLabel": "Symbol",
+      "destinationLabel": "Destination currency",
+      "rateLabel": "Rate",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel"
+    },
+    "rates": {
+      "pageTitle": "Admin — Rates",
+      "addManual": "Add manual rate",
+      "backfill": "Backfill",
+      "source": "Source",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel"
+    },
+    "rateConflicts": {
+      "pageTitle": "Admin — Rate Conflicts",
+      "autoRate": "Auto rate",
+      "manualRate": "Manual rate",
+      "resolve": "Resolve",
+      "acceptAuto": "Accept auto",
+      "keepManual": "Keep manual",
+      "custom": "Custom",
+      "resolveAll": "Resolve all as auto",
+      "noConflicts": "No pending conflicts."
+    }
   }
 }

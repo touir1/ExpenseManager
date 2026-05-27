@@ -23,7 +23,7 @@ namespace Touir.ExpensesManager.Users.Services
             _expiryInMinutes = jwtAuthOptions.Value.ExpiryInMinutes;
         }
 
-        public string GenerateJwtToken(int userId, string userEmail, string? userFirstName, string? userLastName)
+        public string GenerateJwtToken(int userId, string userEmail, string? userFirstName, string? userLastName, bool isAdmin = false)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -34,7 +34,8 @@ namespace Touir.ExpensesManager.Users.Services
                 new Claim(ClaimTypes.Email, userEmail),
                 new Claim(ClaimTypes.GivenName, userFirstName ?? string.Empty),
                 new Claim(ClaimTypes.Surname, userLastName ?? string.Empty),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim("isAdmin", isAdmin ? "true" : "false")
             };
 
             var token = new JwtSecurityToken(

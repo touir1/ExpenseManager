@@ -18,6 +18,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 export default function NavBar() {
   const { t } = useTranslation()
   const { isAuthenticated, logout, user } = useAuth()
+  const isAdmin = user?.isAdmin === true
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const queryClient = useQueryClient()
@@ -140,6 +141,11 @@ export default function NavBar() {
               <NavLink to="/families" className={() => familiesClass}>
                 {t('nav.families')}
               </NavLink>
+              {isAdmin && (
+                <NavLink to="/admin" className={navLinkClass}>
+                  {t('nav.admin')}
+                </NavLink>
+              )}
 
               {/* Right-side controls */}
               <div className="ml-auto flex items-center gap-2">
@@ -312,6 +318,15 @@ export default function NavBar() {
               >
                 {t('nav.settings')}
               </NavLink>
+              {isAdmin && (
+                <NavLink
+                  to="/admin"
+                  className={navLinkClass}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {t('nav.admin')}
+                </NavLink>
+              )}
               <button
                 onClick={handleLogout}
                 className="text-left text-sm font-semibold px-3 py-1.5 rounded-lg text-ink-body hover:text-ink hover:bg-surface-subtle transition-colors duration-150 cursor-pointer"

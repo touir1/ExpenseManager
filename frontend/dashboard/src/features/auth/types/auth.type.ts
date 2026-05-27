@@ -1,4 +1,4 @@
-export type User = { email: string; firstName?: string; lastName?: string }
+export type User = { email: string; firstName?: string; lastName?: string; isAdmin?: boolean }
 
 export type AuthResult = { ok: boolean; error?: string }
 

@@ -6,5 +6,7 @@ namespace Touir.ExpensesManager.Expenses.Repositories.Contracts
     {
         Task<IEnumerable<Currency>> GetAllAsync();
         Task<Currency?> GetByIdAsync(int id);
+        Task<bool> ExistsByCodeAsync(string code);
+        Task<Currency> AddAsync(Currency currency);
     }
 }

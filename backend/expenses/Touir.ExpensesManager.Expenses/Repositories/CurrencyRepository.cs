@@ -25,5 +25,15 @@ namespace Touir.ExpensesManager.Expenses.Repositories
             => await _dbContext.Currencies
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == id);
+
+        public async Task<bool> ExistsByCodeAsync(string code)
+            => await _dbContext.Currencies.AnyAsync(c => c.Code == code);
+
+        public async Task<Currency> AddAsync(Currency currency)
+        {
+            _dbContext.Currencies.Add(currency);
+            await _dbContext.SaveChangesAsync();
+            return currency;
+        }
     }
 }

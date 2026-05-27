@@ -103,6 +103,10 @@ export async function put<T>(path: string, body: unknown): Promise<ApiResponse<T
   return request<T>(path, { method: 'PUT', body: JSON.stringify(body) })
 }
 
+export async function patch<T>(path: string, body: unknown): Promise<ApiResponse<T>> {
+  return request<T>(path, { method: 'PATCH', body: JSON.stringify(body) })
+}
+
 export async function del<T>(path: string): Promise<ApiResponse<T>> {
   return request<T>(path, { method: 'DELETE' })
 }

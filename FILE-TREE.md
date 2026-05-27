@@ -118,11 +118,13 @@ ExpenseManager/
 │   │   │   ├── Assets/
 │   │   │   │   └── EmailTemplates/
 │   │   │   │       └── FAMILY_INVITATION_TEMPLATE.html — HTML email template for family invitations; placeholders @@INVITER_NAME@@ @@FAMILY_NAME@@ @@INVITE_LINK@@ @@YEAR@@ (auto)
+│   │   │   ├── Filters/
+│   │   │   │   └── AppAdminAttribute.cs     — Action filter; calls JwtCookieReader.GetIsAdmin; returns 403 when isAdmin=false
 │   │   │   ├── Infrastructure/
 │   │   │   │   ├── EmailHelper.cs           — Template loading + email dispatch; delegates to IEmailService
 │   │   │   │   ├── EmailHtmlTemplate.cs     — Template key+variable constants (FamilyInvitation)
 │   │   │   │   ├── ExpensesDbContext.cs     — EF Core context; all 13 DbSets with full Fluent API config
-│   │   │   │   ├── JwtCookieReader.cs       — Decodes auth_token cookie (base64url payload) to extract sub claim; no signature validation (nginx validates upstream)
+│   │   │   │   ├── JwtCookieReader.cs       — Decodes auth_token cookie (base64url payload) to extract sub/isAdmin claims; falls back to Authorization: Bearer header when cookie absent (Swagger)
 │   │   │   │   ├── SmtpEmailService.cs      — SMTP email sender; configurable host/port/SSL via EmailOptions
 │   │   │   │   ├── FrankfurterRateProvider.cs — [ExcludeFromCodeCoverage] Calls api.frankfurter.app (ECB, no API key); single-date and range endpoints; registered via IHttpClientFactory
 │   │   │   │   ├── Contracts/
@@ -136,16 +138,19 @@ ExpenseManager/
 │   │   │   │       ├── PostgresOptions.cs
 │   │   │   │       └── RabbitMQOptions.cs
 │   │   │   ├── Controllers/
+│   │   │   │   ├── AdminCategoryController.cs — POST/PUT /admin/categories(/{id}), POST /admin/categories/{id}/archive|unarchive|subcategories, PUT/POST /admin/categories/{id}/subcategories/{subId}; all [AppAdmin]
+│   │   │   │   ├── AdminCurrencyController.cs — POST /admin/currencies, POST /admin/currencies/defaults; all [AppAdmin]
+│   │   │   │   ├── AdminRateController.cs   — GET /admin/rates/history, POST /admin/rates (201), POST /admin/rates/bulk (204), PUT /admin/rates/default (204), GET /admin/rates/conflicts, POST /admin/rates/conflicts/{id}/resolve (204), POST /admin/rates/refresh (204); all [AppAdmin]
 │   │   │   │   ├── CategoryController.cs    — GET /categories → IEnumerable<CategoryDto>
 │   │   │   │   ├── ControllerErrors.cs      — Shared internal static class: SERVER_ERROR, UNAUTHORIZED, EXPENSE_NOT_FOUND, MISSING_PARAMETERS, TAG_NOT_FOUND, RATE_NOT_FOUND, CONFLICT_NOT_FOUND, INVALID_MONTH
 │   │   │   │   ├── CurrencyController.cs    — GET /currencies → IEnumerable<CurrencyDto>
-│   │   │   │   ├── CurrencyRateController.cs — GET /rates/history, POST /rates (201), POST /rates/bulk (204), PUT /rates/default (204), GET /rates/conflicts, POST /rates/conflicts/{id}/resolve (204), POST /rates/refresh (204)
 │   │   │   │   ├── DashboardController.cs   — 6 GET /dashboard/* endpoints: summary, monthly, categories, same-month-across-years, by-currency, recent; default date ranges computed in controller; FamilyForbiddenException → 403
 │   │   │   │   ├── ExpenseController.cs     — POST/PUT/DELETE/GET/GET(paged) /expenses; GetByIdAsync accepts ?displayCurrencyId; FamilyForbiddenException → 403 on create/update
 │   │   │   │   ├── FamilyController.cs      — 10 endpoints: list, detail, create, rename, archive, unarchive, invite, accept-invite, remove-member, change-role
 │   │   │   │   ├── TagController.cs         — GET /tags → TagListDto; POST /tags → TagDto (idempotent); DELETE /tags/{id} → 204 or 404
 │   │   │   │   ├── UserConfigController.cs  — GET /config → UserConfigDto (null fields if no row); PUT /config → UserConfigDto (upsert; 400 on invalid currencyId)
 │   │   │   │   ├── DTO/
+│   │   │   │   │   ├── AdminCategoryDto.cs  — Id, Name, Description?, IsArchived, Subcategories: IEnumerable<AdminCategoryDto>
 │   │   │   │   │   ├── CategoryDto.cs       — Id, Name, Description?, Subcategories: IEnumerable<SubcategoryDto>
 │   │   │   │   │   ├── SubcategoryDto.cs    — Id, Name, Description?, Icon? (reused for category + subcategory slots in ExpenseDto)
 │   │   │   │   │   ├── UserConfigDto.cs     — DefaultCurrencyId?, DefaultCurrency?: CurrencyDto
@@ -164,6 +169,8 @@ ExpenseManager/
 │   │   │   │   │   ├── TagListDto.cs        — Own: IEnumerable<TagDto>, Family: IEnumerable<TagDto>
 │   │   │   │   │   └── FamilyDto.cs         — Family response shape: Id, Name, IsDefault, IsDeleted, Members: FamilyMemberDto[]
 │   │   │   │   ├── Requests/
+│   │   │   │   │   ├── AdminAddCurrencyRequest.cs — Code (3 chars), Name (max 50), Symbol (max 10), Decimals; validated by AdminAddCurrencyRequestValidator
+│   │   │   │   │   ├── AdminCategoryRequest.cs — Name (required, max 100), Description?; validated by AdminCategoryRequestValidator
 │   │   │   │   │   ├── IExpenseRequest.cs      — Shared interface (Amount, CurrencyId, Date, CategoryId?, SubcategoryId?, Description?, TagIds?) implemented by Create + Update DTOs
 │   │   │   │   │   ├── CreateExpenseRequest.cs — Amount (required), CurrencyId (required), Date (required), CategoryId?, SubcategoryId?, Description?, TagIds?
 │   │   │   │   │   ├── UpdateExpenseRequest.cs — same fields as Create
@@ -208,6 +215,8 @@ ExpenseManager/
 │   │   │   │   └── External/
 │   │   │   │       └── User.cs              — Read-only mapping of users DB entity
 │   │   │   ├── Validators/
+│   │   │   │   ├── AdminAddCurrencyRequestValidator.cs — Code required+3 chars, Name required+max 50, Symbol required+max 10
+│   │   │   │   ├── AdminCategoryRequestValidator.cs — Name required+max 100
 │   │   │   │   ├── ExpenseRequestValidatorBase.cs   — Abstract base AbstractValidator<T> where T : IExpenseRequest; holds all shared rules (amount, currency, date, description, subcategory-requires-category)
 │   │   │   │   ├── UpdateUserConfigRequestValidator.cs — DefaultCurrencyId optional; if set, must be > 0
 │   │   │   │   ├── CreateExpenseRequestValidator.cs — Inherits ExpenseRequestValidatorBase<CreateExpenseRequest>
@@ -242,6 +251,8 @@ ExpenseManager/
 │   │   │   │       │   └── IUserRepository.cs — GetUserByEmailAsync (invite flow), GetUserByIdAsync (filters !IsDeleted)
 │   │   │   │       └── UserRepository.cs    — Read-only cross-service user access
 │   │   │   ├── Services/
+│   │   │   │   ├── AdminCategoryService.cs  — Implements IAdminCategoryService; add/update/archive/unarchive categories and subcategories; validates parent not archived before adding sub; blocks archiving category with active subcategories
+│   │   │   │   ├── AdminCurrencyService.cs  — Implements IAdminCurrencyService; AddCurrencyAsync; SetDefaultFallback delegates to ICurrencyRateService
 │   │   │   │   ├── FamilyExceptions.cs      — FamilyNotFoundException (→404), FamilyForbiddenException (→403; also used for tag visibility violations), FamilyConflictException (→409), FamilyInvitationException (→400); default ctor args reference ServiceErrors constants
 │   │   │   │   ├── ServiceErrors.cs         — internal static class; 16 domain error-code constants (FAMILY_*, TAG_NOT_VISIBLE, USER_NOT_FOUND, invitation codes) used by service-layer exceptions; mirrors ControllerErrors pattern
 │   │   │   │   ├── DashboardService.cs      — Implements IDashboardService; membership check → currency conversion → DTO assembly; previous-period window same duration ending day before dateFrom
@@ -256,6 +267,8 @@ ExpenseManager/
 │   │   │   │   ├── ExpenseAuditService.cs   — Writes ExpenseAuditLog + ExpenseAuditSnapshot(s): add→1 after, update→before+after, delete→1 before; snapshots store comma-sep tag IDs
 │   │   │   │   ├── CurrencyRateService.cs   — ResolveRateAsync; AddManualRateAsync (conflict if auto exists); RunDailyUpdateAsync; RefreshRatesFromAsync (backfill range); ResolveConflictAsync
 │   │   │   │   └── Contracts/
+│   │   │   │       ├── IAdminCategoryService.cs — AddCategoryAsync, UpdateCategoryAsync, ArchiveCategoryAsync, UnarchiveCategoryAsync, AddSubcategoryAsync, UpdateSubcategoryAsync, ArchiveSubcategoryAsync, UnarchiveSubcategoryAsync
+│   │   │   │       ├── IAdminCurrencyService.cs — AddCurrencyAsync
 │   │   │   │       ├── IRabbitMQService.cs
 │   │   │   │       ├── ILookupCacheService.cs — GetIdAsync<T>(name) / GetNameAsync<T>(id)
 │   │   │   │       ├── ICategoryService.cs  — GetAllAsync() → active category tree
@@ -294,14 +307,18 @@ ExpenseManager/
 │   │       ├── TestHelpers/
 │   │       │   └── TestExpensesDbContext.cs  — In-memory DB wrapper for tests
 │   │       ├── Controllers/
+│   │       │   ├── AdminCategoryControllerTests.cs  — 403 for non-admin; 201/200/404 for all CRUD actions
+│   │       │   ├── AdminCurrencyControllerTests.cs  — 403 for non-admin; 201 add currency; 204 set default
+│   │       │   ├── AdminRateControllerTests.cs      — 403 for non-admin; happy-path for all 7 admin rate endpoints
 │   │       │   ├── CategoryControllerTests.cs
 │   │       │   ├── CurrencyControllerTests.cs
 │   │       │   ├── DashboardControllerTests.cs      — 14 tests: 401 no-cookie, 200 default/explicit date range, 403 FamilyForbidden, 400 generic exception, 400 invalid month (0 and 13), 200 success per endpoint
 │   │       │   ├── UserConfigControllerTests.cs     — 6 tests: GET 200 null/populated, GET 401, PUT 200 valid/null, PUT 400 invalid currency, PUT 401
 │   │       │   ├── ExpenseControllerTests.cs        — 16 tests: 401 no-cookie × 5 endpoints, 201/400/403 create, 404/200/403 update, 404/204 delete, 404/200 getById, 200 getPaged
 │   │       │   ├── FamilyControllerTests.cs         — 34+ tests: 401 no-cookie paths, all 10 family endpoints (200/201/204/403/404/409 per action) incl. LeaveAsync 401/204/403/404
-│   │       │   ├── TagControllerTests.cs            — 13 tests: 401 no-cookie × 3 endpoints, GetTags 200 (list/empty/family), UseTag 200 (new/existing), RemoveTag 204/404
-│   │       │   └── CurrencyRateControllerTests.cs   — 24 tests: GetHistory 200/500, AddRate 201/401/500, BulkAdd 204/401/500, SetDefault 204/401/500, GetConflicts 200/500, ResolveConflict 204/401/400/404, RefreshRates 204/401/500/filter
+│   │       │   └── TagControllerTests.cs            — 13 tests: 401 no-cookie × 3 endpoints, GetTags 200 (list/empty/family), UseTag 200 (new/existing), RemoveTag 204/404
+│   │       ├── Filters/
+│   │       │   └── AppAdminAttributeTests.cs        — 403 when isAdmin=false; passes when isAdmin=true; missing cookie → 403
 │   │       ├── Jobs/
 │   │       │   └── RateAutoUpdateJobTests.cs        — 3 tests: Execute calls RunDailyUpdateAsync, exception does not propagate, exception logs error
 │   │       ├── Messaging/
@@ -321,12 +338,15 @@ ExpenseManager/
 │   │       ├── Infrastructure/
 │   │       │   ├── EmailHelperTests.cs              — 9 tests: template replacement, no/empty params, multi-occurrence, family-invitation placeholders, @@YEAR@@ auto-sub×2, SendEmail delegation×2
 │   │       │   ├── ExpensesDbContextSchemaTests.cs  — 23 tests: all Phase 1 entities, composite PKs, unique constraints, cascades
+│   │       │   ├── JwtCookieReaderIsAdminTests.cs   — GetIsAdmin: true from cookie, false from cookie, missing cookie → false, Bearer header fallback
 │   │       │   └── SmtpEmailServiceTests.cs         — 10 tests: SendEmail SSL on/off, CC, BCC, HTML, null body, minimal, empty/single attachment, all params
 │   │       ├── Validators/
 │   │       │   ├── CreateTagRequestValidatorTests.cs — 4 tests: valid, empty name, name too long (51 chars), exact max length (50 chars)
 │   │       │   ├── ExpenseRequestValidatorTests.cs  — 13 tests: valid pass, amount/currency/date/description/subcategory rules for both Create and Update validators
 │   │       │   └── FamilyValidatorTests.cs          — 15 tests: CreateFamily, RenameFamily, InviteMember (incl. email case + length), ChangeMemberRole
 │   │       └── Services/
+│   │           ├── AdminCategoryServiceTests.cs     — Add/edit/archive category; add/edit/archive subcategory; cannot-archive-with-active-children validation
+│   │           ├── AdminCurrencyServiceTests.cs     — Add currency; duplicate code conflict
 │   │           ├── RabbitMQServiceTests.cs
 │   │           ├── LookupCacheServiceTests.cs       — 7 tests: GetId/Name, KeyNotFoundException, cache hit, all 8 types
 │   │           ├── CategoryServiceTests.cs          — 11 tests: Mock<ICategoryRepository>; top-level, subcategories, archived exclusion, field mapping, call count; icon mapping (category icon, null icon, subcategory icon)
@@ -400,17 +420,22 @@ ExpenseManager/
 │       │   │   ├── RoleRequestAccess.cs
 │       │   │   ├── User.cs                      — IsDeleted + DeletedAt for soft-delete; IsDisabled for suspension; EmailValidationHashExpiresAt? for link expiry
 │       │   │   └── UserRole.cs
+│       │   ├── Filters/
+│       │   │   └── AdminAuthorizeAttribute.cs   — Action filter; reads isAdmin JWT claim from cookie/header; returns 403 Forbidden if missing or false
 │       │   ├── Controllers/
-│       │   │   ├── AuthenticationController.cs  — Login, logout, session, refresh, auth check (token ops via IJwtTokenService)
+│       │   │   ├── AdminUserController.cs       — GET /admin/users (paged+search), PATCH /admin/users/{id}/disable|enable, PUT /admin/users/{id}/roles; all [AdminAuthorize]
+│       │   │   ├── AuthenticationController.cs  — Login, logout, session (now includes isAdmin), refresh, auth check (token ops via IJwtTokenService)
 │       │   │   ├── ControllerErrors.cs          — Shared internal static class: SERVER_ERROR, MISSING_PARAMETERS, INVALID_USERNAME_OR_PASSWORD, NO_ASSIGNED_ROLE, MISSING_TOKEN, INVALID_TOKEN, USER_NOT_FOUND, EMAIL_VERIFICATION_FAILED, SET_NEW_PASSWORD_FAILED, REQUEST_PASSWORD_RESET_FAILED, CREATE_PASSWORD_FAILED, RESET_PASSWORD_FAILED
 │       │   │   ├── RegistrationController.cs    — Register, validate-email, resend-verification; error redirect appends ?email=…&app_code=…; rate limited
 │       │   │   ├── PasswordController.cs        — Change-password, request-password-reset, change-password-reset; rate limited
 │       │   │   ├── MessagingController.cs       — POST /messaging/replay (requeue outbox events); GET /messaging/outbox/stats; replay rate limited
 │       │   │   ├── DTO/
+│       │   │   │   ├── AdminUserDto.cs         — { id, email, firstName, lastName, isDisabled, isDeleted, isEmailValidated, createdAt, roles[] }
 │       │   │   │   ├── ApplicationDto.cs
 │       │   │   │   ├── RoleDto.cs
 │       │   │   │   └── UserDto.cs              — User DTO with FirstName, LastName, Email
 │       │   │   ├── Requests/
+│       │   │   │   ├── SetUserRolesRequest.cs  — Roles: string[] (replace list)
 │       │   │   │   ├── ChangePasswordRequest.cs        — Requires Email, OldPassword, NewPassword
 │       │   │   │   ├── ChangePasswordResetRequest.cs
 │       │   │   │   ├── CreatePasswordRequest.cs
@@ -421,7 +446,7 @@ ExpenseManager/
 │       │   │   └── Responses/
 │       │   │       ├── ErrorResponse.cs
 │       │   │       ├── LoginResponse.cs        — Returns User (UserDto) and Roles (token is cookie-only)
-│       │   │       ├── SessionResponse.cs      — Returns Email, FirstName, LastName from JWT claims
+│       │   │       ├── SessionResponse.cs      — Returns Email, FirstName, LastName, IsAdmin from JWT claims
 │       │   │       └── RegisterResponse.cs
 │       │   ├── Validators/
 │       │   │   ├── LoginRequestValidator.cs             — ApplicationCode, Email, Password NotEmpty → MISSING_PARAMETERS
@@ -446,9 +471,10 @@ ExpenseManager/
 │       │   │       ├── IRoleRepository.cs
 │       │   │       └── IUserRepository.cs          — includes UpdateEmailValidationHashAsync(userId, newHash, expiresAt)
 │       │   ├── Services/
+│       │   │   ├── AdminUserService.cs             — Implements IAdminUserService; GetUsersPagedAsync (search/page/pageSize), DisableUserAsync, EnableUserAsync, SetUserRolesAsync
 │       │   │   ├── ApplicationService.cs
 │       │   │   ├── AuthenticationService.cs        — Credential verification only (AuthenticateAsync)
-│       │   │   ├── JwtTokenService.cs              — JWT generation (claims: sub, email, givenName, surname, jti) and validation
+│       │   │   ├── JwtTokenService.cs              — JWT generation (claims: sub, email, givenName, surname, isAdmin, jti) and validation; isAdmin=true when user has APP_ADMIN role
 │       │   │   ├── RabbitMQService.cs              — Singleton RabbitMQ connection
 │       │   │   ├── RegistrationService.cs          — Registration, email validation, resend verification; re-register with unverified email silently resends; hash expiry 24 h
 │       │   │   ├── ResendResult.cs                 — Enum: Sent, NotFound
@@ -457,6 +483,7 @@ ExpenseManager/
 │       │   │   ├── RoleService.cs
 │       │   │   ├── UserRoleAssignmentService.cs    — Assigns default application role to a newly registered user
 │       │   │   └── Contracts/
+│       │   │       ├── IAdminUserService.cs        — GetUsersPagedAsync, DisableUserAsync, EnableUserAsync, SetUserRolesAsync
 │       │   │       ├── IApplicationService.cs
 │       │   │       ├── IAuthenticationService.cs
 │       │   │       ├── IJwtTokenService.cs
@@ -490,7 +517,8 @@ ExpenseManager/
 │           │   ├── TestDbContextWrapper.cs          — SQLite in-memory + Migrate() wrapper (int/short PK entities)
 │           │   └── TestDbContextEnsureCreated.cs    — SQLite in-memory + EnsureCreated() wrapper; used for long PK entities (OutboxEvent) where Npgsql annotation would force BIGINT
 │           ├── Controllers/
-│           │   ├── AuthenticationControllerTests.cs
+│           │   ├── AdminUserControllerTests.cs      — 403 without admin role; paged list, disable, enable, set roles happy-paths
+│           │   ├── AuthenticationControllerTests.cs — extended: session response includes isAdmin
 │           │   ├── MessagingControllerTests.cs      — 6 tests: Replay×4, Stats×2
 │           │   ├── PasswordControllerTests.cs
 │           │   └── RegistrationControllerTests.cs   — includes 4 ResendVerification tests
@@ -517,9 +545,10 @@ ExpenseManager/
 │           │   ├── RoleRepositoryTests.cs
 │           │   └── UserRepositoryTests.cs           — includes UpdateEmailValidationHashAsync×4 + ValidateEmailAsync expiry×3
 │           └── Services/
+│               ├── AdminUserServiceTests.cs         — GetUsersPaged with search; disable/enable; role assignment
 │               ├── ApplicationServiceTests.cs
 │               ├── AuthenticationServiceTests.cs
-│               ├── JwtTokenServiceTests.cs
+│               ├── JwtTokenServiceTests.cs          — extended: isAdmin claim present for APP_ADMIN role, absent otherwise
 │               ├── PasswordManagementServiceTests.cs
 │               ├── RefreshTokenServiceTests.cs
 │               ├── RegistrationServiceTests.cs      — includes ResendVerificationEmailAsync×6
@@ -603,8 +632,8 @@ ExpenseManager/
 │           │   │   │   └── __tests__/
 │           │   │   │       └── authApi.service.test.ts
 │           │   │   ├── types/
-│           │   │   │   └── auth.type.ts         — User, AuthResult, AuthContextValue
-│           │   │   ├── AuthContext.tsx           — Cookie-based auth state; session restored via GET /auth/session (falls back to POST /auth/refresh); no localStorage/sessionStorage
+│           │   │   │   └── auth.type.ts         — User (email, firstName?, lastName?, isAdmin?), AuthResult, AuthContextValue
+│           │   │   ├── AuthContext.tsx           — Cookie-based auth state; session restored via GET /auth/session (now returns isAdmin); no localStorage/sessionStorage
 │           │   │   ├── auth.schemas.ts           — Zod schemas and inferred types for all five auth forms
 │           │   │   └── __tests__/
 │           │   │       ├── AuthContext.test.tsx
@@ -713,6 +742,28 @@ ExpenseManager/
 │           │   │       └── __tests__/
 │           │   │           ├── HomeDashboardPage.test.tsx
 │           │   │           └── SettingsPage.test.tsx
+│           │   ├── admin/             — Admin feature (Phase 11)
+│           │   │   ├── components/
+│           │   │   │   ├── AdminRoute.tsx       — Route guard; redirects to /dashboard when isAdmin=false
+│           │   │   │   └── AdminLayout.tsx      — Sidebar nav (Users/Categories/Currencies/Rates/Rate Conflicts) + breadcrumb header
+│           │   │   ├── pages/
+│           │   │   │   ├── AdminUsersPage.tsx   — Searchable paginated user table; Disable/Enable actions; Manage Roles modal
+│           │   │   │   ├── AdminCategoriesPage.tsx — Category tree; Add/Edit/Archive/Unarchive; subcategory management; "Show archived" toggle
+│           │   │   │   ├── AdminCurrenciesPage.tsx — Currency list; Add Currency modal; Set Default Rate modal
+│           │   │   │   ├── AdminRatesPage.tsx   — Pair selector; rate history table; Add Manual Rate + Backfill modals
+│           │   │   │   ├── AdminRateConflictsPage.tsx — Pending conflicts; per-row resolve (AcceptAuto/KeepManual/Custom); bulk resolve
+│           │   │   │   └── __tests__/
+│           │   │   │       ├── AdminRoute.test.tsx
+│           │   │   │       ├── AdminUsersPage.test.tsx
+│           │   │   │       ├── AdminCategoriesPage.test.tsx
+│           │   │   │       ├── AdminCurrenciesPage.test.tsx
+│           │   │   │       ├── AdminRatesPage.test.tsx
+│           │   │   │       └── AdminRateConflictsPage.test.tsx
+│           │   │   └── services/
+│           │   │       ├── adminUsersApi.service.ts      — getUsers, getRoles, disableUser, enableUser, setUserRoles
+│           │   │       ├── adminCategoriesApi.service.ts — getCategories, addCategory, updateCategory, archiveCategory, unarchiveCategory, addSubcategory, updateSubcategory, archiveSubcategory, unarchiveSubcategory
+│           │   │       ├── adminCurrenciesApi.service.ts — addCurrency, setDefaultRate
+│           │   │       └── adminRatesApi.service.ts      — getRateHistory, addManualRate, bulkAddRates, deleteRate, refreshRates, getPendingConflicts, resolveConflict
 │           │   └── public/            — Public (unauthenticated) pages
 │           │       └── pages/
 │           │           ├── HomePublicPage.tsx    — Public landing page
@@ -729,7 +780,7 @@ ExpenseManager/
 │           ├── hooks/                 — Shared hooks
 │           │   └── usePageTitle.ts    — Sets document.title per page
 │           ├── layouts/               — App-wide layout components
-│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive; right-side controls: FamilySelector → DisplayCurrencySelector → Add Expense `+` button (opens AddExpenseModal inline) → notification bell → user avatar dropdown (cog Settings, labeled LanguageSwitcher, logout-icon Sign out); unauthenticated desktop nav also shows LanguageSwitcher
+│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive; "Admin" link shown only when isAdmin=true; right-side controls: FamilySelector → DisplayCurrencySelector → Add Expense `+` button → notification bell → user avatar dropdown
 │           │   └── __tests__/
 │           │       └── NavBar.test.tsx
 │           ├── services/              — Shared base services

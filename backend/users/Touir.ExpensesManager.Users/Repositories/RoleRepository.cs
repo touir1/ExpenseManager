@@ -27,6 +27,13 @@ namespace Touir.ExpensesManager.Users.Repositories
                 .FirstOrDefaultAsync(r => r.ApplicationId == applicationId && r.IsDefault);
         }
 
+        public async Task<bool> IsAdminAsync(int userId)
+        {
+            return await _context.UserRoles
+                .AsNoTracking()
+                .AnyAsync(ur => ur.UserId == userId && ur.Role.Code == "ADMIN");
+        }
+
         public async Task<bool> AssignRoleToUserAsync(int roleId, int userId, int? createdByUserId = null)
         {
             if (roleId == 0 || userId == 0)
@@ -41,6 +48,23 @@ namespace Touir.ExpensesManager.Users.Repositories
             _context.UserRoles.Add(userRole);
             var result = await _context.SaveChangesAsync();
             return result > 0;
+        }
+
+        public async Task<IEnumerable<Role>> GetAllAsync()
+        {
+            return await _context.Roles
+                .AsNoTracking()
+                .Include(r => r.Application)
+                .ToListAsync();
+        }
+
+        public async Task RemoveUserRolesAsync(int userId)
+        {
+            var userRoles = await _context.UserRoles
+                .Where(ur => ur.UserId == userId)
+                .ToListAsync();
+            _context.UserRoles.RemoveRange(userRoles);
+            await _context.SaveChangesAsync();
         }
     }
 }
