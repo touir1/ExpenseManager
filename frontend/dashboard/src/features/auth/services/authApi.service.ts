@@ -4,7 +4,7 @@ import type { User } from '@/features/auth/types/auth.type'
 
 const AUTH_BASE = '/api/users/auth'
 
-export type LoginResponse = { user?: User }
+export type LoginResponse = { user?: User; isAdmin?: boolean }
 
 export function sessionCheck(): Promise<ApiResponse<User>> {
   return get<User>(`${AUTH_BASE}/session`, { skipUnauthorized: true, silent: true })

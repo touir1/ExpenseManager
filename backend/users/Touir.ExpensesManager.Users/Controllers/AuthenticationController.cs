@@ -89,7 +89,8 @@ namespace Touir.ExpensesManager.Users.Controllers
                         Code = s.Code,
                         Description = s.Description,
                         Name = s.Name
-                    })
+                    }),
+                    IsAdmin = isAdmin
                 });
             }
             catch (Exception)

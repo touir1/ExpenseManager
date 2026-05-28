@@ -23,7 +23,7 @@ Service runs on port **9100** by default. Configuration via `appsettings.json` a
 ## Key Endpoints
 
 Public (no auth required, accessible via `/api/users/auth/` through nginx):
-- `POST /auth/login` — Authenticate user; sets `auth_token` + `refresh_token` as `HttpOnly; Secure; SameSite=Strict` cookies; `RememberMe=true` → persistent cookies with `Expires`, `false` → session cookies
+- `POST /auth/login` — Authenticate user; sets `auth_token` + `refresh_token` as `HttpOnly; Secure; SameSite=Strict` cookies; `RememberMe=true` → persistent cookies with `Expires`, `false` → session cookies; response body: `{ user: { firstName, lastName, email }, roles: RoleDto[], isAdmin: bool }`
 - `POST /auth/logout` — Revoke refresh token and delete both `auth_token` + `refresh_token` cookies
 - `GET  /auth/session` — Validate `auth_token` cookie; returns `{ email, firstName, lastName, isAdmin }` from JWT claims if valid, 401 otherwise (used for session restore on page load)
 - `POST /auth/refresh` — Validate `refresh_token` cookie, issue new `auth_token`, rotate `refresh_token` (used transparently by the frontend on 401)

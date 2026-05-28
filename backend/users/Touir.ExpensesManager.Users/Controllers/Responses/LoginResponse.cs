@@ -6,5 +6,6 @@ namespace Touir.ExpensesManager.Users.Controllers.Responses
     {
         public UserDto? User { get; set; }
         public IEnumerable<RoleDto>? Roles { get; set; }
+        public bool IsAdmin { get; set; }
     }
 }

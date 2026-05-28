@@ -115,7 +115,7 @@ describe('AuthContext', () => {
       await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
       expect(loginResult.ok).toBe(true)
       expect(loginResult.error).toBeUndefined()
-      expect(result.current.user).toEqual(mockUser)
+      expect(result.current.user).toEqual({ ...mockUser, isAdmin: false })
     })
 
     it('uses email as fallback user when API response has no user object', async () => {
@@ -125,7 +125,7 @@ describe('AuthContext', () => {
       vi.mocked(api.post).mockResolvedValueOnce({ ok: true, status: 200, data: {} })
       await result.current.login('fallback@example.com', 'password')
 
-      await waitFor(() => expect(result.current.user).toEqual({ email: 'fallback@example.com' }))
+      await waitFor(() => expect(result.current.user).toEqual({ email: 'fallback@example.com', isAdmin: false }))
     })
 
     it('returns ok=false with error on failed login and does not set authenticated', async () => {

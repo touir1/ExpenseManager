@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.108.1] - 2026-05-28
+### Fixed
+- **Admin navbar menu missing after login**: `POST /auth/login` response (`LoginResponse`) now includes `IsAdmin: bool` — it was already computed but not returned. Frontend `AuthContext.login` merges `isAdmin` from the login response into user state so the admin menu renders immediately without requiring a page refresh.
+
 ## [0.108.0] - 2026-05-27
 ### Added — Phase 11: Admin Screens
 #### Backend — Admin Role System

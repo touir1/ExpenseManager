@@ -58,7 +58,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const login = useCallback<AuthContextValue['login']>(async (email, password, rememberMe = false) => {
     const res = await loginRequest(email, password, APPLICATION_CODE, rememberMe)
     if (res.ok) {
-      const userData = res.data?.user ?? { email }
+      const userData = { ...(res.data?.user ?? { email }), isAdmin: res.data?.isAdmin ?? false }
       setUser(userData)
       setIsAuthenticated(true)
       return { ok: true }
