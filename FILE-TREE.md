@@ -751,8 +751,8 @@ ExpenseManager/
 │           │   │   ├── pages/
 │           │   │   │   ├── AdminUsersPage.tsx   — Searchable paginated user table; Disable/Enable actions; Manage Roles modal; APP_ADMIN checkbox disabled for own account
 │           │   │   │   ├── AdminCategoriesPage.tsx — Category tree; Add/Edit/Archive/Unarchive; subcategory management; "Show archived" toggle
-│           │   │   │   ├── AdminCurrenciesPage.tsx — Currency list; per-row Edit/Delete/Defaults buttons; edit modal; delete modal (409 in-use handling); defaults modal with editable default rates + add-pair row
-│           │   │   │   ├── AdminRatesPage.tsx   — Always-loaded history table; FormCombobox filters; rateSource string column; pagination; Add Manual Rate modal (src/dst comboboxes); Backfill modal (from+to dates)
+│           │   │   │   ├── AdminCurrenciesPage.tsx — Currency list; search bar (code/name); client-side pagination; per-row Edit/Delete/Defaults buttons; edit modal; delete modal (409 in-use handling); defaults modal with editable default rates + add-pair row
+│           │   │   │   ├── AdminRatesPage.tsx   — Always-loaded history table; From/To currency code columns; FormCombobox filters; rateSource string column; pagination; Add Manual Rate modal (src/dst comboboxes); Backfill modal (from+to dates)
 │           │   │   │   ├── AdminRateConflictsPage.tsx — Pending conflicts; per-row resolve (AcceptAuto/KeepManual/Custom); bulk resolve
 │           │   │   │   └── __tests__/
 │           │   │   │       ├── AdminRoute.test.tsx

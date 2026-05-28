@@ -160,4 +160,44 @@ describe('AdminCurrenciesPage', () => {
     await waitFor(() => expect(screen.getAllByText('EUR').length).toBeGreaterThanOrEqual(2))
     expect(mockGetCurrencyDefaults).toHaveBeenCalledWith(1)
   })
+
+  it('renders search input', () => {
+    renderPage()
+    expect(screen.getByPlaceholderText('admin.currencies.search')).toBeInTheDocument()
+  })
+
+  it('filters list by code', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await waitFor(() => screen.getByText('USD'))
+    await user.type(screen.getByPlaceholderText('admin.currencies.search'), 'USD')
+    expect(screen.getByText('USD')).toBeInTheDocument()
+    expect(screen.queryByText('EUR')).not.toBeInTheDocument()
+  })
+
+  it('filters list by name (case-insensitive)', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await waitFor(() => screen.getByText('USD'))
+    await user.type(screen.getByPlaceholderText('admin.currencies.search'), 'euro')
+    expect(screen.queryByText('USD')).not.toBeInTheDocument()
+    expect(screen.getByText('EUR')).toBeInTheDocument()
+  })
+
+  it('shows no-results message when search matches nothing', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await waitFor(() => screen.getByText('USD'))
+    await user.type(screen.getByPlaceholderText('admin.currencies.search'), 'XYZ')
+    expect(screen.getByText('admin.currencies.noResults')).toBeInTheDocument()
+  })
+
+  it('shows pagination when more than PAGE_SIZE currencies', async () => {
+    const many = Array.from({ length: 12 }, (_, i) => ({
+      id: i + 1, code: `C${String(i + 1).padStart(2, '0')}`, name: `Currency ${i + 1}`, symbol: '$', decimals: 2,
+    }))
+    mockGetCurrencies.mockResolvedValue({ ok: true, data: many })
+    renderPage()
+    await waitFor(() => expect(screen.getByText('1 / 2')).toBeInTheDocument())
+  })
 })

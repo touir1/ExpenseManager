@@ -73,6 +73,7 @@ export default function AdminRatesPage() {
   })
 
   const currencyOptions = (currencies as Currency[]).map(c => ({ value: c.id, label: c.code }))
+  const currencyCode = (id?: number) => (currencies as Currency[]).find(c => c.id === id)?.code ?? '—'
 
   return (
     <div>
@@ -108,6 +109,8 @@ export default function AdminRatesPage() {
         <table className="w-full text-sm">
           <thead className="bg-surface-subtle">
             <tr>
+              <th className="text-left px-4 py-2 text-ink-mute font-medium">{t('admin.rates.fromCurrency')}</th>
+              <th className="text-left px-4 py-2 text-ink-mute font-medium">{t('admin.rates.toCurrency')}</th>
               <th className="text-left px-4 py-2 text-ink-mute font-medium">{t('admin.rates.rateDate')}</th>
               <th className="text-left px-4 py-2 text-ink-mute font-medium">{t('admin.rates.rateValue')}</th>
               <th className="text-left px-4 py-2 text-ink-mute font-medium">{t('admin.rates.source')}</th>
@@ -116,10 +119,12 @@ export default function AdminRatesPage() {
           <tbody>
             {rates.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-4 py-4 text-center text-ink-mute text-sm">{t('admin.rates.noRates')}</td>
+                <td colSpan={5} className="px-4 py-4 text-center text-ink-mute text-sm">{t('admin.rates.noRates')}</td>
               </tr>
             ) : rates.map(r => (
               <tr key={r.id} className="border-t border-surface-border">
+                <td className="px-4 py-2 font-mono">{currencyCode(r.sourceCurrencyId)}</td>
+                <td className="px-4 py-2 font-mono">{currencyCode(r.destinationCurrencyId)}</td>
                 <td className="px-4 py-2">{r.date}</td>
                 <td className="px-4 py-2">{r.rate}</td>
                 <td className="px-4 py-2">{r.rateSource}</td>

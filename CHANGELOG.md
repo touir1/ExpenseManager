@@ -3,6 +3,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.109.1] - 2026-05-28
+### Changed — Admin screen UX improvements
+#### Frontend
+- **`AdminCurrenciesPage.tsx`**: Added search bar (filter by code or name, case-insensitive) and client-side pagination (PAGE_SIZE=10) with arrow navigation.
+- **`AdminRatesPage.tsx`**: Added From and To currency code columns to the rate history table (resolved from `sourceCurrencyId`/`destinationCurrencyId` via the loaded currencies list).
+- **i18n**: Added `admin.currencies.search`, `admin.currencies.noResults`, `admin.rates.fromCurrency`, `admin.rates.toCurrency` across all 4 locale files (en/fr/es/de).
+#### Tests
+- `AdminCurrenciesPage.test.tsx`: +5 tests (search input renders, filter by code, filter by name case-insensitive, no-results message, pagination `1 / 2`) → 15 tests total.
+- `AdminRatesPage.test.tsx`: +2 tests (From/To column headers, source/dest codes in rows) → 10 tests total.
+
 ## [0.109.0] - 2026-05-28
 ### Changed — Phase 11: Admin Screen Improvements
 #### Backend — Expenses service

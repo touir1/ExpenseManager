@@ -41,6 +41,10 @@ export default function AdminCurrenciesPage() {
   const [addPairDstId, setAddPairDstId] = useState<number | undefined>(undefined)
   const [addPairRate, setAddPairRate] = useState('')
 
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 10
+
   const { data: currencies = [] } = useQuery({
     queryKey: ['currencies'],
     queryFn: () => getCurrencies(),
@@ -119,6 +123,14 @@ export default function AdminCurrenciesPage() {
     .filter(c => c.id !== defaultsModal?.id && !pairedDestIds.has(c.id))
     .map(c => ({ value: c.id, label: c.code }))
 
+  const filtered = (currencies as Currency[]).filter(c =>
+    !search ||
+    c.code.toLowerCase().includes(search.toLowerCase()) ||
+    c.name.toLowerCase().includes(search.toLowerCase())
+  )
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1
+  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -126,6 +138,16 @@ export default function AdminCurrenciesPage() {
         <button onClick={() => setAddModal(true)} className="text-sm px-3 py-1.5 rounded-lg bg-brand-500 text-white hover:bg-brand-600">
           {t('admin.currencies.add')}
         </button>
+      </div>
+
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder={t('admin.currencies.search')}
+          value={search}
+          onChange={e => { setSearch(e.target.value); setPage(1) }}
+          className="border border-surface-border rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-brand-300"
+        />
       </div>
 
       <div className="bg-white shadow-card border border-slate-200 rounded-2xl overflow-hidden">
@@ -140,7 +162,11 @@ export default function AdminCurrenciesPage() {
             </tr>
           </thead>
           <tbody>
-            {(currencies as Currency[]).map(c => (
+            {paged.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-4 text-center text-ink-mute text-sm">{t('admin.currencies.noResults')}</td>
+              </tr>
+            ) : paged.map(c => (
               <tr key={c.id} className="border-t border-surface-border">
                 <td className="px-4 py-2 font-mono font-medium">{c.code}</td>
                 <td className="px-4 py-2">{c.name}</td>
@@ -162,6 +188,16 @@ export default function AdminCurrenciesPage() {
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex gap-2 mt-4 justify-end">
+          <button disabled={page <= 1} onClick={() => setPage(p => p - 1)}
+            className="text-sm px-3 py-1 rounded border border-surface-border disabled:opacity-40">←</button>
+          <span className="text-sm text-ink-mute py-1">{page} / {totalPages}</span>
+          <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}
+            className="text-sm px-3 py-1 rounded border border-surface-border disabled:opacity-40">→</button>
+        </div>
+      )}
 
       {/* Add modal */}
       {addModal && (

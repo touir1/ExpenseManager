@@ -121,6 +121,19 @@ describe('AdminRatesPage', () => {
     await waitFor(() => expect(screen.getByText('1 / 4')).toBeInTheDocument())
   })
 
+  it('shows From and To column headers', () => {
+    renderPage()
+    expect(screen.getByText('admin.rates.fromCurrency')).toBeInTheDocument()
+    expect(screen.getByText('admin.rates.toCurrency')).toBeInTheDocument()
+  })
+
+  it('shows source and destination currency codes in rate rows', async () => {
+    renderPage()
+    await waitFor(() => expect(screen.getByText('2024-01-01')).toBeInTheDocument())
+    expect(screen.getAllByText('USD').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('EUR').length).toBeGreaterThanOrEqual(1)
+  })
+
   it('calls addManualRate when add modal form submitted', async () => {
     const user = userEvent.setup()
     renderPage()
