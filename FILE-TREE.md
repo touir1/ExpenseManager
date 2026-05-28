@@ -139,7 +139,7 @@ ExpenseManager/
 │   │   │   │       └── RabbitMQOptions.cs
 │   │   │   ├── Controllers/
 │   │   │   │   ├── AdminCategoryController.cs — POST/PUT /admin/categories(/{id}), POST /admin/categories/{id}/archive|unarchive|subcategories, PUT/POST /admin/categories/{id}/subcategories/{subId}; all [AppAdmin]
-│   │   │   │   ├── AdminCurrencyController.cs — POST /admin/currencies, POST /admin/currencies/defaults; all [AppAdmin]
+│   │   │   │   ├── AdminCurrencyController.cs — POST /admin/currencies (201), PUT /{id} (200/404), DELETE /{id} (204/409), GET /{id}/defaults (200), POST /defaults (204); all [AppAdmin]
 │   │   │   │   ├── AdminRateController.cs   — GET /admin/rates/history, POST /admin/rates (201), POST /admin/rates/bulk (204), PUT /admin/rates/default (204), GET /admin/rates/conflicts, POST /admin/rates/conflicts/{id}/resolve (204), POST /admin/rates/refresh (204); all [AppAdmin]
 │   │   │   │   ├── CategoryController.cs    — GET /categories → IEnumerable<CategoryDto>
 │   │   │   │   ├── ControllerErrors.cs      — Shared internal static class: SERVER_ERROR, UNAUTHORIZED, EXPENSE_NOT_FOUND, MISSING_PARAMETERS, TAG_NOT_FOUND, RATE_NOT_FOUND, CONFLICT_NOT_FOUND, INVALID_MONTH
@@ -308,7 +308,7 @@ ExpenseManager/
 │   │       │   └── TestExpensesDbContext.cs  — In-memory DB wrapper for tests
 │   │       ├── Controllers/
 │   │       │   ├── AdminCategoryControllerTests.cs  — 403 for non-admin; 201/200/404 for all CRUD actions
-│   │       │   ├── AdminCurrencyControllerTests.cs  — 403 for non-admin; 201 add currency; 204 set default
+│   │       │   ├── AdminCurrencyControllerTests.cs  — 403 for non-admin; 201 add; 200/404 update; 204/409 delete; 200 defaults; 204 set default
 │   │       │   ├── AdminRateControllerTests.cs      — 403 for non-admin; happy-path for all 7 admin rate endpoints
 │   │       │   ├── CategoryControllerTests.cs
 │   │       │   ├── CurrencyControllerTests.cs
@@ -585,12 +585,14 @@ ExpenseManager/
 │           ├── components/            — Shared UI primitives (generic, cross-feature)
 │           │   ├── BackLink.tsx        — Back-arrow link with chevron SVG
 │           │   ├── FieldError.tsx      — Per-field error paragraph with role="alert"
+│           │   ├── FormCombobox.tsx    — Searchable combobox (text input + listbox dropdown); optional className prop; used in ExpenseForm + admin pages
 │           │   ├── LanguageSwitcher.tsx — Language selector dropdown wired to i18n.changeLanguage
 │           │   ├── PasswordInput.tsx   — Password input with show/hide toggle
 │           │   ├── PasswordStrength.tsx — Live password strength indicator (5-segment bar + checklist)
 │           │   ├── SubmitButton.tsx    — Submit button with spinner SVG and configurable labels
 │           │   ├── Toast.tsx           — Toast notification provider and hook
 │           │   └── __tests__/
+│           │       ├── FormCombobox.test.tsx
 │           │       ├── LanguageSwitcher.test.tsx
 │           │       ├── PasswordInput.test.tsx
 │           │       ├── PasswordStrength.test.tsx
@@ -747,10 +749,10 @@ ExpenseManager/
 │           │   │   │   ├── AdminRoute.tsx       — Route guard; redirects to /dashboard when isAdmin=false
 │           │   │   │   └── AdminLayout.tsx      — Sidebar nav (Users/Categories/Currencies/Rates/Rate Conflicts) + breadcrumb header
 │           │   │   ├── pages/
-│           │   │   │   ├── AdminUsersPage.tsx   — Searchable paginated user table; Disable/Enable actions; Manage Roles modal
+│           │   │   │   ├── AdminUsersPage.tsx   — Searchable paginated user table; Disable/Enable actions; Manage Roles modal; APP_ADMIN checkbox disabled for own account
 │           │   │   │   ├── AdminCategoriesPage.tsx — Category tree; Add/Edit/Archive/Unarchive; subcategory management; "Show archived" toggle
-│           │   │   │   ├── AdminCurrenciesPage.tsx — Currency list; Add Currency modal; Set Default Rate modal
-│           │   │   │   ├── AdminRatesPage.tsx   — Pair selector; rate history table; Add Manual Rate + Backfill modals
+│           │   │   │   ├── AdminCurrenciesPage.tsx — Currency list; per-row Edit/Delete/Defaults buttons; edit modal; delete modal (409 in-use handling); defaults modal with editable default rates + add-pair row
+│           │   │   │   ├── AdminRatesPage.tsx   — Always-loaded history table; FormCombobox filters; rateSource string column; pagination; Add Manual Rate modal (src/dst comboboxes); Backfill modal (from+to dates)
 │           │   │   │   ├── AdminRateConflictsPage.tsx — Pending conflicts; per-row resolve (AcceptAuto/KeepManual/Custom); bulk resolve
 │           │   │   │   └── __tests__/
 │           │   │   │       ├── AdminRoute.test.tsx
@@ -762,8 +764,8 @@ ExpenseManager/
 │           │   │   └── services/
 │           │   │       ├── adminUsersApi.service.ts      — getUsers, getRoles, disableUser, enableUser, setUserRoles
 │           │   │       ├── adminCategoriesApi.service.ts — getCategories, addCategory, updateCategory, archiveCategory, unarchiveCategory, addSubcategory, updateSubcategory, archiveSubcategory, unarchiveSubcategory
-│           │   │       ├── adminCurrenciesApi.service.ts — addCurrency, setDefaultRate
-│           │   │       └── adminRatesApi.service.ts      — getRateHistory, addManualRate, bulkAddRates, deleteRate, refreshRates, getPendingConflicts, resolveConflict
+│           │   │       ├── adminCurrenciesApi.service.ts — addCurrency, updateCurrency, deleteCurrency, getCurrencyDefaults, setDefaultRate; CurrencyDefaultRateDto type
+│           │   │       └── adminRatesApi.service.ts      — getRateHistory (optional filters, paged), addManualRate, bulkAddRates, refreshRates (optional to), getPendingConflicts, resolveConflict; PagedRatesResponse + RateDto types
 │           │   └── public/            — Public (unauthenticated) pages
 │           │       └── pages/
 │           │           ├── HomePublicPage.tsx    — Public landing page

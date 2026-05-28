@@ -410,7 +410,8 @@
       "roles": "Roles",
       "noUsers": "No users found.",
       "saveRoles": "Save roles",
-      "saving": "Saving…"
+      "saving": "Saving…",
+      "cannotRemoveOwnAdmin": "You cannot remove your own admin role"
     },
     "categories": {
       "pageTitle": "Admin — Categories",
@@ -437,7 +438,16 @@
       "rateLabel": "Rate",
       "save": "Save",
       "saving": "Saving…",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this currency? This cannot be undone.",
+      "inUse": "Cannot delete: currency is in use by existing expenses or rates.",
+      "defaults": "Defaults",
+      "defaultRatesTitle": "Default rates — {{code}}",
+      "addPair": "Add pair",
+      "lastAutoRate": "Last auto",
+      "lastRateDate": "Date"
     },
     "rates": {
       "pageTitle": "Admin — Rates",
@@ -446,7 +456,14 @@
       "source": "Source",
       "save": "Save",
       "saving": "Saving…",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "from": "From",
+      "to": "To",
+      "sourceCurrency": "Source",
+      "destinationCurrency": "Destination",
+      "noRates": "No rates found.",
+      "rateDate": "Date",
+      "rateValue": "Rate"
     },
     "rateConflicts": {
       "pageTitle": "Admin — Rate Conflicts",

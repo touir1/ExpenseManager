@@ -3,6 +3,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.109.0] - 2026-05-28
+### Changed — Phase 11: Admin Screen Improvements
+#### Backend — Expenses service
+- **`AdminCurrencyController`**: Added `PUT /{id}` (update name/symbol/decimals), `DELETE /{id}` (returns 409 when currency in use), `GET /{id}/defaults` (per-currency default rate table with last auto rate).
+- **`AdminRateController`**: `GET /admin/rates/history` — `sourceCurrencyId` and `destinationCurrencyId` are now optional query params (returns all rates when omitted); response is now paginated `PagedRatesResponse { rates, total, page, pageSize }`. `POST /admin/rates/refresh` — accepts optional `to` date (null = today).
+- **`AdminUpdateCurrencyRequest`**: New request DTO with FluentValidation (name required/max 50, symbol required/max 10, decimals 0–8).
+- **`AdminCurrencyService`**: `UpdateCurrencyAsync`, `DeleteCurrencyAsync` (checks expense + rate usage, throws `CURRENCY_IN_USE` on conflict), `GetCurrencyDefaultsAsync`.
+- **`CurrencyRateService`**: `GetHistoryAsync` now accepts optional source/destination IDs; returns paged result. `RefreshRatesFromAsync` accepts optional `to` date.
+- **`CurrencyRepository`**: Added `GetByIdAsync`, `UpdateAsync`, `DeleteAsync`, `GetDefaultsForSourceAsync` (joins pair defaults with latest auto rates).
+- **`CurrencyRateRepository`**: Added `IsUsedInRatesAsync`, updated `GetHistoryAsync` to support optional filters and paging.
+- **New DTOs**: `PagedRatesResponse`, `CurrencyDefaultRateDto`.
+#### Frontend
+- **`AdminCurrenciesPage.tsx`**: Per-row Edit/Delete/Defaults action buttons. Edit modal (name/symbol/decimals). Delete modal with 409 in-use error handling. Defaults modal showing paired destinations with editable default rates, last auto rate, and add-pair row.
+- **`AdminRatesPage.tsx`**: Rate history loads immediately without requiring currency selection. `rateSource` column shows string directly (`Auto`/`Manual`). Currency filter selects replaced with `FormCombobox`. Add Manual Rate modal includes source/destination comboboxes. Backfill modal gains `To` date field. Pagination added.
+- **`AdminUsersPage.tsx`**: APP_ADMIN checkbox disabled when managing own account; `onChange` blocks self-deselection.
+- **`FormCombobox.tsx`**: Extracted to `src/components/FormCombobox.tsx` with optional `className` prop (defaults to `field-input`).
+- **i18n**: Added keys for `admin.users.cannotRemoveOwnAdmin`, `admin.currencies.edit/delete/deleteConfirm/inUse/defaults/defaultRatesTitle/addPair/lastAutoRate/lastRateDate/rateLabel`, `admin.rates.from/to/sourceCurrency/destinationCurrency/noRates/rateDate/rateValue` across all 4 locale files.
+- **`adminCurrenciesApi.service.ts`**: Added `updateCurrency`, `deleteCurrency`, `getCurrencyDefaults`, `setDefaultRate`; new `CurrencyDefaultRateDto` type.
+- **`adminRatesApi.service.ts`**: `RateDto.rateSource` is now `string`; added `PagedRatesResponse` type; `getRateHistory` optional params; `refreshRates` gains `to` param.
+#### Tests
+- **Backend** (+18 tests): `AdminCurrencyControllerTests` (UpdateAsync 200/404, DeleteAsync 204/409, GetDefaults 200), `AdminCurrencyServiceTests` (Update/Delete/GetDefaults), `AdminRateControllerTests` (optional params, To passthrough), `CurrencyRateServiceTests` (null filters, paged, to-date).
+- **Frontend**: `FormCombobox.test.tsx` (NEW — 7 tests: placeholder, selected label, open/close, filter, onChange, clear, disabled). `AdminUsersPage.test.tsx` (+1 self-admin guard test). `AdminCurrenciesPage.test.tsx` (rewritten — 11 tests). `AdminRatesPage.test.tsx` (rewritten — 8 tests).
+
 ## [0.108.1] - 2026-05-28
 ### Fixed
 - **Admin navbar menu missing after login**: `POST /auth/login` response (`LoginResponse`) now includes `IsAdmin: bool` — it was already computed but not returned. Frontend `AuthContext.login` merges `isAdmin` from the login response into user state so the admin menu renders immediately without requiring a page refresh.

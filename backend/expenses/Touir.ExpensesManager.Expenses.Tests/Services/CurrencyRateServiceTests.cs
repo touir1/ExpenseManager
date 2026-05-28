@@ -470,12 +470,38 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
                 MakeRate(1, 2, date.AddDays(-1), 0.91m)
             };
             var repo = new Mock<ICurrencyRateRepository>();
-            repo.Setup(r => r.GetHistoryAsync(1, 2)).ReturnsAsync(rates);
+            repo.Setup(r => r.GetHistoryAsync(1, 2, 1, 50)).ReturnsAsync((rates, rates.Count));
 
-            var result = (await CreateService(rateRepo: repo.Object).GetRateHistoryAsync(1, 2)).ToList();
+            var result = await CreateService(rateRepo: repo.Object).GetRateHistoryAsync(1, 2, 1, 50);
 
-            Assert.Equal(2, result.Count);
-            Assert.Equal(0.92m, result[0].Rate);
+            Assert.Equal(2, result.Total);
+            Assert.Equal(0.92m, result.Rates.First().Rate);
+        }
+
+        [Fact]
+        public async Task GetRateHistoryAsync_WithNullFilters_ReturnsAll()
+        {
+            var rates = new List<CurrencyDailyRate> { MakeRate(1, 2, new DateOnly(2024, 6, 1), 0.92m) };
+            var repo = new Mock<ICurrencyRateRepository>();
+            repo.Setup(r => r.GetHistoryAsync(null, null, 1, 50)).ReturnsAsync((rates, rates.Count));
+
+            var result = await CreateService(rateRepo: repo.Object).GetRateHistoryAsync(null, null, 1, 50);
+
+            Assert.Equal(1, result.Total);
+        }
+
+        [Fact]
+        public async Task GetRateHistoryAsync_ReturnsPaged()
+        {
+            var rates = new List<CurrencyDailyRate> { MakeRate(1, 2, new DateOnly(2024, 6, 1), 0.92m) };
+            var repo = new Mock<ICurrencyRateRepository>();
+            repo.Setup(r => r.GetHistoryAsync(1, 2, 2, 10)).ReturnsAsync((rates, 15));
+
+            var result = await CreateService(rateRepo: repo.Object).GetRateHistoryAsync(1, 2, 2, 10);
+
+            Assert.Equal(15, result.Total);
+            Assert.Equal(2, result.Page);
+            Assert.Equal(10, result.PageSize);
         }
 
         // ── GetPendingConflictsAsync ───────────────────────────────────────────────
@@ -934,6 +960,28 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
 
             provider.Verify(p => p.FetchRatesRangeAsync(It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()), Times.Never);
             rateRepo.Verify(r => r.AddRatesBatchAsync(It.IsAny<IEnumerable<CurrencyDailyRate>>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task RefreshRatesFromAsync_WithTo_UsesItAsEndDate()
+        {
+            var from = new DateOnly(2024, 1, 1);
+            var to = new DateOnly(2024, 6, 30);
+            var expenseRepo = ExpenseRepoWithIds(1);
+            var currencyRepo = new Mock<ICurrencyRepository>();
+            currencyRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Currency> { MakeCurrency(1, "USD") });
+            var provider = new Mock<IRateProvider>();
+            provider.Setup(p => p.FetchRatesRangeAsync("USD", from, to, default))
+                    .ReturnsAsync(new Dictionary<DateOnly, Dictionary<string, decimal>>());
+            var rateRepo = new Mock<ICurrencyRateRepository>();
+            rateRepo.Setup(r => r.GetExistingInRangeAsync(It.IsAny<int>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>()))
+                    .ReturnsAsync(new Dictionary<(int, DateOnly), (decimal, int)>());
+
+            await CreateService(rateRepo: rateRepo.Object, currencyRepo: currencyRepo.Object,
+                expenseRepo: expenseRepo.Object, rateProvider: provider.Object)
+                .RefreshRatesFromAsync(from, to);
+
+            provider.Verify(p => p.FetchRatesRangeAsync("USD", from, to, default), Times.Once);
         }
     }
 }

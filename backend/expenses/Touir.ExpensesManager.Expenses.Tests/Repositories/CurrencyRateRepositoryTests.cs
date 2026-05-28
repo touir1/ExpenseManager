@@ -223,10 +223,10 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
             await SeedRateAsync(src, dst, new DateOnly(2024, 6, 1), 0.92m);
             await SeedRateAsync(src, dst, new DateOnly(2024, 6, 2), 0.93m);
 
-            var result = (await _sut.GetHistoryAsync(src, dst)).ToList();
+            var (items, total) = await _sut.GetHistoryAsync(src, dst, 1, 50);
 
-            Assert.Equal(2, result.Count);
-            Assert.Equal(new DateOnly(2024, 6, 2), result[0].Date);
+            Assert.Equal(2, total);
+            Assert.Equal(new DateOnly(2024, 6, 2), items[0].Date);
         }
 
         [Fact]
@@ -234,9 +234,10 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
         {
             var (src, dst) = await SeedCurrencyPairAsync();
 
-            var result = (await _sut.GetHistoryAsync(src, dst)).ToList();
+            var (items, total) = await _sut.GetHistoryAsync(src, dst, 1, 50);
 
-            Assert.Empty(result);
+            Assert.Equal(0, total);
+            Assert.Empty(items);
         }
 
         // ── UpdateRateAsync ────────────────────────────────────────────────────────

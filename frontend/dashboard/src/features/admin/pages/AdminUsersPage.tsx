@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useAuth } from '@/features/auth/AuthContext'
 import {
   getUsers,
   getRoles,
@@ -16,6 +17,7 @@ export default function AdminUsersPage() {
   const { t } = useTranslation()
   usePageTitle(t('admin.users.pageTitle'))
   const qc = useQueryClient()
+  const { user: currentUser } = useAuth()
 
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
@@ -161,20 +163,29 @@ export default function AdminUsersPage() {
               {t('admin.users.manageRoles')} — {rolesModal.email}
             </h2>
             <div className="flex flex-col gap-2 mb-4">
-              {(allRoles as AdminRole[]).map(role => (
-                <label key={role.id} className="flex items-center gap-2 text-sm cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedRoleIds.includes(role.id)}
-                    onChange={e => {
-                      setSelectedRoleIds(prev =>
-                        e.target.checked ? [...prev, role.id] : prev.filter(id => id !== role.id)
-                      )
-                    }}
-                  />
-                  {role.name} <span className="text-ink-mute text-xs">({role.code})</span>
-                </label>
-              ))}
+              {(allRoles as AdminRole[]).map(role => {
+                const isSelfAdmin = role.code === 'APP_ADMIN' && rolesModal.email === currentUser?.email
+                return (
+                  <label
+                    key={role.id}
+                    className={`flex items-center gap-2 text-sm ${isSelfAdmin ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+                    title={isSelfAdmin ? t('admin.users.cannotRemoveOwnAdmin') : undefined}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedRoleIds.includes(role.id)}
+                      disabled={isSelfAdmin}
+                      onChange={e => {
+                        if (isSelfAdmin && !e.target.checked) return
+                        setSelectedRoleIds(prev =>
+                          e.target.checked ? [...prev, role.id] : prev.filter(id => id !== role.id)
+                        )
+                      }}
+                    />
+                    {role.name} <span className="text-ink-mute text-xs">({role.code})</span>
+                  </label>
+                )
+              })}
             </div>
             <div className="flex gap-2 justify-end">
               <button

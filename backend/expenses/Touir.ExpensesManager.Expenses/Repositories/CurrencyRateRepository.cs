@@ -53,16 +53,26 @@ namespace Touir.ExpensesManager.Expenses.Repositories
                     r.DestinationCurrencyId == destId);
         }
 
-        public async Task<IEnumerable<CurrencyDailyRate>> GetHistoryAsync(int sourceId, int destId)
+        public async Task<(List<CurrencyDailyRate> Items, int Total)> GetHistoryAsync(int? sourceId, int? destId, int page, int pageSize)
         {
-            return await _db.CurrencyDailyRates
+            var query = _db.CurrencyDailyRates
                 .AsNoTracking()
                 .Include(r => r.RateSource)
-                .Where(r =>
-                    r.SourceCurrencyId == sourceId &&
-                    r.DestinationCurrencyId == destId)
+                .AsQueryable();
+
+            if (sourceId.HasValue)
+                query = query.Where(r => r.SourceCurrencyId == sourceId.Value);
+            if (destId.HasValue)
+                query = query.Where(r => r.DestinationCurrencyId == destId.Value);
+
+            var total = await query.CountAsync();
+            var items = await query
                 .OrderByDescending(r => r.Date)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            return (items, total);
         }
 
         public async Task AddRateAsync(CurrencyDailyRate rate)
@@ -175,5 +185,9 @@ namespace Touir.ExpensesManager.Expenses.Repositories
             _db.CurrencyRateConflicts.AddRange(conflicts);
             await _db.SaveChangesAsync();
         }
+
+        public async Task<bool> IsUsedInRatesAsync(int currencyId)
+            => await _db.CurrencyDailyRates.AnyAsync(r =>
+                r.SourceCurrencyId == currencyId || r.DestinationCurrencyId == currencyId);
     }
 }

@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
 import { useExpensesData } from '@/features/expenses/ExpensesDataContext'
 import { useFamilies } from '@/features/families/FamilyContext'
+import { FormCombobox } from '@/components/FormCombobox'
+import type { ComboOption } from '@/components/FormCombobox'
 import TagInput from '@/features/tags/components/TagInput'
 import FieldError from '@/components/FieldError'
 import SubmitButton from '@/components/SubmitButton'
@@ -16,90 +18,6 @@ interface ExpenseFormProps {
   readonly onSubmit: (data: ExpenseFormData) => Promise<void>
   readonly isSubmitting: boolean
   readonly onCancel: () => void
-}
-
-interface ComboOption {
-  value: number
-  label: string
-}
-
-interface FormComboboxProps {
-  id?: string
-  value: number | undefined
-  onChange: (value: number | undefined) => void
-  options: ComboOption[]
-  disabled?: boolean
-  'aria-describedby'?: string
-  'aria-invalid'?: boolean
-}
-
-function FormCombobox({ id, value, onChange, options, disabled, ...ariaProps }: FormComboboxProps) {
-  const [open, setOpen] = useState(false)
-  const [query, setQuery] = useState('')
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  const selectedLabel = options.find(o => o.value === value)?.label ?? ''
-  const filtered = query
-    ? options.filter(o => o.label.toLowerCase().includes(query.toLowerCase()))
-    : options
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
-        setQuery('')
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
-
-  return (
-    <div ref={containerRef} className="relative">
-      <input
-        id={id}
-        type="text"
-        autoComplete="off"
-        className={`field-input ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-        disabled={disabled}
-        value={open ? query : selectedLabel}
-        placeholder="—"
-        onFocus={() => { if (!disabled) { setOpen(true); setQuery('') } }}
-        onChange={e => setQuery(e.target.value)}
-        {...ariaProps}
-      />
-      {open && !disabled && (
-        <ul
-          role="listbox"
-          className="absolute z-30 w-full mt-1 bg-surface-card border border-surface-border rounded-lg shadow-lg max-h-48 overflow-y-auto"
-        >
-          <li
-            role="option"
-            aria-selected={value === undefined}
-            className="px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-subtle text-ink-mute"
-            onMouseDown={() => { onChange(undefined); setOpen(false); setQuery('') }}
-          >
-            —
-          </li>
-          {filtered.map(o => (
-            <li
-              key={o.value}
-              role="option"
-              aria-selected={o.value === value}
-              className={`px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-subtle ${o.value === value ? 'font-semibold' : ''}`}
-              onMouseDown={() => { onChange(o.value); setOpen(false); setQuery('') }}
-            >
-              {o.label}
-            </li>
-          ))}
-          {filtered.length === 0 && (
-            <li className="px-3 py-1.5 text-sm text-ink-mute">—</li>
-          )}
-        </ul>
-      )}
-    </div>
-  )
 }
 
 function today(): string {

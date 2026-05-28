@@ -1,4 +1,4 @@
-# Expenses Service
+﻿# Expenses Service
 
 REST API for managing expenses, categories, and currencies.
 
@@ -44,13 +44,13 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 | `GET` | `/tags` | Tags visible to user → `TagListDto { own, family }` |
 | `POST` | `/tags` | Create/adopt tag by name (idempotent, case-sensitive) → `TagDto` (200) |
 | `DELETE` | `/tags/{id}` | Remove user's adoption of tag → 204 or 404 (tag entity and expense history preserved) |
-| `GET` | `/admin/rates/history` | **[AppAdmin]** Rate history for a currency pair → `RateDto[]` (query: `sourceCurrencyId`, `destinationCurrencyId`) |
+| `GET` | `/admin/rates/history` | **[AppAdmin]** Paged rate history → `PagedRatesResponse { rates, total, page, pageSize }` (query: `sourceCurrencyId?`, `destinationCurrencyId?`, `page`, `pageSize`) |
 | `POST` | `/admin/rates` | **[AppAdmin]** Add manual rate → `RateDto` (201); conflict created if auto rate exists for that date |
 | `POST` | `/admin/rates/bulk` | **[AppAdmin]** Bulk add manual rates → 204 |
 | `PUT` | `/admin/rates/default` | **[AppAdmin]** Set/update global fallback rate for a currency pair → 204 |
 | `GET` | `/admin/rates/conflicts` | **[AppAdmin]** List pending rate conflicts → `RateConflictDto[]` |
 | `POST` | `/admin/rates/conflicts/{id}/resolve` | **[AppAdmin]** Resolve conflict (AcceptAuto / KeepManual / Custom) → 204 or 400/404 |
-| `POST` | `/admin/rates/refresh` | **[AppAdmin]** Backfill rates from provider → 204; body: `{ from, sourceCurrencyId?, destinationCurrencyId? }` |
+| `POST` | `/admin/rates/refresh` | **[AppAdmin]** Backfill rates from provider → 204; body: `{ from, to?, sourceCurrencyId?, destinationCurrencyId? }` |
 | `POST` | `/admin/categories` | **[AppAdmin]** Add top-level category → `AdminCategoryDto` (201) |
 | `PUT` | `/admin/categories/{id}` | **[AppAdmin]** Edit category name/description → 200 or 404 |
 | `POST` | `/admin/categories/{id}/archive` | **[AppAdmin]** Archive category → 204 or 400/404 |
@@ -60,6 +60,9 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 | `POST` | `/admin/categories/{id}/subcategories/{subId}/archive` | **[AppAdmin]** Archive subcategory → 204 or 404 |
 | `POST` | `/admin/categories/{id}/subcategories/{subId}/unarchive` | **[AppAdmin]** Unarchive subcategory → 204 or 404 |
 | `POST` | `/admin/currencies` | **[AppAdmin]** Add currency → `CurrencyDto` (201) |
+| `PUT` | `/admin/currencies/{id}` | **[AppAdmin]** Update currency name/symbol/decimals → `CurrencyDto` (200) or 404 |
+| `DELETE` | `/admin/currencies/{id}` | **[AppAdmin]** Delete currency → 204; 409 when currency is in use by expenses or rates |
+| `GET` | `/admin/currencies/{id}/defaults` | **[AppAdmin]** Default rate table for a currency → `CurrencyDefaultRateDto[]` (destination + default rate + last auto rate + date) |
 | `POST` | `/admin/currencies/defaults` | **[AppAdmin]** Set default fallback rate for a pair → 204 |
 | `GET` | `/dashboard/summary` | Total amount + count + previous-period delta (% change) + top category → `DashboardSummaryDto` |
 | `GET` | `/dashboard/monthly` | Per-month totals broken down by category → `MonthlyBreakdownDto[]`; default range = Jan 1 of current year → today |

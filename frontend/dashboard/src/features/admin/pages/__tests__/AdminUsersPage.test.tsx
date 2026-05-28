@@ -3,11 +3,15 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import AdminUsersPage from '../AdminUsersPage'
+import { useAuth } from '@/features/auth/AuthContext'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }))
 vi.mock('@/hooks/usePageTitle', () => ({ usePageTitle: vi.fn() }))
+vi.mock('@/features/auth/AuthContext', () => ({
+  useAuth: vi.fn(),
+}))
 
 const mockGetUsers = vi.fn()
 const mockGetRoles = vi.fn()
@@ -38,6 +42,7 @@ function renderPage() {
 describe('AdminUsersPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(useAuth).mockReturnValue({ user: { email: 'other@test.com' } } as ReturnType<typeof useAuth>)
     mockGetUsers.mockResolvedValue({ ok: true, data: { users: [user1, user2], total: 2, page: 1, pageSize: 20 } })
     mockGetRoles.mockResolvedValue({ ok: true, data: [] })
     mockDisableUser.mockResolvedValue({ ok: true })
@@ -81,5 +86,22 @@ describe('AdminUsersPage', () => {
     const roleBtns = screen.getAllByText('admin.users.manageRoles')
     await user.click(roleBtns[0])
     expect(screen.getByText('common.save')).toBeInTheDocument()
+  })
+
+  it('disables APP_ADMIN checkbox when managing own account roles', async () => {
+    const adminRole = { id: 10, name: 'App Administrator', code: 'APP_ADMIN' }
+    const selfUser = { id: 3, email: 'me@test.com', firstName: 'Me', lastName: 'Self', isDisabled: false, isDeleted: false, isEmailValidated: true, createdAt: '2024-01-01', roles: [adminRole] }
+    vi.mocked(useAuth).mockReturnValue({ user: { email: 'me@test.com' } } as ReturnType<typeof useAuth>)
+    mockGetUsers.mockResolvedValue({ ok: true, data: { users: [selfUser], total: 1, page: 1, pageSize: 20 } })
+    mockGetRoles.mockResolvedValue({ ok: true, data: [adminRole] })
+
+    const user = userEvent.setup()
+    renderPage()
+    await waitFor(() => screen.getByText('me@test.com'))
+    await user.click(screen.getAllByText('admin.users.manageRoles')[0])
+    await waitFor(() => screen.getByText('App Administrator'))
+
+    const checkbox = screen.getByRole('checkbox') as HTMLInputElement
+    expect(checkbox).toBeDisabled()
   })
 })

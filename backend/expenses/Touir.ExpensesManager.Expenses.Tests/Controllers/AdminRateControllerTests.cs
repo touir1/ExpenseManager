@@ -39,22 +39,24 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         public async Task GetHistoryAsync_ReturnsOk_WithRates()
         {
             var svc = new Mock<ICurrencyRateService>();
-            svc.Setup(s => s.GetRateHistoryAsync(1, 2)).ReturnsAsync([MakeRate()]);
+            var paged = new PagedRatesResponse { Rates = [MakeRate()], Total = 1, Page = 1, PageSize = 50 };
+            svc.Setup(s => s.GetRateHistoryAsync(1, 2, 1, 50)).ReturnsAsync(paged);
 
-            var result = await CreateController(svc.Object).GetHistoryAsync(1, 2);
+            var result = await CreateController(svc.Object).GetHistoryAsync(1, 2, 1, 50);
 
             var ok = Assert.IsType<OkObjectResult>(result);
-            var rates = Assert.IsAssignableFrom<IEnumerable<RateDto>>(ok.Value);
-            Assert.Single(rates);
+            var response = Assert.IsType<PagedRatesResponse>(ok.Value);
+            Assert.Single(response.Rates);
         }
 
         [Fact]
         public async Task GetHistoryAsync_ReturnsBadRequest_WhenServiceThrows()
         {
             var svc = new Mock<ICurrencyRateService>();
-            svc.Setup(s => s.GetRateHistoryAsync(1, 2)).ThrowsAsync(new Exception("db"));
+            svc.Setup(s => s.GetRateHistoryAsync(It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<int>(), It.IsAny<int>()))
+               .ThrowsAsync(new Exception("db"));
 
-            var result = await CreateController(svc.Object).GetHistoryAsync(1, 2);
+            var result = await CreateController(svc.Object).GetHistoryAsync(1, 2, 1, 50);
 
             Assert.IsType<BadRequestObjectResult>(result);
         }
@@ -159,12 +161,41 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         public async Task RefreshRatesAsync_ReturnsNoContent_WhenSuccessful()
         {
             var svc = new Mock<ICurrencyRateService>();
-            svc.Setup(s => s.RefreshRatesFromAsync(It.IsAny<DateOnly>(), null, null, default)).Returns(Task.CompletedTask);
+            svc.Setup(s => s.RefreshRatesFromAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
             var result = await CreateController(svc.Object, UserJwt)
                 .RefreshRatesAsync(new RefreshRatesRequest { From = new DateOnly(2024, 1, 1) });
 
             Assert.IsType<NoContentResult>(result);
+        }
+
+        [Fact]
+        public async Task GetHistoryAsync_OptionalParams_ReturnsOk_WithNullFilters()
+        {
+            var svc = new Mock<ICurrencyRateService>();
+            var paged = new PagedRatesResponse { Rates = [], Total = 0, Page = 1, PageSize = 50 };
+            svc.Setup(s => s.GetRateHistoryAsync(null, null, 1, 50)).ReturnsAsync(paged);
+
+            var result = await CreateController(svc.Object).GetHistoryAsync(null, null, 1, 50);
+
+            Assert.IsType<OkObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task RefreshRatesAsync_PassesToDate_WhenProvided()
+        {
+            var svc = new Mock<ICurrencyRateService>();
+            var toDate = new DateOnly(2024, 12, 31);
+            svc.Setup(s => s.RefreshRatesFromAsync(
+                It.IsAny<DateOnly>(), toDate, It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
+               .Returns(Task.CompletedTask);
+
+            var result = await CreateController(svc.Object, UserJwt)
+                .RefreshRatesAsync(new RefreshRatesRequest { From = new DateOnly(2024, 1, 1), To = toDate });
+
+            Assert.IsType<NoContentResult>(result);
+            svc.Verify(s => s.RefreshRatesFromAsync(
+                It.IsAny<DateOnly>(), toDate, It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

@@ -410,7 +410,8 @@
       "roles": "Rôles",
       "noUsers": "Aucun utilisateur trouvé.",
       "saveRoles": "Enregistrer les rôles",
-      "saving": "Enregistrement…"
+      "saving": "Enregistrement…",
+      "cannotRemoveOwnAdmin": "You cannot remove your own admin role"
     },
     "categories": {
       "pageTitle": "Admin — Catégories",
@@ -437,7 +438,16 @@
       "rateLabel": "Taux",
       "save": "Enregistrer",
       "saving": "Enregistrement…",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this currency? This cannot be undone.",
+      "inUse": "Cannot delete: currency is in use by existing expenses or rates.",
+      "defaults": "Defaults",
+      "defaultRatesTitle": "Default rates — {{code}}",
+      "addPair": "Add pair",
+      "lastAutoRate": "Last auto",
+      "lastRateDate": "Date"
     },
     "rates": {
       "pageTitle": "Admin — Taux",
@@ -446,7 +456,14 @@
       "source": "Source",
       "save": "Enregistrer",
       "saving": "Enregistrement…",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "from": "From",
+      "to": "To",
+      "sourceCurrency": "Source",
+      "destinationCurrency": "Destination",
+      "noRates": "No rates found.",
+      "rateDate": "Date",
+      "rateValue": "Rate"
     },
     "rateConflicts": {
       "pageTitle": "Admin — Conflits de taux",

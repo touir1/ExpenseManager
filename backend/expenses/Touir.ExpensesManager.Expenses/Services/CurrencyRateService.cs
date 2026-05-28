@@ -79,10 +79,16 @@ namespace Touir.ExpensesManager.Expenses.Services
             }
         }
 
-        public async Task<IEnumerable<RateDto>> GetRateHistoryAsync(int sourceCurrencyId, int destCurrencyId)
+        public async Task<PagedRatesResponse> GetRateHistoryAsync(int? sourceCurrencyId, int? destCurrencyId, int page = 1, int pageSize = 50)
         {
-            var rates = await _rateRepo.GetHistoryAsync(sourceCurrencyId, destCurrencyId);
-            return rates.Select(r => MapToRateDto(r));
+            var (items, total) = await _rateRepo.GetHistoryAsync(sourceCurrencyId, destCurrencyId, page, pageSize);
+            return new PagedRatesResponse
+            {
+                Rates = items.Select(r => MapToRateDto(r)),
+                Total = total,
+                Page = page,
+                PageSize = pageSize
+            };
         }
 
         public async Task<RateDto> AddManualRateAsync(AddRateRequest request, int adminUserId)
@@ -219,9 +225,9 @@ namespace Touir.ExpensesManager.Expenses.Services
             return conflicts.Select(MapToConflictDto);
         }
 
-        public async Task RefreshRatesFromAsync(DateOnly from, int? sourceCurrencyId = null, int? destinationCurrencyId = null, CancellationToken ct = default)
+        public async Task RefreshRatesFromAsync(DateOnly from, DateOnly? to = null, int? sourceCurrencyId = null, int? destinationCurrencyId = null, CancellationToken ct = default)
         {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var today = to ?? DateOnly.FromDateTime(DateTime.UtcNow);
             var usedIds = (await _expenseRepo.GetDistinctCurrencyIdsAsync()).ToHashSet();
 
             if (usedIds.Count == 0)

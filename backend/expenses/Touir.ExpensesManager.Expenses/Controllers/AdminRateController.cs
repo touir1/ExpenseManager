@@ -26,14 +26,14 @@ namespace Touir.ExpensesManager.Expenses.Controllers
         /// Get exchange rate history for a currency pair.
         /// </summary>
         [HttpGet("history", Name = "GetAdminRateHistory")]
-        [ProducesResponseType(typeof(IEnumerable<RateDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PagedRatesResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetHistoryAsync([FromQuery] int sourceCurrencyId, [FromQuery] int destinationCurrencyId)
+        public async Task<IActionResult> GetHistoryAsync([FromQuery] int? sourceCurrencyId, [FromQuery] int? destinationCurrencyId, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
         {
             try
             {
-                var rates = await _rateService.GetRateHistoryAsync(sourceCurrencyId, destinationCurrencyId);
-                return Ok(rates);
+                var result = await _rateService.GetRateHistoryAsync(sourceCurrencyId, destinationCurrencyId, page, pageSize);
+                return Ok(result);
             }
             catch (Exception)
             {
@@ -160,7 +160,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers
 
             try
             {
-                await _rateService.RefreshRatesFromAsync(request.From, request.SourceCurrencyId, request.DestinationCurrencyId);
+                await _rateService.RefreshRatesFromAsync(request.From, request.To, request.SourceCurrencyId, request.DestinationCurrencyId);
                 return NoContent();
             }
             catch (Exception)
