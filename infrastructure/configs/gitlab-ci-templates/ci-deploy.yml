@@ -8,7 +8,7 @@
     ZIP_NAME_PREFIX: "expenses-manager-web"
   script:
     # Install tools
-    - wget -q https://dl.min.io/client/mc/release/linux-amd64/mc -O /usr/bin/mc
+    - curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/bin/mc
     - chmod +x /usr/bin/mc
     - apk add --no-cache zip
     # Zip dist files with version
