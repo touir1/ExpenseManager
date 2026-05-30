@@ -386,7 +386,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             SourceCurrencyId = c.SourceCurrencyId,
             DestinationCurrencyId = c.DestinationCurrencyId,
             Date = c.Date,
-            AutomaticRate = c.AutomaticRate,
+            AutoRate = c.AutomaticRate,
             ManualRate = c.ManualRate,
             Status = c.Status?.Name ?? string.Empty,
             ResolvedAt = c.ResolvedAt

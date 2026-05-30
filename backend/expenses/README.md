@@ -49,7 +49,7 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 | `POST` | `/admin/rates/bulk` | **[AppAdmin]** Bulk add manual rates → 204 |
 | `PUT` | `/admin/rates/default` | **[AppAdmin]** Set/update global fallback rate for a currency pair → 204 |
 | `GET` | `/admin/rates/conflicts` | **[AppAdmin]** List pending rate conflicts → `RateConflictDto[]` |
-| `POST` | `/admin/rates/conflicts/{id}/resolve` | **[AppAdmin]** Resolve conflict (AcceptAuto / KeepManual / Custom) → 204 or 400/404 |
+| `PUT` | `/admin/rates/conflicts/{id}/resolve` | **[AppAdmin]** Resolve conflict (AcceptAuto / KeepManual / Custom) → 204 or 400/404 |
 | `POST` | `/admin/rates/refresh` | **[AppAdmin]** Backfill rates from provider → 204; body: `{ from, to?, sourceCurrencyId?, destinationCurrencyId? }` |
 | `POST` | `/admin/categories` | **[AppAdmin]** Add top-level category → `AdminCategoryDto` (201) |
 | `PUT` | `/admin/categories/{id}` | **[AppAdmin]** Edit category name/description → 200 or 404 |
@@ -93,7 +93,7 @@ All endpoints (except `/health`) require authentication, enforced by nginx's `au
 **`TagListDto`** — `{ own: TagDto[], family: TagDto[] }`  
 **`ExpensePagedResponse`** — `{ items: ExpenseDto[], totalCount, page, pageSize, totalPages }`  
 **`RateDto`** — `{ sourceCurrencyId, destinationCurrencyId, date, rate, rateSource }`  
-**`RateConflictDto`** — `{ id, sourceCurrencyId, destinationCurrencyId, date, automaticRate, manualRate, status, resolvedAt? }`  
+**`RateConflictDto`** — `{ id, sourceCurrencyId, destinationCurrencyId, date, autoRate, manualRate, status, resolvedAt? }`  
 **`AdminCategoryDto`** — `{ id, name, description?, isArchived, subcategories: AdminCategoryDto[] }`  
 **`DashboardSummaryDto`** — `{ totalAmount, convertedTotal?, displayCurrency?: CurrencyDto, expenseCount, previousPeriodTotal?, changePercent?, topCategory?: SubcategoryDto, topCategoryAmount? }`  
 **`MonthlyBreakdownDto`** — `{ year, month, totalAmount, convertedTotal?, byCategory: CategoryAmountDto[] }`  

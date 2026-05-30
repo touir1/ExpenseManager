@@ -3,6 +3,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.109.3] - 2026-05-30
+### Fixed — Admin role guard and rate conflict resolve
+#### Frontend
+- **`AdminUsersPage.tsx`**: Fixed `isSelfAdmin` checkbox guard — was checking `role.code === 'APP_ADMIN'` (hardcoded, didn't match actual DB code). Now uses `currentUser?.isAdmin && rolesModal.roles.some(r => r.id === role.id)` — protects all roles the admin currently holds when viewing own account. Test updated to pass `isAdmin: true` on mocked user.
+#### Backend — Expenses service
+- **`CurrencyRateRepository.GetExactAsync`**: Removed `AsNoTracking()`. With `AsNoTracking`, `UpdateRateAsync(_db.Update(rate))` tried to re-attach nav entities (SourceCurrency, DestinationCurrency) that were already tracked from `GetConflictByIdAsync`'s includes → `InvalidOperationException` → 400 SERVER_ERROR on resolve. Tracking now reuses existing instances.
+- **`RateConflictDto`**: Renamed `AutomaticRate` → `AutoRate` to match frontend type (`autoRate`); was showing blank in UI.
+- **`CurrencyRateService.MapToConflictDto`**: Updated to set `AutoRate = c.AutomaticRate`.
+
 ## [0.109.2] - 2026-05-30
 ### Fixed — Prevent admin from self-disabling or removing own APP_ADMIN role
 #### Backend — Users service

@@ -6,7 +6,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers.DTO
         public int SourceCurrencyId { get; set; }
         public int DestinationCurrencyId { get; set; }
         public DateOnly Date { get; set; }
-        public decimal AutomaticRate { get; set; }
+        public decimal AutoRate { get; set; }
         public decimal ManualRate { get; set; }
         public string Status { get; set; } = null!;
         public DateTime? ResolvedAt { get; set; }

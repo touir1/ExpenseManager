@@ -17,7 +17,6 @@ namespace Touir.ExpensesManager.Expenses.Repositories
         public async Task<CurrencyDailyRate?> GetExactAsync(int sourceId, int destId, DateOnly date)
         {
             return await _db.CurrencyDailyRates
-                .AsNoTracking()
                 .Include(r => r.SourceCurrency)
                 .Include(r => r.DestinationCurrency)
                 .Include(r => r.RateSource)
