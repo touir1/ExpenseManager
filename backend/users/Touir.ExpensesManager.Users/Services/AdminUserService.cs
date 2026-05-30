@@ -69,6 +69,13 @@ namespace Touir.ExpensesManager.Users.Services
 
         public async Task SetUserRolesAsync(int userId, IEnumerable<int> roleIds, int adminUserId)
         {
+            if (adminUserId == userId)
+            {
+                var allRoles = await _roleRepository.GetAllAsync();
+                var appAdminRole = allRoles.FirstOrDefault(r => r.Code == "APP_ADMIN");
+                if (appAdminRole != null && !roleIds.Contains(appAdminRole.Id))
+                    throw new InvalidOperationException("CANNOT_REMOVE_OWN_ADMIN_ROLE");
+            }
             await _roleRepository.RemoveUserRolesAsync(userId);
             foreach (var roleId in roleIds)
                 await _roleRepository.AssignRoleToUserAsync(roleId, userId, adminUserId);

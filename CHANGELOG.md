@@ -3,6 +3,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.109.2] - 2026-05-30
+### Fixed — Prevent admin from self-disabling or removing own APP_ADMIN role
+#### Backend — Users service
+- **`AdminUserController.DisableUserAsync`**: Returns 403 `CANNOT_SELF_DISABLE` when the requesting admin targets their own account.
+- **`AdminUserController.SetUserRolesAsync`**: Catches `InvalidOperationException` from service → returns 403 `CANNOT_REMOVE_OWN_ADMIN_ROLE`.
+- **`AdminUserService.SetUserRolesAsync`**: When `adminUserId == userId`, fetches all roles, verifies APP_ADMIN is present in submitted role IDs — throws `InvalidOperationException("CANNOT_REMOVE_OWN_ADMIN_ROLE")` if not.
+- **`ControllerErrors`**: Added `CANNOT_SELF_DISABLE` and `CANNOT_REMOVE_OWN_ADMIN_ROLE` constants.
+#### Frontend
+- **`AdminUsersPage.tsx`**: Disable/Enable button is disabled (`opacity-40 cursor-not-allowed`) when the row belongs to the currently logged-in user.
+#### Tests
+- **`AdminUserControllerTests`**: +2 tests (`DisableUserAsync_ReturnsForbidden_WhenSelf`, `SetUserRolesAsync_ReturnsForbidden_WhenServiceThrowsCannotRemoveOwnAdminRole`).
+- **`AdminUserServiceTests`**: +2 tests (`SetUserRolesAsync_ThrowsInvalidOperation_WhenSelfRemovesOwnAdminRole`, `SetUserRolesAsync_Succeeds_WhenSelfKeepsAdminRole`).
+
 ## [0.109.1] - 2026-05-28
 ### Changed — Admin screen UX improvements
 #### Frontend

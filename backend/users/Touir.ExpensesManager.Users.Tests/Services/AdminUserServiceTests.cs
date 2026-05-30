@@ -128,5 +128,37 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             roleRepo.Verify(r => r.RemoveUserRolesAsync(5), Times.Once);
             roleRepo.Verify(r => r.AssignRoleToUserAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
         }
+
+        [Fact]
+        public async Task SetUserRolesAsync_ThrowsInvalidOperation_WhenSelfRemovesOwnAdminRole()
+        {
+            var allRoles = new List<Role>
+            {
+                new() { Id = 10, Code = "APP_ADMIN", Name = "App Administrator" },
+                new() { Id = 11, Code = "OTHER", Name = "Other" }
+            };
+            var roleRepo = new Mock<IRoleRepository>();
+            roleRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(allRoles);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => CreateService(roleRepo: roleRepo.Object).SetUserRolesAsync(5, [11], 5));
+        }
+
+        [Fact]
+        public async Task SetUserRolesAsync_Succeeds_WhenSelfKeepsAdminRole()
+        {
+            var allRoles = new List<Role>
+            {
+                new() { Id = 10, Code = "APP_ADMIN", Name = "App Administrator" }
+            };
+            var roleRepo = new Mock<IRoleRepository>();
+            roleRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(allRoles);
+            roleRepo.Setup(r => r.RemoveUserRolesAsync(5)).Returns(Task.CompletedTask);
+            roleRepo.Setup(r => r.AssignRoleToUserAsync(It.IsAny<int>(), 5, 5)).ReturnsAsync(true);
+
+            await CreateService(roleRepo: roleRepo.Object).SetUserRolesAsync(5, [10], 5);
+
+            roleRepo.Verify(r => r.RemoveUserRolesAsync(5), Times.Once);
+        }
     }
 }

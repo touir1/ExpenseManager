@@ -92,45 +92,50 @@ export default function AdminUsersPage() {
               </tr>
             </thead>
             <tbody>
-              {(data?.users ?? []).map(user => (
-                <tr key={user.id} className="border-t border-surface-border">
-                  <td className="px-4 py-2">{user.email}</td>
-                  <td className="px-4 py-2">{user.firstName} {user.lastName}</td>
-                  <td className="px-4 py-2">
-                    {user.isDisabled ? (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600">{t('admin.users.disabled', 'Disabled')}</span>
-                    ) : (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-600">{t('admin.users.active', 'Active')}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2">
-                    {user.roles.map(r => r.code).join(', ') || '—'}
-                  </td>
-                  <td className="px-4 py-2 flex gap-2">
-                    {user.isDisabled ? (
+              {(data?.users ?? []).map(user => {
+                const isSelf = user.email === currentUser?.email
+                return (
+                  <tr key={user.id} className="border-t border-surface-border">
+                    <td className="px-4 py-2">{user.email}</td>
+                    <td className="px-4 py-2">{user.firstName} {user.lastName}</td>
+                    <td className="px-4 py-2">
+                      {user.isDisabled ? (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600">{t('admin.users.disabled', 'Disabled')}</span>
+                      ) : (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-600">{t('admin.users.active', 'Active')}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2">
+                      {user.roles.map(r => r.code).join(', ') || '—'}
+                    </td>
+                    <td className="px-4 py-2 flex gap-2">
+                      {user.isDisabled ? (
+                        <button
+                          onClick={() => enableMutation.mutate(user.id)}
+                          disabled={isSelf}
+                          className={`text-xs px-2 py-1 rounded bg-green-50 text-green-700 transition-colors ${isSelf ? 'opacity-40 cursor-not-allowed' : 'hover:bg-green-100'}`}
+                        >
+                          {t('admin.users.enable')}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => disableMutation.mutate(user.id)}
+                          disabled={isSelf}
+                          className={`text-xs px-2 py-1 rounded bg-red-50 text-red-700 transition-colors ${isSelf ? 'opacity-40 cursor-not-allowed' : 'hover:bg-red-100'}`}
+                        >
+                          {t('admin.users.disable')}
+                        </button>
+                      )}
                       <button
-                        onClick={() => enableMutation.mutate(user.id)}
-                        className="text-xs px-2 py-1 rounded bg-green-50 text-green-700 hover:bg-green-100 transition-colors"
+                        onClick={() => openRolesModal(user)}
+                        className="text-xs px-2 py-1 rounded bg-brand-50 text-brand-600 hover:bg-brand-100 transition-colors"
                       >
-                        {t('admin.users.enable')}
+                        {t('admin.users.manageRoles')}
                       </button>
-                    ) : (
-                      <button
-                        onClick={() => disableMutation.mutate(user.id)}
-                        className="text-xs px-2 py-1 rounded bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
-                      >
-                        {t('admin.users.disable')}
-                      </button>
-                    )}
-                    <button
-                      onClick={() => openRolesModal(user)}
-                      className="text-xs px-2 py-1 rounded bg-brand-50 text-brand-600 hover:bg-brand-100 transition-colors"
-                    >
-                      {t('admin.users.manageRoles')}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

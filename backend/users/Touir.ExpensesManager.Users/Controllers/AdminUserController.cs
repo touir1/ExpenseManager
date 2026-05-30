@@ -82,10 +82,15 @@ namespace Touir.ExpensesManager.Users.Controllers
 
         [HttpPatch("{id:int}/disable")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DisableUserAsync(int id)
         {
+            var adminId = GetUserId();
+            if (adminId == id)
+                return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponse { Message = ControllerErrors.CannotSelfDisable });
+
             try
             {
                 var result = await _adminUserService.DisableUserAsync(id);
@@ -132,6 +137,10 @@ namespace Touir.ExpensesManager.Users.Controllers
             {
                 await _adminUserService.SetUserRolesAsync(id, request.RoleIds, adminId.Value);
                 return NoContent();
+            }
+            catch (InvalidOperationException ex) when (ex.Message == ControllerErrors.CannotRemoveOwnAdminRole)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponse { Message = ControllerErrors.CannotRemoveOwnAdminRole });
             }
             catch (Exception)
             {

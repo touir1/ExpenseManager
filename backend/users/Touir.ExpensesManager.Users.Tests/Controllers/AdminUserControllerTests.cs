@@ -74,11 +74,22 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         public async Task DisableUserAsync_ReturnsNoContent_WhenUserExists()
         {
             var svc = new Mock<IAdminUserService>();
-            svc.Setup(s => s.DisableUserAsync(1)).ReturnsAsync(true);
+            svc.Setup(s => s.DisableUserAsync(2)).ReturnsAsync(true);
 
-            var result = await CreateController(svc.Object).DisableUserAsync(1);
+            var result = await CreateController(svc.Object, UserJwt).DisableUserAsync(2);
 
             Assert.IsType<NoContentResult>(result);
+        }
+
+        [Fact]
+        public async Task DisableUserAsync_ReturnsForbidden_WhenSelf()
+        {
+            var svc = new Mock<IAdminUserService>();
+
+            var result = await CreateController(svc.Object, UserJwt).DisableUserAsync(1);
+
+            var statusResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(StatusCodes.Status403Forbidden, statusResult.StatusCode);
         }
 
         [Fact]
@@ -116,12 +127,26 @@ namespace Touir.ExpensesManager.Users.Tests.Controllers
         public async Task SetUserRolesAsync_ReturnsNoContent_WhenSuccessful()
         {
             var svc = new Mock<IAdminUserService>();
-            svc.Setup(s => s.SetUserRolesAsync(1, It.IsAny<IEnumerable<int>>(), 1)).Returns(Task.CompletedTask);
+            svc.Setup(s => s.SetUserRolesAsync(2, It.IsAny<IEnumerable<int>>(), 1)).Returns(Task.CompletedTask);
+
+            var result = await CreateController(svc.Object, UserJwt)
+                .SetUserRolesAsync(2, new SetUserRolesRequest { RoleIds = [2] });
+
+            Assert.IsType<NoContentResult>(result);
+        }
+
+        [Fact]
+        public async Task SetUserRolesAsync_ReturnsForbidden_WhenServiceThrowsCannotRemoveOwnAdminRole()
+        {
+            var svc = new Mock<IAdminUserService>();
+            svc.Setup(s => s.SetUserRolesAsync(1, It.IsAny<IEnumerable<int>>(), 1))
+               .ThrowsAsync(new InvalidOperationException("CANNOT_REMOVE_OWN_ADMIN_ROLE"));
 
             var result = await CreateController(svc.Object, UserJwt)
                 .SetUserRolesAsync(1, new SetUserRolesRequest { RoleIds = [2] });
 
-            Assert.IsType<NoContentResult>(result);
+            var statusResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(StatusCodes.Status403Forbidden, statusResult.StatusCode);
         }
     }
 }

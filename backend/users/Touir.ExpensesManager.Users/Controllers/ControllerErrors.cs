@@ -14,5 +14,7 @@ namespace Touir.ExpensesManager.Users.Controllers
         public const string RequestPasswordResetFailed = "REQUEST_PASSWORD_RESET_FAILED";
         public const string CreatePasswordFailed = "CREATE_PASSWORD_FAILED";
         public const string ResetPasswordFailed = "RESET_PASSWORD_FAILED";
+        public const string CannotSelfDisable = "CANNOT_SELF_DISABLE";
+        public const string CannotRemoveOwnAdminRole = "CANNOT_REMOVE_OWN_ADMIN_ROLE";
     }
 }

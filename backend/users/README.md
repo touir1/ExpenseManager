@@ -42,9 +42,9 @@ Protected:
 
 Admin (require `APP_ADMIN` role; `[AdminAuthorize]` filter checks `isAdmin` JWT claim → 403 if absent/false):
 - `GET  /admin/users` — Paged user list; query params: `search`, `page`, `pageSize`; returns `{ users: AdminUserDto[], total, page, pageSize }`
-- `PATCH /admin/users/{id}/disable` — Disable user account → 204 or 404
-- `PATCH /admin/users/{id}/enable` — Enable user account → 204 or 404
-- `PUT  /admin/users/{id}/roles` — Replace user role list; body: `{ roles: string[] }` → 204 or 404
+- `PATCH /admin/users/{id}/disable` — Disable user account → 204, 403 if self (`CANNOT_SELF_DISABLE`), 404
+- `PATCH /admin/users/{id}/enable` — Enable user account → 204, 404
+- `PUT  /admin/users/{id}/roles` — Replace user role list; body: `{ roleIds: int[] }` → 204, 403 if self removes APP_ADMIN (`CANNOT_REMOVE_OWN_ADMIN_ROLE`), 404
 
 ## API Documentation
 
