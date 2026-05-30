@@ -169,19 +169,20 @@ export default function AdminUsersPage() {
             </h2>
             <div className="flex flex-col gap-2 mb-4">
               {(allRoles as AdminRole[]).map(role => {
-                const isSelfAdmin = role.code === 'APP_ADMIN' && rolesModal.email === currentUser?.email
+                const isViewingSelf = rolesModal.email === currentUser?.email
+                const isSelfAdminRole = isViewingSelf && currentUser?.isAdmin === true && rolesModal.roles.some(r => r.id === role.id)
                 return (
                   <label
                     key={role.id}
-                    className={`flex items-center gap-2 text-sm ${isSelfAdmin ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
-                    title={isSelfAdmin ? t('admin.users.cannotRemoveOwnAdmin') : undefined}
+                    className={`flex items-center gap-2 text-sm ${isSelfAdminRole ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+                    title={isSelfAdminRole ? t('admin.users.cannotRemoveOwnAdmin') : undefined}
                   >
                     <input
                       type="checkbox"
                       checked={selectedRoleIds.includes(role.id)}
-                      disabled={isSelfAdmin}
+                      disabled={isSelfAdminRole}
                       onChange={e => {
-                        if (isSelfAdmin && !e.target.checked) return
+                        if (isSelfAdminRole && !e.target.checked) return
                         setSelectedRoleIds(prev =>
                           e.target.checked ? [...prev, role.id] : prev.filter(id => id !== role.id)
                         )

@@ -91,7 +91,7 @@ describe('AdminUsersPage', () => {
   it('disables APP_ADMIN checkbox when managing own account roles', async () => {
     const adminRole = { id: 10, name: 'App Administrator', code: 'APP_ADMIN' }
     const selfUser = { id: 3, email: 'me@test.com', firstName: 'Me', lastName: 'Self', isDisabled: false, isDeleted: false, isEmailValidated: true, createdAt: '2024-01-01', roles: [adminRole] }
-    vi.mocked(useAuth).mockReturnValue({ user: { email: 'me@test.com' } } as ReturnType<typeof useAuth>)
+    vi.mocked(useAuth).mockReturnValue({ user: { email: 'me@test.com', isAdmin: true } } as ReturnType<typeof useAuth>)
     mockGetUsers.mockResolvedValue({ ok: true, data: { users: [selfUser], total: 1, page: 1, pageSize: 20 } })
     mockGetRoles.mockResolvedValue({ ok: true, data: [adminRole] })
 
@@ -104,4 +104,5 @@ describe('AdminUsersPage', () => {
     const checkbox = screen.getByRole('checkbox') as HTMLInputElement
     expect(checkbox).toBeDisabled()
   })
+
 })
