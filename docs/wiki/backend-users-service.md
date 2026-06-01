@@ -77,9 +77,9 @@ Routes: `[Route("auth")]`
 
 | Method | Route | Auth | Description |
 |---|---|---|---|
-| POST | `/auth/login` | None | Authenticate user; issue `auth_token` + `refresh_token` cookies |
+| POST | `/auth/login` | None | Authenticate user; issue `auth_token` + `refresh_token` cookies; response includes `IsAdmin` |
 | POST | `/auth/logout` | Cookie | Revoke refresh token; delete both cookies |
-| GET | `/auth/session` | Cookie | Validate `auth_token`; return user claims |
+| GET | `/auth/session` | Cookie | Validate `auth_token`; return user claims including `IsAdmin` |
 | POST | `/auth/refresh` | Cookie | Validate `refresh_token`; issue new `auth_token`; rotate refresh token |
 | GET | `/auth/check` | Bearer or Cookie | Auth gate used by nginx `auth_request` |
 
@@ -110,6 +110,22 @@ Routes: `[Route("auth")]`
 | POST | `/auth/change-password-reset` | None | Reset password via email hash (TTL configurable, default 24h) |
 | POST | `/auth/create-password` | None | Create initial password after email verification |
 
+### AdminUserController
+
+Routes: `[Route("admin/users")]` — requires `APP_ADMIN` role (`[AdminAuthorize]`)
+
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/admin/users` | Admin | Paginated user list with optional `search`, `page`, `pageSize` |
+| GET | `/admin/users/roles` | Admin | List all application roles |
+| PATCH | `/admin/users/{id}/disable` | Admin | Set `IsDisabled=true`; returns 403 if caller is disabling themselves |
+| PATCH | `/admin/users/{id}/enable` | Admin | Clear `IsDisabled` |
+| PUT | `/admin/users/{id}/roles` | Admin | Replace all role assignments; returns 403 if caller removes their own `APP_ADMIN` role |
+
+**Self-protection rules:**
+- `DisableUserAsync`: returns `403 CANNOT_SELF_DISABLE` when `adminId == targetId`
+- `SetUserRolesAsync`: returns `403 CANNOT_REMOVE_OWN_ADMIN_ROLE` when caller's `APP_ADMIN` role is not in the new `roleIds`
+
 ### MessagingController
 
 Routes: `[Route("messaging")]`
@@ -135,7 +151,7 @@ Responsibility: credential verification only.
 
 Responsibility: JWT token operations.
 
-- `GenerateJwtToken(userId, email, firstName, lastName)` — creates signed JWT with claims: `sub`, `email`, `given_name`, `family_name`, `jti`
+- `GenerateJwtToken(userId, email, firstName, lastName)` — creates signed JWT with claims: `sub`, `email`, `given_name`, `family_name`, `jti`; queries `IRoleRepository.GetUserRolesAsync(userId)` and adds `isAdmin: "true"` claim when any role has `Code == "APP_ADMIN"`
 - `ValidateJwtToken(token)` — validates signature and expiry; returns `ClaimsPrincipal`
 
 **Configuration** (`JwtAuthOptions`):
@@ -168,6 +184,16 @@ Responsibility: full password lifecycle except login.
 - `ChangePasswordAsync(email, oldPassword, newPassword)` — verifies old password; updates hash/salt
 - `ResetPasswordAsync(email, resetHash, newPassword)` — validates `PasswordResetHash` (≤ 24h); updates hash/salt; clears reset fields
 - `RequestPasswordResetAsync(email, appCode)` — generates `PasswordResetHash`; sends reset email
+
+### AdminUserService
+
+Responsibility: admin-facing user management.
+
+- `GetUsersPagedAsync(search, page, pageSize)` — returns `(IEnumerable<AdminUserDto>, int total)`; optional search by name/email
+- `GetAllRolesAsync()` — returns all `RoleDto`
+- `DisableUserAsync(id)` — sets `IsDisabled=true`; returns `false` if user not found
+- `EnableUserAsync(id)` — clears `IsDisabled`; returns `false` if user not found
+- `SetUserRolesAsync(id, roleIds, adminId)` — replaces role assignments; throws `InvalidOperationException(CANNOT_REMOVE_OWN_ADMIN_ROLE)` if admin would remove own `APP_ADMIN`
 
 ### UserRoleAssignmentService
 

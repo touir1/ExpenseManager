@@ -139,6 +139,27 @@ Rate-limited: `[EnableRateLimiting("expenses_global")]`
 |---|---|---|
 | GET | `/currencies` | List all currencies |
 
+### UserConfigController
+
+Route: `[Route("config")]` — rate-limited: `expenses_global`
+
+| Method | Route | Description |
+|---|---|---|
+| GET | `/config` | Get authenticated user's config (`DefaultCurrencyId`, `DefaultCurrency`). Returns null fields if no row exists. |
+| PUT | `/config` | Upsert config. `DefaultCurrencyId: null` clears the default. Returns `USER_CONFIG_INVALID_CURRENCY` (400) if currency not found. |
+
+### AdminCurrencyController
+
+Route: `[Route("admin/currencies")]` — requires `APP_ADMIN` role (`[AppAdmin]`), rate-limited: `expenses_global`
+
+| Method | Route | Description |
+|---|---|---|
+| POST | `/admin/currencies` | Add currency. 409 if code exists. |
+| PUT | `/admin/currencies/{id}` | Update name/symbol/decimals (code immutable). 404 `CURRENCY_NOT_FOUND`. |
+| DELETE | `/admin/currencies/{id}` | Delete currency. 409 if referenced by expenses. |
+| GET | `/admin/currencies/{id}/defaults` | List default fallback rates for this currency. |
+| POST | `/admin/currencies/defaults` | Set default fallback rate (delegates to `ICurrencyRateService.SetDefaultFallbackAsync`). |
+
 ### FamilyController
 
 | Method | Route | Description |

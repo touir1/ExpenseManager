@@ -103,6 +103,17 @@ frontend/dashboard/src/
 │   │   │   └── expenses.type.ts       ← ExpenseDto, ExpenseFilter, ExpenseRequest, etc.
 │   │   └── expense.schemas.ts         ← Zod schema for ExpenseForm
 │   │
+│   ├── admin/
+│   │   ├── components/
+│   │   │   ├── AdminRoute.tsx          ← Guard: redirects non-admins to /dashboard
+│   │   │   └── AdminLayout.tsx         ← Shared sidebar layout for /admin/* routes
+│   │   └── pages/
+│   │       ├── AdminUsersPage.tsx
+│   │       ├── AdminCategoriesPage.tsx
+│   │       ├── AdminCurrenciesPage.tsx
+│   │       ├── AdminRatesPage.tsx
+│   │       └── AdminRateConflictsPage.tsx
+│   │
 │   └── public/
 │       └── pages/
 │           ├── HomePublicPage.tsx
@@ -153,9 +164,19 @@ Defined in `router.tsx`:
 | `/families` | Protected | `FamiliesPage` | Family management |
 | `/families/accept-invite` | Protected | `AcceptInvitePage` | Accept family invitation |
 | `/expenses` | Protected | `ExpensesPage` | Paginated expense list with filters |
-| `/expenses/add` | Protected | `AddExpensePage` | Add new expense |
-| `/expenses/:id/edit` | Protected | `EditExpensePage` | Edit existing expense |
+| `/expenses/add` | Protected | `ExpensesPage` | Opens add-expense modal (same page) |
+| `/expenses/:id/edit` | Protected | `ExpensesPage` | Opens edit-expense modal (same page) |
+| `/admin` | Admin | redirect | Redirects to `/admin/users` |
+| `/admin/users` | Admin | `AdminUsersPage` | User management (enable/disable/roles) |
+| `/admin/categories` | Admin | `AdminCategoriesPage` | Category management |
+| `/admin/currencies` | Admin | `AdminCurrenciesPage` | Currency management (add/edit/delete/defaults) |
+| `/admin/rates` | Admin | `AdminRatesPage` | Currency rate management |
+| `/admin/rate-conflicts` | Admin | `AdminRateConflictsPage` | Rate conflict resolution |
 | `*` | Any | `NotFoundPage` | 404 fallback |
+
+**Admin guard:**
+- `AdminRoute` — checks `AuthContext.user.isAdmin`; redirects to `/dashboard` if false
+- `AdminLayout` — shared layout with admin sidebar navigation wrapping all `/admin/*` routes
 
 **Route guards:**
 - `ProtectedRoute` — checks `AuthContext.isAuthenticated`; redirects to `/login` if false
@@ -172,7 +193,7 @@ Defined in `router.tsx`:
 ```typescript
 isAuthenticated: boolean
 isLoading: boolean
-user: User | null   // { email, firstName, lastName }
+user: User | null   // { email, firstName?, lastName?, isAdmin? }
 ```
 
 **Exposed functions (AuthContextValue):**
@@ -360,9 +381,7 @@ npm test
 
 | Component | Description |
 |---|---|
-| `ExpensesPage` | Paginated list with filters. Uses TanStack Query (`useQuery`) for fetching. Delete triggers `refetch`. |
-| `AddExpensePage` | Thin wrapper — renders `ExpenseForm` in create mode. On success navigates to `/expenses`. |
-| `EditExpensePage` | Loads expense by route param `id` via `useQuery(getExpenseById)`. Renders `ExpenseForm` in edit mode. |
+| `ExpensesPage` | Paginated list with filters. Add/edit actions open `ExpenseForm` as a modal (triggered by navigating to `/expenses/add` or `/expenses/:id/edit` — routes all render `ExpensesPage`). Delete triggers refetch. |
 
 ### Components
 
@@ -436,6 +455,29 @@ DashboardFilter          // familyId?, dateFrom?, dateTo?, displayCurrencyId?
 
 ---
 
+## Admin Feature
+
+Located at `src/features/admin/`. All routes guarded by `AdminRoute` (checks `user.isAdmin`).
+
+### Components
+
+| Component | Description |
+|---|---|
+| `AdminRoute` | Route guard — redirects to `/dashboard` if `user.isAdmin` is false/null |
+| `AdminLayout` | Shared layout with sidebar linking to all admin sections |
+
+### Pages
+
+| Page | Route | Description |
+|---|---|---|
+| `AdminUsersPage` | `/admin/users` | Paginated user list; toggle enable/disable; manage role assignments. Prevents admin from disabling themselves or removing their own `APP_ADMIN` role (`isSelfAdmin` guard). |
+| `AdminCategoriesPage` | `/admin/categories` | Create/edit/delete categories and subcategories |
+| `AdminCurrenciesPage` | `/admin/currencies` | Add/edit/delete currencies; manage default fallback rates per currency pair |
+| `AdminRatesPage` | `/admin/rates` | View/add/bulk-add/refresh currency rates |
+| `AdminRateConflictsPage` | `/admin/rate-conflicts` | List and resolve conflicts between auto and manual rates |
+
+---
+
 ## NavBar
 
 `src/layouts/NavBar.tsx` renders navigation links conditionally based on auth state.
@@ -445,6 +487,7 @@ DashboardFilter          // familyId?, dateFrom?, dateTo?, displayCurrencyId?
 **Authenticated (desktop):**
 - Nav links: Dashboard, Expenses, Families
 - Right-side controls: `FamilySelector` dropdown, `DisplayCurrencySelector` dropdown, notifications placeholder, user avatar with dropdown (Settings, Language Switcher, Sign Out)
+- When `user.isAdmin` is true: Admin Panel link appears in the nav (routes to `/admin/users`)
 
 **Authenticated (mobile):** hamburger menu with focus trap — Dashboard, Expenses, Families, Settings, Sign Out, Language Switcher.
 

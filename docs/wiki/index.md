@@ -65,10 +65,9 @@
 
 ---
 
-## Current Status (v0.106.0)
+## Current Status (v0.109.3)
 
-The project is in active development. The users service (auth, registration, password management, outbox messaging) and the frontend auth flow are production-ready. The expenses backend is fully implemented — CRUD for expenses, categories, currencies, tags, families, dashboard analytics, and currency rate management. The frontend expenses UI is fully shipped: paginated list with filters, add/edit/delete, and a live dashboard with Recharts visualisations (spend over time, category donut, same-month year comparison, currency breakdown, recent expenses).
+The project is in active development. The users service (auth, registration, password management, outbox messaging) and the frontend auth flow are production-ready. The expenses backend is fully implemented — CRUD for expenses, categories, currencies, tags, families, dashboard analytics, currency rate management, and user configuration. The frontend expenses UI is fully shipped: paginated list with filters, add/edit/delete (modal), and a live dashboard with Recharts visualisations (spend over time, category donut, same-month year comparison, currency breakdown, recent expenses). A full admin panel is live: user management (enable/disable/roles), category management, currency management (add/edit/delete/defaults), rate management, and rate conflict resolution. Admin access is guarded by `APP_ADMIN` role and reflected in `isAdmin` JWT claim.
 
 **Open issues:**
 - `S-2` — Missing CSP and security headers (nginx fix pending)
-- `U-2` — Dashboard "coming soon" placeholder text still present on the dashboard card (cosmetic)

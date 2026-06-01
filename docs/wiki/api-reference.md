@@ -206,7 +206,8 @@ Authenticate a user. On success, sets `auth_token` and `refresh_token` cookies.
       "description": null,
       "application": null
     }
-  ]
+  ],
+  "isAdmin": false
 }
 ```
 
@@ -243,7 +244,8 @@ Returns user identity from the `auth_token` cookie. Used by the SPA on initial l
 {
   "email": "jane@example.com",
   "firstName": "Jane",
-  "lastName": "Doe"
+  "lastName": "Doe",
+  "isAdmin": false
 }
 ```
 
@@ -412,6 +414,72 @@ Reset password using the hash from the reset email.
 **Response: 200 OK** — Password updated  
 **Response: 401** — `RESET_PASSWORD_FAILED`  
 **Response: 400** — `SERVER_ERROR`
+
+---
+
+## Users Service — Admin Endpoints
+
+Base path: `/admin/users` (direct) or `/api/users/admin/users` (via nginx)
+
+**Access:** `APP_ADMIN` role required (`AdminAuthorize` filter). All endpoints return `403` if caller lacks admin role.
+
+---
+
+### GET /admin/users
+
+Paginated list of all users with optional search.
+
+**Query parameters:**
+
+| Parameter | Type | Default |
+|---|---|---|
+| `search` | string? | null |
+| `page` | int | 1 |
+| `pageSize` | int | 20 |
+
+**Response: 200 OK**
+
+```json
+{ "users": [...], "total": 42, "page": 1, "pageSize": 20 }
+```
+
+---
+
+### GET /admin/users/roles
+
+List all application roles.
+
+**Response: 200 OK** — array of `RoleDto`
+
+---
+
+### PATCH /admin/users/{id}/disable
+
+Disable a user account (`IsDisabled=true`). Admin cannot disable themselves — returns `403 CANNOT_SELF_DISABLE`.
+
+**Response: 204 No Content** | **403** (`CANNOT_SELF_DISABLE`) | **404** | **400**
+
+---
+
+### PATCH /admin/users/{id}/enable
+
+Re-enable a disabled user account.
+
+**Response: 204 No Content** | **404** | **400**
+
+---
+
+### PUT /admin/users/{id}/roles
+
+Replace all role assignments for a user. Admin cannot remove their own `APP_ADMIN` role — returns `403 CANNOT_REMOVE_OWN_ADMIN_ROLE`.
+
+**Request body:**
+
+```json
+{ "roleIds": [1, 2] }
+```
+
+**Response: 204 No Content** | **403** (`CANNOT_REMOVE_OWN_ADMIN_ROLE`) | **401** | **400**
 
 ---
 
@@ -838,6 +906,98 @@ Change a member's role (Head/Member).
 Role name normalised to title case before lookup via `ILookupCacheService.GetIdAsync<FamilyRole>`.
 
 **Response: 200 OK** | **403** | **404** | **400**
+
+---
+
+## Expenses Service — User Config Endpoints
+
+Base path: `/config` (direct) or `/api/expenses/config` (via nginx)
+
+Rate limit: `expenses_global`. Authentication required.
+
+---
+
+### GET /config
+
+Returns authenticated user's configuration. Null fields if no config row exists yet.
+
+**Response: 200 OK**
+
+```json
+{ "defaultCurrencyId": 1, "defaultCurrency": { "id": 1, "code": "USD", "name": "US Dollar" } }
+```
+
+**Response: 401** — missing/invalid `auth_token`
+
+---
+
+### PUT /config
+
+Upsert user configuration. Pass `null` for `defaultCurrencyId` to clear the default.
+
+**Request body:**
+
+```json
+{ "defaultCurrencyId": 1 }
+```
+
+**Response: 200 OK** — `UserConfigDto`  
+**Response: 400** — `USER_CONFIG_INVALID_CURRENCY`  
+**Response: 401**
+
+---
+
+## Expenses Service — Admin Currency Endpoints
+
+Base path: `/admin/currencies` (direct) or `/api/expenses/admin/currencies` (via nginx)
+
+**Access:** `APP_ADMIN` role required (`AppAdmin` filter). Rate limit: `expenses_global`.
+
+---
+
+### POST /admin/currencies
+
+Add a new currency.
+
+**Request body:** `{ "code": "CHF", "name": "Swiss Franc", "symbol": "Fr.", "decimals": 2 }`
+
+**Response: 201 Created** — `CurrencyDto` | **409** (code already exists) | **400**
+
+---
+
+### PUT /admin/currencies/{id}
+
+Update currency name, symbol, or decimal places. Code is immutable.
+
+**Request body:** `{ "name": "Swiss Franc", "symbol": "CHF", "decimals": 2 }`
+
+**Response: 200 OK** — `CurrencyDto` | **404** (`CURRENCY_NOT_FOUND`) | **400**
+
+---
+
+### DELETE /admin/currencies/{id}
+
+Delete a currency (only if no expenses reference it).
+
+**Response: 204 No Content** | **404** | **409** (in use) | **400**
+
+---
+
+### GET /admin/currencies/{id}/defaults
+
+List all default fallback rates defined for this currency.
+
+**Response: 200 OK** — array of `CurrencyDefaultRateDto`
+
+---
+
+### POST /admin/currencies/defaults
+
+Set a default fallback rate for a currency pair.
+
+**Request body:** `{ "sourceCurrencyId": 1, "destinationCurrencyId": 2, "rate": 0.92 }`
+
+**Response: 204 No Content** | **401** | **400**
 
 ---
 
