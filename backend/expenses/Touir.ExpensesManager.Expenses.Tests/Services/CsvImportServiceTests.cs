@@ -12,8 +12,14 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
     public class CsvImportServiceTests
     {
         private static readonly Currency EurCurrency = new() { Id = 1, Code = "EUR", Name = "Euro", Symbol = "€", Decimals = 2 };
-        private static readonly Category FoodCategory = new() { Id = 10, Name = "Food", ParentCategoryId = null };
-        private static readonly Category RestaurantSub = new() { Id = 11, Name = "Restaurant", ParentCategoryId = 10 };
+        private static readonly Category RestaurantSub = new() { Id = 11, Name = "Restaurant", ParentCategoryId = 10, IsDeleted = false };
+
+        // GetAllActiveAsync returns only top-level categories; subcategories are in .Children (mirrors real EF behaviour)
+        private static readonly Category FoodCategory = new()
+        {
+            Id = 10, Name = "Food", ParentCategoryId = null,
+            Children = [RestaurantSub]
+        };
         private static readonly Category TransportCategory = new() { Id = 20, Name = "Transport", ParentCategoryId = null };
 
         private static CsvImportService CreateService(
@@ -33,7 +39,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             if (categoryRepo == null)
             {
                 var cat = new Mock<ICategoryRepository>();
-                cat.Setup(x => x.GetAllActiveAsync()).ReturnsAsync([FoodCategory, RestaurantSub, TransportCategory]);
+                // Only top-level categories returned — same as real GetAllActiveAsync()
+                cat.Setup(x => x.GetAllActiveAsync()).ReturnsAsync([FoodCategory, TransportCategory]);
                 categoryRepo = cat.Object;
             }
 

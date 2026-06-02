@@ -3,6 +3,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.110.4] - 2026-06-02
+### Fixed — CSV Import subcategory validation always failing
+#### Backend — Expenses service
+- **`CsvImportService.ValidateRowsAsync`**: `subCategories` dictionary was built with `allCategories.Where(c => c.ParentCategoryId != null)` — always empty because `ICategoryRepository.GetAllActiveAsync()` returns only top-level categories (EF Core `WHERE ParentCategoryId IS NULL`); subcategories exist only in each category's `.Children` navigation property. Fixed by building `subCategories` from `.Children`: `allCategories.ToDictionary(cat => cat.Id, cat => cat.Children.Where(s => !s.IsDeleted).ToDictionary(...))`.
+- **`CsvImportServiceTests`**: mock updated to return only top-level categories with `Children` populated (matching real repository behaviour); was previously returning a flat list including `RestaurantSub` directly, which masked the bug.
+
 ## [0.110.3] - 2026-06-02
 ### Changed — CSV Import: families by name, tags as chips, portal dropdowns
 #### Frontend

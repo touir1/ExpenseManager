@@ -79,14 +79,16 @@ namespace Touir.ExpensesManager.Expenses.Services
             var currencies = (await _currencyRepository.GetAllAsync())
                 .ToDictionary(c => c.Code.ToUpperInvariant(), c => c.Id);
 
+            // GetAllActiveAsync returns only top-level categories; subcategories live in .Children
             var allCategories = (await _categoryRepository.GetAllActiveAsync()).ToList();
             var topCategories = allCategories
-                .Where(c => c.ParentCategoryId == null)
                 .ToDictionary(c => c.Name.ToLowerInvariant(), c => c);
             var subCategories = allCategories
-                .Where(c => c.ParentCategoryId != null)
-                .GroupBy(c => c.ParentCategoryId!.Value)
-                .ToDictionary(g => g.Key, g => g.ToDictionary(c => c.Name.ToLowerInvariant(), c => c));
+                .ToDictionary(
+                    cat => cat.Id,
+                    cat => cat.Children
+                        .Where(s => !s.IsDeleted)
+                        .ToDictionary(s => s.Name.ToLowerInvariant(), s => s));
 
             var userFamilies = await _familyRepository.GetFamiliesByUserAsync(userId);
             var memberFamilyIds = userFamilies.Select(f => f.Family.Id).ToHashSet();
