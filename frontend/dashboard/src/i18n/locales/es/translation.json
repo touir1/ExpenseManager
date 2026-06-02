@@ -393,13 +393,17 @@
                                     "confirmButton":  "Importar {{count}} gastos",
                                     "cancel":  "Cancelar",
                                     "revalidate":  "Revalidar",
-                                    "editHint":  "Edita los campos de las filas en rojo y haz clic en Revalidar",
+                                    "editHint":  "Haz clic en ✎ para editar una fila, luego en Revalidar",
+                                    "editRow":  "Editar fila",
+                                    "saveRow":  "Guardar fila",
+                                    "cancelRow":  "Cancelar edición",
                                     "success":  "{{count}} gastos importados correctamente",
                                     "columns":  {
                                                     "row":  "Fila",
                                                     "status":  "Estado",
                                                     "valid":  "Válido",
-                                                    "error":  "Error"
+                                                    "error":  "Error",
+                                                    "editing":  "Editando"
                                                 },
                                     "errors":  {
                                                    "DATE_INVALID":  "Fecha inválida (usar AAAA-MM-DD)",

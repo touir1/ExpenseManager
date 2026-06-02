@@ -3,6 +3,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.110.2] - 2026-06-02
+### Changed — CSV Import: full inline editing UX
+#### Backend — Expenses service
+- **`CsvImportRowPreviewDto`**: added `FamiliesDisplay?: string` — the raw families CSV string is now preserved for invalid rows so the edit UI can pre-fill the field (previously only `FamilyIds` was returned, which was null for invalid rows).
+- **`CsvImportService.ValidateRow()`**: populates `FamiliesDisplay = raw.Families`.
+#### Frontend
+- **`CsvImportPage.tsx`** — complete rewrite of preview step:
+  - Every row (valid and invalid) has an **Edit** button (pencil icon). Click to enter edit mode; Save (✓) and Cancel (✕) icons appear.
+  - **All 8 CSV columns** now shown: Date, Amount, Currency, Category, Subcategory, Description, Tags, Families (previously missing Subcategory, Tags, Families).
+  - **Currency / Category / Subcategory**: searchable `StringCombobox` dropdown in edit mode; options loaded from `useExpensesData()`.
+  - **Subcategory** dropdown filters by currently selected Category; auto-clears on Category change.
+  - **Date** field uses native `<input type="date">` (calendar picker).
+  - State model: `editingRows: Set<number>` (which rows are in edit mode), `pendingEdits: Record<number, EditedFields>` (in-progress), `editedRows: Record<number, EditedFields>` (saved). Re-validate auto-saves all pending edits before calling backend.
+  - Row background: amber while editing, red for invalid (not editing), default for valid.
+- **`expenses.type.ts`**: `CsvImportRowPreview.familiesDisplay: string | null` added.
+- **i18n (en/fr/es/de)**: added `expenses.import.columns.editing`, `expenses.import.editRow`, `expenses.import.saveRow`, `expenses.import.cancelRow`; updated `editHint` to reference the Edit button.
+- **`CsvImportPage.test.tsx`**: 19 tests (+4 new: edit button per row, inputs after click, save/cancel buttons, cancel discards); mocks `useExpensesData`; updated re-validate test flow (Edit→change field→Re-validate auto-saves).
+
 ## [0.110.1] - 2026-06-02
 ### Added — CSV Import: inline edit + re-validate
 #### Backend — Expenses service

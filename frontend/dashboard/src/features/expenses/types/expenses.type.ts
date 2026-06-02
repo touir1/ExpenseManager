@@ -92,6 +92,7 @@ export type CsvImportRowPreview = {
   subcategoryDisplay: string | null
   descriptionDisplay: string | null
   tagNames: string[] | null
+  familiesDisplay: string | null
   date: string | null
   amount: number | null
   currencyId: number | null

@@ -24,6 +24,22 @@ vi.mock('@/features/expenses/services/expensesApi.service', () => ({
   getImportTemplateUrl: () => mockGetImportTemplateUrl(),
 }))
 
+vi.mock('@/features/expenses/ExpensesDataContext', () => ({
+  useExpensesData: () => ({
+    currencies: [{ id: 1, code: 'EUR', name: 'Euro', symbol: '€', decimals: 2 }],
+    categories: [
+      {
+        id: 10,
+        name: 'Food',
+        subcategories: [{ id: 11, name: 'Restaurant', description: null }],
+      },
+    ],
+    tags: [],
+    isLoading: false,
+    refresh: vi.fn(),
+  }),
+}))
+
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
 const validRow = {
@@ -37,6 +53,7 @@ const validRow = {
   subcategoryDisplay: 'Restaurant',
   descriptionDisplay: 'Lunch',
   tagNames: ['work'],
+  familiesDisplay: null,
   date: '2025-01-15',
   amount: 45.5,
   currencyId: 1,
@@ -56,6 +73,7 @@ const errorRow = {
   subcategoryDisplay: '',
   descriptionDisplay: '',
   tagNames: null,
+  familiesDisplay: null,
   date: null,
   amount: null,
   currencyId: null,
@@ -129,6 +147,20 @@ describe('CsvImportPage', () => {
     })
   })
 
+  it('shows all CSV columns in the table header', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewAllValid })
+    renderPage()
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [makeFile()] } })
+
+    await waitFor(() => {
+      expect(screen.getByText(/subcategory/i)).toBeInTheDocument()
+      expect(screen.getByText(/tags/i)).toBeInTheDocument()
+      expect(screen.getByText(/families/i)).toBeInTheDocument()
+    })
+  })
+
   it('shows valid count and error count badges', async () => {
     mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
     renderPage()
@@ -142,7 +174,7 @@ describe('CsvImportPage', () => {
     })
   })
 
-  it('highlights error rows differently from valid rows', async () => {
+  it('shows error codes in status column for invalid rows', async () => {
     mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
     renderPage()
 
@@ -150,12 +182,11 @@ describe('CsvImportPage', () => {
     fireEvent.change(fileInput, { target: { files: [makeFile()] } })
 
     await waitFor(() => {
-      const errorCell = screen.getByText(/Invalid amount/i)
-      expect(errorCell).toBeInTheDocument()
+      expect(screen.getByText(/Invalid amount/i)).toBeInTheDocument()
     })
   })
 
-  it('shows editable inputs for error rows', async () => {
+  it('shows edit button for each row', async () => {
     mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
     renderPage()
 
@@ -163,7 +194,67 @@ describe('CsvImportPage', () => {
     fireEvent.change(fileInput, { target: { files: [makeFile()] } })
 
     await waitFor(() => {
+      expect(screen.getByRole('button', { name: /edit row 1/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /edit row 2/i })).toBeInTheDocument()
+    })
+  })
+
+  it('shows editable inputs after clicking edit button', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    renderPage()
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [makeFile()] } })
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /edit row 2/i })).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /edit row 2/i }))
+
+    await waitFor(() => {
       expect(screen.getByLabelText(/row 2 amount/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/row 2 date/i)).toBeInTheDocument()
+    })
+  })
+
+  it('shows save and cancel buttons when editing', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    renderPage()
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [makeFile()] } })
+
+    await waitFor(() => screen.getByRole('button', { name: /edit row 2/i }))
+    fireEvent.click(screen.getByRole('button', { name: /edit row 2/i }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /save row 2/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /cancel editing row 2/i })).toBeInTheDocument()
+    })
+  })
+
+  it('cancel discards pending edits', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    renderPage()
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [makeFile()] } })
+
+    await waitFor(() => screen.getByRole('button', { name: /edit row 2/i }))
+    fireEvent.click(screen.getByRole('button', { name: /edit row 2/i }))
+    await waitFor(() => screen.getByLabelText(/row 2 amount/i))
+
+    // Edit amount
+    fireEvent.change(screen.getByLabelText(/row 2 amount/i), { target: { value: '999' } })
+
+    // Cancel
+    fireEvent.click(screen.getByRole('button', { name: /cancel editing row 2/i }))
+
+    // Edit button is back, amount input is gone
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /edit row 2/i })).toBeInTheDocument()
+      expect(screen.queryByLabelText(/row 2 amount/i)).not.toBeInTheDocument()
     })
   })
 
@@ -179,7 +270,7 @@ describe('CsvImportPage', () => {
     })
   })
 
-  it('does not show re-validate button when all rows are valid', async () => {
+  it('does not show re-validate button when all rows valid and no edits', async () => {
     mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewAllValid })
     renderPage()
 
@@ -191,7 +282,7 @@ describe('CsvImportPage', () => {
     })
   })
 
-  it('calls validateCsvRows with edited row values on re-validate', async () => {
+  it('calls validateCsvRows with pending edits auto-saved on re-validate', async () => {
     mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
     mockValidateCsvRows.mockResolvedValue({ ok: true, data: previewAllValid })
     renderPage()
@@ -199,13 +290,14 @@ describe('CsvImportPage', () => {
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     fireEvent.change(fileInput, { target: { files: [makeFile()] } })
 
-    await waitFor(() => {
-      expect(screen.getByLabelText(/row 2 amount/i)).toBeInTheDocument()
-    })
+    await waitFor(() => screen.getByRole('button', { name: /edit row 2/i }))
 
-    // edit the broken amount field
-    const amountInput = screen.getByLabelText(/row 2 amount/i)
-    fireEvent.change(amountInput, { target: { value: '25.00' } })
+    // Click edit on error row
+    fireEvent.click(screen.getByRole('button', { name: /edit row 2/i }))
+    await waitFor(() => screen.getByLabelText(/row 2 amount/i))
+
+    // Edit amount without saving first — re-validate should auto-save
+    fireEvent.change(screen.getByLabelText(/row 2 amount/i), { target: { value: '25.00' } })
 
     fireEvent.click(screen.getByRole('button', { name: /re-validate/i }))
 
@@ -225,14 +317,10 @@ describe('CsvImportPage', () => {
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     fireEvent.change(fileInput, { target: { files: [makeFile()] } })
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /re-validate/i })).toBeInTheDocument()
-    })
-
+    await waitFor(() => screen.getByRole('button', { name: /re-validate/i }))
     fireEvent.click(screen.getByRole('button', { name: /re-validate/i }))
 
     await waitFor(() => {
-      // re-validate button gone (all rows now valid, no edits)
       expect(screen.queryByRole('button', { name: /re-validate/i })).not.toBeInTheDocument()
       expect(screen.getByText(/1 valid row/i)).toBeInTheDocument()
     })

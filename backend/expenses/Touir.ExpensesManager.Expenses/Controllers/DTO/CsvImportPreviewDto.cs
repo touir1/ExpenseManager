@@ -21,6 +21,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers.DTO
         public string? SubcategoryDisplay { get; set; }
         public string? DescriptionDisplay { get; set; }
         public string[]? TagNames { get; set; }
+        public string? FamiliesDisplay { get; set; }
         // Resolved IDs (only when IsValid=true — sent back as confirm row)
         public DateOnly? Date { get; set; }
         public decimal? Amount { get; set; }

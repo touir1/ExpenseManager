@@ -393,13 +393,17 @@
                                     "confirmButton":  "Importer {{count}} dépenses",
                                     "cancel":  "Annuler",
                                     "revalidate":  "Re-valider",
-                                    "editHint":  "Modifiez les champs des lignes en rouge, puis cliquez sur Re-valider",
+                                    "editHint":  "Cliquez sur ✎ pour modifier une ligne, puis sur Re-valider",
+                                    "editRow":  "Modifier la ligne",
+                                    "saveRow":  "Enregistrer la ligne",
+                                    "cancelRow":  "Annuler la modification",
                                     "success":  "{{count}} dépenses importées avec succès",
                                     "columns":  {
                                                     "row":  "Ligne",
                                                     "status":  "Statut",
                                                     "valid":  "Valide",
-                                                    "error":  "Erreur"
+                                                    "error":  "Erreur",
+                                                    "editing":  "En cours"
                                                 },
                                     "errors":  {
                                                    "DATE_INVALID":  "Date invalide (format AAAA-MM-JJ)",

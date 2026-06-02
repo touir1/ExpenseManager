@@ -209,6 +209,7 @@ namespace Touir.ExpensesManager.Expenses.Services
                 SubcategoryDisplay = raw.Subcategory,
                 DescriptionDisplay = raw.Description,
                 TagNames = tagNames,
+                FamiliesDisplay = raw.Families,
                 Date = isValid ? parsedDate : null,
                 Amount = isValid ? parsedAmount : null,
                 CurrencyId = isValid ? currencyId : null,

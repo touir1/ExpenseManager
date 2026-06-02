@@ -393,13 +393,17 @@
                                     "confirmButton":  "Import {{count}} expenses",
                                     "cancel":  "Cancel",
                                     "revalidate":  "Re-validate",
-                                    "editHint":  "Edit the fields in red rows, then click Re-validate",
+                                    "editHint":  "Click ✎ on any row to edit it, then click Re-validate",
+                                    "editRow":  "Edit row",
+                                    "saveRow":  "Save row",
+                                    "cancelRow":  "Cancel editing",
                                     "success":  "Successfully imported {{count}} expenses",
                                     "columns":  {
                                                     "row":  "Row",
                                                     "status":  "Status",
                                                     "valid":  "Valid",
-                                                    "error":  "Error"
+                                                    "error":  "Error",
+                                                    "editing":  "Editing"
                                                 },
                                     "errors":  {
                                                    "DATE_INVALID":  "Invalid date (use YYYY-MM-DD)",

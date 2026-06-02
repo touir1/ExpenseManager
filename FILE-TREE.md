@@ -169,7 +169,7 @@ ExpenseManager/
 │   │   │   │   │   ├── TagDto.cs            — Id, Name
 │   │   │   │   │   ├── TagListDto.cs        — Own: IEnumerable<TagDto>, Family: IEnumerable<TagDto>
 │   │   │   │   │   ├── FamilyDto.cs         — Family response shape: Id, Name, IsDefault, IsDeleted, Members: FamilyMemberDto[]
-│   │   │   │   │   ├── CsvImportPreviewDto.cs — TotalRows, ValidCount, ErrorCount, Rows: IEnumerable<CsvImportRowPreviewDto> (display values + resolved IDs + errors per row)
+│   │   │   │   │   ├── CsvImportPreviewDto.cs — TotalRows, ValidCount, ErrorCount, Rows: IEnumerable<CsvImportRowPreviewDto> (display values incl. FamiliesDisplay + resolved IDs + errors per row)
 │   │   │   │   │   └── CsvImportResultDto.cs  — Imported, Skipped
 │   │   │   │   ├── Requests/
 │   │   │   │   │   ├── AdminAddCurrencyRequest.cs — Code (3 chars), Name (max 50), Symbol (max 10), Decimals; validated by AdminAddCurrencyRequestValidator
@@ -713,10 +713,10 @@ ExpenseManager/
 │           │   │   │       └── ExpenseFilters.test.tsx
 │           │   │   ├── pages/
 │           │   │   │   ├── ExpensesPage.tsx    — Paginated expense table with Families column; delete confirm modal; filter panel; empty state; AddExpenseModal (/expenses/add) + EditExpenseModal (/expenses/:id/edit) route-based overlays; "Import CSV" button → /expenses/import
-│           │   │   │   ├── CsvImportPage.tsx   — Two-step upload→preview flow; error rows show inline inputs; "Re-validate" button sends edited values to POST /import/validate-rows and refreshes preview; confirm/cancel; calls previewCsvImport + validateCsvRows + confirmCsvImport
+│           │   │   │   ├── CsvImportPage.tsx   — Two-step upload→preview flow; all 8 columns shown; every row has Edit (pencil)/Save (✓)/Cancel (✕) buttons; currency/category/subcategory use StringCombobox with search (from useExpensesData); date uses native date picker; 3-state edit model (editingRows, pendingEdits, editedRows); Re-validate auto-saves pending edits then calls POST /import/validate-rows
 │           │   │   │   └── __tests__/
 │           │   │   │       ├── ExpensesPage.test.tsx
-│           │   │   │       └── CsvImportPage.test.tsx — 15 tests: renders dropzone/template, shows preview, valid/error badge counts, error row highlight, editable inputs on error rows, re-validate button visible/hidden, re-validate sends edited values, preview updates after re-validate, disabled confirm when no valid rows, confirm with valid rows only, navigates on success, errors on failure, cancel returns to upload view
+│           │   │   │       └── CsvImportPage.test.tsx — 19 tests: dropzone/template, preview, all columns shown, badge counts, error codes in status, edit button per row, inputs after edit click, save/cancel buttons, cancel discards, re-validate visibility, re-validate sends pending edits auto-saved, preview updates, confirm/navigate/error flows, cancel to upload view
 │           │   │   ├── expense.schemas.ts  — makeExpenseSchema(t): Zod v4 schema; categoryId/subcategoryId use .catch(undefined) to coerce NaN
 │           │   │   ├── ExpensesDataContext.tsx  — ExpensesDataProvider / useExpensesData(); fetches categories + currencies on mount
 │           │   │   └── __tests__/

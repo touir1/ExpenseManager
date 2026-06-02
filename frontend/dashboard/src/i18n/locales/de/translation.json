@@ -393,13 +393,17 @@
                                     "confirmButton":  "{{count}} Ausgaben importieren",
                                     "cancel":  "Abbrechen",
                                     "revalidate":  "Neu validieren",
-                                    "editHint":  "Felder in roten Zeilen bearbeiten, dann auf Neu validieren klicken",
+                                    "editHint":  "✎ anklicken zum Bearbeiten einer Zeile, dann Neu validieren klicken",
+                                    "editRow":  "Zeile bearbeiten",
+                                    "saveRow":  "Zeile speichern",
+                                    "cancelRow":  "Bearbeitung abbrechen",
                                     "success":  "{{count}} Ausgaben erfolgreich importiert",
                                     "columns":  {
                                                     "row":  "Zeile",
                                                     "status":  "Status",
                                                     "valid":  "Gültig",
-                                                    "error":  "Fehler"
+                                                    "error":  "Fehler",
+                                                    "editing":  "Wird bearbeitet"
                                                 },
                                     "errors":  {
                                                    "DATE_INVALID":  "Ungültiges Datum (JJJJ-MM-TT)",
