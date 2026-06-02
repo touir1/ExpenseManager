@@ -67,7 +67,7 @@ async function retryRequest<T>(url: string, init: RequestInit, headers: Record<s
 
 export async function request<T>(path: string, init: RequestInit = {}, opts: { skipUnauthorized?: boolean; silent?: boolean } = {}): Promise<ApiResponse<T>> {
   const headers: Record<string, string> = { ...(init.headers as any) }
-  if (init.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json'
+  if (init.body && typeof init.body === 'string' && !headers['Content-Type']) headers['Content-Type'] = 'application/json'
 
   const url = `${API_BASE}${path}`
   try {
@@ -109,4 +109,8 @@ export async function patch<T>(path: string, body: unknown): Promise<ApiResponse
 
 export async function del<T>(path: string): Promise<ApiResponse<T>> {
   return request<T>(path, { method: 'DELETE' })
+}
+
+export async function postFormData<T>(path: string, body: FormData, opts: { skipUnauthorized?: boolean; silent?: boolean } = {}): Promise<ApiResponse<T>> {
+  return request<T>(path, { method: 'POST', body }, opts)
 }

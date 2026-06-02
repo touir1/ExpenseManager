@@ -382,7 +382,38 @@
                                         "prev":  "← Previous",
                                         "next":  "Next →",
                                         "pageOf":  "Page {{page}} of {{total}}"
-                                    }
+                                    },
+                     "importCsv":  "Import CSV",
+                     "import":  {
+                                    "pageTitle":  "Import Expenses from CSV",
+                                    "templateLink":  "Download template",
+                                    "dropzone":  "Drag & drop a CSV file here, or click to select",
+                                    "validRows":  "{{count}} valid rows",
+                                    "errorRows":  "{{count}} rows with errors",
+                                    "confirmButton":  "Import {{count}} expenses",
+                                    "cancel":  "Cancel",
+                                    "success":  "Successfully imported {{count}} expenses",
+                                    "columns":  {
+                                                    "row":  "Row",
+                                                    "status":  "Status",
+                                                    "valid":  "Valid",
+                                                    "error":  "Error"
+                                                },
+                                    "errors":  {
+                                                   "DATE_INVALID":  "Invalid date (use YYYY-MM-DD)",
+                                                   "DATE_IN_FUTURE":  "Date is in the future",
+                                                   "AMOUNT_INVALID":  "Invalid amount",
+                                                   "AMOUNT_MUST_BE_POSITIVE":  "Amount must be positive",
+                                                   "CURRENCY_NOT_FOUND":  "Unknown currency code",
+                                                   "CATEGORY_NOT_FOUND":  "Unknown category",
+                                                   "SUBCATEGORY_INVALID":  "Subcategory does not belong to category",
+                                                   "FAMILY_FORBIDDEN":  "Not a member of this family",
+                                                   "IMPORT_NO_FILE":  "No file uploaded",
+                                                   "IMPORT_FILE_TOO_LARGE":  "File too large (max 1 MB)",
+                                                   "IMPORT_NO_ROWS":  "No rows to import",
+                                                   "IMPORT_TOO_MANY_ROWS":  "Too many rows (max 500)"
+                                               }
+                                }
                  },
     "language":  {
                      "label":  "Language",

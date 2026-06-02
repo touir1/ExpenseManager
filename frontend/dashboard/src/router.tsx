@@ -21,6 +21,7 @@ import VerifyError from '@/features/public/pages/VerifyErrorPage'
 import FamiliesPage from '@/features/families/pages/FamiliesPage'
 import AcceptInvitePage from '@/features/families/pages/AcceptInvitePage'
 import ExpensesPage from '@/features/expenses/pages/ExpensesPage'
+import CsvImportPage from '@/features/expenses/pages/CsvImportPage'
 
 export default function AppRoutes() {
   return (
@@ -41,6 +42,7 @@ export default function AppRoutes() {
       <Route path="/expenses" element={<ProtectedRoute><ExpensesPage /></ProtectedRoute>} />
       <Route path="/expenses/add" element={<ProtectedRoute><ExpensesPage /></ProtectedRoute>} />
       <Route path="/expenses/:id/edit" element={<ProtectedRoute><ExpensesPage /></ProtectedRoute>} />
+      <Route path="/expenses/import" element={<ProtectedRoute><CsvImportPage /></ProtectedRoute>} />
 
       {/* Admin */}
       <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>

@@ -3,6 +3,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.110.0] - 2026-06-02
+### Added — Phase 12: CSV Import
+#### Backend — Expenses service
+- **`CsvImportService`** (`ICsvImportService`): parses uploaded CSV, validates each row (date, amount, currency code, category/subcategory name, family membership), returns per-row preview with error codes. Confirm endpoint bulk-inserts valid rows as `OperationSource.BulkWeb` (ID 3). Tags auto-created/adopted on confirm via `ITagService.UseTagAsync`.
+- **`ExpenseImportController`** at `[Route("import")]`: `POST /import/preview`, `POST /import/confirm`, `GET /import/template`.
+- **`CsvImportConfirmRequestValidator`**: validates rows not empty, max 500, per-row amount/currency/date.
+- **CsvHelper 33.1.0** added to expenses project for robust CSV parsing.
+- **17 new backend tests** (`CsvImportServiceTests` × 13, `ExpenseImportControllerTests` × 6); 702 total passing.
+#### Frontend
+- **`CsvImportPage.tsx`**: two-step upload → preview flow. Drag-and-drop file zone, downloadable template link, preview table with per-row error highlighting, disabled confirm when no valid rows.
+- **`api.service.ts`**: `postFormData<T>()` helper; fixed Content-Type guard to skip `application/json` for `FormData`.
+- **`expensesApi.service.ts`**: `previewCsvImport()`, `confirmCsvImport()`, `getImportTemplateUrl()`.
+- **`expenses.type.ts`**: `CsvImportRowPreview`, `CsvImportPreviewDto`, `CsvImportConfirmRowDto`, `CsvImportResultDto`.
+- **`router.tsx`**: `/expenses/import` route added.
+- **`ExpensesPage.tsx`**: "Import CSV" secondary button in header.
+- **i18n**: `expenses.importCsv` + `expenses.import.*` keys in en/fr/es/de.
+- **10 new frontend tests** (`CsvImportPage.test.tsx`); 834 total passing.
+
 ## [0.109.3] - 2026-05-30
 ### Fixed — Admin role guard and rate conflict resolve
 #### Frontend

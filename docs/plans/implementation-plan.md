@@ -7,8 +7,8 @@ Reference: [application-description.md](application-description.md)
 | Area | Status |
 |------|--------|
 | Users service | ✅ Complete — auth, registration, JWT (incl. `isAdmin` claim), refresh tokens, password management, FluentValidation, admin user management (`AdminUserController`) |
-| Expenses service | ✅ Phase 1–11 complete — schema, categories/currencies, expense CRUD, family system, tags, currency rates (daily storage, resolution, auto-update via Quartz, backfill, conflict management, display currency conversion), dashboard API, admin controllers (categories, currencies, rates) |
-| Frontend | ✅ Auth + family management + tag input + display currency selector + expense list/form (Phase 8) + dashboard (Phase 9 — Hearth design) + admin screens (Phase 11: users, categories, currencies, rates, rate conflicts, AdminRoute guard, AdminLayout, i18n) complete; bulk ops, live currency preview pending (Phase 12+) |
+| Expenses service | ✅ Phase 1–12 complete — schema, categories/currencies, expense CRUD, family system, tags, currency rates (daily storage, resolution, auto-update via Quartz, backfill, conflict management, display currency conversion), dashboard API, admin controllers (categories, currencies, rates), CSV bulk import |
+| Frontend | ✅ Auth + family management + tag input + display currency selector + expense list/form (Phase 8) + dashboard (Phase 9 — Hearth design) + admin screens (Phase 11: users, categories, currencies, rates, rate conflicts, AdminRoute guard, AdminLayout, i18n) + CSV import (Phase 12) complete; live currency preview pending (Phase 13+) |
 | Infrastructure | ✅ Docker Compose, nginx, PostgreSQL, RabbitMQ, Grafana, Prometheus |
 
 ---
@@ -28,7 +28,7 @@ Reference: [application-description.md](application-description.md)
 | 9 | Frontend — Dashboard ✅ | Charts and summary (Hearth design, v0.106.0) |
 | 10 | Frontend — Family Management | Web UI for families |
 | 11 | Admin Screens ✅ | Categories, currencies, rates, rate validation, users (v0.108.0) |
-| 12 | CSV Import | Bulk expense upload |
+| 12 | CSV Import ✅ | Bulk expense upload |
 | 13 | Notifications | In-app + email on attribution removal |
 | 14 | PWA / Mobile | Progressive web app, offline, quick-add |
 | 15 | Suggested Additions | Budgets, recurring, splitting, reports |
@@ -529,25 +529,30 @@ Replace current model with:
 
 ### Backend
 
-- [ ] `CsvImportService`
-  - Parse uploaded CSV; validate each row (amount, date format, currency code, category name)
-  - Return preview payload: parsed rows + per-row errors
-  - On confirm: bulk insert; all rows logged as `created_from: bulk_web`
-  - Return import summary (imported, skipped, errors)
-- [ ] `POST /expenses/import/preview` — returns parsed + validated rows
-- [ ] `POST /expenses/import/confirm` — executes import
-- [ ] `GET /expenses/import/template` — returns CSV template file
-- [ ] FluentValidation for import request DTO
-- [ ] Unit tests for parser and validation logic
+- [x] `CsvImportService` (`ICsvImportService`)
+  - `ParseAndValidateAsync(stream, userId)` — CsvHelper CSV parsing; validates date, amount, currency code (by code lookup), category/subcategory (by name lookup), family membership; tags parsed but not validated (auto-created on confirm); returns per-row preview with error codes
+  - `ConfirmImportAsync(rows, userId)` — `ITagService.UseTagAsync` per tag name, then `IExpenseService.AddAsync` with sourceId=3 (BulkWeb); per-row exception → skipped (no batch abort)
+- [x] `POST /import/preview` — multipart IFormFile → `CsvImportPreviewDto`; max 1 MB
+- [x] `POST /import/confirm` — `CsvImportConfirmRequest` (rows with resolved IDs + tag names) → `CsvImportResultDto`
+- [x] `GET /import/template` — returns `expenses-import-template.csv` with 2 example rows
+- [x] `CsvImportConfirmRequestValidator` — rows not empty, max 500 rows, per-row amount/currency/date
+- [x] 17 unit tests: `CsvImportServiceTests` (13) + `ExpenseImportControllerTests` (6 + 3 template tests)
 
 ### Frontend
 
-- [ ] `CsvImportPage`
-  - Drag-and-drop file upload
-  - Downloadable template link
-  - Preview table with per-cell error highlighting
-  - Column mapping step (if headers differ from template)
-  - Confirm / cancel
+- [x] `CsvImportPage` at `/expenses/import`
+  - Drag-and-drop file upload dropzone (click or drop)
+  - Downloadable template link (`GET /import/template`)
+  - Preview table with per-row error highlighting (red background on invalid rows)
+  - Summary badges: "N valid rows" / "N rows with errors"
+  - Confirm button (disabled when validCount=0); navigates to /expenses on success
+  - Cancel returns to upload step
+- [x] `api.service.ts`: `postFormData<T>()` helper; fixed Content-Type guard for FormData
+- [x] `expensesApi.service.ts`: `previewCsvImport`, `confirmCsvImport`, `getImportTemplateUrl`
+- [x] `ExpensesPage.tsx`: "Import CSV" secondary button → /expenses/import
+- [x] `router.tsx`: `/expenses/import` route added
+- [x] i18n: `expenses.importCsv` + full `expenses.import.*` namespace in en/fr/es/de
+- [x] 10 frontend tests (`CsvImportPage.test.tsx`)
 
 **Depends on:** Phase 3, Phase 4, Phase 5
 

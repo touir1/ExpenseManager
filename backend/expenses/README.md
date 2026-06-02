@@ -44,6 +44,9 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 | `GET` | `/tags` | Tags visible to user → `TagListDto { own, family }` |
 | `POST` | `/tags` | Create/adopt tag by name (idempotent, case-sensitive) → `TagDto` (200) |
 | `DELETE` | `/tags/{id}` | Remove user's adoption of tag → 204 or 404 (tag entity and expense history preserved) |
+| `POST` | `/import/preview` | Parse + validate CSV file (multipart, max 1 MB) → `CsvImportPreviewDto` with per-row status and error codes |
+| `POST` | `/import/confirm` | Bulk-insert valid rows; tags auto-created/adopted; logged as `bulk_web` (OperationSource ID 3) → `CsvImportResultDto { imported, skipped }` |
+| `GET` | `/import/template` | Download CSV template (`expenses-import-template.csv`) with header row and 2 example rows |
 | `GET` | `/admin/rates/history` | **[AppAdmin]** Paged rate history → `PagedRatesResponse { rates, total, page, pageSize }` (query: `sourceCurrencyId?`, `destinationCurrencyId?`, `page`, `pageSize`) |
 | `POST` | `/admin/rates` | **[AppAdmin]** Add manual rate → `RateDto` (201); conflict created if auto rate exists for that date |
 | `POST` | `/admin/rates/bulk` | **[AppAdmin]** Bulk add manual rates → 204 |

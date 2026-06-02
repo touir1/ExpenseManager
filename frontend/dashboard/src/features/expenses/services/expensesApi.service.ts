@@ -1,10 +1,13 @@
-import { get, post, put, del } from '@/services/api.service'
+import { get, post, put, del, postFormData } from '@/services/api.service'
 import type { ApiResponse } from '@/types/api.type'
 import type {
   ExpenseDto,
   ExpenseFilter,
   ExpensePagedResponse,
   ExpenseRequest,
+  CsvImportPreviewDto,
+  CsvImportConfirmRowDto,
+  CsvImportResultDto,
 } from '@/features/expenses/types/expenses.type'
 
 const BASE = '/api/expenses'
@@ -47,4 +50,19 @@ export function updateExpense(id: number, req: ExpenseRequest): Promise<ApiRespo
 
 export function deleteExpense(id: number): Promise<ApiResponse<void>> {
   return del<void>(`${BASE}/${id}`)
+}
+
+export function previewCsvImport(file: File): Promise<ApiResponse<CsvImportPreviewDto>> {
+  const fd = new FormData()
+  fd.append('file', file)
+  return postFormData<CsvImportPreviewDto>(`${BASE}/import/preview`, fd)
+}
+
+export function confirmCsvImport(rows: CsvImportConfirmRowDto[]): Promise<ApiResponse<CsvImportResultDto>> {
+  return post<CsvImportResultDto>(`${BASE}/import/confirm`, { rows })
+}
+
+export function getImportTemplateUrl(): string {
+  const base = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
+  return `${base}${BASE}/import/template`
 }

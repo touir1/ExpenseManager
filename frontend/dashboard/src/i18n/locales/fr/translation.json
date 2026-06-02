@@ -382,7 +382,38 @@
                                         "prev":  "← Précédent",
                                         "next":  "Suivant →",
                                         "pageOf":  "Page {{page}} sur {{total}}"
-                                    }
+                                    },
+                     "importCsv":  "Importer CSV",
+                     "import":  {
+                                    "pageTitle":  "Importer des dépenses depuis un CSV",
+                                    "templateLink":  "Télécharger le modèle",
+                                    "dropzone":  "Déposez un fichier CSV ici ou cliquez pour sélectionner",
+                                    "validRows":  "{{count}} lignes valides",
+                                    "errorRows":  "{{count}} lignes avec erreurs",
+                                    "confirmButton":  "Importer {{count}} dépenses",
+                                    "cancel":  "Annuler",
+                                    "success":  "{{count}} dépenses importées avec succès",
+                                    "columns":  {
+                                                    "row":  "Ligne",
+                                                    "status":  "Statut",
+                                                    "valid":  "Valide",
+                                                    "error":  "Erreur"
+                                                },
+                                    "errors":  {
+                                                   "DATE_INVALID":  "Date invalide (format AAAA-MM-JJ)",
+                                                   "DATE_IN_FUTURE":  "La date est dans le futur",
+                                                   "AMOUNT_INVALID":  "Montant invalide",
+                                                   "AMOUNT_MUST_BE_POSITIVE":  "Le montant doit être positif",
+                                                   "CURRENCY_NOT_FOUND":  "Code de devise inconnu",
+                                                   "CATEGORY_NOT_FOUND":  "Catégorie inconnue",
+                                                   "SUBCATEGORY_INVALID":  "La sous-catégorie n'appartient pas à la catégorie",
+                                                   "FAMILY_FORBIDDEN":  "Non membre de cette famille",
+                                                   "IMPORT_NO_FILE":  "Aucun fichier uploadé",
+                                                   "IMPORT_FILE_TOO_LARGE":  "Fichier trop volumineux (max 1 Mo)",
+                                                   "IMPORT_NO_ROWS":  "Aucune ligne à importer",
+                                                   "IMPORT_TOO_MANY_ROWS":  "Trop de lignes (max 500)"
+                                               }
+                                }
                  },
     "language":  {
                      "label":  "Langue",

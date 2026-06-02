@@ -80,3 +80,45 @@ export type ExpenseRequest = {
   familyIds?: number[]
   tagIds?: number[]
 }
+
+export type CsvImportRowPreview = {
+  rowNumber: number
+  isValid: boolean
+  errors: string[]
+  dateDisplay: string | null
+  amountDisplay: string | null
+  currencyDisplay: string | null
+  categoryDisplay: string | null
+  subcategoryDisplay: string | null
+  descriptionDisplay: string | null
+  tagNames: string[] | null
+  date: string | null
+  amount: number | null
+  currencyId: number | null
+  categoryId: number | null
+  subcategoryId: number | null
+  familyIds: number[] | null
+}
+
+export type CsvImportPreviewDto = {
+  totalRows: number
+  validCount: number
+  errorCount: number
+  rows: CsvImportRowPreview[]
+}
+
+export type CsvImportConfirmRowDto = {
+  amount: number
+  currencyId: number
+  date: string
+  categoryId?: number | null
+  subcategoryId?: number | null
+  description?: string | null
+  tagNames?: string[] | null
+  familyIds?: number[] | null
+}
+
+export type CsvImportResultDto = {
+  imported: number
+  skipped: number
+}
