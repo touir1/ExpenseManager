@@ -262,7 +262,7 @@ function FamilyMultiSelect({
   const btnRef = useRef<HTMLButtonElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
 
-  const options = families.filter(f => !f.isArchived).map(f => ({ id: String(f.id), name: f.name }))
+  const options = families.filter(f => !f.isArchived && !f.isDefault).map(f => ({ id: String(f.id), name: f.name }))
   const selectedSet = new Set(value)
 
   function toggle(id: string) {
@@ -302,7 +302,7 @@ function FamilyMultiSelect({
         onMouseDown={e => { e.preventDefault(); openDropdown() }}
         className="px-1.5 py-0.5 text-xs text-ink-mute hover:text-brand-600 border border-dashed border-slate-300 rounded hover:border-brand-400 transition-colors"
       >
-        {value.length === 0 ? 'default' : '+'}
+        +
       </button>
       {open && pos && createPortal(
         <ul
@@ -360,7 +360,7 @@ function TagDisplay({ tags }: Readonly<{ tags: string[] }>) {
 }
 
 function FamilyDisplay({ ids, families }: Readonly<{ ids: string[]; families: Family[] }>) {
-  if (ids.length === 0) return <span className="text-ink-mute italic text-xs">default</span>
+  if (ids.length === 0) return <span className="text-ink-mute">—</span>
   const names = ids.map(id => families.find(f => String(f.id) === id)?.name ?? `#${id}`)
   return <span className="text-xs">{names.join(', ')}</span>
 }

@@ -166,13 +166,31 @@ describe('CsvImportPage', () => {
     await waitFor(() => { expect(screen.getByText('work')).toBeInTheDocument() })
   })
 
-  it('shows "default" for empty families in display mode', async () => {
+  it('shows "—" for empty families in display mode', async () => {
     mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewAllValid })
     renderPage()
 
     fireEvent.change(document.querySelector('input[type="file"]') as HTMLInputElement, { target: { files: [makeFile()] } })
 
-    await waitFor(() => { expect(screen.getByText('default')).toBeInTheDocument() })
+    await waitFor(() => { expect(screen.getByText('—')).toBeInTheDocument() })
+  })
+
+  it('does not show default family in FamilyMultiSelect dropdown', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    renderPage()
+
+    fireEvent.change(document.querySelector('input[type="file"]') as HTMLInputElement, { target: { files: [makeFile()] } })
+    await waitFor(() => screen.getByRole('button', { name: /edit row 2/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /edit row 2/i }))
+    await waitFor(() => screen.getByLabelText(/row 2 families/i))
+
+    fireEvent.mouseDown(screen.getByLabelText(/row 2 families/i))
+
+    await waitFor(() => {
+      expect(screen.queryByText('My Family')).not.toBeInTheDocument()
+      expect(screen.getByText('Shared')).toBeInTheDocument()
+    })
   })
 
   it('shows valid count and error count badges', async () => {

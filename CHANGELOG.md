@@ -3,6 +3,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.110.5] - 2026-06-03
+### Changed — CSV Import: hide default family from display and selection
+#### Frontend
+- **`CsvImportPage.tsx`**: `FamilyDisplay` now shows `—` (not `"default"`) when no explicit families selected — default family is always implicitly attributed; `FamilyMultiSelect` add button always shows `+` (was `"default"` when empty); `FamilyMultiSelect` options now exclude `isDefault` families — default family no longer appears in the add-family dropdown.
+- **`CsvImportPage.test.tsx`**: test updated to assert `—` for empty families; added test verifying default family is absent from dropdown while non-default families are present.
+
 ## [0.110.4] - 2026-06-02
 ### Fixed — CSV Import subcategory validation always failing
 #### Backend — Expenses service
