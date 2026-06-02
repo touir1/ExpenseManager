@@ -275,13 +275,34 @@ describe('CsvImportPage', () => {
     })
   })
 
-  it('shows re-validate button when there are error rows', async () => {
+  it('shows import button (not re-validate) when there are error rows but no edits', async () => {
     mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
     renderPage()
 
     fireEvent.change(document.querySelector('input[type="file"]') as HTMLInputElement, { target: { files: [makeFile()] } })
 
-    await waitFor(() => { expect(screen.getByRole('button', { name: /re-validate/i })).toBeInTheDocument() })
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /re-validate/i })).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /import/i })).toBeInTheDocument()
+    })
+  })
+
+  it('shows re-validate (not import) after making an edit', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    renderPage()
+
+    fireEvent.change(document.querySelector('input[type="file"]') as HTMLInputElement, { target: { files: [makeFile()] } })
+    await waitFor(() => screen.getByRole('button', { name: /edit row 2/i }))
+    fireEvent.click(screen.getByRole('button', { name: /edit row 2/i }))
+    await waitFor(() => screen.getByLabelText(/row 2 amount/i))
+
+    fireEvent.change(screen.getByLabelText(/row 2 amount/i), { target: { value: '25.00' } })
+    fireEvent.click(screen.getByRole('button', { name: /save row 2/i }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /re-validate/i })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /import/i })).not.toBeInTheDocument()
+    })
   })
 
   it('does not show re-validate button when all rows valid and no edits', async () => {
@@ -341,11 +362,19 @@ describe('CsvImportPage', () => {
     renderPage()
 
     fireEvent.change(document.querySelector('input[type="file"]') as HTMLInputElement, { target: { files: [makeFile()] } })
+    await waitFor(() => screen.getByRole('button', { name: /edit row 2/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /edit row 2/i }))
+    await waitFor(() => screen.getByLabelText(/row 2 amount/i))
+    fireEvent.change(screen.getByLabelText(/row 2 amount/i), { target: { value: '25.00' } })
+    fireEvent.click(screen.getByRole('button', { name: /save row 2/i }))
+
     await waitFor(() => screen.getByRole('button', { name: /re-validate/i }))
     fireEvent.click(screen.getByRole('button', { name: /re-validate/i }))
 
     await waitFor(() => {
       expect(screen.queryByRole('button', { name: /re-validate/i })).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /import/i })).toBeInTheDocument()
     })
   })
 

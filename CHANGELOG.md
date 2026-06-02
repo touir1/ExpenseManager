@@ -3,6 +3,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.110.6] - 2026-06-03
+### Changed — CSV Import: re-validate replaces import button when edits pending
+#### Frontend
+- **`CsvImportPage.tsx`**: Re-validate button now replaces (not accompanies) the Import button whenever `hasEdits` is true; Import button shows when no edits are pending. Previously re-validate also showed when there were error rows with no edits — removed that condition.
+- **`CsvImportPage.test.tsx`**: updated "shows re-validate when error rows" → "shows import when error rows but no edits"; added "shows re-validate (not import) after making an edit"; fixed "updates preview after successful re-validate" to edit a row first before clicking re-validate.
+
 ## [0.110.5] - 2026-06-03
 ### Changed — CSV Import: hide default family from display and selection
 #### Frontend

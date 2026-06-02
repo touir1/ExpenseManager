@@ -804,7 +804,7 @@ export default function CsvImportPage() {
             >
               {t('expenses.import.cancel')}
             </button>
-            {(preview.errorCount > 0 || hasEdits) && (
+            {hasEdits ? (
               <button
                 onClick={handleRevalidate}
                 disabled={revalidating}
@@ -812,14 +812,15 @@ export default function CsvImportPage() {
               >
                 {revalidating ? t('expenses.loading', 'Loading…') : t('expenses.import.revalidate')}
               </button>
+            ) : (
+              <button
+                onClick={handleConfirm}
+                disabled={confirming || preview.validCount === 0}
+                className="px-4 py-2 text-sm font-medium rounded-xl bg-brand-600 hover:bg-brand-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {confirming ? t('expenses.actions.saving') : t('expenses.import.confirmButton', { count: preview.validCount })}
+              </button>
             )}
-            <button
-              onClick={handleConfirm}
-              disabled={confirming || preview.validCount === 0}
-              className="px-4 py-2 text-sm font-medium rounded-xl bg-brand-600 hover:bg-brand-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {confirming ? t('expenses.actions.saving') : t('expenses.import.confirmButton', { count: preview.validCount })}
-            </button>
           </div>
         </div>
       )}
