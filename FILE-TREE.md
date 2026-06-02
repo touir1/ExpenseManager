@@ -713,10 +713,10 @@ ExpenseManager/
 │           │   │   │       └── ExpenseFilters.test.tsx
 │           │   │   ├── pages/
 │           │   │   │   ├── ExpensesPage.tsx    — Paginated expense table with Families column; delete confirm modal; filter panel; empty state; AddExpenseModal (/expenses/add) + EditExpenseModal (/expenses/:id/edit) route-based overlays; "Import CSV" button → /expenses/import
-│           │   │   │   ├── CsvImportPage.tsx   — Two-step upload→preview flow; all 8 columns shown; every row has Edit (pencil)/Save (✓)/Cancel (✕) buttons; currency/category/subcategory use StringCombobox with search (from useExpensesData); date uses native date picker; 3-state edit model (editingRows, pendingEdits, editedRows); Re-validate auto-saves pending edits then calls POST /import/validate-rows
+│           │   │   │   ├── CsvImportPage.tsx   — Two-step upload→preview flow; all 8 columns; Edit/Save/Cancel per row; currency/category/subcategory = StringCombobox; tags = TagChips (chips + autocomplete from useExpensesData, adds new on confirm); families = FamilyMultiSelect (names shown, IDs stored, from useFamilies); all 3 dropdowns portal-rendered to document.body (position:fixed via getBoundingClientRect) to escape overflow-x-auto clipping; 3-state edit model; Re-validate auto-saves and calls POST /import/validate-rows
 │           │   │   │   └── __tests__/
 │           │   │   │       ├── ExpensesPage.test.tsx
-│           │   │   │       └── CsvImportPage.test.tsx — 19 tests: dropzone/template, preview, all columns shown, badge counts, error codes in status, edit button per row, inputs after edit click, save/cancel buttons, cancel discards, re-validate visibility, re-validate sends pending edits auto-saved, preview updates, confirm/navigate/error flows, cancel to upload view
+│           │   │   │       └── CsvImportPage.test.tsx — 22 tests: dropzone/template, preview, all 8 columns header, tags-as-chips display, families-as-"default" display, badge counts, error codes, edit button per row, inputs after edit click (incl. tags/families inputs), save/cancel, cancel discards, re-validate visibility, re-validate auto-saves pending edits, tags serialised as semicolon string, preview updates, confirm/navigate/error, cancel to upload
 │           │   │   ├── expense.schemas.ts  — makeExpenseSchema(t): Zod v4 schema; categoryId/subcategoryId use .catch(undefined) to coerce NaN
 │           │   │   ├── ExpensesDataContext.tsx  — ExpensesDataProvider / useExpensesData(); fetches categories + currencies on mount
 │           │   │   └── __tests__/

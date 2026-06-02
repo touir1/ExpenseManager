@@ -3,6 +3,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.110.3] - 2026-06-02
+### Changed — CSV Import: families by name, tags as chips, portal dropdowns
+#### Frontend
+- **`CsvImportPage.tsx`**:
+  - **Families edit**: replaced text input with `FamilyMultiSelect` — chip display with family names (family IDs stored internally); dropdown shows non-archived families from `useFamilies()`; "default" shown when no families selected; chips have × removal.
+  - **Tags edit**: replaced semicolon text input with `TagChips` — chip display with × removal; inline text input with autocomplete dropdown from `useExpensesData().tags`; Enter adds tag, Backspace removes last; new tag names (not in existing list) are accepted and auto-created on confirm via `ITagService.UseTagAsync`.
+  - **Dropdown z-index fix**: all three custom select components (`StringCombobox`, `TagChips`, `FamilyMultiSelect`) now render their dropdown via `createPortal(…, document.body)` at `position: fixed` using `getBoundingClientRect()` — dropdowns are no longer clipped by the table's `overflow-x-auto` container.
+  - `EditedFields.tags` changed `string` → `string[]` (tag names); `EditedFields.families` changed `string` → `string[]` (family ID strings).
+  - `rowToEdited` parses `familiesDisplay` and `tagNames` into arrays.
+  - `handleRevalidate` serializes arrays back to semicolon strings for the `RawCsvRowDto` backend payload.
+  - Display mode: tags shown as small chips, families shown as comma-separated names (resolved from family list).
+- **`CsvImportPage.test.tsx`**: +3 tests (tags chips display, families default display, tags serialization to semicolons); `useFamilies` mock added; 22 tests total.
+
 ## [0.110.2] - 2026-06-02
 ### Changed — CSV Import: full inline editing UX
 #### Backend — Expenses service
