@@ -339,5 +339,95 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             tagService.Verify(t => t.UseTagAsync("work", 1), Times.Once);
             tagService.Verify(t => t.UseTagAsync("client", 1), Times.Once);
         }
+
+        // ── ValidateRowsAsync ──────────────────────────────────────────────────
+
+        private static RawCsvRowDto MakeRawRow(
+            int rowNumber = 1,
+            string? date = null,
+            string amount = "50.00",
+            string currencyCode = "EUR",
+            string category = "",
+            string subcategory = "",
+            string description = "",
+            string tags = "",
+            string families = "")
+        {
+            date ??= DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)).ToString("yyyy-MM-dd");
+            return new RawCsvRowDto
+            {
+                RowNumber = rowNumber,
+                Date = date,
+                Amount = amount,
+                CurrencyCode = currencyCode,
+                Category = category,
+                Subcategory = subcategory,
+                Description = description,
+                Tags = tags,
+                Families = families,
+            };
+        }
+
+        [Fact]
+        public async Task ValidateRowsAsync_ValidRow_ReturnsIsValidTrue()
+        {
+            var svc = CreateService();
+            var result = await svc.ValidateRowsAsync([MakeRawRow()], userId: 1);
+
+            Assert.Equal(1, result.ValidCount);
+            Assert.True(result.Rows.Single().IsValid);
+        }
+
+        [Fact]
+        public async Task ValidateRowsAsync_FixedRow_ChangesFromInvalidToValid()
+        {
+            var svc = CreateService();
+
+            // first pass: invalid amount
+            var invalidRow = MakeRawRow(amount: "bad");
+            var firstResult = await svc.ValidateRowsAsync([invalidRow], userId: 1);
+            Assert.False(firstResult.Rows.Single().IsValid);
+
+            // second pass: fixed amount
+            var fixedRow = MakeRawRow(amount: "25.00");
+            var secondResult = await svc.ValidateRowsAsync([fixedRow], userId: 1);
+            Assert.True(secondResult.Rows.Single().IsValid);
+        }
+
+        [Fact]
+        public async Task ValidateRowsAsync_PreservesRowNumbers()
+        {
+            var svc = CreateService();
+            var rows = new[]
+            {
+                MakeRawRow(rowNumber: 3, amount: "10.00"),
+                MakeRawRow(rowNumber: 7, amount: "20.00"),
+            };
+
+            var result = await svc.ValidateRowsAsync(rows, userId: 1);
+
+            Assert.Equal([3, 7], result.Rows.Select(r => r.RowNumber).ToArray());
+        }
+
+        [Fact]
+        public async Task ValidateRowsAsync_EmptyRows_ReturnsZeroCounts()
+        {
+            var svc = CreateService();
+            var result = await svc.ValidateRowsAsync([], userId: 1);
+
+            Assert.Equal(0, result.TotalRows);
+            Assert.Equal(0, result.ValidCount);
+            Assert.Equal(0, result.ErrorCount);
+        }
+
+        [Fact]
+        public async Task ValidateRowsAsync_InvalidCurrency_ReturnsCurrencyNotFoundError()
+        {
+            var svc = CreateService();
+            var result = await svc.ValidateRowsAsync([MakeRawRow(currencyCode: "XYZ")], userId: 1);
+
+            Assert.False(result.Rows.Single().IsValid);
+            Assert.Contains("CURRENCY_NOT_FOUND", result.Rows.Single().Errors);
+        }
     }
 }

@@ -392,6 +392,8 @@
                                     "errorRows":  "{{count}} filas con errores",
                                     "confirmButton":  "Importar {{count}} gastos",
                                     "cancel":  "Cancelar",
+                                    "revalidate":  "Revalidar",
+                                    "editHint":  "Edita los campos de las filas en rojo y haz clic en Revalidar",
                                     "success":  "{{count}} gastos importados correctamente",
                                     "columns":  {
                                                     "row":  "Fila",

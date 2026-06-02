@@ -79,6 +79,30 @@ namespace Touir.ExpensesManager.Expenses.Controllers
         }
 
         /// <summary>
+        /// Re-validate edited rows without re-uploading the file.
+        /// </summary>
+        [HttpPost("validate-rows")]
+        [ProducesResponseType(typeof(CsvImportPreviewDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> ValidateRowsAsync(ValidateRowsRequest request)
+        {
+            var userId = JwtCookieReader.GetUserId(Request);
+            if (userId is null)
+                return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingUser });
+
+            try
+            {
+                var preview = await _csvImportService.ValidateRowsAsync(request.Rows, userId.Value);
+                return Ok(preview);
+            }
+            catch (Exception)
+            {
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
+            }
+        }
+
+        /// <summary>
         /// Download the CSV import template with headers and example rows.
         /// </summary>
         [HttpGet("template")]

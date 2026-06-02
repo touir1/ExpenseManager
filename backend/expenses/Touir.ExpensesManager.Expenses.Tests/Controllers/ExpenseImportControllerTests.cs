@@ -164,5 +164,50 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
             var content = System.Text.Encoding.UTF8.GetString(file.FileContents);
             Assert.Contains("date,amount,currency_code,category,subcategory,description,tags,families", content);
         }
+
+        // ── ValidateRowsAsync ─────────────────────────────────────────────────
+
+        [Fact]
+        public async Task ValidateRowsAsync_Returns401_WhenNoCookie()
+        {
+            var controller = CreateController(jwtCookie: null);
+            var result = await controller.ValidateRowsAsync(new ValidateRowsRequest
+            {
+                Rows = [new RawCsvRowDto { RowNumber = 1, Date = "2025-01-01", Amount = "10", CurrencyCode = "EUR" }]
+            });
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task ValidateRowsAsync_Returns200_WithPreview()
+        {
+            var preview = new CsvImportPreviewDto { TotalRows = 1, ValidCount = 1, ErrorCount = 0 };
+            var svc = new Mock<ICsvImportService>();
+            svc.Setup(s => s.ValidateRowsAsync(It.IsAny<IEnumerable<RawCsvRowDto>>(), It.IsAny<int>()))
+               .ReturnsAsync(preview);
+
+            var result = await CreateController(svc.Object).ValidateRowsAsync(new ValidateRowsRequest
+            {
+                Rows = [new RawCsvRowDto { RowNumber = 1, Date = "2025-01-01", Amount = "10", CurrencyCode = "EUR" }]
+            });
+
+            var ok = Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(preview, ok.Value);
+        }
+
+        [Fact]
+        public async Task ValidateRowsAsync_Returns400_OnException()
+        {
+            var svc = new Mock<ICsvImportService>();
+            svc.Setup(s => s.ValidateRowsAsync(It.IsAny<IEnumerable<RawCsvRowDto>>(), It.IsAny<int>()))
+               .ThrowsAsync(new Exception("error"));
+
+            var result = await CreateController(svc.Object).ValidateRowsAsync(new ValidateRowsRequest
+            {
+                Rows = [new RawCsvRowDto { RowNumber = 1 }]
+            });
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
     }
 }

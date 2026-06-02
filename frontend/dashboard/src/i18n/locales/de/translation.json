@@ -392,6 +392,8 @@
                                     "errorRows":  "{{count}} Zeilen mit Fehlern",
                                     "confirmButton":  "{{count}} Ausgaben importieren",
                                     "cancel":  "Abbrechen",
+                                    "revalidate":  "Neu validieren",
+                                    "editHint":  "Felder in roten Zeilen bearbeiten, dann auf Neu validieren klicken",
                                     "success":  "{{count}} Ausgaben erfolgreich importiert",
                                     "columns":  {
                                                     "row":  "Zeile",

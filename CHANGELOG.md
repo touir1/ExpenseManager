@@ -3,6 +3,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.110.1] - 2026-06-02
+### Added — CSV Import: inline edit + re-validate
+#### Backend — Expenses service
+- **`CsvImportService.ValidateRowsAsync(rows, userId)`**: new public method — same validation pipeline as `ParseAndValidateAsync` but accepts pre-parsed `RawCsvRowDto[]` instead of a stream. `ParseAndValidateAsync` now parses CSV → `RawCsvRowDto[]` then delegates to shared logic (extracted `ValidateRow()` private static).
+- **`RawCsvRowDto`** + **`ValidateRowsRequest`**: new request types in `Controllers/Requests/`.
+- **`POST /import/validate-rows`** (`ExpenseImportController`): accepts `ValidateRowsRequest { rows: RawCsvRowDto[] }` → `CsvImportPreviewDto`; allows frontend to re-validate edited rows without re-uploading the file.
+- **`ICsvImportService`**: `ValidateRowsAsync` added.
+- **+8 tests** (`CsvImportServiceTests` +5 for `ValidateRowsAsync`, `ExpenseImportControllerTests` +3 for new endpoint); 710 total passing.
+#### Frontend
+- **`CsvImportPage.tsx`**: error rows now show inline input fields (date, amount, currency, category, description, tags, families pre-filled with original values); edits tracked in `editedRows` state; "Re-validate" button appears when `errorCount > 0` or unsaved edits exist; calls `POST /import/validate-rows` with all rows' current values and replaces preview; edits reset after re-validate.
+- **`expensesApi.service.ts`**: `validateCsvRows(rows)` function added.
+- **`expenses.type.ts`**: `RawCsvRowDto` type added.
+- **i18n**: `expenses.import.revalidate` + `expenses.import.editHint` keys added to en/fr/es/de.
+- **+5 frontend tests** (`CsvImportPage.test.tsx`); 839 total passing.
+
 ## [0.110.0] - 2026-06-02
 ### Added — Phase 12: CSV Import
 #### Backend — Expenses service

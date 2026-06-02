@@ -122,3 +122,15 @@ export type CsvImportResultDto = {
   imported: number
   skipped: number
 }
+
+export type RawCsvRowDto = {
+  rowNumber: number
+  date?: string | null
+  amount?: string | null
+  currencyCode?: string | null
+  category?: string | null
+  subcategory?: string | null
+  description?: string | null
+  tags?: string | null
+  families?: string | null
+}

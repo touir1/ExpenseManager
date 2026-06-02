@@ -392,6 +392,8 @@
                                     "errorRows":  "{{count}} lignes avec erreurs",
                                     "confirmButton":  "Importer {{count}} dépenses",
                                     "cancel":  "Annuler",
+                                    "revalidate":  "Re-valider",
+                                    "editHint":  "Modifiez les champs des lignes en rouge, puis cliquez sur Re-valider",
                                     "success":  "{{count}} dépenses importées avec succès",
                                     "columns":  {
                                                     "row":  "Ligne",

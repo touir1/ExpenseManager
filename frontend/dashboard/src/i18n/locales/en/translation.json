@@ -392,6 +392,8 @@
                                     "errorRows":  "{{count}} rows with errors",
                                     "confirmButton":  "Import {{count}} expenses",
                                     "cancel":  "Cancel",
+                                    "revalidate":  "Re-validate",
+                                    "editHint":  "Edit the fields in red rows, then click Re-validate",
                                     "success":  "Successfully imported {{count}} expenses",
                                     "columns":  {
                                                     "row":  "Row",

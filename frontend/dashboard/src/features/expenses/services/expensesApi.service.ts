@@ -8,6 +8,7 @@ import type {
   CsvImportPreviewDto,
   CsvImportConfirmRowDto,
   CsvImportResultDto,
+  RawCsvRowDto,
 } from '@/features/expenses/types/expenses.type'
 
 const BASE = '/api/expenses'
@@ -65,4 +66,8 @@ export function confirmCsvImport(rows: CsvImportConfirmRowDto[]): Promise<ApiRes
 export function getImportTemplateUrl(): string {
   const base = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
   return `${base}${BASE}/import/template`
+}
+
+export function validateCsvRows(rows: RawCsvRowDto[]): Promise<ApiResponse<CsvImportPreviewDto>> {
+  return post<CsvImportPreviewDto>(`${BASE}/import/validate-rows`, { rows })
 }

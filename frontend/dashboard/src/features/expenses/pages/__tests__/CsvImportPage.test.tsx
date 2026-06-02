@@ -14,11 +14,13 @@ vi.mock('react-router-dom', async () => {
 
 const mockPreviewCsvImport = vi.fn()
 const mockConfirmCsvImport = vi.fn()
+const mockValidateCsvRows = vi.fn()
 const mockGetImportTemplateUrl = vi.fn().mockReturnValue('/api/expenses/import/template')
 
 vi.mock('@/features/expenses/services/expensesApi.service', () => ({
   previewCsvImport: (...args: unknown[]) => mockPreviewCsvImport(...args),
   confirmCsvImport: (...args: unknown[]) => mockConfirmCsvImport(...args),
+  validateCsvRows: (...args: unknown[]) => mockValidateCsvRows(...args),
   getImportTemplateUrl: () => mockGetImportTemplateUrl(),
 }))
 
@@ -150,6 +152,89 @@ describe('CsvImportPage', () => {
     await waitFor(() => {
       const errorCell = screen.getByText(/Invalid amount/i)
       expect(errorCell).toBeInTheDocument()
+    })
+  })
+
+  it('shows editable inputs for error rows', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    renderPage()
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [makeFile()] } })
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/row 2 amount/i)).toBeInTheDocument()
+    })
+  })
+
+  it('shows re-validate button when there are error rows', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    renderPage()
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [makeFile()] } })
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /re-validate/i })).toBeInTheDocument()
+    })
+  })
+
+  it('does not show re-validate button when all rows are valid', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewAllValid })
+    renderPage()
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [makeFile()] } })
+
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /re-validate/i })).not.toBeInTheDocument()
+    })
+  })
+
+  it('calls validateCsvRows with edited row values on re-validate', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    mockValidateCsvRows.mockResolvedValue({ ok: true, data: previewAllValid })
+    renderPage()
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [makeFile()] } })
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/row 2 amount/i)).toBeInTheDocument()
+    })
+
+    // edit the broken amount field
+    const amountInput = screen.getByLabelText(/row 2 amount/i)
+    fireEvent.change(amountInput, { target: { value: '25.00' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /re-validate/i }))
+
+    await waitFor(() => {
+      expect(mockValidateCsvRows).toHaveBeenCalledOnce()
+      const [rows] = mockValidateCsvRows.mock.calls[0]
+      const row2 = rows.find((r: { rowNumber: number }) => r.rowNumber === 2)
+      expect(row2.amount).toBe('25.00')
+    })
+  })
+
+  it('updates preview after successful re-validate', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    mockValidateCsvRows.mockResolvedValue({ ok: true, data: previewAllValid })
+    renderPage()
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [makeFile()] } })
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /re-validate/i })).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /re-validate/i }))
+
+    await waitFor(() => {
+      // re-validate button gone (all rows now valid, no edits)
+      expect(screen.queryByRole('button', { name: /re-validate/i })).not.toBeInTheDocument()
+      expect(screen.getByText(/1 valid row/i)).toBeInTheDocument()
     })
   })
 
