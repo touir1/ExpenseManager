@@ -419,7 +419,14 @@
                                                    "IMPORT_NO_FILE":  "Aucun fichier uploadé",
                                                    "IMPORT_FILE_TOO_LARGE":  "Fichier trop volumineux (max 1 Mo)",
                                                    "IMPORT_NO_ROWS":  "Aucune ligne à importer",
-                                                   "IMPORT_TOO_MANY_ROWS":  "Trop de lignes (max 500)"
+                                                   "IMPORT_TOO_MANY_ROWS":  "Trop de lignes (max 500)",
+                                                   "INVALID_FILE_TYPE":  "Seuls les fichiers CSV sont acceptés",
+                                                   "INVALID_FILE_CONTENT":  "Le contenu du fichier n'est pas un CSV valide",
+                                                   "IMPORT_TIMEOUT":  "Import expiré — essayez un fichier plus petit",
+                                                   "TOO_MANY_TAGS":  "Trop de tags (max 20 par ligne)",
+                                                   "TAG_NAME_TOO_LONG":  "Nom de tag trop long (max 100 caractères)",
+                                                   "MISSING_HEADERS":  "Le CSV manque des colonnes obligatoires",
+                                                   "TOO_MANY_COLUMNS":  "Le CSV a trop de colonnes (max 20)"
                                                }
                                 }
                  },

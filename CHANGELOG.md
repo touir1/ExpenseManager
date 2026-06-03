@@ -3,6 +3,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.110.8] - 2026-06-03
+### Security — CSV upload hardening (10 fixes across backend + frontend)
+#### Backend — Expenses service
+- **`ExpenseImportController`**: `POST /import/preview` now validates file extension (`.csv` only) and Content-Type (whitelist: `text/csv`, `application/csv`, `application/vnd.ms-excel`, `text/plain`) before parsing; file stream copied to `MemoryStream` (seekable) before service call; 30-second `CancellationTokenSource` timeout added to both `preview` and `validate-rows` endpoints — returns `IMPORT_TIMEOUT` on `OperationCanceledException`.
+- **`ICsvImportService` / `CsvImportService`**: `ParseAndValidateAsync` and `ValidateRowsAsync` now accept `CancellationToken cancellationToken = default`; `ParseAndValidateAsync` probes first 512 bytes for null bytes (rejects binary files with `INVALID_FILE_CONTENT`); validates required CSV headers (`date`, `amount`, `currency_code`) after `ReadHeader()` — throws `MISSING_HEADERS:…` on mismatch; enforces max 20 columns (`TOO_MANY_COLUMNS`); tag validation in `ValidateRow()` — `TOO_MANY_TAGS` (>20 per row) and `TAG_NAME_TOO_LONG` (>100 chars).
+- **`ControllerErrors`**: added `InvalidFileType`, `InvalidFileContent`, `ImportTimeout`.
+- **`ValidateRowsRequestValidator`** *(new)*: FluentValidation guard for `POST /import/validate-rows` — was completely unvalidated; enforces row count ≤ 500 and per-field length limits (`Date` ≤ 10, `Amount` ≤ 30, `CurrencyCode` ≤ 10, `Category`/`Subcategory` ≤ 200, `Description` ≤ 500, `Tags` ≤ 1000, `Families` ≤ 500).
+#### Frontend
+- **`CsvImportPage.tsx`**: `handleFile()` now guards against files > 1 MB and non-`.csv` extension before calling the API; description input now has `maxLength={500}`.
+- **All 4 translation files** (`en`, `fr`, `es`, `de`): added 7 new import error keys: `INVALID_FILE_TYPE`, `INVALID_FILE_CONTENT`, `IMPORT_TIMEOUT`, `TOO_MANY_TAGS`, `TAG_NAME_TOO_LONG`, `MISSING_HEADERS`, `TOO_MANY_COLUMNS`.
+#### Tests
+- **`ExpenseImportControllerTests`**: updated `MakeFormFile` helper to accept `contentType`/`fileName` and use `CopyToAsync` mock; added 4 new tests: `WrongExtension`, `WrongContentType`, `FileTooLarge`, `Timeout` (preview + validate-rows); fixed all 4 mock setups to include `It.IsAny<CancellationToken>()`.
+- **`CsvImportServiceTests`**: renamed `TagsAreParsedButNotValidated` → `TagsValidAndParsed`; added 6 new tests: `MissingRequiredHeaders_Throws`, `TooManyColumns_Throws`, `BinaryContent_Throws`, `TooManyTags_ReturnsTooManyTagsError`, `TagNameTooLong_ReturnsTagNameTooLongError`, `ValidTagsWithinLimits_ReturnsIsValidTrue`.
+- **`ValidateRowsRequestValidatorTests`** *(new)*: 9 tests covering null rows, >500 rows, and per-field length overflows.
+- **`CsvImportPage.test.tsx`**: added 2 tests: `file exceeds 1 MB shows error without API call`, `wrong extension shows error without API call`.
+
 ## [0.110.7] - 2026-06-03
 ### Added — Uniqueness validation for family/category names; CSV import accepts family names
 #### Backend — Expenses service

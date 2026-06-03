@@ -419,7 +419,14 @@
                                                    "IMPORT_NO_FILE":  "No file uploaded",
                                                    "IMPORT_FILE_TOO_LARGE":  "File too large (max 1 MB)",
                                                    "IMPORT_NO_ROWS":  "No rows to import",
-                                                   "IMPORT_TOO_MANY_ROWS":  "Too many rows (max 500)"
+                                                   "IMPORT_TOO_MANY_ROWS":  "Too many rows (max 500)",
+                                                   "INVALID_FILE_TYPE":  "Only CSV files are accepted",
+                                                   "INVALID_FILE_CONTENT":  "File content is not valid CSV",
+                                                   "IMPORT_TIMEOUT":  "Import timed out — try a smaller file",
+                                                   "TOO_MANY_TAGS":  "Too many tags (max 20 per row)",
+                                                   "TAG_NAME_TOO_LONG":  "Tag name too long (max 100 characters)",
+                                                   "MISSING_HEADERS":  "CSV is missing required columns",
+                                                   "TOO_MANY_COLUMNS":  "CSV has too many columns (max 20)"
                                                }
                                 }
                  },

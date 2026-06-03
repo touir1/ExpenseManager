@@ -454,6 +454,7 @@ function ImportRow({
           <td className="px-1.5 py-1.5">
             <input
               type="text"
+              maxLength={500}
               value={pending.description}
               onChange={e => onPendingChange('description', e.target.value)}
               aria-label={`Row ${row.rowNumber} description`}
@@ -609,8 +610,18 @@ export default function CsvImportPage() {
 
   // ── File handling ───────────────────────────────────────────────────────────
 
+  const MAX_FILE_SIZE = 1 * 1024 * 1024 // 1 MB — must match backend
+
   async function handleFile(file: File) {
     setError(null)
+    if (file.size > MAX_FILE_SIZE) {
+      setError(t('expenses.import.errors.IMPORT_FILE_TOO_LARGE'))
+      return
+    }
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      setError(t('expenses.import.errors.INVALID_FILE_TYPE'))
+      return
+    }
     setLoadingPreview(true)
     const res = await previewCsvImport(file)
     setLoadingPreview(false)

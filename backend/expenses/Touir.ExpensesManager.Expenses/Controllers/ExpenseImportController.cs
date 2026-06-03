@@ -15,6 +15,15 @@ namespace Touir.ExpensesManager.Expenses.Controllers
     public class ExpenseImportController : ControllerBase
     {
         private const long MaxFileSizeBytes = 1 * 1024 * 1024; // 1 MB
+        private static readonly TimeSpan ParseTimeout = TimeSpan.FromSeconds(30);
+
+        private static readonly HashSet<string> AllowedContentTypes = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "text/csv",
+            "application/csv",
+            "application/vnd.ms-excel",
+            "text/plain",
+        };
 
         private readonly ICsvImportService _csvImportService;
 
@@ -42,11 +51,26 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             if (file.Length > MaxFileSizeBytes)
                 return BadRequest(new ErrorResponse { Message = ControllerErrors.ImportFileTooLarge });
 
+            var extension = Path.GetExtension(file.FileName);
+            if (!extension.Equals(".csv", StringComparison.OrdinalIgnoreCase))
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.InvalidFileType });
+
+            if (!AllowedContentTypes.Contains(file.ContentType))
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.InvalidFileType });
+
+            using var ms = new MemoryStream();
+            await file.CopyToAsync(ms);
+            ms.Position = 0;
+
+            using var cts = new CancellationTokenSource(ParseTimeout);
             try
             {
-                using var stream = file.OpenReadStream();
-                var preview = await _csvImportService.ParseAndValidateAsync(stream, userId.Value);
+                var preview = await _csvImportService.ParseAndValidateAsync(ms, userId.Value, cts.Token);
                 return Ok(preview);
+            }
+            catch (OperationCanceledException)
+            {
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ImportTimeout });
             }
             catch (Exception)
             {
@@ -91,10 +115,15 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             if (userId is null)
                 return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingUser });
 
+            using var cts = new CancellationTokenSource(ParseTimeout);
             try
             {
-                var preview = await _csvImportService.ValidateRowsAsync(request.Rows, userId.Value);
+                var preview = await _csvImportService.ValidateRowsAsync(request.Rows, userId.Value, cts.Token);
                 return Ok(preview);
+            }
+            catch (OperationCanceledException)
+            {
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ImportTimeout });
             }
             catch (Exception)
             {

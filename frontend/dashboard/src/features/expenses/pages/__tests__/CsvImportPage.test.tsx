@@ -449,4 +449,24 @@ describe('CsvImportPage', () => {
 
     await waitFor(() => { expect(screen.getByRole('button', { name: /drag.*drop|csv/i })).toBeInTheDocument() })
   })
+
+  it('shows error and does not call API when file exceeds 1 MB', async () => {
+    renderPage()
+
+    const bigFile = new File([new ArrayBuffer(2 * 1024 * 1024)], 'big.csv', { type: 'text/csv' })
+    fireEvent.change(document.querySelector('input[type="file"]') as HTMLInputElement, { target: { files: [bigFile] } })
+
+    await waitFor(() => { expect(screen.getByText(/1 MB/i)).toBeInTheDocument() })
+    expect(mockPreviewCsvImport).not.toHaveBeenCalled()
+  })
+
+  it('shows error and does not call API when file has wrong extension', async () => {
+    renderPage()
+
+    const wrongFile = new File(['data'], 'upload.exe', { type: 'text/csv' })
+    fireEvent.change(document.querySelector('input[type="file"]') as HTMLInputElement, { target: { files: [wrongFile] } })
+
+    await waitFor(() => { expect(screen.getByText(/only csv files are accepted/i)).toBeInTheDocument() })
+    expect(mockPreviewCsvImport).not.toHaveBeenCalled()
+  })
 })

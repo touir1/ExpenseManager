@@ -29,13 +29,18 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
             return controller;
         }
 
-        private static IFormFile MakeFormFile(string content = "date,amount,currency_code,category,subcategory,description,tags,families\n2025-01-01,10,EUR,,,,,,")
+        private static IFormFile MakeFormFile(
+            string content = "date,amount,currency_code,category,subcategory,description,tags,families\n2025-01-01,10,EUR,,,,,,",
+            string contentType = "text/csv",
+            string fileName = "test.csv")
         {
             var bytes = System.Text.Encoding.UTF8.GetBytes(content);
-            var stream = new MemoryStream(bytes);
             var file = new Mock<IFormFile>();
             file.Setup(f => f.Length).Returns(bytes.Length);
-            file.Setup(f => f.OpenReadStream()).Returns(stream);
+            file.Setup(f => f.FileName).Returns(fileName);
+            file.Setup(f => f.ContentType).Returns(contentType);
+            file.Setup(f => f.CopyToAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+                .Returns<Stream, CancellationToken>(async (target, _) => await target.WriteAsync(bytes));
             return file.Object;
         }
 
@@ -68,11 +73,44 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         }
 
         [Fact]
+        public async Task PreviewAsync_Returns400_WhenWrongExtension()
+        {
+            var file = MakeFormFile(fileName: "upload.exe", contentType: "text/csv");
+            var result = await CreateController().PreviewAsync(file);
+            var bad = Assert.IsType<BadRequestObjectResult>(result);
+            var err = Assert.IsType<ErrorResponse>(bad.Value);
+            Assert.Equal("INVALID_FILE_TYPE", err.Message);
+        }
+
+        [Fact]
+        public async Task PreviewAsync_Returns400_WhenWrongContentType()
+        {
+            var file = MakeFormFile(fileName: "test.csv", contentType: "application/octet-stream");
+            var result = await CreateController().PreviewAsync(file);
+            var bad = Assert.IsType<BadRequestObjectResult>(result);
+            var err = Assert.IsType<ErrorResponse>(bad.Value);
+            Assert.Equal("INVALID_FILE_TYPE", err.Message);
+        }
+
+        [Fact]
+        public async Task PreviewAsync_Returns400_WhenFileTooLarge()
+        {
+            var oversizedFile = new Mock<IFormFile>();
+            oversizedFile.Setup(f => f.Length).Returns(2 * 1024 * 1024); // 2 MB
+            oversizedFile.Setup(f => f.FileName).Returns("test.csv");
+            oversizedFile.Setup(f => f.ContentType).Returns("text/csv");
+            var result = await CreateController().PreviewAsync(oversizedFile.Object);
+            var bad = Assert.IsType<BadRequestObjectResult>(result);
+            var err = Assert.IsType<ErrorResponse>(bad.Value);
+            Assert.Equal("IMPORT_FILE_TOO_LARGE", err.Message);
+        }
+
+        [Fact]
         public async Task PreviewAsync_Returns200_WithPreview()
         {
             var preview = new CsvImportPreviewDto { TotalRows = 2, ValidCount = 2, ErrorCount = 0 };
             var svc = new Mock<ICsvImportService>();
-            svc.Setup(s => s.ParseAndValidateAsync(It.IsAny<Stream>(), It.IsAny<int>()))
+            svc.Setup(s => s.ParseAndValidateAsync(It.IsAny<Stream>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                .ReturnsAsync(preview);
 
             var result = await CreateController(svc.Object).PreviewAsync(MakeFormFile());
@@ -85,11 +123,24 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         public async Task PreviewAsync_Returns400_OnException()
         {
             var svc = new Mock<ICsvImportService>();
-            svc.Setup(s => s.ParseAndValidateAsync(It.IsAny<Stream>(), It.IsAny<int>()))
+            svc.Setup(s => s.ParseAndValidateAsync(It.IsAny<Stream>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                .ThrowsAsync(new Exception("parse error"));
 
             var result = await CreateController(svc.Object).PreviewAsync(MakeFormFile());
             Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task PreviewAsync_Returns400_OnTimeout()
+        {
+            var svc = new Mock<ICsvImportService>();
+            svc.Setup(s => s.ParseAndValidateAsync(It.IsAny<Stream>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+               .ThrowsAsync(new OperationCanceledException());
+
+            var result = await CreateController(svc.Object).PreviewAsync(MakeFormFile());
+            var bad = Assert.IsType<BadRequestObjectResult>(result);
+            var err = Assert.IsType<ErrorResponse>(bad.Value);
+            Assert.Equal("IMPORT_TIMEOUT", err.Message);
         }
 
         // ── ConfirmAsync ──────────────────────────────────────────────────────────
@@ -183,7 +234,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         {
             var preview = new CsvImportPreviewDto { TotalRows = 1, ValidCount = 1, ErrorCount = 0 };
             var svc = new Mock<ICsvImportService>();
-            svc.Setup(s => s.ValidateRowsAsync(It.IsAny<IEnumerable<RawCsvRowDto>>(), It.IsAny<int>()))
+            svc.Setup(s => s.ValidateRowsAsync(It.IsAny<IEnumerable<RawCsvRowDto>>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                .ReturnsAsync(preview);
 
             var result = await CreateController(svc.Object).ValidateRowsAsync(new ValidateRowsRequest
@@ -199,7 +250,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         public async Task ValidateRowsAsync_Returns400_OnException()
         {
             var svc = new Mock<ICsvImportService>();
-            svc.Setup(s => s.ValidateRowsAsync(It.IsAny<IEnumerable<RawCsvRowDto>>(), It.IsAny<int>()))
+            svc.Setup(s => s.ValidateRowsAsync(It.IsAny<IEnumerable<RawCsvRowDto>>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                .ThrowsAsync(new Exception("error"));
 
             var result = await CreateController(svc.Object).ValidateRowsAsync(new ValidateRowsRequest
@@ -208,6 +259,23 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
             });
 
             Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task ValidateRowsAsync_Returns400_OnTimeout()
+        {
+            var svc = new Mock<ICsvImportService>();
+            svc.Setup(s => s.ValidateRowsAsync(It.IsAny<IEnumerable<RawCsvRowDto>>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+               .ThrowsAsync(new OperationCanceledException());
+
+            var result = await CreateController(svc.Object).ValidateRowsAsync(new ValidateRowsRequest
+            {
+                Rows = [new RawCsvRowDto { RowNumber = 1 }]
+            });
+
+            var bad = Assert.IsType<BadRequestObjectResult>(result);
+            var err = Assert.IsType<ErrorResponse>(bad.Value);
+            Assert.Equal("IMPORT_TIMEOUT", err.Message);
         }
     }
 }

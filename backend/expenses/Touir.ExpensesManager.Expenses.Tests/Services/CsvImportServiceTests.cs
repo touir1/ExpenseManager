@@ -282,7 +282,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         }
 
         [Fact]
-        public async Task ParseAndValidateAsync_TagsAreParsedButNotValidated()
+        public async Task ParseAndValidateAsync_TagsValidAndParsed()
         {
             var svc = CreateService();
             var stream = MakeCsv(ValidRow(tags: "work;client"));
@@ -292,6 +292,43 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             var row = result.Rows.Single();
             Assert.True(row.IsValid);
             Assert.Equal(["work", "client"], row.TagNames);
+        }
+
+        [Fact]
+        public async Task ParseAndValidateAsync_MissingRequiredHeaders_Throws()
+        {
+            var svc = CreateService();
+            // CSV without 'currency_code' header
+            var stream = MakeCsv("date,amount,category\n2025-01-01,10.00,Food");
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                svc.ParseAndValidateAsync(stream, userId: 1));
+        }
+
+        [Fact]
+        public async Task ParseAndValidateAsync_TooManyColumns_Throws()
+        {
+            var svc = CreateService();
+            var manyHeaders = string.Join(",", Enumerable.Range(0, 25).Select(i => $"col{i}"));
+            var manyValues = string.Join(",", Enumerable.Range(0, 25).Select(_ => "x"));
+            var stream = MakeCsv($"{manyHeaders}\n{manyValues}");
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                svc.ParseAndValidateAsync(stream, userId: 1));
+        }
+
+        [Fact]
+        public async Task ParseAndValidateAsync_BinaryContent_Throws()
+        {
+            var svc = CreateService();
+            // Create stream with null bytes (binary file signature)
+            var bytes = new byte[512];
+            bytes[0] = 0x4D; bytes[1] = 0x5A; // PE header MZ
+            bytes[3] = 0x00; // null byte
+            var stream = new MemoryStream(bytes);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                svc.ParseAndValidateAsync(stream, userId: 1));
         }
 
         // ── ConfirmImportAsync ────────────────────────────────────────────────────
@@ -503,6 +540,38 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
 
             Assert.False(result.Rows.Single().IsValid);
             Assert.Contains("CURRENCY_NOT_FOUND", result.Rows.Single().Errors);
+        }
+
+        [Fact]
+        public async Task ValidateRowsAsync_TooManyTags_ReturnsTooManyTagsError()
+        {
+            var svc = CreateService();
+            var manyTags = string.Join(";", Enumerable.Range(0, 21).Select(i => $"tag{i}"));
+            var result = await svc.ValidateRowsAsync([MakeRawRow(tags: manyTags)], userId: 1);
+
+            Assert.False(result.Rows.Single().IsValid);
+            Assert.Contains("TOO_MANY_TAGS", result.Rows.Single().Errors);
+        }
+
+        [Fact]
+        public async Task ValidateRowsAsync_TagNameTooLong_ReturnsTagNameTooLongError()
+        {
+            var svc = CreateService();
+            var longTag = new string('a', 101);
+            var result = await svc.ValidateRowsAsync([MakeRawRow(tags: longTag)], userId: 1);
+
+            Assert.False(result.Rows.Single().IsValid);
+            Assert.Contains("TAG_NAME_TOO_LONG", result.Rows.Single().Errors);
+        }
+
+        [Fact]
+        public async Task ValidateRowsAsync_ValidTagsWithinLimits_ReturnsIsValidTrue()
+        {
+            var svc = CreateService();
+            var tags = string.Join(";", Enumerable.Range(0, 5).Select(i => $"tag{i}"));
+            var result = await svc.ValidateRowsAsync([MakeRawRow(tags: tags)], userId: 1);
+
+            Assert.True(result.Rows.Single().IsValid);
         }
     }
 }

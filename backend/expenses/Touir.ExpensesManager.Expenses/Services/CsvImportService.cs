@@ -13,6 +13,11 @@ namespace Touir.ExpensesManager.Expenses.Services
     {
         private const int SourceBulkWeb = 3;
         private const int MaxRows = 500;
+        private const int MaxColumns = 20;
+        private const int MaxTagsPerRow = 20;
+        private const int MaxTagNameLength = 100;
+
+        private static readonly string[] RequiredHeaders = ["date", "amount", "currency_code"];
 
         private readonly ICurrencyRepository _currencyRepository;
         private readonly ICategoryRepository _categoryRepository;
@@ -34,8 +39,15 @@ namespace Touir.ExpensesManager.Expenses.Services
             _expenseService = expenseService;
         }
 
-        public async Task<CsvImportPreviewDto> ParseAndValidateAsync(Stream csvStream, int userId)
+        public async Task<CsvImportPreviewDto> ParseAndValidateAsync(Stream csvStream, int userId, CancellationToken cancellationToken = default)
         {
+            // Magic bytes check — binary files always contain null bytes
+            var probe = new byte[512];
+            var read = await csvStream.ReadAsync(probe.AsMemory(0, probe.Length), cancellationToken);
+            if (probe.Take(read).Any(b => b == 0x00))
+                throw new InvalidOperationException("INVALID_FILE_CONTENT");
+            csvStream.Position = 0;
+
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 HasHeaderRecord = true,
@@ -49,6 +61,17 @@ namespace Touir.ExpensesManager.Expenses.Services
 
             await csv.ReadAsync();
             csv.ReadHeader();
+
+            // Validate required headers exist
+            var missing = RequiredHeaders
+                .Where(h => !csv.HeaderRecord!.Contains(h, StringComparer.OrdinalIgnoreCase))
+                .ToList();
+            if (missing.Count > 0)
+                throw new InvalidOperationException($"MISSING_HEADERS:{string.Join(',', missing)}");
+
+            // Guard against pathologically wide files
+            if (csv.HeaderRecord!.Length > MaxColumns)
+                throw new InvalidOperationException("TOO_MANY_COLUMNS");
 
             int rowNumber = 0;
             while (await csv.ReadAsync())
@@ -71,10 +94,10 @@ namespace Touir.ExpensesManager.Expenses.Services
                 });
             }
 
-            return await ValidateRowsAsync(rawRows, userId);
+            return await ValidateRowsAsync(rawRows, userId, cancellationToken);
         }
 
-        public async Task<CsvImportPreviewDto> ValidateRowsAsync(IEnumerable<RawCsvRowDto> rawRows, int userId)
+        public async Task<CsvImportPreviewDto> ValidateRowsAsync(IEnumerable<RawCsvRowDto> rawRows, int userId, CancellationToken cancellationToken = default)
         {
             var currencies = (await _currencyRepository.GetAllAsync())
                 .ToDictionary(c => c.Code.ToUpperInvariant(), c => c.Id);
@@ -195,10 +218,26 @@ namespace Touir.ExpensesManager.Expenses.Services
                     familyIds = ids.Count > 0 ? [.. ids] : null;
             }
 
-            // tags — parsed but not validated (auto-created on confirm)
-            var tagNames = string.IsNullOrEmpty(raw.Tags)
-                ? null
-                : raw.Tags.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            // tags — validate count and name length, auto-created on confirm
+            string[]? tagNames = null;
+            if (!string.IsNullOrEmpty(raw.Tags))
+            {
+                var tagParts = raw.Tags.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (tagParts.Length > MaxTagsPerRow)
+                    errors.Add("TOO_MANY_TAGS");
+                else
+                {
+                    foreach (var tag in tagParts)
+                    {
+                        if (tag.Length > MaxTagNameLength)
+                        {
+                            errors.Add("TAG_NAME_TOO_LONG");
+                            break;
+                        }
+                    }
+                    tagNames = tagParts;
+                }
+            }
 
             var isValid = errors.Count == 0;
             return new CsvImportRowPreviewDto

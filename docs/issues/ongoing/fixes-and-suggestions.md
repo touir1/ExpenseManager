@@ -57,7 +57,7 @@ The dashboard currently uses vanilla `fetch`, React Hook Form + Zod for auth for
 - **`GET /auth/session` performance**: The session-check endpoint is called on every SPA load. Ensure the JWT validation path is lightweight (no DB hit on happy-path).
 
 ### Expenses service
-- **Input sanitisation**: Validate and sanitise string fields (`description`, category name, etc.) at the controller layer before they reach the database.
+- **Input sanitisation**: ⚠️ Partial (v0.110.8) — CSV import now validates tag names (length/count), enforces per-field length limits via `ValidateRowsRequestValidator`, and probes for binary content. Remaining: general string field sanitisation on non-CSV endpoints (`description`, category name, etc.) at the controller layer.
 
 ---
 

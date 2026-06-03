@@ -5,8 +5,8 @@ namespace Touir.ExpensesManager.Expenses.Services.Contracts
 {
     public interface ICsvImportService
     {
-        Task<CsvImportPreviewDto> ParseAndValidateAsync(Stream csvStream, int userId);
-        Task<CsvImportPreviewDto> ValidateRowsAsync(IEnumerable<RawCsvRowDto> rows, int userId);
+        Task<CsvImportPreviewDto> ParseAndValidateAsync(Stream csvStream, int userId, CancellationToken cancellationToken = default);
+        Task<CsvImportPreviewDto> ValidateRowsAsync(IEnumerable<RawCsvRowDto> rows, int userId, CancellationToken cancellationToken = default);
         Task<CsvImportResultDto> ConfirmImportAsync(IEnumerable<CsvImportConfirmRowDto> rows, int userId);
     }
 }
