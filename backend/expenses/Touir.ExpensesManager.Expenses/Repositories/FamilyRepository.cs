@@ -14,6 +14,14 @@ namespace Touir.ExpensesManager.Expenses.Repositories
             _db = db;
         }
 
+        public async Task<bool> ExistsWithNameForUserAsync(string name, int userId, int? excludeId = null)
+            => await _db.FamilyMemberships
+                .Include(m => m.Family)
+                .AnyAsync(m => m.UserId == userId
+                    && m.Family.Name.ToLower() == name.ToLower()
+                    && !m.Family.IsDeleted
+                    && (excludeId == null || m.Family.Id != excludeId));
+
         public async Task<Family> CreateAsync(Family family, FamilyMembership headMembership)
         {
             _db.Families.Add(family);

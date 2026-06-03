@@ -91,10 +91,12 @@ namespace Touir.ExpensesManager.Expenses.Services
                         .ToDictionary(s => s.Name.ToLowerInvariant(), s => s));
 
             var userFamilies = await _familyRepository.GetFamiliesByUserAsync(userId);
-            var memberFamilyIds = userFamilies.Select(f => f.Family.Id).ToHashSet();
+            var memberFamiliesByName = userFamilies
+                .Where(f => !f.Family.IsDeleted)
+                .ToDictionary(f => f.Family.Name.ToLowerInvariant(), f => f.Family.Id);
 
             var rows = rawRows
-                .Select(raw => ValidateRow(raw, currencies, topCategories, subCategories, memberFamilyIds))
+                .Select(raw => ValidateRow(raw, currencies, topCategories, subCategories, memberFamiliesByName))
                 .ToList();
 
             return new CsvImportPreviewDto
@@ -111,7 +113,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             Dictionary<string, int> currencies,
             Dictionary<string, Category> topCategories,
             Dictionary<int, Dictionary<string, Category>> subCategories,
-            HashSet<int> memberFamilyIds)
+            Dictionary<string, int> memberFamiliesByName)
         {
             var errors = new List<string>();
             DateOnly? parsedDate = null;
@@ -173,7 +175,7 @@ namespace Touir.ExpensesManager.Expenses.Services
                 errors.Add("SUBCATEGORY_INVALID");
             }
 
-            // families (optional — empty = default family)
+            // families (optional — empty = default family; column accepts names, resolved case-insensitively)
             if (!string.IsNullOrEmpty(raw.Families))
             {
                 var parts = raw.Families.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -181,7 +183,7 @@ namespace Touir.ExpensesManager.Expenses.Services
                 var familyError = false;
                 foreach (var part in parts)
                 {
-                    if (!int.TryParse(part, out var fid) || !memberFamilyIds.Contains(fid))
+                    if (!memberFamiliesByName.TryGetValue(part.ToLowerInvariant(), out var fid))
                     {
                         errors.Add("FAMILY_FORBIDDEN");
                         familyError = true;

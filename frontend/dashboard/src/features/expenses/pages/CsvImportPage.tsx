@@ -342,9 +342,8 @@ function rowToEdited(row: CsvImportRowPreview): EditedFields {
     subcategory: row.subcategoryDisplay ?? '',
     description: row.descriptionDisplay ?? '',
     tags: row.tagNames ?? [],
-    families: row.familiesDisplay
-      ? row.familiesDisplay.split(';').map(s => s.trim()).filter(Boolean)
-      : (row.familyIds?.map(String) ?? []),
+    families: row.familyIds?.map(String)
+      ?? (row.familiesDisplay?.split(';').map(s => s.trim()).filter(Boolean) ?? []),
   }
 }
 

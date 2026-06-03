@@ -242,7 +242,8 @@
                       "tagNotVisible":  "One or more tags are not visible to you.",
                       "familyInvitationInvalid":  "This invitation link is invalid.",
                       "familyInvitationAlreadyAccepted":  "This invitation has already been accepted.",
-                      "familyInvitationExpired":  "This invitation has expired."
+                      "familyInvitationExpired":  "This invitation has expired.",
+                      "familyNameAlreadyExists":  "A family with this name already exists."
                   },
     "families":  {
                      "pageTitle":  "Families",
@@ -316,6 +317,7 @@
                        "passwordsNoMatch":  "New passwords do not match.",
                        "familyNameRequired":  "Family name is required.",
                        "familyNameMax":  "Family name must be at most 30 characters.",
+                       "familyNameTaken":  "A family with this name already exists.",
                        "required":  "This field is required."
                    },
     "expenses":  {

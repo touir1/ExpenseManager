@@ -34,6 +34,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         {
             var added = MakeCategory(10, "Travel");
             var repo = new Mock<ICategoryRepository>();
+            repo.Setup(r => r.ExistsWithNameAsync("Travel", null, null)).ReturnsAsync(false);
             repo.Setup(r => r.AddAsync(It.IsAny<Category>())).ReturnsAsync(added);
 
             var result = await CreateService(repo.Object).AddCategoryAsync("Travel", null);
@@ -43,11 +44,22 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         }
 
         [Fact]
+        public async Task AddCategoryAsync_Throws_WhenNameDuplicate()
+        {
+            var repo = new Mock<ICategoryRepository>();
+            repo.Setup(r => r.ExistsWithNameAsync("Travel", null, null)).ReturnsAsync(true);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                CreateService(repo.Object).AddCategoryAsync("Travel", null));
+        }
+
+        [Fact]
         public async Task UpdateCategoryAsync_ReturnsUpdatedDto()
         {
             var cat = MakeCategory(5, "Food");
             var repo = new Mock<ICategoryRepository>();
             repo.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(cat);
+            repo.Setup(r => r.ExistsWithNameAsync("Groceries", null, 5)).ReturnsAsync(false);
             repo.Setup(r => r.UpdateAsync(It.IsAny<Category>())).Returns(Task.CompletedTask);
 
             var result = await CreateService(repo.Object).UpdateCategoryAsync(5, "Groceries", "desc");
@@ -63,6 +75,18 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() =>
                 CreateService(repo.Object).UpdateCategoryAsync(99, "X", null));
+        }
+
+        [Fact]
+        public async Task UpdateCategoryAsync_Throws_WhenNameDuplicate()
+        {
+            var cat = MakeCategory(5, "Food");
+            var repo = new Mock<ICategoryRepository>();
+            repo.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(cat);
+            repo.Setup(r => r.ExistsWithNameAsync("Groceries", null, 5)).ReturnsAsync(true);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                CreateService(repo.Object).UpdateCategoryAsync(5, "Groceries", null));
         }
 
         [Fact]
@@ -109,12 +133,51 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             var added = MakeCategory(10, "Organic", parentId: 1);
             var repo = new Mock<ICategoryRepository>();
             repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(parent);
+            repo.Setup(r => r.ExistsWithNameAsync("Organic", 1, null)).ReturnsAsync(false);
             repo.Setup(r => r.AddAsync(It.IsAny<Category>())).ReturnsAsync(added);
 
             var result = await CreateService(repo.Object).AddSubcategoryAsync(1, "Organic", null);
 
             Assert.Equal(10, result.Id);
             Assert.Equal("Organic", result.Name);
+        }
+
+        [Fact]
+        public async Task AddSubcategoryAsync_Throws_WhenNameDuplicateWithinParent()
+        {
+            var parent = MakeCategory(1, "Food");
+            var repo = new Mock<ICategoryRepository>();
+            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(parent);
+            repo.Setup(r => r.ExistsWithNameAsync("Organic", 1, null)).ReturnsAsync(true);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                CreateService(repo.Object).AddSubcategoryAsync(1, "Organic", null));
+        }
+
+        [Fact]
+        public async Task UpdateSubcategoryAsync_ReturnsDto_WhenNameUnique()
+        {
+            var sub = MakeCategory(5, "Organic", parentId: 1);
+            var repo = new Mock<ICategoryRepository>();
+            repo.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(sub);
+            repo.Setup(r => r.ExistsWithNameAsync("Bio", 1, 5)).ReturnsAsync(false);
+            repo.Setup(r => r.UpdateAsync(It.IsAny<Category>())).Returns(Task.CompletedTask);
+
+            var result = await CreateService(repo.Object).UpdateSubcategoryAsync(5, "Bio", null);
+
+            Assert.Equal("Bio", result.Name);
+        }
+
+        [Fact]
+        public async Task UpdateSubcategoryAsync_Throws_WhenNameDuplicateWithinParent()
+        {
+            var sub = MakeCategory(5, "Organic", parentId: 1);
+            var repo = new Mock<ICategoryRepository>();
+            repo.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(sub);
+            repo.Setup(r => r.ExistsWithNameAsync("Bio", 1, 5)).ReturnsAsync(true);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                CreateService(repo.Object).UpdateSubcategoryAsync(5, "Bio", null));
         }
 
         [Fact]

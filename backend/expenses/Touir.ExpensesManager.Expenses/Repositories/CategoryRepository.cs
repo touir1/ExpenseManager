@@ -32,6 +32,13 @@ namespace Touir.ExpensesManager.Expenses.Repositories
                 .ToListAsync();
         }
 
+        public async Task<bool> ExistsWithNameAsync(string name, int? parentCategoryId, int? excludeId = null)
+            => await _dbContext.Categories.AnyAsync(c =>
+                c.Name.ToLower() == name.ToLower()
+                && c.ParentCategoryId == parentCategoryId
+                && !c.IsDeleted
+                && (excludeId == null || c.Id != excludeId));
+
         public async Task<Category?> GetByIdAsync(int id)
         {
             return await _dbContext.Categories

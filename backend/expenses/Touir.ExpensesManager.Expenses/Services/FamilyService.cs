@@ -56,6 +56,9 @@ namespace Touir.ExpensesManager.Expenses.Services
 
         public async Task<FamilyDto> CreateAsync(string name, int userId)
         {
+            if (await _familyRepo.ExistsWithNameForUserAsync(name, userId))
+                throw new FamilyConflictException(ServiceErrors.FamilyNameAlreadyExists);
+
             var headId = await _lookupCache.GetIdAsync<FamilyRole>(RoleHead);
             var family = new Family
             {
@@ -121,6 +124,9 @@ namespace Touir.ExpensesManager.Expenses.Services
             var headId = await _lookupCache.GetIdAsync<FamilyRole>(RoleHead);
             if (membership.RoleId != headId)
                 throw new FamilyForbiddenException();
+
+            if (await _familyRepo.ExistsWithNameForUserAsync(name, userId, excludeId: id))
+                throw new FamilyConflictException(ServiceErrors.FamilyNameAlreadyExists);
 
             family.Name = name;
             await _familyRepo.UpdateFamilyAsync(family);

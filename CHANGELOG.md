@@ -3,6 +3,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.110.7] - 2026-06-03
+### Added — Uniqueness validation for family/category names; CSV import accepts family names
+#### Backend — Expenses service
+- **`IFamilyRepository` / `FamilyRepository`**: added `ExistsWithNameForUserAsync(name, userId, excludeId?)` — checks whether the user is already a member of a non-deleted family with the same name (case-insensitive).
+- **`FamilyService.CreateAsync`**: throws `FamilyConflictException("FAMILY_NAME_ALREADY_EXISTS")` when the user already has a family with the requested name.
+- **`FamilyService.RenameAsync`**: same check, excluding the family being renamed.
+- **`FamilyController`**: `POST /families` and `PUT /families/{id}/name` now catch `FamilyConflictException` and return **409 Conflict**.
+- **`ServiceErrors`**: added `FamilyNameAlreadyExists = "FAMILY_NAME_ALREADY_EXISTS"`.
+- **`ICategoryRepository` / `CategoryRepository`**: added `ExistsWithNameAsync(name, parentCategoryId, excludeId?)` — checks for duplicate name within the same level (top-level or within the same parent), case-insensitive.
+- **`AdminCategoryService`**: `AddCategoryAsync`, `UpdateCategoryAsync`, `AddSubcategoryAsync`, `UpdateSubcategoryAsync` all throw `InvalidOperationException("CATEGORY_NAME_DUPLICATE")` on name collision.
+- **`CsvImportService`**: `families` CSV column now accepts **family names** (case-insensitive) instead of numeric IDs; `ValidateRowsAsync` builds a `name→id` dict from the user's non-deleted memberships; unrecognised names still produce `FAMILY_FORBIDDEN`.
+#### Frontend
+- **`apiErrors.constant.ts`**: added `FAMILY_NAME_ALREADY_EXISTS` → `apiErrors.familyNameAlreadyExists`.
+- **All 4 translation files** (`en`, `fr`, `es`, `de`): added `apiErrors.familyNameAlreadyExists` and `validation.familyNameTaken`.
+- **`FamiliesPage.tsx`**: `CreateFamilyModal` and `RenameFamilyModal` now call `setError('name', …)` on 409 response, showing an inline field error.
+- **`CsvImportPage.tsx`**: `initEditFields` now prefers resolved `familyIds` over raw `familiesDisplay` when populating edit state — prevents ID-vs-name mismatch after the backend change.
+#### Tests
+- **`FamilyServiceTests`**: updated `CreateAsync_CreatesNonDefaultFamily` to mock `ExistsWithNameForUserAsync`; added `CreateAsync_ThrowsConflict_WhenNameAlreadyExists`, `RenameAsync_ThrowsConflict_WhenNameAlreadyExists`, `RenameAsync_UpdatesName_WhenHead` (mocked).
+- **`AdminCategoryServiceTests`**: updated existing tests to mock `ExistsWithNameAsync`; added `AddCategoryAsync_Throws_WhenNameDuplicate`, `UpdateCategoryAsync_Throws_WhenNameDuplicate`, `AddSubcategoryAsync_Throws_WhenNameDuplicateWithinParent`, `UpdateSubcategoryAsync_Throws_WhenNameDuplicateWithinParent`, `UpdateSubcategoryAsync_ReturnsDto_WhenNameUnique`.
+- **`CsvImportServiceTests`**: added 4 tests: `ParseAndValidateAsync_FamilyByName_ResolvesId_WhenMember`, `_CaseInsensitive`, `_ReturnsError_WhenUnknownName`, `_ExcludesDeletedFamilies`.
+
 ## [0.110.6] - 2026-06-03
 ### Changed — CSV Import: re-validate replaces import button when edits pending
 #### Frontend

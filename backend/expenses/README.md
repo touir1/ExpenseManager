@@ -32,9 +32,9 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 | `GET` | `/{id}` | Get expense by id → `ExpenseDto` (200) or 404 |
 | `GET` | `/` | Paged + filtered expense list → `ExpensePagedResponse` |
 | `GET` | `/families` | List families for authenticated user → `FamilyDto[]` |
-| `POST` | `/families` | Create a new family → `FamilyDto` (201) |
+| `POST` | `/families` | Create a new family → `FamilyDto` (201); **409** if user already has a family with that name |
 | `GET` | `/families/{id}` | Family detail with members → `FamilyDetailDto` (200) or 403/404 |
-| `PUT` | `/families/{id}` | Rename family (head only) → `FamilyDto` (200) or 403/404 |
+| `PUT` | `/families/{id}/name` | Rename family (head only) → `FamilyDto` (200) or 403/404/**409** (name already exists for user) |
 | `POST` | `/families/{id}/archive` | Archive non-default family (head only) → 204 or 403/404 |
 | `POST` | `/families/{id}/unarchive` | Unarchive family (head only) → 204 or 403/404 |
 | `POST` | `/families/{id}/invite` | Invite user by email (head only) → `{ token }` (200) or 403/404/409 |
@@ -44,7 +44,7 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 | `GET` | `/tags` | Tags visible to user → `TagListDto { own, family }` |
 | `POST` | `/tags` | Create/adopt tag by name (idempotent, case-sensitive) → `TagDto` (200) |
 | `DELETE` | `/tags/{id}` | Remove user's adoption of tag → 204 or 404 (tag entity and expense history preserved) |
-| `POST` | `/import/preview` | Parse + validate CSV file (multipart, max 1 MB) → `CsvImportPreviewDto` with per-row status and error codes |
+| `POST` | `/import/preview` | Parse + validate CSV file (multipart, max 1 MB) → `CsvImportPreviewDto` with per-row status and error codes; `families` column accepts **semicolon-separated family names** (case-insensitive, not IDs) |
 | `POST` | `/import/validate-rows` | Re-validate edited rows without re-uploading — body: `{ rows: RawCsvRowDto[] }` → `CsvImportPreviewDto`; used by frontend inline-edit + re-validate flow |
 | `POST` | `/import/confirm` | Bulk-insert valid rows; tags auto-created/adopted; logged as `bulk_web` (OperationSource ID 3) → `CsvImportResultDto { imported, skipped }` |
 | `GET` | `/import/template` | Download CSV template (`expenses-import-template.csv`) with header row and 2 example rows |
@@ -55,12 +55,12 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 | `GET` | `/admin/rates/conflicts` | **[AppAdmin]** List pending rate conflicts → `RateConflictDto[]` |
 | `PUT` | `/admin/rates/conflicts/{id}/resolve` | **[AppAdmin]** Resolve conflict (AcceptAuto / KeepManual / Custom) → 204 or 400/404 |
 | `POST` | `/admin/rates/refresh` | **[AppAdmin]** Backfill rates from provider → 204; body: `{ from, to?, sourceCurrencyId?, destinationCurrencyId? }` |
-| `POST` | `/admin/categories` | **[AppAdmin]** Add top-level category → `AdminCategoryDto` (201) |
-| `PUT` | `/admin/categories/{id}` | **[AppAdmin]** Edit category name/description → 200 or 404 |
+| `POST` | `/admin/categories` | **[AppAdmin]** Add top-level category → `AdminCategoryDto` (201); **400** (`CATEGORY_NAME_DUPLICATE`) if name exists at top level |
+| `PUT` | `/admin/categories/{id}` | **[AppAdmin]** Edit category name/description → 200 or 404; **400** (`CATEGORY_NAME_DUPLICATE`) on name collision |
 | `POST` | `/admin/categories/{id}/archive` | **[AppAdmin]** Archive category → 204 or 400/404 |
 | `POST` | `/admin/categories/{id}/unarchive` | **[AppAdmin]** Unarchive category → 204 or 404 |
-| `POST` | `/admin/categories/{id}/subcategories` | **[AppAdmin]** Add subcategory → `AdminCategoryDto` (201) or 400/404 |
-| `PUT` | `/admin/categories/{id}/subcategories/{subId}` | **[AppAdmin]** Edit subcategory → 200 or 404 |
+| `POST` | `/admin/categories/{id}/subcategories` | **[AppAdmin]** Add subcategory → `AdminCategoryDto` (201) or 400/404; **400** (`CATEGORY_NAME_DUPLICATE`) if name exists within the same parent |
+| `PUT` | `/admin/categories/{id}/subcategories/{subId}` | **[AppAdmin]** Edit subcategory → 200 or 404; **400** (`CATEGORY_NAME_DUPLICATE`) on name collision within parent |
 | `POST` | `/admin/categories/{id}/subcategories/{subId}/archive` | **[AppAdmin]** Archive subcategory → 204 or 404 |
 | `POST` | `/admin/categories/{id}/subcategories/{subId}/unarchive` | **[AppAdmin]** Unarchive subcategory → 204 or 404 |
 | `POST` | `/admin/currencies` | **[AppAdmin]** Add currency → `CurrencyDto` (201) |

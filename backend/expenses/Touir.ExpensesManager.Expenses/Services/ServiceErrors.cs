@@ -2,6 +2,8 @@ namespace Touir.ExpensesManager.Expenses.Services
 {
     internal static class ServiceErrors
     {
+        // Family – name
+        public const string FamilyNameAlreadyExists = "FAMILY_NAME_ALREADY_EXISTS";
         // Family – membership
         public const string FamilyNotFound = "FAMILY_NOT_FOUND";
         public const string UserNotFound = "USER_NOT_FOUND";

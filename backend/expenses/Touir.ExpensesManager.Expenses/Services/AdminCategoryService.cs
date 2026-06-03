@@ -22,6 +22,9 @@ namespace Touir.ExpensesManager.Expenses.Services
 
         public async Task<AdminCategoryDto> AddCategoryAsync(string name, string? description)
         {
+            if (await _categoryRepository.ExistsWithNameAsync(name, parentCategoryId: null))
+                throw new InvalidOperationException("CATEGORY_NAME_DUPLICATE");
+
             var category = new Category { Name = name, Description = description };
             var added = await _categoryRepository.AddAsync(category);
             return MapToDto(added);
@@ -31,6 +34,9 @@ namespace Touir.ExpensesManager.Expenses.Services
         {
             var category = await _categoryRepository.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException("CATEGORY_NOT_FOUND");
+
+            if (await _categoryRepository.ExistsWithNameAsync(name, parentCategoryId: null, excludeId: id))
+                throw new InvalidOperationException("CATEGORY_NAME_DUPLICATE");
 
             category.Name = name;
             category.Description = description;
@@ -72,6 +78,9 @@ namespace Touir.ExpensesManager.Expenses.Services
             if (parent.ParentCategoryId != null)
                 throw new InvalidOperationException("CATEGORY_CANNOT_NEST_SUBCATEGORY");
 
+            if (await _categoryRepository.ExistsWithNameAsync(name, parentCategoryId: parentId))
+                throw new InvalidOperationException("CATEGORY_NAME_DUPLICATE");
+
             var subcategory = new Category { Name = name, Description = description, ParentCategoryId = parentId };
             var added = await _categoryRepository.AddAsync(subcategory);
             return MapToSubDto(added);
@@ -81,6 +90,9 @@ namespace Touir.ExpensesManager.Expenses.Services
         {
             var subcategory = await _categoryRepository.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException("CATEGORY_NOT_FOUND");
+
+            if (await _categoryRepository.ExistsWithNameAsync(name, parentCategoryId: subcategory.ParentCategoryId, excludeId: id))
+                throw new InvalidOperationException("CATEGORY_NAME_DUPLICATE");
 
             subcategory.Name = name;
             subcategory.Description = description;

@@ -242,7 +242,8 @@
                       "tagNotVisible":  "Une ou plusieurs étiquettes ne vous sont pas visibles.",
                       "familyInvitationInvalid":  "Ce lien d\u0027invitation est invalide.",
                       "familyInvitationAlreadyAccepted":  "Cette invitation a déjà été acceptée.",
-                      "familyInvitationExpired":  "Cette invitation a expiré."
+                      "familyInvitationExpired":  "Cette invitation a expiré.",
+                      "familyNameAlreadyExists":  "Une famille avec ce nom existe déjà."
                   },
     "families":  {
                      "pageTitle":  "Familles",
@@ -316,6 +317,7 @@
                        "passwordsNoMatch":  "Les nouveaux mots de passe ne correspondent pas.",
                        "familyNameRequired":  "Le nom de la famille est requis.",
                        "familyNameMax":  "Le nom de la famille ne doit pas dépasser 30 caractères.",
+                       "familyNameTaken":  "Une famille avec ce nom existe déjà.",
                        "required":  "Ce champ est obligatoire."
                    },
     "expenses":  {

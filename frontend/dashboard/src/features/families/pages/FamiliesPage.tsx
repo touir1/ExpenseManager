@@ -101,7 +101,7 @@ function CreateFamilyModal({ onClose, onCreated }: Readonly<{ onClose: () => voi
   const { t } = useTranslation()
   const { show } = useToast()
   const schema = useMemo(() => makeCreateFamilySchema(t), [t])
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<CreateFamilyData>({
+  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<CreateFamilyData>({
     resolver: zodResolver(schema),
   })
 
@@ -111,6 +111,8 @@ function CreateFamilyModal({ onClose, onCreated }: Readonly<{ onClose: () => voi
       show(t('families.createSuccess'), 'success')
       onCreated()
       onClose()
+    } else if (res.status === 409) {
+      setError('name', { message: t('validation.familyNameTaken') })
     }
   }
 
@@ -152,7 +154,7 @@ function RenameFamilyModal({
   const { t } = useTranslation()
   const { show } = useToast()
   const schema = useMemo(() => makeRenameFamilySchema(t), [t])
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<CreateFamilyData>({
+  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<CreateFamilyData>({
     resolver: zodResolver(schema),
     defaultValues: { name: family.name },
   })
@@ -163,6 +165,8 @@ function RenameFamilyModal({
       show(t('families.renameSuccess'), 'success')
       onRenamed()
       onClose()
+    } else if (res.status === 409) {
+      setError('name', { message: t('validation.familyNameTaken') })
     }
   }
 

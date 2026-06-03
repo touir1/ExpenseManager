@@ -88,6 +88,10 @@ namespace Touir.ExpensesManager.Expenses.Controllers
                 var dto = await _familyService.CreateAsync(request.Name, userId.Value);
                 return CreatedAtRoute("GetFamilyById", new { id = dto.Id }, dto);
             }
+            catch (FamilyConflictException ex)
+            {
+                return Conflict(new ErrorResponse { Message = ex.Message });
+            }
             catch (Exception)
             {
                 return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
@@ -118,6 +122,10 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             catch (FamilyForbiddenException ex)
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponse { Message = ex.Message });
+            }
+            catch (FamilyConflictException ex)
+            {
+                return Conflict(new ErrorResponse { Message = ex.Message });
             }
             catch (Exception)
             {

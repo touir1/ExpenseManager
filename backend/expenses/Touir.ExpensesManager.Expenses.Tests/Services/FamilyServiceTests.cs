@@ -99,6 +99,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         public async Task CreateAsync_CreatesNonDefaultFamily()
         {
             var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.ExistsWithNameForUserAsync("My Family", 10, null)).ReturnsAsync(false);
             repo.Setup(r => r.CreateAsync(It.IsAny<Family>(), It.IsAny<FamilyMembership>()))
                 .ReturnsAsync((Family f, FamilyMembership _) => { f.Id = 5; return f; });
 
@@ -107,6 +108,17 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             Assert.Equal("My Family", result.Name);
             Assert.False(result.IsDefault);
             Assert.Equal("Head", result.UserRole);
+        }
+
+        [Fact]
+        public async Task CreateAsync_ThrowsConflict_WhenNameAlreadyExists()
+        {
+            var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.ExistsWithNameForUserAsync("My Family", 10, null)).ReturnsAsync(true);
+
+            var ex = await Assert.ThrowsAsync<FamilyConflictException>(
+                () => CreateService(repo.Object).CreateAsync("My Family", userId: 10));
+            Assert.Equal("FAMILY_NAME_ALREADY_EXISTS", ex.Message);
         }
 
         // ── GetByUserAsync ────────────────────────────────────────────────────
@@ -210,11 +222,28 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             var repo = new Mock<IFamilyRepository>();
             repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(family);
             repo.Setup(r => r.GetMembershipAsync(1, 10)).ReturnsAsync(membership);
+            repo.Setup(r => r.ExistsWithNameForUserAsync("New Name", 10, 1)).ReturnsAsync(false);
 
             var result = await CreateService(repo.Object).RenameAsync(1, "New Name", userId: 10);
 
             repo.Verify(r => r.UpdateFamilyAsync(It.Is<Family>(f => f.Name == "New Name")), Times.Once);
             Assert.Equal("New Name", result.Name);
+        }
+
+        [Fact]
+        public async Task RenameAsync_ThrowsConflict_WhenNameAlreadyExists()
+        {
+            var family = MakeFamily(1);
+            var membership = MakeMembership(1, userId: 10, roleId: 1);
+
+            var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(family);
+            repo.Setup(r => r.GetMembershipAsync(1, 10)).ReturnsAsync(membership);
+            repo.Setup(r => r.ExistsWithNameForUserAsync("Duplicate", 10, 1)).ReturnsAsync(true);
+
+            var ex = await Assert.ThrowsAsync<FamilyConflictException>(
+                () => CreateService(repo.Object).RenameAsync(1, "Duplicate", userId: 10));
+            Assert.Equal("FAMILY_NAME_ALREADY_EXISTS", ex.Message);
         }
 
         [Fact]

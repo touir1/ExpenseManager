@@ -4,6 +4,7 @@ namespace Touir.ExpensesManager.Expenses.Repositories.Contracts
 {
     public interface IFamilyRepository
     {
+        Task<bool> ExistsWithNameForUserAsync(string name, int userId, int? excludeId = null);
         Task<Family> CreateAsync(Family family, FamilyMembership headMembership);
         Task<Family?> GetByIdAsync(int id);
         Task<(Family? Family, IEnumerable<FamilyMembership> Members)> GetByIdWithMembersAsync(int id);

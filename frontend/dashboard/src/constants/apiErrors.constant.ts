@@ -39,6 +39,7 @@ const BACKEND_KEYS: Record<string, string> = {
   FAMILY_INVITATION_INVALID:          'apiErrors.familyInvitationInvalid',
   FAMILY_INVITATION_ALREADY_ACCEPTED: 'apiErrors.familyInvitationAlreadyAccepted',
   FAMILY_INVITATION_EXPIRED:          'apiErrors.familyInvitationExpired',
+  FAMILY_NAME_ALREADY_EXISTS:         'apiErrors.familyNameAlreadyExists',
 }
 
 export const BACKEND_ERROR_CODES: Record<string, string> = new Proxy(BACKEND_KEYS, {

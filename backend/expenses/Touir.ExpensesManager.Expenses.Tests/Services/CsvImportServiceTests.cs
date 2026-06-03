@@ -214,6 +214,74 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         }
 
         [Fact]
+        public async Task ParseAndValidateAsync_FamilyByName_ResolvesId_WhenMember()
+        {
+            var family = new Family { Id = 3, Name = "My Family", IsDefault = false, IsDeleted = false };
+            var membership = new FamilyMembership { Family = family };
+            var famRepo = new Mock<IFamilyRepository>();
+            famRepo.Setup(x => x.GetFamiliesByUserAsync(It.IsAny<int>()))
+                   .ReturnsAsync([(family, membership)]);
+
+            var svc = CreateService(familyRepo: famRepo.Object);
+            var stream = MakeCsv(ValidRow(families: "My Family"));
+
+            var result = await svc.ParseAndValidateAsync(stream, userId: 1);
+
+            var row = result.Rows.Single();
+            Assert.True(row.IsValid);
+            Assert.Equal([3], row.FamilyIds);
+        }
+
+        [Fact]
+        public async Task ParseAndValidateAsync_FamilyByName_CaseInsensitive()
+        {
+            var family = new Family { Id = 3, Name = "My Family", IsDefault = false, IsDeleted = false };
+            var membership = new FamilyMembership { Family = family };
+            var famRepo = new Mock<IFamilyRepository>();
+            famRepo.Setup(x => x.GetFamiliesByUserAsync(It.IsAny<int>()))
+                   .ReturnsAsync([(family, membership)]);
+
+            var svc = CreateService(familyRepo: famRepo.Object);
+            var stream = MakeCsv(ValidRow(families: "MY FAMILY"));
+
+            var result = await svc.ParseAndValidateAsync(stream, userId: 1);
+
+            var row = result.Rows.Single();
+            Assert.True(row.IsValid);
+            Assert.Equal([3], row.FamilyIds);
+        }
+
+        [Fact]
+        public async Task ParseAndValidateAsync_FamilyByName_ReturnsError_WhenUnknownName()
+        {
+            var svc = CreateService(); // no families in default mock
+            var stream = MakeCsv(ValidRow(families: "Unknown Family"));
+
+            var result = await svc.ParseAndValidateAsync(stream, userId: 1);
+
+            Assert.False(result.Rows.Single().IsValid);
+            Assert.Contains("FAMILY_FORBIDDEN", result.Rows.Single().Errors);
+        }
+
+        [Fact]
+        public async Task ParseAndValidateAsync_FamilyByName_ExcludesDeletedFamilies()
+        {
+            var family = new Family { Id = 3, Name = "Old Family", IsDefault = false, IsDeleted = true };
+            var membership = new FamilyMembership { Family = family };
+            var famRepo = new Mock<IFamilyRepository>();
+            famRepo.Setup(x => x.GetFamiliesByUserAsync(It.IsAny<int>()))
+                   .ReturnsAsync([(family, membership)]);
+
+            var svc = CreateService(familyRepo: famRepo.Object);
+            var stream = MakeCsv(ValidRow(families: "Old Family"));
+
+            var result = await svc.ParseAndValidateAsync(stream, userId: 1);
+
+            Assert.False(result.Rows.Single().IsValid);
+            Assert.Contains("FAMILY_FORBIDDEN", result.Rows.Single().Errors);
+        }
+
+        [Fact]
         public async Task ParseAndValidateAsync_TagsAreParsedButNotValidated()
         {
             var svc = CreateService();

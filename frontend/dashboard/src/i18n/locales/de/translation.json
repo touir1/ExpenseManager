@@ -242,7 +242,8 @@
                       "tagNotVisible":  "Ein oder mehrere Tags sind für dich nicht sichtbar.",
                       "familyInvitationInvalid":  "Dieser Einladungslink ist ungültig.",
                       "familyInvitationAlreadyAccepted":  "Diese Einladung wurde bereits angenommen.",
-                      "familyInvitationExpired":  "Diese Einladung ist abgelaufen."
+                      "familyInvitationExpired":  "Diese Einladung ist abgelaufen.",
+                      "familyNameAlreadyExists":  "Eine Familie mit diesem Namen existiert bereits."
                   },
     "families":  {
                      "pageTitle":  "Familien",
@@ -316,6 +317,7 @@
                        "passwordsNoMatch":  "Die neuen Passwörter stimmen nicht überein.",
                        "familyNameRequired":  "Familienname ist erforderlich.",
                        "familyNameMax":  "Familienname darf maximal 30 Zeichen lang sein.",
+                       "familyNameTaken":  "Eine Familie mit diesem Namen existiert bereits.",
                        "required":  "Dieses Feld ist erforderlich."
                    },
     "expenses":  {
