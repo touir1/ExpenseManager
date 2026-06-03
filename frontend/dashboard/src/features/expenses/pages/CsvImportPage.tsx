@@ -667,7 +667,9 @@ export default function CsvImportPage() {
         subcategory: fields.subcategory || null,
         description: fields.description || null,
         tags: fields.tags.length > 0 ? fields.tags.join(';') : null,
-        families: fields.families.length > 0 ? fields.families.join(';') : null,
+        families: fields.families.length > 0
+          ? fields.families.map(id => userFamilies.find(f => String(f.id) === id)?.name ?? id).join(';')
+          : null,
       }
     })
 

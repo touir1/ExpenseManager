@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.110.10] - 2026-06-03
+### Fixed — CSV import re-validate sends family IDs instead of names
+- **`CsvImportPage.tsx`**: `handleRevalidate` was joining `EditedFields.families` (family ID strings) directly as semicolons and sending them to `POST /import/validate-rows`. The backend `ValidateRow` looks up families by **name** in `memberFamiliesByName`, so IDs like `"1"` never matched → every edited row with a family produced `FAMILY_FORBIDDEN`. Fix: resolve each ID to its family name via `userFamilies` before joining.
+
 ## [0.110.9] - 2026-06-03
 ### Fixed — ValidateRowsRequestValidator null-rows CI failure
 - **`ValidateRowsRequestValidator`**: added `Cascade(CascadeMode.Stop)` to the `RuleFor(x => x.Rows)` chain — `Must(r => r.Count() <= MaxRows)` was executing even when `NotNull()` failed (null rows), throwing `ArgumentNullException`. `ClassLevelCascadeMode` stops across properties, not within a single property chain; `Cascade(CascadeMode.Stop)` on the rule itself is required.
