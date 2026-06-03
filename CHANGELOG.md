@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.110.9] - 2026-06-03
+### Fixed — ValidateRowsRequestValidator null-rows CI failure
+- **`ValidateRowsRequestValidator`**: added `Cascade(CascadeMode.Stop)` to the `RuleFor(x => x.Rows)` chain — `Must(r => r.Count() <= MaxRows)` was executing even when `NotNull()` failed (null rows), throwing `ArgumentNullException`. `ClassLevelCascadeMode` stops across properties, not within a single property chain; `Cascade(CascadeMode.Stop)` on the rule itself is required.
+
 ## [0.110.8] - 2026-06-03
 ### Security — CSV upload hardening (10 fixes across backend + frontend)
 #### Backend — Expenses service

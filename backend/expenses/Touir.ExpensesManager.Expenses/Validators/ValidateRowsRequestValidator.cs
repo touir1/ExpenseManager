@@ -12,6 +12,7 @@ namespace Touir.ExpensesManager.Expenses.Validators
             ClassLevelCascadeMode = CascadeMode.Stop;
 
             RuleFor(x => x.Rows)
+                .Cascade(CascadeMode.Stop)
                 .NotNull().WithMessage("IMPORT_NO_ROWS")
                 .Must(r => r.Count() <= MaxRows).WithMessage("IMPORT_TOO_MANY_ROWS");
 
