@@ -90,6 +90,76 @@ ExpenseManager/
 │   │   ├── Dockerfile                 — Docker image for dashboard service
 │   │   └── README.md                  — Dashboard service documentation
 │   │
+│   ├── notifications/
+│   │   ├── .dockerignore
+│   │   ├── .gitignore
+│   │   ├── .gitlab-ci.yml             — Notifications service CI/CD pipeline
+│   │   ├── .trivyignore               — Trivy scanner ignore list
+│   │   ├── Dockerfile                 — Docker image for notifications service
+│   │   ├── README.md
+│   │   ├── SonarQube.Analysis.xml     — SonarQube project settings
+│   │   ├── Touir.ExpensesManager.Notifications.sln
+│   │   ├── Touir.ExpensesManager.Notifications/
+│   │   │   ├── Program.cs             — Entry point, DI registration, migrations, SignalR hub mapping
+│   │   │   ├── appsettings.json
+│   │   │   ├── Touir.ExpensesManager.Notifications.csproj
+│   │   │   ├── Hubs/
+│   │   │   │   └── NotificationHub.cs — SignalR hub at /ws/notifications; cookie auth via JwtCookieReader; groups by userId
+│   │   │   ├── Messaging/
+│   │   │   │   ├── Messages/
+│   │   │   │   │   └── FamilyEventMessage.cs — Inbound event DTO + FamilyEventType constants
+│   │   │   │   └── Consumers/
+│   │   │   │       └── FamilyEventConsumer.cs — BackgroundService; binds notifications.expenses.sync → expenses.events; inbox deduplication; protected OnMessageReceivedAsync + virtual Ack/Nack for testability
+│   │   │   ├── Assets/
+│   │   │   │   └── EmailTemplates/
+│   │   │   │       └── FAMILY_MEMBER_REMOVED_TEMPLATE.html — HTML email template; placeholders @@REMOVED_BY_NAME@@ @@FAMILY_NAME@@ @@EXPENSE_COUNT@@ @@YEAR@@
+│   │   │   ├── Infrastructure/
+│   │   │   │   ├── EmailHelper.cs           — Template loading + email dispatch
+│   │   │   │   ├── EmailHtmlTemplate.cs     — FamilyMemberRemoved key + variable constants
+│   │   │   │   ├── JwtCookieReader.cs       — Decodes auth_token cookie to extract sub claim
+│   │   │   │   ├── NotificationsDbContext.cs — EF Core context; Notifications + InboxEvents; IsNpgsql() guards for IdentityAlwaysColumn + partial index
+│   │   │   │   ├── SmtpEmailService.cs      — SMTP email sender
+│   │   │   │   ├── Contracts/
+│   │   │   │   │   ├── IEmailHelper.cs
+│   │   │   │   │   └── IEmailService.cs
+│   │   │   │   └── Options/
+│   │   │   │       ├── EmailOptions.cs      — SMTP config; env prefix EXPENSES_MANAGEMENT_NOTIFICATIONS_EMAILAUTH_*
+│   │   │   │       ├── PostgresOptions.cs   — Server/Port/UserName/Password/Database + computed ConnectionString
+│   │   │   │       └── RabbitMQOptions.cs
+│   │   │   ├── Controllers/
+│   │   │   │   ├── NotificationController.cs — GET /notifications, GET /notifications/unread-count, POST /notifications/{id}/read, POST /notifications/read-all
+│   │   │   │   ├── DTO/
+│   │   │   │   │   └── NotificationDto.cs   — Id, Type, Payload: JsonElement, IsRead, CreatedAt, ReadAt?
+│   │   │   │   └── Responses/
+│   │   │   │       └── ErrorResponse.cs
+│   │   │   ├── Models/
+│   │   │   │   ├── InboxEvent.cs            — MessageId (PK), EventType, ReceivedAt, Status, Error?
+│   │   │   │   └── Notification.cs          — Id (bigserial), UserId, Type, Payload (JSON), IsRead, CreatedAt, ReadAt?
+│   │   │   ├── Migrations/
+│   │   │   ├── Repositories/
+│   │   │   │   ├── Contracts/
+│   │   │   │   │   ├── IInboxRepository.cs
+│   │   │   │   │   └── INotificationRepository.cs
+│   │   │   │   ├── InboxRepository.cs
+│   │   │   │   └── NotificationRepository.cs
+│   │   │   └── Services/
+│   │   │       ├── Contracts/
+│   │   │       │   ├── INotificationService.cs
+│   │   │       │   └── IRabbitMQService.cs
+│   │   │       ├── NotificationService.cs   — HandleFamilyMemberRemovedAsync: persist → SignalR push → email (hub/email non-fatal)
+│   │   │       └── RabbitMQService.cs       — Singleton; lazy connection; DispatchConsumersAsync = true
+│   │   └── Touir.ExpensesManager.Notifications.Tests/
+│   │       ├── Touir.ExpensesManager.Notifications.Tests.csproj
+│   │       ├── coverage.runsettings
+│   │       ├── TestHelpers/
+│   │       │   └── TestNotificationsDbContext.cs — SQLite in-memory wrapper (EnsureCreated)
+│   │       ├── Messaging/
+│   │       │   └── FamilyEventConsumerTests.cs — 4 tests via TestableConsumer (valid, duplicate, failure, unknown type)
+│   │       ├── Repositories/
+│   │       │   └── NotificationRepositoryTests.cs — 6 integration tests
+│   │       └── Services/
+│   │           └── NotificationServiceTests.cs — 8 unit tests (Moq)
+│   │
 │   ├── expenses/
 │   │   ├── .dockerignore
 │   │   ├── .gitlab-ci.yml             — Expenses service CI/CD pipeline
@@ -113,7 +183,12 @@ ExpenseManager/
 │   │   │   │   └── RateAutoUpdateJob.cs     — Quartz IJob; [DisallowConcurrentExecution]; cron scheduled from CurrencyRateOptions.UpdateTime; calls ICurrencyRateService.RunDailyUpdateAsync; logs on failure
 │   │   │   ├── Messaging/
 │   │   │   │   ├── Messages/
-│   │   │   │   │   └── UserEventMessage.cs  — Inbound event DTO + UserEventType constants (Created/Updated/Deleted)
+│   │   │   │   │   ├── UserEventMessage.cs  — Inbound event DTO + UserEventType constants (Created/Updated/Deleted)
+│   │   │   │   │   └── FamilyEventMessage.cs — Outbound event DTO + FamilyEventType.MemberRemoved constant
+│   │   │   │   ├── Publishers/
+│   │   │   │   │   ├── IFamilyEventPublisher.cs — Publish(FamilyEventMessage) + PublishRaw(eventType, json, messageId)
+│   │   │   │   │   ├── FamilyEventPublisher.cs  — Publishes to expenses.events topic exchange; Publish delegates to PublishRaw
+│   │   │   │   │   └── FamilyOutboxPublisherService.cs — BackgroundService; polls OutboxEvents every 5 s; max 5 retries; calls IFamilyEventPublisher.PublishRaw
 │   │   │   │   └── Consumers/
 │   │   │   │       └── UserEventConsumer.cs — BackgroundService; binds expenses.users.sync → users.events; inbox deduplication via IInboxRepository.ExistsAsync; calls IUserRepository.SaveOrUpdateUserAsync / DeleteUserAsync
 │   │   │   ├── Assets/
@@ -124,7 +199,7 @@ ExpenseManager/
 │   │   │   ├── Infrastructure/
 │   │   │   │   ├── EmailHelper.cs           — Template loading + email dispatch; delegates to IEmailService
 │   │   │   │   ├── EmailHtmlTemplate.cs     — Template key+variable constants (FamilyInvitation)
-│   │   │   │   ├── ExpensesDbContext.cs     — EF Core context; all 13 DbSets with full Fluent API config
+│   │   │   │   ├── ExpensesDbContext.cs     — EF Core context; all DbSets with full Fluent API config; includes OutboxEvents
 │   │   │   │   ├── JwtCookieReader.cs       — Decodes auth_token cookie (base64url payload) to extract sub/isAdmin claims; falls back to Authorization: Bearer header when cookie absent (Swagger)
 │   │   │   │   ├── SmtpEmailService.cs      — SMTP email sender; configurable host/port/SSL via EmailOptions
 │   │   │   │   ├── FrankfurterRateProvider.cs — [ExcludeFromCodeCoverage] Calls api.frankfurter.app (ECB, no API key); single-date and range endpoints; registered via IHttpClientFactory
@@ -191,6 +266,7 @@ ExpenseManager/
 │   │   │   │       ├── ErrorResponse.cs     — Uniform error envelope (matches users service pattern)
 │   │   │   │       └── ExpensePagedResponse.cs — Items: ExpenseDto[], TotalCount, Page, PageSize, TotalPages
 │   │   │   ├── Models/
+│   │   │   │   ├── OutboxEvent.cs           — Id (bigserial), MessageId, EventType, Payload, CreatedAt, PublishedAt?, RetryCount, LastError?
 │   │   │   │   ├── Category.cs              — IsDeleted + DeletedAt (soft-delete); ParentCategoryId, Children; Icon? (emoji, max 50 chars)
 │   │   │   │   ├── UserConfig.cs            — UserId (unique FK), DefaultCurrencyId? (FK Currencies), nav DefaultCurrency?
 │   │   │   │   ├── Currency.cs
@@ -239,7 +315,8 @@ ExpenseManager/
 │   │   │   │   ├── DashboardRepository.cs   — Implements IDashboardRepository; hybrid SQL/C# (WHERE in EF Core, GroupBy/Sum in C#); BaseQuery uses correlated EXISTS on ExpenseFamilyAttributions for family scoping
 │   │   │   │   ├── CurrencyRepository.cs    — GetAllAsync(): all currencies, AsNoTracking
 │   │   │   │   ├── ExpenseRepository.cs     — AddAsync, UpdateAsync, SoftDeleteAsync, GetByIdAsync (ownership + !IsDeleted + ExpenseTags include), GetPagedAsync (filtered + paginated, desc by date; TagIds OR filter); ClearExpenseTagsAsync, AddExpenseTagsAsync
-│   │   │   │   ├── FamilyRepository.cs      — family CRUD, membership CRUD, invitation CRUD, attribution helpers (AddAttributionsAsync, ClearAttributionsAsync, RemoveMemberAttributionsAsync)
+│   │   │   │   ├── ExpensesOutboxRepository.cs — IExpensesOutboxRepository: EnqueueAsync, GetPendingAsync, MarkPublishedAsync, MarkFailedAsync
+│   │   │   │   ├── FamilyRepository.cs      — family CRUD, membership CRUD, invitation CRUD, attribution helpers; CountMemberAttributionsAsync added for Phase 13
 │   │   │   │   ├── InboxRepository.cs       — ExistsAsync(messageId), AddAsync(InboxEvent) for deduplication
 │   │   │   │   ├── TagRepository.cs         — GetOwnAsync, GetFamilyAsync (co-member, excludes deleted families), GetByNameAsync, GetByIdsAsync, AddAsync, EnsureUserTagAsync, RemoveUserTagAsync, IsVisibleAsync
 │   │   │   │   ├── CurrencyRateRepository.cs — GetExactAsync, GetMostRecentBeforeAsync, GetDefaultAsync, GetHistoryAsync, AddRateAsync, UpdateRateAsync, ManualRateExistsAsync, AddConflictAsync, GetPendingConflictsAsync, GetConflictByIdAsync, UpdateConflictAsync, SetDefaultAsync (upsert)

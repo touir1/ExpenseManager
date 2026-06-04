@@ -34,6 +34,21 @@ vi.mock('@/features/expenses/components/AddExpenseModal', () => ({
   default: () => <div data-testid="add-expense-modal" />,
 }))
 
+vi.mock('@/components/Toast', () => ({
+  useToast: () => ({ show: vi.fn() }),
+}))
+
+vi.mock('@/features/notifications/NotificationContext', () => ({
+  useNotifications: () => ({
+    notifications: [],
+    unreadCount: 0,
+    isLoading: false,
+    markRead: vi.fn(),
+    markAllRead: vi.fn(),
+    refresh: vi.fn(),
+  }),
+}))
+
 function makeQc() {
   return new QueryClient({ defaultOptions: { queries: { retry: false } } })
 }

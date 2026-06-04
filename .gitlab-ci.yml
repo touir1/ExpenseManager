@@ -39,6 +39,22 @@ backend-expenses-pipeline:
       when: always
     - when: never
 
+backend-notifications-pipeline:
+  stage: trigger
+  trigger:
+    include:
+      - local: backend/notifications/.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - if: $TARGET == "backend-notifications"
+      when: always
+    - if: $TARGET
+      when: never
+    - changes:
+        - backend/notifications/**/*
+      when: always
+    - when: never
+
 frontend-dashboard-pipeline:
   stage: trigger
   trigger:

@@ -148,6 +148,11 @@ namespace Touir.ExpensesManager.Expenses.Repositories
             await _db.SaveChangesAsync();
         }
 
+        public async Task<int> CountMemberAttributionsAsync(int familyId, int userId)
+            => await _db.ExpenseFamilyAttributions
+                .Include(a => a.Expense)
+                .CountAsync(a => a.FamilyId == familyId && a.Expense.UserId == userId);
+
         public async Task RemoveMemberAttributionsAsync(int familyId, int ownerId)
         {
             var attributions = await _db.ExpenseFamilyAttributions

@@ -1,5 +1,12 @@
 {
     "appTitle":  "Expenses Manager",
+    "notifications": {
+        "title": "Benachrichtigungen",
+        "markAllRead": "Alle als gelesen markieren",
+        "empty": "Noch keine Benachrichtigungen",
+        "familyMemberRemoved": "{{removedByName}} hat Sie aus \"{{familyName}}\" entfernt. {{expenseCount}} Zuordnung(en) gelöscht.",
+        "badge": "{{count}} ungelesen"
+    },
     "nav":  {
                 "home":  "Startseite",
                 "dashboard":  "Übersicht",

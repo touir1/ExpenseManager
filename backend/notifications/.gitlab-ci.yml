@@ -1,0 +1,107 @@
+# GitLab CI configuration for the Notifications backend module
+
+include:
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-init.yml'
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-stages.yml'
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-build.yml'
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-test.yml'
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-quality.yml'
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-security.yml'
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-docker.yml'
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-docker-security.yml'
+  - local: 'infrastructure/configs/gitlab-ci-templates/ci-deploy.yml'
+
+variables:
+  IMAGE_NAME: expense-manager-backend-notifications
+  BASE_DIR_PATH: backend/notifications
+  PROJECT_KEY: expenses-manager-backend-notifications
+
+# ----------------------
+# cache configuration
+# ----------------------
+
+.dependency-check-cache: &dependency-check-cache
+  key: "$PROJECT_KEY-dependency-check-data"
+  paths:
+    - $BASE_DIR_PATH/dependency-check-data/
+
+# ----------------------
+# BUILD
+# ----------------------
+
+build:
+  extends: .dotnet-build
+
+# ----------------------
+# TEST + COVERAGE
+# ----------------------
+
+test:
+  extends: .dotnet-test
+
+# ----------------------
+# SONARQUBE ANALYSIS
+# ----------------------
+
+sonarqube:
+  extends: .dotnet-sonarqube
+  variables:
+    SONAR_PROJECT_KEY: "touir:expense-manager:backend:notifications"
+  allow_failure: true
+  dependencies:
+    - build
+    - test
+
+# ----------------------
+# DOCKER BUILD
+# ----------------------
+
+docker-build:
+  extends: .docker-build
+
+# ----------------------
+# SCA – DEPENDENCY CHECK
+# ----------------------
+
+sca:
+  extends: .sca
+  variables:
+    OWASP_PROJECT_NAME: "ExpenseManager-Backend-Notifications"
+  allow_failure: true
+  cache:
+    <<: *dependency-check-cache
+  dependencies:
+    - build
+
+# ----------------------
+# SAST – SEMGREP
+# ----------------------
+
+sast:
+  extends: .sast
+  allow_failure: true
+
+# ----------------------
+# SECRETS SCAN – GITLEAKS
+# ----------------------
+
+secrets-scan:
+  extends: .secrets-scan
+
+# ----------------------
+# TRIVY IMAGE SCAN
+# ----------------------
+docker-security:
+  extends: .docker-security
+  allow_failure: true
+  dependencies:
+    - docker-build
+
+# ----------------------
+# DEPLOYMENT
+# ----------------------
+
+deploy-dev:
+  extends: .docker-deploy-dev
+  variables:
+    SERVICE_NAME: 'backend-notifications'

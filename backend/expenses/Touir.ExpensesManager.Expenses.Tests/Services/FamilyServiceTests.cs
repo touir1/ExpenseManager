@@ -27,14 +27,16 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             IUserRepository? userRepo = null,
             ILookupCacheService? lookupCache = null,
             IEmailHelper? emailHelper = null,
-            IOptions<FamilyOptions>? familyOptions = null)
+            IOptions<FamilyOptions>? familyOptions = null,
+            IExpensesOutboxRepository? outboxRepo = null)
         {
             return new FamilyService(
                 familyRepo ?? Mock.Of<IFamilyRepository>(),
                 userRepo ?? Mock.Of<IUserRepository>(),
                 lookupCache ?? DefaultLookupCache(),
                 emailHelper ?? Mock.Of<IEmailHelper>(),
-                familyOptions ?? Options.Create(new FamilyOptions { InviteExpiryInDays = 7 }));
+                familyOptions ?? Options.Create(new FamilyOptions { InviteExpiryInDays = 7 }),
+                outboxRepo ?? Mock.Of<IExpensesOutboxRepository>());
         }
 
         private static Family MakeFamily(int id = 1, bool isDefault = false, bool isDeleted = false) => new()

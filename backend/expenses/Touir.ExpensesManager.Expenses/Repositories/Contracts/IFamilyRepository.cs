@@ -23,6 +23,7 @@ namespace Touir.ExpensesManager.Expenses.Repositories.Contracts
         Task UpdateInvitationAsync(FamilyInvitation invitation);
         Task AddAttributionsAsync(IEnumerable<ExpenseFamilyAttribution> attributions);
         Task ClearAttributionsAsync(long expenseId);
+        Task<int> CountMemberAttributionsAsync(int familyId, int userId);
         Task RemoveMemberAttributionsAsync(int familyId, int ownerId);
     }
 }

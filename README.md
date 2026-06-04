@@ -19,6 +19,7 @@ mobile/          # (Reserved for mobile app)
 
 - **expenses** (port 9200): Expense management API — .NET 8, EF Core 8, PostgreSQL
 - **users** (port 9100): User management and JWT auth API — .NET 8, EF Core 8, PostgreSQL
+- **notifications** (port 9300): In-app + email notifications via SignalR WebSocket — .NET 8, EF Core 8, PostgreSQL, RabbitMQ consumer
 - **dashboard**: (Planned) Dashboard API
 
 Each service has its own solution and project files. Configurations use environment variables for secrets (see `appsettings.json` and Docker Compose files).

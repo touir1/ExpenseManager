@@ -4,6 +4,7 @@ import { AuthProvider } from '@/features/auth/AuthContext'
 import { ExpensesDataProvider } from '@/features/expenses/ExpensesDataContext'
 import { FamilyProvider } from '@/features/families/FamilyContext'
 import { DisplayCurrencyProvider } from '@/features/currencies/DisplayCurrencyContext'
+import { NotificationProvider } from '@/features/notifications/NotificationContext'
 
 const queryClient = new QueryClient()
 
@@ -19,6 +20,7 @@ const InnerProviders = composeProviders(
   ExpensesDataProvider,
   FamilyProvider,
   DisplayCurrencyProvider,
+  NotificationProvider,
 )
 
 export function AppProviders({ children }: Readonly<{ children: ReactNode }>) {

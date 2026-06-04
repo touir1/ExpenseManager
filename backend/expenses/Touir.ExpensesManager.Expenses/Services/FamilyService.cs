@@ -3,6 +3,8 @@ using Touir.ExpensesManager.Expenses.Controllers.DTO;
 using Touir.ExpensesManager.Expenses.Infrastructure;
 using Touir.ExpensesManager.Expenses.Infrastructure.Contracts;
 using Touir.ExpensesManager.Expenses.Infrastructure.Options;
+using System.Text.Json;
+using Touir.ExpensesManager.Expenses.Messaging.Messages;
 using Touir.ExpensesManager.Expenses.Models;
 using Touir.ExpensesManager.Expenses.Models.Lookups;
 using Touir.ExpensesManager.Expenses.Repositories.Contracts;
@@ -21,14 +23,16 @@ namespace Touir.ExpensesManager.Expenses.Services
         private readonly ILookupCacheService _lookupCache;
         private readonly IEmailHelper _emailHelper;
         private readonly FamilyOptions _familyOptions;
+        private readonly IExpensesOutboxRepository _outboxRepo;
 
-        public FamilyService(IFamilyRepository familyRepo, IUserRepository userRepo, ILookupCacheService lookupCache, IEmailHelper emailHelper, IOptions<FamilyOptions> familyOptions)
+        public FamilyService(IFamilyRepository familyRepo, IUserRepository userRepo, ILookupCacheService lookupCache, IEmailHelper emailHelper, IOptions<FamilyOptions> familyOptions, IExpensesOutboxRepository outboxRepo)
         {
             _familyRepo = familyRepo;
             _userRepo = userRepo;
             _lookupCache = lookupCache;
             _emailHelper = emailHelper;
             _familyOptions = familyOptions.Value;
+            _outboxRepo = outboxRepo;
         }
 
         public async Task CreateDefaultAsync(int userId)
@@ -257,8 +261,41 @@ namespace Touir.ExpensesManager.Expenses.Services
                     throw new FamilyForbiddenException(ServiceErrors.FamilyCannotRemoveSelfHead);
             }
 
+            var expenseCount = await _familyRepo.CountMemberAttributionsAsync(familyId, targetUserId);
+
             await _familyRepo.RemoveMemberAsync(targetMembership);
             await _familyRepo.RemoveMemberAttributionsAsync(familyId, targetUserId);
+
+            var target = await _userRepo.GetUserByIdAsync(targetUserId);
+            var remover = await _userRepo.GetUserByIdAsync(removedById);
+
+            if (target is not null)
+            {
+                var message = new FamilyEventMessage
+                {
+                    MessageId = Guid.NewGuid().ToString(),
+                    EventType = FamilyEventType.MemberRemoved,
+                    TargetUserId = targetUserId,
+                    TargetEmail = target.Email,
+                    TargetFirstName = target.FirstName ?? string.Empty,
+                    FamilyId = familyId,
+                    FamilyName = family.Name,
+                    RemovedByUserId = removedById,
+                    RemovedByName = remover is not null
+                        ? $"{remover.FirstName} {remover.LastName}".Trim()
+                        : string.Empty,
+                    ExpenseCount = expenseCount,
+                    OccurredAt = DateTime.UtcNow
+                };
+
+                await _outboxRepo.EnqueueAsync(new Models.OutboxEvent
+                {
+                    MessageId = message.MessageId,
+                    EventType = message.EventType,
+                    Payload = JsonSerializer.Serialize(message),
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
         }
 
         public async Task ChangeRoleAsync(int familyId, int targetUserId, string roleName, int changedById)

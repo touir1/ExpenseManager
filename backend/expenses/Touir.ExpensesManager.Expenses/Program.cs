@@ -6,6 +6,7 @@ using Touir.ExpensesManager.Expenses.Infrastructure;
 using Touir.ExpensesManager.Expenses.Infrastructure.Contracts;
 using Touir.ExpensesManager.Expenses.Infrastructure.Options;
 using Touir.ExpensesManager.Expenses.Messaging.Consumers;
+using Touir.ExpensesManager.Expenses.Messaging.Publishers;
 using Touir.ExpensesManager.Expenses.Repositories;
 using Touir.ExpensesManager.Expenses.Repositories.Contracts;
 using Touir.ExpensesManager.Expenses.Services;
@@ -171,10 +172,12 @@ builder.Services.AddScoped<ICurrencyRateService, CurrencyRateService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IUserConfigService, UserConfigService>();
 builder.Services.AddScoped<ICsvImportService, CsvImportService>();
+builder.Services.AddScoped<IFamilyEventPublisher, FamilyEventPublisher>();
 #endregion
 
 #region Messaging
 builder.Services.AddHostedService<UserEventConsumer>();
+builder.Services.AddHostedService<FamilyOutboxPublisherService>();
 #endregion
 
 #region Quartz
@@ -201,6 +204,7 @@ builder.Services.AddScoped<ICurrencyRepository, CurrencyRepository>();
 builder.Services.AddScoped<IInboxRepository, InboxRepository>();
 builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
+builder.Services.AddScoped<IExpensesOutboxRepository, ExpensesOutboxRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<ICurrencyRateRepository, CurrencyRateRepository>();
 builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();

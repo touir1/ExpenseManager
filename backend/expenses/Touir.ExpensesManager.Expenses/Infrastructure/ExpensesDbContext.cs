@@ -28,6 +28,7 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
         public DbSet<ExpenseAuditSnapshot> ExpenseAuditSnapshots { get; set; }
 
         public DbSet<InboxEvent> InboxEvents { get; set; }
+        public DbSet<OutboxEvent> OutboxEvents { get; set; }
         public DbSet<UserConfig> UserConfigs { get; set; }
 
         // Lookup tables
@@ -475,6 +476,23 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
                 entity.Property(e => e.Status).HasMaxLength(20).IsRequired();
                 entity.Property(e => e.Error).HasMaxLength(2000);
                 entity.HasIndex(e => e.ReceivedAt);
+            });
+
+            // ── Outbox ────────────────────────────────────────────────────────
+
+            modelBuilder.Entity<OutboxEvent>(entity =>
+            {
+                entity.ToTable("OutboxEvents");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).UseIdentityAlwaysColumn();
+                entity.Property(e => e.MessageId).HasMaxLength(36).IsRequired();
+                entity.Property(e => e.EventType).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.Payload).IsRequired();
+                entity.Property(e => e.CreatedAt).IsRequired();
+                entity.Property(e => e.PublishedAt).IsRequired(false);
+                entity.Property(e => e.RetryCount).HasDefaultValue(0);
+                entity.Property(e => e.LastError).HasMaxLength(2000);
+                entity.HasIndex(e => new { e.PublishedAt, e.RetryCount });
             });
         }
     }

@@ -7,8 +7,9 @@ Reference: [application-description.md](application-description.md)
 | Area | Status |
 |------|--------|
 | Users service | ✅ Complete — auth, registration, JWT (incl. `isAdmin` claim), refresh tokens, password management, FluentValidation, admin user management (`AdminUserController`) |
-| Expenses service | ✅ Phase 1–12 complete — schema, categories/currencies, expense CRUD, family system, tags, currency rates (daily storage, resolution, auto-update via Quartz, backfill, conflict management, display currency conversion), dashboard API, admin controllers (categories, currencies, rates), CSV bulk import |
-| Frontend | ✅ Auth + family management + tag input + display currency selector + expense list/form (Phase 8) + dashboard (Phase 9 — Hearth design) + admin screens (Phase 11: users, categories, currencies, rates, rate conflicts, AdminRoute guard, AdminLayout, i18n) + CSV import (Phase 12) complete; live currency preview pending (Phase 13+) |
+| Expenses service | ✅ Phase 1–13 complete — schema, categories/currencies, expense CRUD, family system, tags, currency rates (daily storage, resolution, auto-update via Quartz, backfill, conflict management, display currency conversion), dashboard API, admin controllers (categories, currencies, rates), CSV bulk import, outbox for family events |
+| Notifications service | ✅ Phase 13 complete — dedicated microservice (port 9300); SignalR hub; RabbitMQ consumer (`family.member.removed`); inbox deduplication; in-app notifications + email; `NotificationBell` in frontend NavBar; 20 tests |
+| Frontend | ✅ Auth + family management + tag input + display currency selector + expense list/form (Phase 8) + dashboard (Phase 9 — Hearth design) + admin screens (Phase 11: users, categories, currencies, rates, rate conflicts, AdminRoute guard, AdminLayout, i18n) + CSV import (Phase 12) + notification bell with SignalR real-time push (Phase 13) complete; live currency preview pending (Phase 14+) |
 | Infrastructure | ✅ Docker Compose, nginx, PostgreSQL, RabbitMQ, Grafana, Prometheus |
 
 ---
@@ -29,7 +30,7 @@ Reference: [application-description.md](application-description.md)
 | 10 | Frontend — Family Management | Web UI for families |
 | 11 | Admin Screens ✅ | Categories, currencies, rates, rate validation, users (v0.108.0) |
 | 12 | CSV Import ✅ | Bulk expense upload |
-| 13 | Notifications | In-app + email on attribution removal |
+| 13 | Notifications ✅ | In-app + email on attribution removal (dedicated microservice, SignalR, outbox/inbox) |
 | 14 | PWA / Mobile | Progressive web app, offline, quick-add |
 | 15 | Suggested Additions | Budgets, recurring, splitting, reports |
 
@@ -558,24 +559,46 @@ Replace current model with:
 
 ---
 
-## Phase 13 — Notifications
+## Phase 13 — Notifications ✅ Complete
 
 **Goal:** Notify expense owner when a family head removes their expense from a family.
 
-### Backend
+### Backend — Expenses service changes
 
-- [ ] `NotificationService` — in-app notification record + email dispatch
-- [ ] Triggered by `FamilyService` when attribution removed
-- [ ] `GET /notifications` — unread in-app notifications for current user
-- [ ] `POST /notifications/{id}/read` — mark read
-- [ ] Email template: "Your expense was removed from [Family Name] by [Head Name]"
-- [ ] Unit tests
+- [x] `FamilyEventMessage` + `IFamilyEventPublisher` / `FamilyEventPublisher` — publishes to `expenses.events` topic exchange
+- [x] `OutboxEvent` model + `IExpensesOutboxRepository` + `ExpensesOutboxRepository` — durable outbox
+- [x] `FamilyOutboxPublisherService` BackgroundService — polls every 5 s, max 5 retries
+- [x] `FamilyService.RemoveMemberAsync` — writes to outbox after member + attribution removal (non-fatal)
+- [x] Migration `AddExpensesOutbox`
+
+### Backend — Notifications microservice (`backend/notifications/`, port 9300)
+
+- [x] `Notification` model + `InboxEvent` model + `NotificationsDbContext`
+- [x] `INotificationRepository` / `NotificationRepository` (create, list, unread count, mark read/all)
+- [x] `IInboxRepository` / `InboxRepository` (deduplication)
+- [x] `FamilyEventConsumer` BackgroundService — consumes `expenses.events`, routing `family.#`, inbox dedup, nacks on failure
+- [x] `NotificationService` — persist → SignalR push → email (hub/email non-fatal)
+- [x] `NotificationHub` (SignalR at `/ws/notifications`) — cookie auth, groups by userId
+- [x] `NotificationController` — `GET /notifications`, `GET /notifications/unread-count`, `POST /notifications/{id}/read`, `POST /notifications/read-all`
+- [x] Email template `FAMILY_MEMBER_REMOVED_TEMPLATE.html`
+- [x] `Touir.ExpensesManager.Notifications.Tests` — 20 tests: 6 repository, 8 service, 4 consumer
+- [x] GitLab CI, SonarQube, Trivy, Dockerfile, .dockerignore, .gitignore, README
+
+### Infrastructure
+
+- [x] `docker-compose-apps.yml` — `notifications-service` at port 9300
+- [x] Nginx — `/api/notifications/ws/` (WebSocket, 3600s timeout) + `/api/notifications` REST blocks
+- [x] `.env` + `.env.example` — `EXPENSES_MANAGEMENT_NOTIFICATIONS_DATABASE_*` + RabbitMQ + Email vars
+- [x] Root `.gitlab-ci.yml` — `backend-notifications-pipeline` trigger
 
 ### Frontend
 
-- [ ] Notification bell in navbar — unread count badge
-- [ ] Notification dropdown / panel — list, mark read
-- [ ] Toast on real-time notification (polling or WebSocket — polling first)
+- [x] `@microsoft/signalr` installed
+- [x] `NotificationContext` — SignalR connection, notification list + unread count state
+- [x] `NotificationBell` component — bell icon, red unread badge, dropdown with mark-all, toast on new notification
+- [x] NavBar — placeholder button replaced with `<NotificationBell />`
+- [x] `AppProviders` — `NotificationProvider` added
+- [x] i18n `notifications.*` keys in all 4 locales (en/fr/es/de)
 
 **Depends on:** Phase 4
 

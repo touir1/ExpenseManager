@@ -1,6 +1,6 @@
 ## Commands
 
-**Backend** (from `backend/expenses/` or `backend/users/`):
+**Backend** (from `backend/expenses/`, `backend/users/`, or `backend/notifications/`):
 ```bash
 dotnet build --configuration Release
 dotnet test --collect:"XPlat Code Coverage" --results-directory "./coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover

@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-ExpenseManager: .NET 8 microservices (users:9100, expenses:9200) + React/TS + nginx/PostgreSQL/RabbitMQ.
+ExpenseManager: .NET 8 microservices (users:9100, expenses:9200, notifications:9300) + React/TS + nginx/PostgreSQL/RabbitMQ.
 
 @.claude/commands.md
 @.claude/constraints.md

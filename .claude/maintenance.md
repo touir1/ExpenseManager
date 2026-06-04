@@ -10,6 +10,7 @@ Update on every notable change:
 | [README.md](../README.md) | infrastructure or setup changes |
 | [backend/users/README.md](../backend/users/README.md) | users API changes |
 | [backend/expenses/README.md](../backend/expenses/README.md) | expenses API changes |
+| [backend/notifications/README.md](../backend/notifications/README.md) | notifications API changes |
 | [docs/issues/ongoing/qa_test_results/](../docs/issues/ongoing/qa_test_results/) | each QA session (open items) |
 | [docs/issues/fixed/qa/](../docs/issues/fixed/qa/) | resolved QA items |
 | [docs/issues/ongoing/fixes-and-suggestions.md](../docs/issues/ongoing/fixes-and-suggestions.md) | new/actioned improvement ideas |

@@ -3,6 +3,45 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.111.1] - 2026-06-04
+### Added — Notifications service EF Core migration
+- **`InitialCreate`** migration generated for the notifications service — creates `Notifications` and `InboxEvents` tables; `MigrateAsync()` now has a migration to apply on startup.
+
+## [0.111.0] - 2026-06-04
+### Feature — Phase 13: Notifications (dedicated microservice + SignalR)
+
+#### Notifications microservice (`backend/notifications/`, port 9300)
+- New dedicated .NET 8 microservice with its own PostgreSQL database, RabbitMQ consumer, SignalR hub, and email dispatcher.
+- **`FamilyEventConsumer`** (BackgroundService): subscribes to `expenses.events` topic exchange, queue `notifications.expenses.sync`, routing `family.#`; inbox deduplication via `InboxEvents`; `protected OnMessageReceivedAsync` + virtual `Ack`/`Nack` for test isolation without a live channel.
+- **`NotificationService`**: `HandleFamilyMemberRemovedAsync` — persists `Notification` row, then pushes via `IHubContext<NotificationHub>`, then sends email; hub push and email are non-fatal (try/catch).
+- **`NotificationHub`** (SignalR at `/ws/notifications`): authenticates via `auth_token` cookie (`JwtCookieReader`); groups connections by `userId.ToString()`; aborts on missing/invalid cookie.
+- **`NotificationController`**: `GET /notifications`, `GET /notifications/unread-count`, `POST /notifications/{id}/read`, `POST /notifications/read-all`; sliding-window rate limiting (`notifications_global`).
+- **`FAMILY_MEMBER_REMOVED_TEMPLATE.html`**: email template with `@@REMOVED_BY_NAME@@`, `@@FAMILY_NAME@@`, `@@EXPENSE_COUNT@@`.
+- **`Touir.ExpensesManager.Notifications.Tests`** (20 tests): `NotificationRepositoryTests` (6), `NotificationServiceTests` (8), `FamilyEventConsumerTests` (4) via `TestableConsumer`; SQLite in-memory via `TestNotificationsDbContextWrapper`.
+- GitLab CI, SonarQube.Analysis.xml, Trivy, Dockerfile, .dockerignore, .gitignore, README.
+
+#### Expenses service — outbox pattern for family events
+- **`OutboxEvent` model** + `IExpensesOutboxRepository` / `ExpensesOutboxRepository` + migration `AddExpensesOutbox`.
+- **`FamilyOutboxPublisherService`** (BackgroundService): polls `OutboxEvents` every 5 s, max 5 retries, calls `IFamilyEventPublisher.PublishRaw`.
+- **`FamilyEventMessage`** + **`IFamilyEventPublisher`** / **`FamilyEventPublisher`**: publishes to `expenses.events` topic exchange; `PublishRaw` added for outbox compatibility.
+- **`FamilyService.RemoveMemberAsync`**: now writes to `OutboxEvents` instead of direct RabbitMQ publish — event is durable across RabbitMQ restarts.
+- **`IFamilyRepository.CountMemberAttributionsAsync`**: counts before removal to include in notification payload.
+
+#### Infrastructure
+- **nginx**: `/api/notifications/ws/` WebSocket location block (3600s timeout) + `/api/notifications` REST block, both with `auth_request`.
+- **`docker-compose-apps.yml`**: `notifications-service` at port 9300 with all env vars.
+- **`.env` / `.env.example`**: `EXPENSES_MANAGEMENT_NOTIFICATIONS_DATABASE_*` (5 vars), RabbitMQ (5 vars), EmailAuth (5 vars).
+- **Root `.gitlab-ci.yml`**: `backend-notifications-pipeline` trigger on `backend/notifications/**/*` changes.
+
+#### Frontend
+- **`@microsoft/signalr`** installed.
+- **`NotificationContext`**: SignalR `HubConnectionBuilder` with `withCredentials: true`; auto-reconnect; exposes `notifications`, `unreadCount`, `markRead`, `markAllRead`.
+- **`NotificationBell`**: bell icon with red badge (≤9 count, `9+` above); dropdown with newest-first list + "Mark all as read"; toast on new real-time notification.
+- **`NavBar`**: placeholder button replaced with `<NotificationBell />`.
+- **`AppProviders`**: `NotificationProvider` added.
+- **i18n**: `notifications.*` keys in all 4 locales (en/fr/es/de).
+- **`NavBar.test.tsx`**: mocked `useToast` + `useNotifications` to prevent `ToastProvider` crash.
+
 ## [0.110.12] - 2026-06-04
 ### Tests — CsvImportPage test suite updated
 - **`CsvImportPage.test.tsx`**: Removed 4 stale tests that referenced the old "re-validate all rows" button (no longer exists). Added 10 tests covering new behaviour: remove button presence, remove row updates table and badges, per-row `validateCsvRows` call on save (single-item array, correct payload, tag serialisation), preview row updated after per-row validation, import button re-enabled after validation clears errors, `refresh()` called on successful import, `refresh()` not called on failure. Test count: 22 → 31 (all passing).
