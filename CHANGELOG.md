@@ -3,6 +3,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.110.11] - 2026-06-04
+### Improved — CSV import row UX
+- **`CsvImportPage.tsx`**: Added per-row **Remove** button (trash icon) — removes the row from the preview table and cleans up all associated edit/pending/validating state; button is disabled while that row is validating.
+- **`CsvImportPage.tsx`**: Row save now validates **only the saved row** (`saveAndValidateRow` calls `POST /import/validate-rows` with a single-item array) instead of re-validating all rows — removes the global `revalidating` state, adds per-row `validatingRows: Set<number>`, shows a per-row "Loading…" status indicator during validation.
+- **`CsvImportPage.tsx`**: `handleConfirm` now calls `refresh()` from `useExpensesData` before navigating to `/expenses`, so the tag filter list in the expenses screen picks up any new tags auto-created during import.
+
 ## [0.110.10] - 2026-06-03
 ### Fixed — CSV import re-validate sends family IDs instead of names
 - **`CsvImportPage.tsx`**: `handleRevalidate` was joining `EditedFields.families` (family ID strings) directly as semicolons and sending them to `POST /import/validate-rows`. The backend `ValidateRow` looks up families by **name** in `memberFamiliesByName`, so IDs like `"1"` never matched → every edited row with a family produced `FAMILY_FORBIDDEN`. Fix: resolve each ID to its family name via `userFamilies` before joining.

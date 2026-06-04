@@ -369,6 +369,7 @@ function FamilyDisplay({ ids, families }: Readonly<{ ids: string[]; families: Fa
 function ImportRow({
   row,
   editing,
+  isValidating,
   fields,
   pending,
   currencyOptions,
@@ -379,10 +380,12 @@ function ImportRow({
   onEdit,
   onSave,
   onCancel,
+  onRemove,
   onPendingChange,
 }: {
   row: CsvImportRowPreview
   editing: boolean
+  isValidating: boolean
   fields: EditedFields
   pending: EditedFields
   currencyOptions: SelectOption[]
@@ -393,6 +396,7 @@ function ImportRow({
   onEdit: () => void
   onSave: () => void
   onCancel: () => void
+  onRemove: () => void
   onPendingChange: (field: keyof EditedFields, value: string | string[]) => void
 }) {
   const { t } = useTranslation()
@@ -492,7 +496,9 @@ function ImportRow({
       )}
 
       <td className="px-2 py-2 min-w-[7rem]">
-        {row.isValid && !editing ? (
+        {isValidating ? (
+          <span className="text-slate-400 text-xs">{t('expenses.loading', 'Loading…')}</span>
+        ) : row.isValid && !editing ? (
           <span className="text-emerald-600 text-xs font-medium">{t('expenses.import.columns.valid')}</span>
         ) : editing ? (
           <span className="text-amber-600 text-xs font-medium">{t('expenses.import.columns.editing')}</span>
@@ -528,16 +534,30 @@ function ImportRow({
             </button>
           </div>
         ) : (
-          <button
-            onClick={onEdit}
-            aria-label={`Edit row ${row.rowNumber}`}
-            title={t('expenses.import.editRow')}
-            className="p-1 rounded-lg text-ink-mute hover:text-brand-600 hover:bg-brand-50 transition-colors"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={onEdit}
+              aria-label={`Edit row ${row.rowNumber}`}
+              title={t('expenses.import.editRow')}
+              className="p-1 rounded-lg text-ink-mute hover:text-brand-600 hover:bg-brand-50 transition-colors"
+              disabled={isValidating}
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </button>
+            <button
+              onClick={onRemove}
+              aria-label={`Remove row ${row.rowNumber}`}
+              title={t('expenses.import.removeRow', 'Remove row')}
+              className="p-1 rounded-lg text-ink-mute hover:text-red-600 hover:bg-red-50 transition-colors"
+              disabled={isValidating}
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
         )}
       </td>
     </tr>
@@ -551,7 +571,7 @@ export default function CsvImportPage() {
   const navigate = useNavigate()
   usePageTitle(t('expenses.import.pageTitle'))
 
-  const { currencies, categories, tags: availableTags } = useExpensesData()
+  const { currencies, categories, tags: availableTags, refresh } = useExpensesData()
   const { families: userFamilies } = useFamilies()
 
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -561,9 +581,9 @@ export default function CsvImportPage() {
   const [editedRows, setEditedRows] = useState<Record<number, EditedFields>>({})
   const [pendingEdits, setPendingEdits] = useState<Record<number, EditedFields>>({})
   const [editingRows, setEditingRows] = useState<Set<number>>(new Set())
+  const [validatingRows, setValidatingRows] = useState<Set<number>>(new Set())
 
   const [loadingPreview, setLoadingPreview] = useState(false)
-  const [revalidating, setRevalidating] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -590,10 +610,54 @@ export default function CsvImportPage() {
     setEditingRows(prev => new Set([...prev, rowNumber]))
   }
 
-  function saveEdit(rowNumber: number) {
-    setEditedRows(prev => ({ ...prev, [rowNumber]: pendingEdits[rowNumber] }))
+  async function saveAndValidateRow(rowNumber: number) {
+    const fields = pendingEdits[rowNumber]
+    if (!fields) return
+    setEditedRows(prev => ({ ...prev, [rowNumber]: fields }))
     setEditingRows(prev => { const s = new Set(prev); s.delete(rowNumber); return s })
     setPendingEdits(prev => { const { [rowNumber]: _, ...rest } = prev; return rest })
+    setValidatingRows(prev => new Set([...prev, rowNumber]))
+
+    const rawRow: RawCsvRowDto = {
+      rowNumber,
+      date: fields.date || null,
+      amount: fields.amount || null,
+      currencyCode: fields.currencyCode || null,
+      category: fields.category || null,
+      subcategory: fields.subcategory || null,
+      description: fields.description || null,
+      tags: fields.tags.length > 0 ? fields.tags.join(';') : null,
+      families: fields.families.length > 0
+        ? fields.families.map(id => userFamilies.find(f => String(f.id) === id)?.name ?? id).join(';')
+        : null,
+    }
+
+    const res = await validateCsvRows([rawRow])
+    setValidatingRows(prev => { const s = new Set(prev); s.delete(rowNumber); return s })
+    if (res.ok && res.data) {
+      const validated = res.data.rows[0]
+      if (!validated) return
+      setPreview(prev => {
+        if (!prev) return prev
+        const rows = prev.rows.map(r => r.rowNumber === rowNumber ? validated : r)
+        return { ...prev, rows, validCount: rows.filter(r => r.isValid).length, errorCount: rows.filter(r => !r.isValid).length }
+      })
+      setEditedRows(prev => { const { [rowNumber]: _, ...rest } = prev; return rest })
+    } else {
+      setError(res.error ?? t('expenses.errors.loadFailed'))
+    }
+  }
+
+  function handleRemove(rowNumber: number) {
+    setPreview(prev => {
+      if (!prev) return prev
+      const rows = prev.rows.filter(r => r.rowNumber !== rowNumber)
+      return { ...prev, rows, totalRows: rows.length, validCount: rows.filter(r => r.isValid).length, errorCount: rows.filter(r => !r.isValid).length }
+    })
+    setEditedRows(prev => { const { [rowNumber]: _, ...rest } = prev; return rest })
+    setPendingEdits(prev => { const { [rowNumber]: _, ...rest } = prev; return rest })
+    setEditingRows(prev => { const s = new Set(prev); s.delete(rowNumber); return s })
+    setValidatingRows(prev => { const s = new Set(prev); s.delete(rowNumber); return s })
   }
 
   function cancelEdit(rowNumber: number) {
@@ -647,44 +711,6 @@ export default function CsvImportPage() {
     if (file) handleFile(file)
   }
 
-  // ── Re-validate ─────────────────────────────────────────────────────────────
-
-  async function handleRevalidate() {
-    if (!preview) return
-    setError(null)
-    const mergedEdits = { ...editedRows }
-    for (const [rn, fields] of Object.entries(pendingEdits)) mergedEdits[Number(rn)] = fields
-
-    setRevalidating(true)
-    const rows: RawCsvRowDto[] = preview.rows.map(row => {
-      const fields = mergedEdits[row.rowNumber] ?? rowToEdited(row)
-      return {
-        rowNumber: row.rowNumber,
-        date: fields.date || null,
-        amount: fields.amount || null,
-        currencyCode: fields.currencyCode || null,
-        category: fields.category || null,
-        subcategory: fields.subcategory || null,
-        description: fields.description || null,
-        tags: fields.tags.length > 0 ? fields.tags.join(';') : null,
-        families: fields.families.length > 0
-          ? fields.families.map(id => userFamilies.find(f => String(f.id) === id)?.name ?? id).join(';')
-          : null,
-      }
-    })
-
-    const res = await validateCsvRows(rows)
-    setRevalidating(false)
-    if (res.ok) {
-      setPreview(res.data!)
-      setEditedRows({})
-      setPendingEdits({})
-      setEditingRows(new Set())
-    } else {
-      setError(res.error ?? t('expenses.errors.loadFailed'))
-    }
-  }
-
   // ── Confirm ─────────────────────────────────────────────────────────────────
 
   async function handleConfirm() {
@@ -705,13 +731,13 @@ export default function CsvImportPage() {
 
     const res = await confirmCsvImport(validRows)
     setConfirming(false)
-    if (res.ok) navigate('/expenses')
+    if (res.ok) { refresh(); navigate('/expenses') }
     else setError(res.error ?? t('expenses.errors.saveFailed'))
   }
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
-  const hasEdits = Object.keys(editedRows).length > 0 || editingRows.size > 0
+  const hasEdits = editingRows.size > 0 || validatingRows.size > 0
 
   return (
     <div className="max-w-full mx-auto px-4 sm:px-6 py-8">
@@ -791,6 +817,7 @@ export default function CsvImportPage() {
                       key={row.rowNumber}
                       row={row}
                       editing={isEditing}
+                      isValidating={validatingRows.has(row.rowNumber)}
                       fields={displayFields}
                       pending={pending}
                       currencyOptions={currencyOptions}
@@ -799,8 +826,9 @@ export default function CsvImportPage() {
                       availableTags={availableTags}
                       userFamilies={userFamilies}
                       onEdit={() => startEdit(row.rowNumber)}
-                      onSave={() => saveEdit(row.rowNumber)}
+                      onSave={() => saveAndValidateRow(row.rowNumber)}
                       onCancel={() => cancelEdit(row.rowNumber)}
+                      onRemove={() => handleRemove(row.rowNumber)}
                       onPendingChange={(field, value) => handlePendingChange(row.rowNumber, field, value)}
                     />
                   )
@@ -816,23 +844,13 @@ export default function CsvImportPage() {
             >
               {t('expenses.import.cancel')}
             </button>
-            {hasEdits ? (
-              <button
-                onClick={handleRevalidate}
-                disabled={revalidating}
-                className="px-4 py-2 text-sm font-medium rounded-xl border border-brand-600 text-brand-600 hover:bg-brand-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {revalidating ? t('expenses.loading', 'Loading…') : t('expenses.import.revalidate')}
-              </button>
-            ) : (
-              <button
-                onClick={handleConfirm}
-                disabled={confirming || preview.validCount === 0}
-                className="px-4 py-2 text-sm font-medium rounded-xl bg-brand-600 hover:bg-brand-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {confirming ? t('expenses.actions.saving') : t('expenses.import.confirmButton', { count: preview.validCount })}
-              </button>
-            )}
+            <button
+              onClick={handleConfirm}
+              disabled={confirming || preview.validCount === 0 || hasEdits}
+              className="px-4 py-2 text-sm font-medium rounded-xl bg-brand-600 hover:bg-brand-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {confirming ? t('expenses.actions.saving') : t('expenses.import.confirmButton', { count: preview.validCount })}
+            </button>
           </div>
         </div>
       )}
