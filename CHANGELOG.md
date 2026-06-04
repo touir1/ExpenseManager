@@ -3,6 +3,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.111.3] - 2026-06-04
+### Fixed — Notifications service config and RabbitMQ provisioning
+- **`appsettings.json`** (notifications): stripped all service config sections — RabbitMQ/Postgres/Email values in appsettings take priority over env vars via `GetValue`, causing the container to connect to `rabbitmq:5672` (non-existent) instead of `host.docker.internal`. Matches expenses service pattern (appsettings has only Logging + AllowedHosts).
+- **`appsettings.Development.json`** (notifications): created with localhost defaults for local `dotnet run` — RabbitMQ `expense_notifications`/`expense_management`, Postgres `notifications`/`notifications`; mirrors expenses service pattern.
+- **`docker-compose-apps.yml`**: added missing `EXPENSES_MANAGEMENT_NOTIFICATIONS_RABBITMQ_VIRTUALHOST` env var for notifications service.
+- **`infrastructure/configs/rabbitmq/management_definitions.json`**: added `expense_notifications` user (SHA-256 hash of password `expense_notifications`), permissions on vhost `expense_management`, and topic permissions — required for the notifications service consumer to connect.
+
 ## [0.111.1] - 2026-06-04
 ### Added — Notifications service EF Core migration
 - **`InitialCreate`** migration generated for the notifications service — creates `Notifications` and `InboxEvents` tables; `MigrateAsync()` now has a migration to apply on startup.

@@ -101,7 +101,8 @@ ExpenseManager/
 │   │   ├── Touir.ExpensesManager.Notifications.sln
 │   │   ├── Touir.ExpensesManager.Notifications/
 │   │   │   ├── Program.cs             — Entry point, DI registration, migrations, SignalR hub mapping
-│   │   │   ├── appsettings.json
+│   │   │   ├── appsettings.json       — Logging + AllowedHosts only; service config via env vars
+│   │   │   ├── appsettings.Development.json — localhost defaults for dotnet run (RabbitMQ + Postgres)
 │   │   │   ├── Touir.ExpensesManager.Notifications.csproj
 │   │   │   ├── Hubs/
 │   │   │   │   └── NotificationHub.cs — SignalR hub at /ws/notifications; cookie auth via JwtCookieReader; groups by userId

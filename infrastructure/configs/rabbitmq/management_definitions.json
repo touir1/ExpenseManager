@@ -29,6 +29,13 @@
       "hashing_algorithm": "rabbit_password_hashing_sha256",
       "tags": [],
       "limits": {}
+    },
+    {
+      "name": "expense_notifications",
+      "password_hash": "On8rETDE9QIOoqJvPJp4xeiUIQlv8P9eHtcuDZupLVerOX/C",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": [],
+      "limits": {}
     }
   ],
   "vhosts": [
@@ -56,6 +63,13 @@
     },
     {
       "user": "expense_dashboard",
+      "vhost": "expense_management",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "expense_notifications",
       "vhost": "expense_management",
       "configure": ".*",
       "write": ".*",
@@ -93,6 +107,13 @@
     },
     {
       "user": "expense_expenses",
+      "vhost": "expense_management",
+      "exchange": "",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "expense_notifications",
       "vhost": "expense_management",
       "exchange": "",
       "write": ".*",
