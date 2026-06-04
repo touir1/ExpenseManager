@@ -3,6 +3,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.110.12] - 2026-06-04
+### Tests — CsvImportPage test suite updated
+- **`CsvImportPage.test.tsx`**: Removed 4 stale tests that referenced the old "re-validate all rows" button (no longer exists). Added 10 tests covering new behaviour: remove button presence, remove row updates table and badges, per-row `validateCsvRows` call on save (single-item array, correct payload, tag serialisation), preview row updated after per-row validation, import button re-enabled after validation clears errors, `refresh()` called on successful import, `refresh()` not called on failure. Test count: 22 → 31 (all passing).
+
 ## [0.110.11] - 2026-06-04
 ### Improved — CSV import row UX
 - **`CsvImportPage.tsx`**: Added per-row **Remove** button (trash icon) — removes the row from the preview table and cleans up all associated edit/pending/validating state; button is disabled while that row is validating.
