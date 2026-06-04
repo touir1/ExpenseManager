@@ -3,6 +3,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.111.5] - 2026-06-04
+### Fixed — Notifications REST API 404 + Swagger docs
+- **`NotificationController`**: changed `[Route("notifications")]` → `[Route("")]`; nginx strips `/api/notifications` prefix before forwarding to port 9300, so controller must mount at service root — matches expenses service controller pattern.
+- **`NotificationController`**: added `/// <summary>` XML docs and `[ProducesResponseType]` attributes to all four actions; Swagger UI at `https://localhost:9300/swagger` now shows full endpoint documentation.
+
 ## [0.111.3] - 2026-06-04
 ### Fixed — Notifications service config and RabbitMQ provisioning
 - **`appsettings.json`** (notifications): stripped all service config sections — RabbitMQ/Postgres/Email values in appsettings take priority over env vars via `GetValue`, causing the container to connect to `rabbitmq:5672` (non-existent) instead of `host.docker.internal`. Matches expenses service pattern (appsettings has only Logging + AllowedHosts).

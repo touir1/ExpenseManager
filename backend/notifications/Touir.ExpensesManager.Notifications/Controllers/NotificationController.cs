@@ -8,7 +8,7 @@ using Touir.ExpensesManager.Notifications.Services.Contracts;
 
 namespace Touir.ExpensesManager.Notifications.Controllers
 {
-    [Route("notifications")]
+    [Route("")]
     [ApiController]
     [EnableRateLimiting("notifications_global")]
     public class NotificationController : ControllerBase
@@ -20,7 +20,15 @@ namespace Touir.ExpensesManager.Notifications.Controllers
             _notificationService = notificationService;
         }
 
+        /// <summary>
+        /// Return a paginated list of notifications for the authenticated user, newest first.
+        /// </summary>
+        /// <param name="page">Page number (1-based, default 1).</param>
+        /// <param name="pageSize">Items per page (default 20).</param>
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<NotificationDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetNotifications([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             var userId = JwtCookieReader.GetUserId(Request);
@@ -48,7 +56,13 @@ namespace Touir.ExpensesManager.Notifications.Controllers
             }
         }
 
+        /// <summary>
+        /// Return the count of unread notifications for the authenticated user. Used to populate the bell badge.
+        /// </summary>
         [HttpGet("unread-count")]
+        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetUnreadCount()
         {
             var userId = JwtCookieReader.GetUserId(Request);
@@ -67,7 +81,14 @@ namespace Touir.ExpensesManager.Notifications.Controllers
             }
         }
 
+        /// <summary>
+        /// Mark a single notification as read. No-op if already read. Returns 204 regardless of whether the notification exists for the user.
+        /// </summary>
+        /// <param name="id">Notification ID.</param>
         [HttpPost("{id:long}/read")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> MarkAsRead(long id)
         {
             var userId = JwtCookieReader.GetUserId(Request);
@@ -86,7 +107,13 @@ namespace Touir.ExpensesManager.Notifications.Controllers
             }
         }
 
+        /// <summary>
+        /// Mark all notifications for the authenticated user as read. No-op if none are unread.
+        /// </summary>
         [HttpPost("read-all")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> MarkAllAsRead()
         {
             var userId = JwtCookieReader.GetUserId(Request);
