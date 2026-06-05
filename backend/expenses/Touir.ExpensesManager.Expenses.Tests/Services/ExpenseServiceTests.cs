@@ -316,7 +316,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             var repo = new Mock<IExpenseRepository>();
             repo.Setup(r => r.AddAsync(It.IsAny<Expense>())).ReturnsAsync((Expense e) => e);
             var familyRepo = new Mock<IFamilyRepository>();
-            familyRepo.Setup(r => r.IsMemberAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(false);
+            familyRepo.Setup(r => r.GetFamiliesByUserAsync(It.IsAny<int>())).ReturnsAsync([]);
 
             await Assert.ThrowsAsync<FamilyForbiddenException>(() =>
                 CreateService(repo: repo.Object, familyRepo: familyRepo.Object).AddAsync(

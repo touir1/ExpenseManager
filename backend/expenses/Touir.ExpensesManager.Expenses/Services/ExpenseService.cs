@@ -62,11 +62,11 @@ namespace Touir.ExpensesManager.Expenses.Services
             var tagsSnapshot = string.Join(",", tagDtos.Select(t => t.Id));
 
             await _auditService.WriteAddAuditAsync(expense, userId, sourceId, tagsSnapshot);
-            var attributedFamilyIds = await WriteAttributionsAsync(expense.Id, request.FamilyIds, userId);
+            var (attributedFamilyIds, attributedFamilyDtos) = await WriteAttributionsAsync(expense.Id, request.FamilyIds, userId);
 
             await EnqueueExpenseFamilyNotificationsAsync(expense, attributedFamilyIds, userId, FamilyEventType.ExpenseAdded);
 
-            return MapToDto(expense, tagDtos);
+            return MapToDto(expense, tagDtos, attributedFamilyDtos);
         }
 
         public async Task<ExpenseDto?> UpdateAsync(long id, UpdateExpenseRequest request, int userId, int sourceId)
@@ -95,9 +95,9 @@ namespace Touir.ExpensesManager.Expenses.Services
 
             await _auditService.WriteUpdateAuditAsync(before, existing, userId, sourceId, beforeTags, afterTags);
             await _familyRepository.ClearAttributionsAsync(existing.Id);
-            await WriteAttributionsAsync(existing.Id, request.FamilyIds, userId);
+            var (_, updatedFamilyDtos) = await WriteAttributionsAsync(existing.Id, request.FamilyIds, userId);
 
-            return MapToDto(existing, afterTagDtos);
+            return MapToDto(existing, afterTagDtos, updatedFamilyDtos);
         }
 
         public async Task<bool> DeleteAsync(long id, int userId, int sourceId)
@@ -197,43 +197,55 @@ namespace Touir.ExpensesManager.Expenses.Services
             return tags.Select(t => new TagDto { Id = t.Id, Name = t.Name });
         }
 
-        private async Task<IReadOnlyList<int>> WriteAttributionsAsync(long expenseId, int[]? familyIds, int userId)
+        private async Task<(IReadOnlyList<int> AllIds, IReadOnlyList<FamilyNameDto> NonDefaultFamilies)> WriteAttributionsAsync(long expenseId, int[]? familyIds, int userId)
         {
-            IEnumerable<int> targetIds;
+            IReadOnlyList<int> targetIds;
+            IReadOnlyList<FamilyNameDto> nonDefaultFamilies;
 
             if (familyIds == null)
             {
                 var defaultFamily = await _familyRepository.GetDefaultFamilyForUserAsync(userId);
                 if (defaultFamily is null)
-                    return [];
+                    return ([], []);
                 targetIds = [defaultFamily.Id];
+                nonDefaultFamilies = [];
             }
             else
             {
-                targetIds = familyIds;
+                var userFamilies = (await _familyRepository.GetFamiliesByUserAsync(userId))
+                    .Where(x => !x.Family.IsDeleted)
+                    .ToDictionary(x => x.Family.Id, x => x.Family);
+
+                var ids = new List<int>(familyIds.Length);
+                var dtos = new List<FamilyNameDto>(familyIds.Length);
+
+                foreach (var familyId in familyIds)
+                {
+                    if (!userFamilies.TryGetValue(familyId, out var family))
+                        throw new FamilyForbiddenException(ServiceErrors.FamilyForbidden);
+
+                    ids.Add(familyId);
+                    if (!family.IsDefault)
+                        dtos.Add(new FamilyNameDto { Id = family.Id, Name = family.Name });
+                }
+
+                targetIds = ids;
+                nonDefaultFamilies = dtos;
             }
 
             var now = DateTime.UtcNow;
-            var attributions = new List<ExpenseFamilyAttribution>();
-
-            foreach (var familyId in targetIds)
+            var attributions = targetIds.Select(familyId => new ExpenseFamilyAttribution
             {
-                if (!await _familyRepository.IsMemberAsync(familyId, userId))
-                    throw new FamilyForbiddenException(ServiceErrors.FamilyForbidden);
-
-                attributions.Add(new ExpenseFamilyAttribution
-                {
-                    ExpenseId = expenseId,
-                    FamilyId = familyId,
-                    AttributedAt = now,
-                    AttributedById = userId
-                });
-            }
+                ExpenseId = expenseId,
+                FamilyId = familyId,
+                AttributedAt = now,
+                AttributedById = userId
+            }).ToList();
 
             if (attributions.Count > 0)
                 await _familyRepository.AddAttributionsAsync(attributions);
 
-            return attributions.Select(a => a.FamilyId).ToList();
+            return (targetIds, nonDefaultFamilies);
         }
 
         private async Task EnqueueExpenseFamilyNotificationsAsync(
@@ -289,7 +301,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             }
         }
 
-        private static ExpenseDto MapToDto(Expense e, IEnumerable<TagDto>? explicitTags = null, decimal? convertedAmount = null, CurrencyDto? displayCurrency = null) => new()
+        private static ExpenseDto MapToDto(Expense e, IEnumerable<TagDto>? explicitTags = null, IEnumerable<FamilyNameDto>? explicitFamilies = null, decimal? convertedAmount = null, CurrencyDto? displayCurrency = null) => new()
         {
             Id = e.Id,
             Amount = e.Amount,
@@ -321,8 +333,8 @@ namespace Touir.ExpensesManager.Expenses.Services
             ModifiedAt = e.ModifiedAt,
             ModifiedFrom = e.ModifiedFrom?.Name,
             Tags = explicitTags ?? e.ExpenseTags.Select(et => new TagDto { Id = et.Tag.Id, Name = et.Tag.Name }),
-            Families = e.ExpenseFamilyAttributions
-                .Where(a => !a.Family.IsDeleted && !a.Family.IsDefault)
+            Families = explicitFamilies ?? e.ExpenseFamilyAttributions
+                .Where(a => a.Family != null && !a.Family.IsDeleted && !a.Family.IsDefault)
                 .Select(a => new FamilyNameDto { Id = a.Family.Id, Name = a.Family.Name }),
             ConvertedAmount = convertedAmount,
             DisplayCurrency = displayCurrency

@@ -3,6 +3,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.112.2] - 2026-06-06
+### Fix — 500 on POST /api/expenses when familyIds provided
+
+- **`ExpenseService.WriteAttributionsAsync`**: EF Core relationship fixup was adding newly inserted `ExpenseFamilyAttribution` rows to `expense.ExpenseFamilyAttributions`, but without the `Family` nav prop loaded. `MapToDto` then dereferenced `a.Family.IsDeleted` during JSON serialization → NullReferenceException → 500.
+- Return type changed from `IReadOnlyList<int>` to `(IReadOnlyList<int> AllIds, IReadOnlyList<FamilyNameDto> NonDefaultFamilies)`. Explicit-family path now calls `GetFamiliesByUserAsync` once (single DB query) instead of N `IsMemberAsync` calls; membership validated by presence in result set; deleted families excluded.
+- **`ExpenseService.MapToDto`**: added `explicitFamilies` param; `AddAsync`/`UpdateAsync` pass resolved `FamilyNameDto` list directly; read paths (`GetByIdAsync`, `GetPagedAsync`) use loaded nav props with added null guard on `a.Family`.
+- **Test** `AddAsync_ExplicitFamilyIds_ThrowsForbidden_WhenNotMember`: updated mock from `IsMemberAsync(false)` to `GetFamiliesByUserAsync([])`.
+
 ## [0.112.1] - 2026-06-05
 ### Fix — IsAdmin sync gap between users and expenses services
 
