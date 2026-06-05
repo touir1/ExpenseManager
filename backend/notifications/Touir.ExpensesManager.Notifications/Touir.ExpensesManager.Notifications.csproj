@@ -22,10 +22,30 @@
 
   <ItemGroup>
     <None Remove="Assets\EmailTemplates\FAMILY_MEMBER_REMOVED_TEMPLATE.html" />
+    <None Remove="Assets\EmailTemplates\EMAIL_VERIFICATION_TEMPLATE.html" />
+    <None Remove="Assets\EmailTemplates\PASSWORD_RESET_TEMPLATE.html" />
+    <None Remove="Assets\EmailTemplates\PASSWORD_CHANGED_TEMPLATE.html" />
+    <None Remove="Assets\EmailTemplates\FAMILY_INVITATION_TEMPLATE.html" />
+    <None Remove="Assets\EmailTemplates\FAMILY_INVITATION_ACCEPTED_TEMPLATE.html" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Assets\EmailTemplates\FAMILY_MEMBER_REMOVED_TEMPLATE.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\EmailTemplates\EMAIL_VERIFICATION_TEMPLATE.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\EmailTemplates\PASSWORD_RESET_TEMPLATE.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\EmailTemplates\PASSWORD_CHANGED_TEMPLATE.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\EmailTemplates\FAMILY_INVITATION_TEMPLATE.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\EmailTemplates\FAMILY_INVITATION_ACCEPTED_TEMPLATE.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>

@@ -3,7 +3,6 @@ using Touir.ExpensesManager.Users.Services;
 using Touir.ExpensesManager.Users.Repositories.Contracts;
 using Touir.ExpensesManager.Users.Infrastructure.Contracts;
 using Touir.ExpensesManager.Users.Infrastructure.Options;
-using Touir.ExpensesManager.Users.Infrastructure;
 using Microsoft.Extensions.Options;
 using Moq;
 using System.Text;
@@ -12,15 +11,10 @@ namespace Touir.ExpensesManager.Users.Tests.Services
 {
     public class PasswordManagementServiceTests
     {
-        private static Mock<IEmailHelper> CreateEmailHelperMock()
+        private static Mock<IOutboxRepository> CreateDefaultOutboxMock()
         {
-            var mock = new Mock<IEmailHelper>();
-            mock.Setup(e => e.VerifyEmail(It.IsAny<string>())).Returns(true);
-            mock.Setup(e => e.GetEmailTemplate(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>())).Returns("<html></html>");
-            mock.Setup(e => e.SendEmail(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(),
-                It.IsAny<ICollection<string>>())).Returns(true);
+            var mock = new Mock<IOutboxRepository>();
+            mock.Setup(r => r.EnqueueAsync(It.IsAny<OutboxEvent>())).Returns(Task.CompletedTask);
             return mock;
         }
 
@@ -28,8 +22,10 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             Mock<IUserRepository>? userRepo = null,
             Mock<IAuthenticationRepository>? authRepo = null,
             Mock<ICryptographyHelper>? crypto = null,
-            Mock<IEmailHelper>? emailHelper = null)
+            Mock<IOutboxRepository>? outboxRepo = null)
         {
+            var outbox = outboxRepo ?? CreateDefaultOutboxMock();
+
             return new PasswordManagementService(
                 Options.Create(new AuthenticationServiceOptions
                 {
@@ -37,10 +33,10 @@ namespace Touir.ExpensesManager.Users.Tests.Services
                     ResetPasswordBaseUrl = "http://localhost/reset-password",
                     PasswordResetExpiryInHours = 24
                 }),
-                emailHelper?.Object ?? CreateEmailHelperMock().Object,
                 crypto?.Object ?? new Mock<ICryptographyHelper>().Object,
                 userRepo?.Object ?? new Mock<IUserRepository>().Object,
-                authRepo?.Object ?? new Mock<IAuthenticationRepository>().Object
+                authRepo?.Object ?? new Mock<IAuthenticationRepository>().Object,
+                outbox.Object
             );
         }
 
@@ -120,6 +116,34 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             authRepo.Verify(r => r.UpdateAuthenticationAsync(auth, false), Times.Once);
         }
 
+        [Fact]
+        public async Task ChangePasswordAsync_EnqueuesPasswordChangedEvent_WhenSuccessful()
+        {
+            var user = new User { Id = 1, Email = "test@test.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            var auth = new Authentication { UserId = 1, HashPassword = "hash", HashSalt = "salt" };
+
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("test@test.com")).ReturnsAsync(user);
+
+            var authRepo = new Mock<IAuthenticationRepository>();
+            authRepo.Setup(r => r.GetAuthenticationByUserIdAsync(1)).ReturnsAsync(auth);
+            authRepo.Setup(r => r.UpdateAuthenticationAsync(auth, false)).ReturnsAsync(true);
+
+            var crypto = new Mock<ICryptographyHelper>();
+            crypto.Setup(c => c.VerifyPasswordHash("old", It.IsAny<byte[]>(), It.IsAny<byte[]>())).Returns(true);
+            crypto.Setup(c => c.GenerateRandomSalt()).Returns(Encoding.UTF8.GetBytes("newsalt"));
+            crypto.Setup(c => c.GeneratePasswordHash("new", It.IsAny<byte[]>())).Returns(Encoding.UTF8.GetBytes("newhash"));
+
+            var outboxRepo = new Mock<IOutboxRepository>();
+            outboxRepo.Setup(r => r.EnqueueAsync(It.IsAny<OutboxEvent>())).Returns(Task.CompletedTask);
+
+            var service = CreateService(userRepo, authRepo, crypto, outboxRepo);
+            await service.ChangePasswordAsync("test@test.com", "old", "new");
+
+            outboxRepo.Verify(r => r.EnqueueAsync(It.Is<OutboxEvent>(e =>
+                e.EventType == "user.password.changed")), Times.Once);
+        }
+
         #endregion
 
         #region CreatePasswordAsync Tests
@@ -127,11 +151,8 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         [Fact]
         public async Task CreatePasswordAsync_ReturnsFalse_WhenEmailInvalid()
         {
-            var emailHelper = new Mock<IEmailHelper>();
-            emailHelper.Setup(e => e.VerifyEmail(It.IsAny<string>())).Returns(false);
-
-            var service = CreateService(emailHelper: emailHelper);
-            var result = await service.CreatePasswordAsync("bad", Guid.NewGuid().ToString(), "newpass");
+            var service = CreateService();
+            var result = await service.CreatePasswordAsync("invalidemail", Guid.NewGuid().ToString(), "newpass");
 
             Assert.False(result);
         }
@@ -227,11 +248,8 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         [Fact]
         public async Task ResetPasswordAsync_ReturnsFalse_WhenEmailInvalid()
         {
-            var emailHelper = new Mock<IEmailHelper>();
-            emailHelper.Setup(e => e.VerifyEmail(It.IsAny<string>())).Returns(false);
-
-            var service = CreateService(emailHelper: emailHelper);
-            var result = await service.ResetPasswordAsync("bad", Guid.NewGuid().ToString(), "newpass");
+            var service = CreateService();
+            var result = await service.ResetPasswordAsync("invalidemail", Guid.NewGuid().ToString(), "newpass");
 
             Assert.False(result);
         }
@@ -358,6 +376,41 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             authRepo.Verify(r => r.UpdateAuthenticationAsync(auth, false), Times.Once);
         }
 
+        [Fact]
+        public async Task ResetPasswordAsync_EnqueuesPasswordChangedEvent_WhenSuccessful()
+        {
+            var resetHash = Guid.NewGuid().ToString();
+            var user = new User { Id = 1, Email = "test@test.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
+            var auth = new Authentication
+            {
+                UserId = 1,
+                HashPassword = "oldhash",
+                HashSalt = "oldsalt",
+                PasswordResetHash = resetHash,
+                PasswordResetRequestedAt = DateTime.UtcNow.AddMinutes(-10)
+            };
+
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByEmailAsync("test@test.com")).ReturnsAsync(user);
+
+            var authRepo = new Mock<IAuthenticationRepository>();
+            authRepo.Setup(r => r.GetAuthenticationByUserIdAsync(1)).ReturnsAsync(auth);
+            authRepo.Setup(r => r.UpdateAuthenticationAsync(auth, false)).ReturnsAsync(true);
+
+            var crypto = new Mock<ICryptographyHelper>();
+            crypto.Setup(c => c.GenerateRandomSalt()).Returns(Encoding.UTF8.GetBytes("newsalt"));
+            crypto.Setup(c => c.GeneratePasswordHash("newpass", It.IsAny<byte[]>())).Returns(Encoding.UTF8.GetBytes("newhash"));
+
+            var outboxRepo = new Mock<IOutboxRepository>();
+            outboxRepo.Setup(r => r.EnqueueAsync(It.IsAny<OutboxEvent>())).Returns(Task.CompletedTask);
+
+            var service = CreateService(userRepo, authRepo, crypto, outboxRepo);
+            await service.ResetPasswordAsync("test@test.com", resetHash, "newpass");
+
+            outboxRepo.Verify(r => r.EnqueueAsync(It.Is<OutboxEvent>(e =>
+                e.EventType == "user.password.changed")), Times.Once);
+        }
+
         #endregion
 
         #region RequestPasswordResetAsync Tests
@@ -445,7 +498,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         }
 
         [Fact]
-        public async Task RequestPasswordResetAsync_SendsEmailWithPasswordResetTemplate()
+        public async Task RequestPasswordResetAsync_EnqueuesOutboxEvent_WhenSuccessful()
         {
             var user = new User { Id = 1, Email = "test@test.com", IsEmailValidated = true, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
             var auth = new Authentication { UserId = 1, HashPassword = "hash", HashSalt = "salt" };
@@ -457,53 +510,14 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             authRepo.Setup(r => r.GetAuthenticationByUserIdAsync(1)).ReturnsAsync(auth);
             authRepo.Setup(r => r.UpdateAuthenticationAsync(auth, false)).ReturnsAsync(true);
 
-            var emailHelper = new Mock<IEmailHelper>();
-            emailHelper.Setup(e => e.VerifyEmail(It.IsAny<string>())).Returns(true);
-            emailHelper.Setup(e => e.GetEmailTemplate(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>())).Returns("<html></html>");
-            emailHelper.Setup(e => e.SendEmail(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(),
-                It.IsAny<ICollection<string>>())).Returns(true);
+            var outboxRepo = new Mock<IOutboxRepository>();
+            outboxRepo.Setup(r => r.EnqueueAsync(It.IsAny<OutboxEvent>())).Returns(Task.CompletedTask);
 
-            var service = CreateService(userRepo, authRepo, emailHelper: emailHelper);
+            var service = CreateService(userRepo, authRepo, outboxRepo: outboxRepo);
             await service.RequestPasswordResetAsync("test@test.com", "EXPENSES_MANAGER");
 
-            emailHelper.Verify(e => e.GetEmailTemplate(
-                EmailHtmlTemplate.PasswordReset.Key,
-                It.Is<Dictionary<string, string>>(d =>
-                    d.ContainsKey(EmailHtmlTemplate.PasswordReset.Variables.ResetLink))),
-                Times.Once);
-            emailHelper.Verify(e => e.SendEmail(
-                "test@test.com",
-                It.IsAny<string>(), It.IsAny<string>(),
-                "[Expenses Manager] Password Reset",
-                It.IsAny<string>(), true,
-                It.IsAny<ICollection<string>>()),
-                Times.Once);
-        }
-
-        [Fact]
-        public async Task RequestPasswordResetAsync_ReturnsFalse_WhenEmailSendThrows()
-        {
-            var user = new User { Id = 1, Email = "test@test.com", IsEmailValidated = true, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
-            var auth = new Authentication { UserId = 1, HashPassword = "hash", HashSalt = "salt" };
-
-            var userRepo = new Mock<IUserRepository>();
-            userRepo.Setup(r => r.GetUserByEmailAsync("test@test.com")).ReturnsAsync(user);
-
-            var authRepo = new Mock<IAuthenticationRepository>();
-            authRepo.Setup(r => r.GetAuthenticationByUserIdAsync(1)).ReturnsAsync(auth);
-            authRepo.Setup(r => r.UpdateAuthenticationAsync(auth, false)).ReturnsAsync(true);
-
-            var emailHelper = new Mock<IEmailHelper>();
-            emailHelper.Setup(e => e.VerifyEmail(It.IsAny<string>())).Returns(true);
-            emailHelper.Setup(e => e.GetEmailTemplate(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
-                .Throws(new Exception("Email template failed"));
-
-            var service = CreateService(userRepo, authRepo, emailHelper: emailHelper);
-            var result = await service.RequestPasswordResetAsync("test@test.com", "EXPENSES_MANAGER");
-
-            Assert.False(result);
+            outboxRepo.Verify(r => r.EnqueueAsync(It.Is<OutboxEvent>(e =>
+                e.EventType == "user.password.reset.requested")), Times.Once);
         }
 
         #endregion

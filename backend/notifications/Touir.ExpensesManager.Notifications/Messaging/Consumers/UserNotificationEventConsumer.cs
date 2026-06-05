@@ -7,33 +7,31 @@ using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using System.Text;
 using System.Text.Json;
-using Touir.ExpensesManager.Expenses.Messaging.Messages;
-using Touir.ExpensesManager.Expenses.Models;
-using Touir.ExpensesManager.Expenses.Models.External;
-using Touir.ExpensesManager.Expenses.Repositories.Contracts;
-using Touir.ExpensesManager.Expenses.Repositories.External.Contracts;
-using Touir.ExpensesManager.Expenses.Services.Contracts;
+using Touir.ExpensesManager.Notifications.Messaging.Messages;
+using Touir.ExpensesManager.Notifications.Models;
+using Touir.ExpensesManager.Notifications.Repositories.Contracts;
+using Touir.ExpensesManager.Notifications.Services.Contracts;
 
-namespace Touir.ExpensesManager.Expenses.Messaging.Consumers
+namespace Touir.ExpensesManager.Notifications.Messaging.Consumers
 {
     [ExcludeFromCodeCoverage]
-    public class UserEventConsumer : BackgroundService
+    public class UserNotificationEventConsumer : BackgroundService
     {
         private const string ExchangeName = "users.events";
-        private const string QueueName = "expenses.users.sync";
+        private const string QueueName = "notifications.users.email";
         private const string RoutingKey = "user.#";
 
         private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-        private readonly IServiceScopeFactory _scopeFactory;
-        private readonly IRabbitMQService _rabbitMqService;
-        private readonly ILogger<UserEventConsumer> _logger;
+        protected readonly IServiceScopeFactory _scopeFactory;
+        protected readonly IRabbitMQService _rabbitMqService;
+        protected readonly ILogger<UserNotificationEventConsumer> _logger;
         private IModel? _channel;
 
-        public UserEventConsumer(
+        public UserNotificationEventConsumer(
             IServiceScopeFactory scopeFactory,
             IRabbitMQService rabbitMqService,
-            ILogger<UserEventConsumer> logger)
+            ILogger<UserNotificationEventConsumer> logger)
         {
             _scopeFactory = scopeFactory;
             _rabbitMqService = rabbitMqService;
@@ -57,7 +55,7 @@ namespace Touir.ExpensesManager.Expenses.Messaging.Consumers
                     _channel.BasicConsume(QueueName, autoAck: false, consumer);
 
                     stoppingToken.Register(() => _channel?.Close());
-                    _logger.LogInformation("UserEventConsumer connected to RabbitMQ.");
+                    _logger.LogInformation("UserNotificationEventConsumer connected to RabbitMQ.");
                     return;
                 }
                 catch (BrokerUnreachableException ex)
@@ -68,18 +66,19 @@ namespace Touir.ExpensesManager.Expenses.Messaging.Consumers
             }
         }
 
-        private async Task OnMessageReceivedAsync(object sender, BasicDeliverEventArgs ea)
+        protected async Task OnMessageReceivedAsync(object sender, BasicDeliverEventArgs ea)
         {
             var body = Encoding.UTF8.GetString(ea.Body.ToArray());
             var messageId = ea.BasicProperties?.MessageId ?? Guid.NewGuid().ToString();
+
             try
             {
-                var message = JsonSerializer.Deserialize<UserEventMessage>(body, _jsonOptions);
+                var message = JsonSerializer.Deserialize<UserNotificationEventMessage>(body, _jsonOptions);
 
                 if (message == null)
                 {
-                    _logger.LogWarning("Received null user event message, skipping.");
-                    _channel!.BasicAck(ea.DeliveryTag, multiple: false);
+                    _logger.LogWarning("Received null user notification event message, skipping.");
+                    Ack(ea.DeliveryTag);
                     return;
                 }
 
@@ -89,7 +88,7 @@ namespace Touir.ExpensesManager.Expenses.Messaging.Consumers
                 if (await inboxRepo.ExistsAsync(messageId))
                 {
                     _logger.LogInformation("Duplicate message {MessageId}, skipping.", messageId);
-                    _channel!.BasicAck(ea.DeliveryTag, multiple: false);
+                    Ack(ea.DeliveryTag);
                     return;
                 }
 
@@ -103,58 +102,44 @@ namespace Touir.ExpensesManager.Expenses.Messaging.Consumers
                     Status = InboxEventStatus.Processed
                 });
 
-                _channel!.BasicAck(ea.DeliveryTag, multiple: false);
+                Ack(ea.DeliveryTag);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to process user event message {MessageId}: {Body}", messageId, body);
-                _channel!.BasicNack(ea.DeliveryTag, multiple: false, requeue: false);
+                _logger.LogError(ex, "Failed to process user notification event message {MessageId}: {Body}", messageId, body);
+                Nack(ea.DeliveryTag);
             }
         }
 
-        private async Task HandleMessageAsync(UserEventMessage message, IServiceScope scope)
+        private async Task HandleMessageAsync(UserNotificationEventMessage message, IServiceScope scope)
         {
-            var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+            var svc = scope.ServiceProvider.GetRequiredService<INotificationService>();
 
             switch (message.EventType)
             {
-                case UserEventType.Created:
-                    await userRepository.SaveOrUpdateUserAsync(new User
-                    {
-                        Id = message.UserId,
-                        FirstName = message.FirstName,
-                        LastName = message.LastName,
-                        Email = message.Email,
-                        FamilyId = message.FamilyId,
-                        IsAdmin = message.IsAdmin
-                    });
-                    var familyService = scope.ServiceProvider.GetRequiredService<IFamilyService>();
-                    await familyService.CreateDefaultAsync(message.UserId);
+                case UserEventType.EmailVerificationRequested:
+                    await svc.HandleEmailVerificationAsync(message);
                     break;
 
-                case UserEventType.Updated:
-                    await userRepository.SaveOrUpdateUserAsync(new User
-                    {
-                        Id = message.UserId,
-                        FirstName = message.FirstName,
-                        LastName = message.LastName,
-                        Email = message.Email,
-                        FamilyId = message.FamilyId,
-                        IsAdmin = message.IsAdmin
-                    });
+                case UserEventType.PasswordResetRequested:
+                    await svc.HandlePasswordResetAsync(message);
                     break;
 
-                case UserEventType.Deleted:
-                    var user = await userRepository.GetUserByIdAsync(message.UserId);
-                    if (user != null)
-                        await userRepository.DeleteUserAsync(user);
+                case UserEventType.PasswordChanged:
+                    await svc.HandlePasswordChangedAsync(message);
                     break;
 
                 default:
-                    _logger.LogWarning("Unknown user event type: {EventType}", message.EventType);
+                    _logger.LogWarning("Unknown user notification event type: {EventType}", message.EventType);
                     break;
             }
         }
+
+        protected virtual void Ack(ulong deliveryTag) =>
+            _channel?.BasicAck(deliveryTag, multiple: false);
+
+        protected virtual void Nack(ulong deliveryTag) =>
+            _channel?.BasicNack(deliveryTag, multiple: false, requeue: false);
 
         public override void Dispose()
         {

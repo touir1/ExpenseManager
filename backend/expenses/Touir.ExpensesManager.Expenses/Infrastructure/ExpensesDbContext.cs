@@ -142,6 +142,7 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
                 entity.Property(e => e.Email).HasColumnName("USR_Email");
                 entity.Property(e => e.FamilyId).HasColumnName("USR_FamilyId");
                 entity.Property(e => e.IsDeleted).HasColumnName("USR_IsDeleted");
+                entity.Property(e => e.IsAdmin).HasColumnName("USR_IsAdmin").HasDefaultValue(false);
             });
 
             // ── Currency ──────────────────────────────────────────────────────

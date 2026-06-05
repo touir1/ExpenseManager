@@ -19,7 +19,6 @@ namespace Touir.ExpensesManager.Notifications.Messaging.Consumers
     {
         private const string ExchangeName = "expenses.events";
         private const string QueueName = "notifications.expenses.sync";
-        private const string RoutingKey = "family.#";
 
         private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -47,7 +46,8 @@ namespace Touir.ExpensesManager.Notifications.Messaging.Consumers
                     _channel = _rabbitMqService.GetConnection().CreateModel();
                     _channel.ExchangeDeclare(ExchangeName, ExchangeType.Topic, durable: true, autoDelete: false);
                     _channel.QueueDeclare(QueueName, durable: true, exclusive: false, autoDelete: false);
-                    _channel.QueueBind(QueueName, ExchangeName, RoutingKey);
+                    _channel.QueueBind(QueueName, ExchangeName, "family.#");
+                    _channel.QueueBind(QueueName, ExchangeName, "expenses.#");
                     _channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
 
                     var consumer = new AsyncEventingBasicConsumer(_channel);
@@ -73,11 +73,11 @@ namespace Touir.ExpensesManager.Notifications.Messaging.Consumers
 
             try
             {
-                var message = JsonSerializer.Deserialize<FamilyEventMessage>(body, _jsonOptions);
+                var envelope = JsonSerializer.Deserialize<BaseEventEnvelope>(body, _jsonOptions);
 
-                if (message == null)
+                if (envelope == null)
                 {
-                    _logger.LogWarning("Received null family event message, skipping.");
+                    _logger.LogWarning("Received null expenses event message, skipping.");
                     Ack(ea.DeliveryTag);
                     return;
                 }
@@ -92,12 +92,12 @@ namespace Touir.ExpensesManager.Notifications.Messaging.Consumers
                     return;
                 }
 
-                await HandleMessageAsync(message, scope);
+                await HandleMessageAsync(body, envelope.EventType, scope);
 
                 await inboxRepo.AddAsync(new InboxEvent
                 {
                     MessageId = messageId,
-                    EventType = message.EventType,
+                    EventType = envelope.EventType,
                     ReceivedAt = DateTime.UtcNow,
                     Status = InboxEventStatus.Processed
                 });
@@ -106,22 +106,59 @@ namespace Touir.ExpensesManager.Notifications.Messaging.Consumers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to process family event message {MessageId}: {Body}", messageId, body);
+                _logger.LogError(ex, "Failed to process expenses event message {MessageId}: {Body}", messageId, body);
                 Nack(ea.DeliveryTag);
             }
         }
 
-        private async Task HandleMessageAsync(FamilyEventMessage message, IServiceScope scope)
+        private async Task HandleMessageAsync(string body, string eventType, IServiceScope scope)
         {
-            switch (message.EventType)
+            var svc = scope.ServiceProvider.GetRequiredService<INotificationService>();
+
+            switch (eventType)
             {
                 case FamilyEventType.MemberRemoved:
-                    var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
-                    await notificationService.HandleFamilyMemberRemovedAsync(message);
+                    var removed = JsonSerializer.Deserialize<FamilyEventMessage>(body, _jsonOptions)!;
+                    await svc.HandleFamilyMemberRemovedAsync(removed);
+                    break;
+
+                case FamilyEventType.InvitationRequested:
+                    var invited = JsonSerializer.Deserialize<FamilyInvitationEventMessage>(body, _jsonOptions)!;
+                    await svc.HandleFamilyInvitationAsync(invited);
+                    break;
+
+                case FamilyEventType.InvitationAccepted:
+                    var accepted = JsonSerializer.Deserialize<FamilyInvitationAcceptedEventMessage>(body, _jsonOptions)!;
+                    await svc.HandleFamilyInvitationAcceptedAsync(accepted);
+                    break;
+
+                case FamilyEventType.MemberJoined:
+                    var joined = JsonSerializer.Deserialize<FamilyMemberJoinedEventMessage>(body, _jsonOptions)!;
+                    await svc.HandleFamilyMemberJoinedAsync(joined);
+                    break;
+
+                case FamilyEventType.ExpenseAdded:
+                    var expAdded = JsonSerializer.Deserialize<FamilyExpenseEventMessage>(body, _jsonOptions)!;
+                    await svc.HandleFamilyExpenseAddedAsync(expAdded);
+                    break;
+
+                case FamilyEventType.ExpenseDeleted:
+                    var expDeleted = JsonSerializer.Deserialize<FamilyExpenseEventMessage>(body, _jsonOptions)!;
+                    await svc.HandleFamilyExpenseDeletedAsync(expDeleted);
+                    break;
+
+                case FamilyEventType.ImportCompleted:
+                    var imported = JsonSerializer.Deserialize<ImportCompletedEventMessage>(body, _jsonOptions)!;
+                    await svc.HandleImportCompletedAsync(imported);
+                    break;
+
+                case FamilyEventType.RateConflict:
+                    var conflict = JsonSerializer.Deserialize<RateConflictEventMessage>(body, _jsonOptions)!;
+                    await svc.HandleRateConflictAsync(conflict);
                     break;
 
                 default:
-                    _logger.LogWarning("Unknown family event type: {EventType}", message.EventType);
+                    _logger.LogWarning("Unknown expenses event type: {EventType}", eventType);
                     break;
             }
         }
@@ -139,5 +176,10 @@ namespace Touir.ExpensesManager.Notifications.Messaging.Consumers
             base.Dispose();
             GC.SuppressFinalize(this);
         }
+    }
+
+    internal class BaseEventEnvelope
+    {
+        public string EventType { get; set; } = null!;
     }
 }

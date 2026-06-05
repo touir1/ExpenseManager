@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Options;
 using Touir.ExpensesManager.Expenses.Controllers.DTO;
-using Touir.ExpensesManager.Expenses.Infrastructure;
-using Touir.ExpensesManager.Expenses.Infrastructure.Contracts;
 using Touir.ExpensesManager.Expenses.Infrastructure.Options;
 using System.Text.Json;
 using Touir.ExpensesManager.Expenses.Messaging.Messages;
@@ -21,16 +19,14 @@ namespace Touir.ExpensesManager.Expenses.Services
         private readonly IFamilyRepository _familyRepo;
         private readonly IUserRepository _userRepo;
         private readonly ILookupCacheService _lookupCache;
-        private readonly IEmailHelper _emailHelper;
         private readonly FamilyOptions _familyOptions;
         private readonly IExpensesOutboxRepository _outboxRepo;
 
-        public FamilyService(IFamilyRepository familyRepo, IUserRepository userRepo, ILookupCacheService lookupCache, IEmailHelper emailHelper, IOptions<FamilyOptions> familyOptions, IExpensesOutboxRepository outboxRepo)
+        public FamilyService(IFamilyRepository familyRepo, IUserRepository userRepo, ILookupCacheService lookupCache, IOptions<FamilyOptions> familyOptions, IExpensesOutboxRepository outboxRepo)
         {
             _familyRepo = familyRepo;
             _userRepo = userRepo;
             _lookupCache = lookupCache;
-            _emailHelper = emailHelper;
             _familyOptions = familyOptions.Value;
             _outboxRepo = outboxRepo;
         }
@@ -179,13 +175,22 @@ namespace Touir.ExpensesManager.Expenses.Services
                     : string.Empty;
 
                 string inviteLink = $"{_familyOptions.InviteBaseUrl.TrimEnd('/')}?token={Uri.EscapeDataString(token)}";
-                string emailHtml = _emailHelper.GetEmailTemplate(EmailHtmlTemplate.FamilyInvitation.Key, new Dictionary<string, string>
+                var msgId = Guid.NewGuid().ToString();
+                await _outboxRepo.EnqueueAsync(new Models.OutboxEvent
                 {
-                    { EmailHtmlTemplate.FamilyInvitation.Variables.InviteLink, inviteLink },
-                    { EmailHtmlTemplate.FamilyInvitation.Variables.FamilyName, family.Name },
-                    { EmailHtmlTemplate.FamilyInvitation.Variables.InviterName, inviterName }
+                    MessageId = msgId,
+                    EventType = FamilyEventType.InvitationRequested,
+                    Payload = JsonSerializer.Serialize(new FamilyInvitationEventMessage
+                    {
+                        MessageId = msgId,
+                        EventType = FamilyEventType.InvitationRequested,
+                        InviteeEmail = email,
+                        InviterName = inviterName,
+                        FamilyName = family.Name,
+                        InviteLink = inviteLink
+                    }),
+                    CreatedAt = DateTime.UtcNow
                 });
-                _emailHelper.SendEmail(recipientTo: email, emailSubject: "[Expenses Manager] Family Invitation", isHTML: true, emailBody: emailHtml);
             }
             catch (Exception ex)
             {
@@ -212,8 +217,9 @@ namespace Touir.ExpensesManager.Expenses.Services
             if (!string.Equals(user.Email, invitation.InviteeEmail, StringComparison.OrdinalIgnoreCase))
                 throw new FamilyForbiddenException();
 
-            var family = await _familyRepo.GetByIdAsync(invitation.FamilyId)
-                ?? throw new FamilyNotFoundException();
+            var (family, existingMembers) = await _familyRepo.GetByIdWithMembersAsync(invitation.FamilyId);
+            if (family is null)
+                throw new FamilyNotFoundException();
 
             if (family.IsDefault)
                 throw new FamilyForbiddenException(ServiceErrors.FamilyCannotInviteDefault);
@@ -221,7 +227,10 @@ namespace Touir.ExpensesManager.Expenses.Services
             if (await _familyRepo.IsMemberAsync(invitation.FamilyId, userId))
                 throw new FamilyConflictException(ServiceErrors.FamilyAlreadyMember);
 
+            var headRoleId = await _lookupCache.GetIdAsync<FamilyRole>(RoleHead);
             var memberId = await _lookupCache.GetIdAsync<FamilyRole>(RoleMember);
+            var membersList = existingMembers.ToList();
+
             var membershipEntry = new FamilyMembership
             {
                 FamilyId = invitation.FamilyId,
@@ -234,6 +243,63 @@ namespace Touir.ExpensesManager.Expenses.Services
             invitation.AcceptedAt = DateTime.UtcNow;
             invitation.AcceptedByUserId = userId;
             await _familyRepo.UpdateInvitationAsync(invitation);
+
+            try
+            {
+                var joinerName = $"{user.FirstName} {user.LastName}".Trim();
+                var headMember = membersList.FirstOrDefault(m => m.RoleId == headRoleId);
+
+                if (headMember is not null)
+                {
+                    var acceptedMsgId = Guid.NewGuid().ToString();
+                    await _outboxRepo.EnqueueAsync(new Models.OutboxEvent
+                    {
+                        MessageId = acceptedMsgId,
+                        EventType = FamilyEventType.InvitationAccepted,
+                        Payload = JsonSerializer.Serialize(new FamilyInvitationAcceptedEventMessage
+                        {
+                            MessageId = acceptedMsgId,
+                            EventType = FamilyEventType.InvitationAccepted,
+                            HeadUserId = headMember.UserId,
+                            FamilyId = invitation.FamilyId,
+                            FamilyName = family.Name,
+                            AcceptorName = joinerName,
+                            AcceptorEmail = user.Email
+                        }),
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
+                var existingMemberIds = membersList
+                    .Select(m => m.UserId)
+                    .Where(id => id != userId)
+                    .ToList();
+
+                if (existingMemberIds.Count > 0)
+                {
+                    var joinedMsgId = Guid.NewGuid().ToString();
+                    await _outboxRepo.EnqueueAsync(new Models.OutboxEvent
+                    {
+                        MessageId = joinedMsgId,
+                        EventType = FamilyEventType.MemberJoined,
+                        Payload = JsonSerializer.Serialize(new FamilyMemberJoinedEventMessage
+                        {
+                            MessageId = joinedMsgId,
+                            EventType = FamilyEventType.MemberJoined,
+                            FamilyId = invitation.FamilyId,
+                            FamilyName = family.Name,
+                            JoinerName = joinerName,
+                            JoinerUserId = userId,
+                            MemberUserIds = existingMemberIds
+                        }),
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(ex.Message);
+            }
         }
 
         public async Task RemoveMemberAsync(int familyId, int targetUserId, int removedById)

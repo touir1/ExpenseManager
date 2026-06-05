@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Options;
 using Moq;
-using Touir.ExpensesManager.Expenses.Infrastructure.Contracts;
 using Touir.ExpensesManager.Expenses.Infrastructure.Options;
 using Touir.ExpensesManager.Expenses.Models;
 using Touir.ExpensesManager.Expenses.Models.External;
@@ -26,7 +25,6 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             IFamilyRepository? familyRepo = null,
             IUserRepository? userRepo = null,
             ILookupCacheService? lookupCache = null,
-            IEmailHelper? emailHelper = null,
             IOptions<FamilyOptions>? familyOptions = null,
             IExpensesOutboxRepository? outboxRepo = null)
         {
@@ -34,7 +32,6 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
                 familyRepo ?? Mock.Of<IFamilyRepository>(),
                 userRepo ?? Mock.Of<IUserRepository>(),
                 lookupCache ?? DefaultLookupCache(),
-                emailHelper ?? Mock.Of<IEmailHelper>(),
                 familyOptions ?? Options.Create(new FamilyOptions { InviteExpiryInDays = 7 }),
                 outboxRepo ?? Mock.Of<IExpensesOutboxRepository>());
         }
@@ -426,7 +423,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         }
 
         [Fact]
-        public async Task InviteAsync_SendsEmail_ToInvitee_WhenValid()
+        public async Task InviteAsync_EnqueuesOutboxEvent_ToInvitee_WhenValid()
         {
             var family = MakeFamily(1);
             var membership = MakeMembership(1, userId: 10, roleId: 1);
@@ -442,27 +439,18 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             userRepo.Setup(r => r.GetUserByEmailAsync("other@example.com")).ReturnsAsync(invitee);
             userRepo.Setup(r => r.GetUserByIdAsync(10)).ReturnsAsync(inviter);
 
-            var emailHelper = new Mock<IEmailHelper>();
+            var outboxRepo = new Mock<IExpensesOutboxRepository>();
+            outboxRepo.Setup(r => r.EnqueueAsync(It.IsAny<OutboxEvent>())).Returns(Task.CompletedTask);
 
-            await CreateService(repo.Object, userRepo.Object, emailHelper: emailHelper.Object)
+            await CreateService(repo.Object, userRepo.Object, outboxRepo: outboxRepo.Object)
                 .InviteAsync(1, "other@example.com", invitedById: 10);
 
-            emailHelper.Verify(e => e.GetEmailTemplate(
-                It.IsAny<string>(),
-                It.Is<Dictionary<string, string>>(d =>
-                    d.ContainsKey("INVITER_NAME") && d["INVITER_NAME"] == "Test User")),
-                Times.Once);
-            emailHelper.Verify(e => e.SendEmail(
-                "other@example.com",
-                null, null,
-                "[Expenses Manager] Family Invitation",
-                It.IsAny<string?>(),
-                true,
-                null), Times.Once);
+            outboxRepo.Verify(r => r.EnqueueAsync(It.Is<OutboxEvent>(e =>
+                e.EventType == "family.invitation.requested")), Times.Once);
         }
 
         [Fact]
-        public async Task InviteAsync_EmailFailure_DoesNotPropagate()
+        public async Task InviteAsync_OutboxFailure_DoesNotPropagate()
         {
             var family = MakeFamily(1);
             var membership = MakeMembership(1, userId: 10, roleId: 1);
@@ -476,11 +464,10 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             var userRepo = new Mock<IUserRepository>();
             userRepo.Setup(r => r.GetUserByEmailAsync("other@example.com")).ReturnsAsync(invitee);
 
-            var emailHelper = new Mock<IEmailHelper>();
-            emailHelper.Setup(e => e.GetEmailTemplate(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
-                .Throws(new Exception("SMTP down"));
+            var outboxRepo = new Mock<IExpensesOutboxRepository>();
+            outboxRepo.Setup(r => r.EnqueueAsync(It.IsAny<OutboxEvent>())).ThrowsAsync(new Exception("DB down"));
 
-            var token = await CreateService(repo.Object, userRepo.Object, emailHelper: emailHelper.Object)
+            var token = await CreateService(repo.Object, userRepo.Object, outboxRepo: outboxRepo.Object)
                 .InviteAsync(1, "other@example.com", invitedById: 10);
 
             Assert.NotEmpty(token);
@@ -552,7 +539,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
 
             var repo = new Mock<IFamilyRepository>();
             repo.Setup(r => r.GetInvitationByTokenAsync("tok")).ReturnsAsync(invitation);
-            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(MakeFamily(1));
+            repo.Setup(r => r.GetByIdWithMembersAsync(1))
+                .ReturnsAsync((MakeFamily(1), Enumerable.Empty<FamilyMembership>()));
             repo.Setup(r => r.IsMemberAsync(1, 10)).ReturnsAsync(false);
 
             var userRepo = new Mock<IUserRepository>();
@@ -602,7 +590,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
 
             var repo = new Mock<IFamilyRepository>();
             repo.Setup(r => r.GetInvitationByTokenAsync("tok")).ReturnsAsync(invitation);
-            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(MakeFamily(1));
+            repo.Setup(r => r.GetByIdWithMembersAsync(1))
+                .ReturnsAsync((MakeFamily(1), Enumerable.Empty<FamilyMembership>()));
             repo.Setup(r => r.IsMemberAsync(1, 10)).ReturnsAsync(true); // already a member
 
             var userRepo = new Mock<IUserRepository>();
@@ -626,7 +615,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
 
             var repo = new Mock<IFamilyRepository>();
             repo.Setup(r => r.GetInvitationByTokenAsync("tok")).ReturnsAsync(invitation);
-            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(MakeFamily(1, isDefault: true));
+            repo.Setup(r => r.GetByIdWithMembersAsync(1))
+                .ReturnsAsync((MakeFamily(1, isDefault: true), Enumerable.Empty<FamilyMembership>()));
 
             var userRepo = new Mock<IUserRepository>();
             userRepo.Setup(r => r.GetUserByIdAsync(10)).ReturnsAsync(user);

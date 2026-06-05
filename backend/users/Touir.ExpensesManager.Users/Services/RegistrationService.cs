@@ -1,19 +1,17 @@
+using System.Net.Mail;
 using System.Text.Json;
 using System.Web;
-using Microsoft.Extensions.Options;
-using Touir.ExpensesManager.Users.Infrastructure;
-using Touir.ExpensesManager.Users.Infrastructure.Contracts;
 using Touir.ExpensesManager.Users.Infrastructure.Options;
 using Touir.ExpensesManager.Users.Messaging.Messages;
 using Touir.ExpensesManager.Users.Models;
 using Touir.ExpensesManager.Users.Repositories.Contracts;
 using Touir.ExpensesManager.Users.Services.Contracts;
+using Microsoft.Extensions.Options;
 
 namespace Touir.ExpensesManager.Users.Services
 {
     public class RegistrationService : IRegistrationService
     {
-        private readonly IEmailHelper _emailHelper;
         private readonly IUserRepository _userRepository;
         private readonly IOutboxRepository _outboxRepository;
         private readonly IUserRoleAssignmentService _userRoleAssignmentService;
@@ -22,12 +20,10 @@ namespace Touir.ExpensesManager.Users.Services
 
         public RegistrationService(
             IOptions<AuthenticationServiceOptions> authServiceOptions,
-            IEmailHelper emailHelper,
             IUserRepository userRepository,
             IOutboxRepository outboxRepository,
             IUserRoleAssignmentService userRoleAssignmentService)
         {
-            _emailHelper = emailHelper;
             _userRepository = userRepository;
             _outboxRepository = outboxRepository;
             _userRoleAssignmentService = userRoleAssignmentService;
@@ -61,7 +57,7 @@ namespace Touir.ExpensesManager.Users.Services
 
         public async Task<bool> ValidateEmailAsync(string emailVerificationHash, string email)
         {
-            if (!_emailHelper.VerifyEmail(email))
+            if (!IsValidEmail(email))
                 return false;
             if (!Guid.TryParse(emailVerificationHash, out _))
                 return false;
@@ -81,7 +77,8 @@ namespace Touir.ExpensesManager.Users.Services
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     Email = user.Email,
-                    FamilyId = user.FamilyId
+                    FamilyId = user.FamilyId,
+                    IsAdmin = false
                 }),
                 CreatedAt = DateTime.UtcNow,
                 RetryCount = 0
@@ -100,7 +97,7 @@ namespace Touir.ExpensesManager.Users.Services
             var expiresAt = DateTime.UtcNow.AddHours(_verificationExpiryHours);
             await _userRepository.UpdateEmailValidationHashAsync(user.Id, newHash, expiresAt);
 
-            SendVerificationEmail(email, newHash, applicationCode);
+            await EnqueueVerificationEmailAsync(user.Id, email, newHash, applicationCode);
 
             return ResendResult.Sent;
         }
@@ -138,24 +135,40 @@ namespace Touir.ExpensesManager.Users.Services
 
             try
             {
-                SendVerificationEmail(email, emailValidationHash, applicationCode);
+                await EnqueueVerificationEmailAsync(user.Id, email, emailValidationHash, applicationCode);
             }
             catch (Exception exception)
             {
                 await _userRepository.DeleteUserAsync(user);
-                Console.WriteLine(exception.ToString()); // to change later: logging implementation
+                Console.WriteLine(exception.ToString());
                 throw;
             }
         }
 
-        private void SendVerificationEmail(string email, string emailValidationHash, string? applicationCode)
+        private async Task EnqueueVerificationEmailAsync(int userId, string email, string emailValidationHash, string? applicationCode)
         {
             string verificationLink = $"{_verifyEmailUrl.TrimEnd('/')}?h={HttpUtility.UrlEncode(emailValidationHash)}&s={HttpUtility.UrlEncode(email)}&app_code={HttpUtility.UrlEncode(applicationCode)}";
-            Console.WriteLine($"email: {email}, verifLink: {verificationLink}");
-            string emailVerificationHtml = _emailHelper.GetEmailTemplate(EmailHtmlTemplate.EmailVerification.Key, new Dictionary<string, string> {
-                { EmailHtmlTemplate.EmailVerification.Variables.VerificationLink, verificationLink },
+            await _outboxRepository.EnqueueAsync(new OutboxEvent
+            {
+                MessageId = Guid.NewGuid().ToString(),
+                EventType = UserEventType.EmailVerificationRequested,
+                Payload = JsonSerializer.Serialize(new UserNotificationEventMessage
+                {
+                    EventType = UserEventType.EmailVerificationRequested,
+                    UserId = userId,
+                    Email = email,
+                    VerificationLink = verificationLink,
+                    AppCode = applicationCode
+                }),
+                CreatedAt = DateTime.UtcNow,
+                RetryCount = 0
             });
-            _emailHelper.SendEmail(recipientTo: email, emailSubject: "[Expenses Manager] Email Verification", isHTML: true, emailBody: emailVerificationHtml);
+        }
+
+        private static bool IsValidEmail(string email)
+        {
+            try { _ = new MailAddress(email); return true; }
+            catch { return false; }
         }
     }
 }

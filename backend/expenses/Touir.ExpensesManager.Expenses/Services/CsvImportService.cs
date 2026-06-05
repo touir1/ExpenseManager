@@ -1,8 +1,10 @@
 using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
+using System.Text.Json;
 using Touir.ExpensesManager.Expenses.Controllers.DTO;
 using Touir.ExpensesManager.Expenses.Controllers.Requests;
+using Touir.ExpensesManager.Expenses.Messaging.Messages;
 using Touir.ExpensesManager.Expenses.Models;
 using Touir.ExpensesManager.Expenses.Repositories.Contracts;
 using Touir.ExpensesManager.Expenses.Services.Contracts;
@@ -24,19 +26,22 @@ namespace Touir.ExpensesManager.Expenses.Services
         private readonly IFamilyRepository _familyRepository;
         private readonly ITagService _tagService;
         private readonly IExpenseService _expenseService;
+        private readonly IExpensesOutboxRepository _outboxRepo;
 
         public CsvImportService(
             ICurrencyRepository currencyRepository,
             ICategoryRepository categoryRepository,
             IFamilyRepository familyRepository,
             ITagService tagService,
-            IExpenseService expenseService)
+            IExpenseService expenseService,
+            IExpensesOutboxRepository outboxRepo)
         {
             _currencyRepository = currencyRepository;
             _categoryRepository = categoryRepository;
             _familyRepository = familyRepository;
             _tagService = tagService;
             _expenseService = expenseService;
+            _outboxRepo = outboxRepo;
         }
 
         public async Task<CsvImportPreviewDto> ParseAndValidateAsync(Stream csvStream, int userId, CancellationToken cancellationToken = default)
@@ -266,8 +271,9 @@ namespace Touir.ExpensesManager.Expenses.Services
         {
             int imported = 0;
             int skipped = 0;
+            var rowList = rows.ToList();
 
-            foreach (var row in rows)
+            foreach (var row in rowList)
             {
                 try
                 {
@@ -300,6 +306,30 @@ namespace Touir.ExpensesManager.Expenses.Services
                 {
                     skipped++;
                 }
+            }
+
+            try
+            {
+                var msgId = Guid.NewGuid().ToString();
+                await _outboxRepo.EnqueueAsync(new OutboxEvent
+                {
+                    MessageId = msgId,
+                    EventType = FamilyEventType.ImportCompleted,
+                    Payload = JsonSerializer.Serialize(new ImportCompletedEventMessage
+                    {
+                        MessageId = msgId,
+                        EventType = FamilyEventType.ImportCompleted,
+                        UserId = userId,
+                        TotalRows = rowList.Count,
+                        ImportedCount = imported,
+                        SkippedCount = skipped
+                    }),
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(ex.Message);
             }
 
             return new CsvImportResultDto { Imported = imported, Skipped = skipped };

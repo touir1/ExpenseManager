@@ -56,20 +56,16 @@ http://localhost:9100/swagger
 
 All 14 endpoints have XML `<summary>` docs and full `[ProducesResponseType]` coverage.
 
-## Email Configuration
+## Email
 
-Configured via environment variables:
+Email is **not sent by this service**. All outbound email is handled by the notifications service. The users service writes outbox events that the notifications service consumes and dispatches via SMTP.
+
+`AuthenticationServiceOptions` still configures the base URLs embedded in email links:
 
 | Variable | Description | Default |
 |---|---|---|
-| `EXPENSES_MANAGEMENT_USERS_EMAILAUTH_HOST` | SMTP server hostname | `smtp.gmail.com` |
-| `EXPENSES_MANAGEMENT_USERS_EMAILAUTH_PORT` | SMTP server port | `587` |
-| `EXPENSES_MANAGEMENT_USERS_EMAILAUTH_EMAIL` | Sender address | — |
-| `EXPENSES_MANAGEMENT_USERS_EMAILAUTH_PASSWORD` | SMTP password | — |
-| `EXPENSES_MANAGEMENT_USERS_EMAILAUTH_ENABLESSL` | Enable SSL/TLS on the SMTP connection | `true` |
-| `EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_RESET_PASSWORD_URL` | Base URL for password-reset links sent by email | `https://localhost/reset-password` |
-
-For local development, [Mailpit](https://mailpit.axllent.org/) is included in the tools Docker Compose stack (`host.docker.internal:1025`, `EnableSsl=false`). The web UI is available at `http://localhost:8025`.
+| `EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_VERIFY_EMAIL_URL` | Base URL for email verification links | `https://localhost:7114/api/auth/verifyEmail` |
+| `EXPENSES_MANAGEMENT_USERS_AUTHSERVICE_RESET_PASSWORD_URL` | Base URL for password-reset links | `https://localhost/reset-password` |
 
 ## Messaging
 
@@ -80,6 +76,9 @@ Publishes to RabbitMQ exchange `users.events` (topic, durable) via the **outbox 
 | `user.created` | Email validation succeeds (`GET /auth/validate-email`) |
 | `user.updated` | User profile update (future) |
 | `user.deleted` | Validated user deletion (future) |
+| `user.email.verification.requested` | Registration or resend-verification → notifications service sends the email |
+| `user.password.reset.requested` | Password reset requested → notifications service sends the reset email |
+| `user.password.changed` | Password changed or reset → notifications service sends a security confirmation email |
 
 Config via `EXPENSES_MANAGEMENT_USERS_RABBITMQ_*` env vars (HostName, Port, UserName, Password).
 

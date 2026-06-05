@@ -9,5 +9,6 @@ namespace Touir.ExpensesManager.Expenses.Repositories.External.Contracts
         Task<User?> GetUserByIdAsync(int id);
         Task<User?> GetUserByEmailAsync(string email);
         Task<IEnumerable<User>> GetUsersByFamilyIdAsync(int familyId);
+        Task<IEnumerable<int>> GetAdminUserIdsAsync();
     }
 }

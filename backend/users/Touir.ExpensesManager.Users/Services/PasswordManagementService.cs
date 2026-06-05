@@ -1,34 +1,36 @@
-using Touir.ExpensesManager.Users.Infrastructure;
+using System.Net.Mail;
+using System.Text.Json;
+using System.Web;
 using Touir.ExpensesManager.Users.Infrastructure.Contracts;
 using Touir.ExpensesManager.Users.Infrastructure.Options;
+using Touir.ExpensesManager.Users.Messaging.Messages;
 using Touir.ExpensesManager.Users.Models;
 using Touir.ExpensesManager.Users.Repositories.Contracts;
 using Touir.ExpensesManager.Users.Services.Contracts;
 using Microsoft.Extensions.Options;
-using System.Web;
 
 namespace Touir.ExpensesManager.Users.Services
 {
     public class PasswordManagementService : IPasswordManagementService
     {
-        private readonly IEmailHelper _emailHelper;
         private readonly ICryptographyHelper _cryptographyHelper;
         private readonly IUserRepository _userRepository;
         private readonly IAuthenticationRepository _authenticationRepository;
+        private readonly IOutboxRepository _outboxRepository;
         private readonly string _resetPasswordBaseUrl;
         private readonly int _passwordResetExpiryInHours;
 
         public PasswordManagementService(
             IOptions<AuthenticationServiceOptions> authServiceOptions,
-            IEmailHelper emailHelper,
             ICryptographyHelper cryptographyHelper,
             IUserRepository userRepository,
-            IAuthenticationRepository authenticationRepository)
+            IAuthenticationRepository authenticationRepository,
+            IOutboxRepository outboxRepository)
         {
-            _emailHelper = emailHelper;
             _cryptographyHelper = cryptographyHelper;
             _userRepository = userRepository;
             _authenticationRepository = authenticationRepository;
+            _outboxRepository = outboxRepository;
             _resetPasswordBaseUrl = authServiceOptions.Value.ResetPasswordBaseUrl;
             _passwordResetExpiryInHours = authServiceOptions.Value.PasswordResetExpiryInHours;
         }
@@ -48,12 +50,17 @@ namespace Touir.ExpensesManager.Users.Services
 
             auth.HashSaltBytes = _cryptographyHelper.GenerateRandomSalt();
             auth.HashPasswordBytes = _cryptographyHelper.GeneratePasswordHash(newPassword, auth.HashSaltBytes);
-            return await _authenticationRepository.UpdateAuthenticationAsync(auth);
+            var updated = await _authenticationRepository.UpdateAuthenticationAsync(auth);
+
+            if (updated)
+                await EnqueuePasswordChangedAsync(user.Id, user.Email, user.FirstName);
+
+            return updated;
         }
 
         public async Task<bool> CreatePasswordAsync(string email, string verificationHash, string newPassword)
         {
-            if (!_emailHelper.VerifyEmail(email))
+            if (!IsValidEmail(email))
                 return false;
             if (!Guid.TryParse(verificationHash, out _))
                 return false;
@@ -88,7 +95,7 @@ namespace Touir.ExpensesManager.Users.Services
 
         public async Task<bool> ResetPasswordAsync(string email, string resetHash, string newPassword)
         {
-            if (!_emailHelper.VerifyEmail(email))
+            if (!IsValidEmail(email))
                 return false;
             if (!Guid.TryParse(resetHash, out _))
                 return false;
@@ -112,7 +119,12 @@ namespace Touir.ExpensesManager.Users.Services
             auth.HashPasswordBytes = _cryptographyHelper.GeneratePasswordHash(newPassword, salt);
             auth.PasswordResetHash = null;
             auth.PasswordResetRequestedAt = null;
-            return await _authenticationRepository.UpdateAuthenticationAsync(auth);
+            var updated = await _authenticationRepository.UpdateAuthenticationAsync(auth);
+
+            if (updated)
+                await EnqueuePasswordChangedAsync(user.Id, user.Email, user.FirstName);
+
+            return updated;
         }
 
         public async Task<bool> RequestPasswordResetAsync(string email, string appCode)
@@ -128,20 +140,49 @@ namespace Touir.ExpensesManager.Users.Services
             auth.PasswordResetRequestedAt = DateTime.UtcNow;
             if (!await _authenticationRepository.UpdateAuthenticationAsync(auth))
                 return false;
-            try
+
+            string resetLink = $"{_resetPasswordBaseUrl.TrimEnd('/')}?email={HttpUtility.UrlEncode(email)}&h={HttpUtility.UrlEncode(resetHash)}";
+            await _outboxRepository.EnqueueAsync(new OutboxEvent
             {
-                string resetLink = $"{_resetPasswordBaseUrl.TrimEnd('/')}?email={HttpUtility.UrlEncode(email)}&h={HttpUtility.UrlEncode(resetHash)}";
-                string emailResetHtml = _emailHelper.GetEmailTemplate(EmailHtmlTemplate.PasswordReset.Key, new Dictionary<string, string> {
-                    { EmailHtmlTemplate.PasswordReset.Variables.ResetLink, resetLink },
-                });
-                _emailHelper.SendEmail(recipientTo: email, emailSubject: "[Expenses Manager] Password Reset", isHTML: true, emailBody: emailResetHtml);
-            }
-            catch (Exception exception)
-            {
-                Console.WriteLine(exception.ToString()); // to change later: logging implementation
-                return false;
-            }
+                MessageId = Guid.NewGuid().ToString(),
+                EventType = UserEventType.PasswordResetRequested,
+                Payload = JsonSerializer.Serialize(new UserNotificationEventMessage
+                {
+                    EventType = UserEventType.PasswordResetRequested,
+                    UserId = user.Id,
+                    Email = email,
+                    FirstName = user.FirstName,
+                    ResetLink = resetLink
+                }),
+                CreatedAt = DateTime.UtcNow,
+                RetryCount = 0
+            });
+
             return true;
+        }
+
+        private async Task EnqueuePasswordChangedAsync(int userId, string email, string? firstName)
+        {
+            await _outboxRepository.EnqueueAsync(new OutboxEvent
+            {
+                MessageId = Guid.NewGuid().ToString(),
+                EventType = UserEventType.PasswordChanged,
+                Payload = JsonSerializer.Serialize(new UserNotificationEventMessage
+                {
+                    EventType = UserEventType.PasswordChanged,
+                    UserId = userId,
+                    Email = email,
+                    FirstName = firstName
+                }),
+                CreatedAt = DateTime.UtcNow,
+                RetryCount = 0
+            });
+        }
+
+        private static bool IsValidEmail(string email)
+        {
+            try { _ = new MailAddress(email); return true; }
+            catch { return false; }
         }
     }
 }

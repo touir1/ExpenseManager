@@ -108,15 +108,23 @@ ExpenseManager/
 │   │   │   │   └── NotificationHub.cs — SignalR hub at /ws/notifications; cookie auth via JwtCookieReader; groups by userId
 │   │   │   ├── Messaging/
 │   │   │   │   ├── Messages/
-│   │   │   │   │   └── FamilyEventMessage.cs — Inbound event DTO + FamilyEventType constants
+│   │   │   │   │   ├── FamilyEventMessage.cs — Inbound event DTO (family.member.removed) + FamilyEventType constants for all 8 expense event types
+│   │   │   │   │   ├── FamilyNotificationMessages.cs — DTOs: FamilyInvitationEventMessage, FamilyInvitationAcceptedEventMessage, FamilyMemberJoinedEventMessage, FamilyExpenseEventMessage, ImportCompletedEventMessage, RateConflictEventMessage
+│   │   │   │   │   └── UserNotificationEventMessage.cs — UserNotificationEventMessage DTO + UserEventType constants (email.verification.requested, password.reset.requested, password.changed)
 │   │   │   │   └── Consumers/
-│   │   │   │       └── FamilyEventConsumer.cs — BackgroundService; binds notifications.expenses.sync → expenses.events; inbox deduplication; protected OnMessageReceivedAsync + virtual Ack/Nack for testability
+│   │   │   │       ├── FamilyEventConsumer.cs — BackgroundService; queue notifications.expenses.sync; TWO bindings: family.# + expenses.#; deserializes to BaseEventEnvelope first, then switches on EventType → specific DTO handler; handles 8 event types; inbox deduplication; protected OnMessageReceivedAsync + virtual Ack/Nack
+│   │   │   │       └── UserNotificationEventConsumer.cs — BackgroundService; queue notifications.users.email; binding user.#; routes email-only events (verification/reset/password-changed) to INotificationService; inbox deduplication; same protected/virtual pattern
 │   │   │   ├── Assets/
 │   │   │   │   └── EmailTemplates/
-│   │   │   │       └── FAMILY_MEMBER_REMOVED_TEMPLATE.html — HTML email template; placeholders @@REMOVED_BY_NAME@@ @@FAMILY_NAME@@ @@EXPENSE_COUNT@@ @@YEAR@@
+│   │   │   │       ├── FAMILY_MEMBER_REMOVED_TEMPLATE.html — placeholders @@REMOVED_BY_NAME@@ @@FAMILY_NAME@@ @@EXPENSE_COUNT@@ @@YEAR@@
+│   │   │   │       ├── FAMILY_INVITATION_TEMPLATE.html — placeholders @@INVITER_NAME@@ @@FAMILY_NAME@@ @@INVITE_LINK@@ @@YEAR@@
+│   │   │   │       ├── FAMILY_INVITATION_ACCEPTED_TEMPLATE.html — placeholders @@ACCEPTOR_NAME@@ @@FAMILY_NAME@@ @@YEAR@@
+│   │   │   │       ├── EMAIL_VERIFICATION_TEMPLATE.html — placeholder @@VERIFICATION_LINK@@ @@YEAR@@
+│   │   │   │       ├── PASSWORD_RESET_TEMPLATE.html — placeholder @@RESET_LINK@@ @@YEAR@@
+│   │   │   │       └── PASSWORD_CHANGED_TEMPLATE.html — placeholder @@FIRST_NAME@@ @@YEAR@@
 │   │   │   ├── Infrastructure/
 │   │   │   │   ├── EmailHelper.cs           — Template loading + email dispatch
-│   │   │   │   ├── EmailHtmlTemplate.cs     — FamilyMemberRemoved key + variable constants
+│   │   │   │   ├── EmailHtmlTemplate.cs     — Template key + variable constants for all 6 email types (FamilyMemberRemoved, FamilyInvitation, FamilyInvitationAccepted, EmailVerification, PasswordReset, PasswordChanged)
 │   │   │   │   ├── JwtCookieReader.cs       — Decodes auth_token cookie to extract sub claim
 │   │   │   │   ├── NotificationsDbContext.cs — EF Core context; Notifications + InboxEvents; IsNpgsql() guards for IdentityAlwaysColumn + partial index
 │   │   │   │   ├── SmtpEmailService.cs      — SMTP email sender
@@ -135,7 +143,7 @@ ExpenseManager/
 │   │   │   │       └── ErrorResponse.cs
 │   │   │   ├── Models/
 │   │   │   │   ├── InboxEvent.cs            — MessageId (PK), EventType, ReceivedAt, Status, Error?
-│   │   │   │   └── Notification.cs          — Id (bigserial), UserId, Type, Payload (JSON), IsRead, CreatedAt, ReadAt?
+│   │   │   │   └── Notification.cs          — Id (bigserial), UserId, Type, Payload (JSON), IsRead, CreatedAt, ReadAt?; NotificationType constants: FAMILY_MEMBER_REMOVED, FAMILY_INVITATION_ACCEPTED, FAMILY_MEMBER_JOINED, FAMILY_EXPENSE_ADDED, FAMILY_EXPENSE_DELETED, CSV_IMPORT_COMPLETED, RATE_CONFLICT_CREATED
 │   │   │   ├── Migrations/
 │   │   │   ├── Repositories/
 │   │   │   │   ├── Contracts/
@@ -145,9 +153,9 @@ ExpenseManager/
 │   │   │   │   └── NotificationRepository.cs
 │   │   │   └── Services/
 │   │   │       ├── Contracts/
-│   │   │       │   ├── INotificationService.cs
+│   │   │       │   ├── INotificationService.cs — 11 handler methods: HandleFamilyMember*, HandleFamilyInvitation*, HandleFamilyExpense*, HandleImportCompleted*, HandleRateConflict*, HandleEmailVerification*, HandlePasswordReset*, HandlePasswordChanged*
 │   │   │       │   └── IRabbitMQService.cs
-│   │   │       ├── NotificationService.cs   — HandleFamilyMemberRemovedAsync: persist → SignalR push → email (hub/email non-fatal)
+│   │   │       ├── NotificationService.cs   — Implements all 11 handlers; pattern: persist DB (non-fatal) → SignalR push (non-fatal) → email (non-fatal); email-only handlers skip DB+push; fan-out handlers loop per recipient with independent try/catch
 │   │   │       └── RabbitMQService.cs       — Singleton; lazy connection; DispatchConsumersAsync = true
 │   │   └── Touir.ExpensesManager.Notifications.Tests/
 │   │       ├── Touir.ExpensesManager.Notifications.Tests.csproj
@@ -155,11 +163,11 @@ ExpenseManager/
 │   │       ├── TestHelpers/
 │   │       │   └── TestNotificationsDbContext.cs — SQLite in-memory wrapper (EnsureCreated)
 │   │       ├── Messaging/
-│   │       │   └── FamilyEventConsumerTests.cs — 4 tests via TestableConsumer (valid, duplicate, failure, unknown type)
+│   │       │   └── FamilyEventConsumerTests.cs — Tests via TestableConsumer for all 8 event types (valid dispatch, dedup, failure, unknown type)
 │   │       ├── Repositories/
-│   │       │   └── NotificationRepositoryTests.cs — 6 integration tests
+│   │       │   └── NotificationRepositoryTests.cs — Integration tests
 │   │       └── Services/
-│   │           └── NotificationServiceTests.cs — 8 unit tests (Moq)
+│   │           └── NotificationServiceTests.cs — Unit tests (Moq) for all handlers
 │   │
 │   ├── expenses/
 │   │   ├── .dockerignore
@@ -185,32 +193,23 @@ ExpenseManager/
 │   │   │   ├── Messaging/
 │   │   │   │   ├── Messages/
 │   │   │   │   │   ├── UserEventMessage.cs  — Inbound event DTO + UserEventType constants (Created/Updated/Deleted)
-│   │   │   │   │   └── FamilyEventMessage.cs — Outbound event DTO + FamilyEventType.MemberRemoved constant
+│   │   │   │   │   └── FamilyEventMessage.cs — Outbound event DTO + FamilyEventType constants for all 8 event types (MemberRemoved, InvitationRequested, InvitationAccepted, MemberJoined, ExpenseAdded, ExpenseDeleted, ImportCompleted, RateConflict)
 │   │   │   │   ├── Publishers/
 │   │   │   │   │   ├── IFamilyEventPublisher.cs — Publish(FamilyEventMessage) + PublishRaw(eventType, json, messageId)
 │   │   │   │   │   ├── FamilyEventPublisher.cs  — Publishes to expenses.events topic exchange; Publish delegates to PublishRaw
 │   │   │   │   │   └── FamilyOutboxPublisherService.cs — BackgroundService; polls OutboxEvents every 5 s; max 5 retries; calls IFamilyEventPublisher.PublishRaw
 │   │   │   │   └── Consumers/
 │   │   │   │       └── UserEventConsumer.cs — BackgroundService; binds expenses.users.sync → users.events; inbox deduplication via IInboxRepository.ExistsAsync; calls IUserRepository.SaveOrUpdateUserAsync / DeleteUserAsync
-│   │   │   ├── Assets/
-│   │   │   │   └── EmailTemplates/
-│   │   │   │       └── FAMILY_INVITATION_TEMPLATE.html — HTML email template for family invitations; placeholders @@INVITER_NAME@@ @@FAMILY_NAME@@ @@INVITE_LINK@@ @@YEAR@@ (auto)
 │   │   │   ├── Filters/
 │   │   │   │   └── AppAdminAttribute.cs     — Action filter; calls JwtCookieReader.GetIsAdmin; returns 403 when isAdmin=false
 │   │   │   ├── Infrastructure/
-│   │   │   │   ├── EmailHelper.cs           — Template loading + email dispatch; delegates to IEmailService
-│   │   │   │   ├── EmailHtmlTemplate.cs     — Template key+variable constants (FamilyInvitation)
 │   │   │   │   ├── ExpensesDbContext.cs     — EF Core context; all DbSets with full Fluent API config; includes OutboxEvents
 │   │   │   │   ├── JwtCookieReader.cs       — Decodes auth_token cookie (base64url payload) to extract sub/isAdmin claims; falls back to Authorization: Bearer header when cookie absent (Swagger)
-│   │   │   │   ├── SmtpEmailService.cs      — SMTP email sender; configurable host/port/SSL via EmailOptions
 │   │   │   │   ├── FrankfurterRateProvider.cs — [ExcludeFromCodeCoverage] Calls api.frankfurter.app (ECB, no API key); single-date and range endpoints; registered via IHttpClientFactory
 │   │   │   │   ├── Contracts/
-│   │   │   │   │   ├── IEmailHelper.cs      — Template loading + send interface
-│   │   │   │   │   ├── IEmailService.cs     — Raw send interface
 │   │   │   │   │   └── IRateProvider.cs     — FetchRatesAsync(code, date) → dict; FetchRatesRangeAsync(code, from, to) → dict<DateOnly, dict>
 │   │   │   │   └── Options/
 │   │   │   │       ├── CurrencyRateOptions.cs — UpdateTime (default 02:00 UTC); env prefix EXPENSES_MANAGEMENT_EXPENSES_CURRENCYRATE_*
-│   │   │   │       ├── EmailOptions.cs      — SMTP config; env prefix EXPENSES_MANAGEMENT_EXPENSES_EMAILAUTH_*
 │   │   │   │       ├── FamilyOptions.cs     — InviteExpiryInDays + InviteBaseUrl; env prefix EXPENSES_MANAGEMENT_EXPENSES_FAMILY_*
 │   │   │   │       ├── PostgresOptions.cs
 │   │   │   │       └── RabbitMQOptions.cs
@@ -333,8 +332,8 @@ ExpenseManager/
 │   │   │   │   │   └── ICurrencyRateRepository.cs — GetExactAsync, GetMostRecentBeforeAsync, GetDefaultAsync, GetHistoryAsync, AddRateAsync, UpdateRateAsync, ManualRateExistsAsync, AddConflictAsync, GetPendingConflictsAsync, GetConflictByIdAsync, UpdateConflictAsync, SetDefaultAsync
 │   │   │   │   └── External/
 │   │   │   │       ├── Contracts/
-│   │   │   │       │   └── IUserRepository.cs — GetUserByEmailAsync (invite flow), GetUserByIdAsync (filters !IsDeleted)
-│   │   │   │       └── UserRepository.cs    — Read-only cross-service user access
+│   │   │   │       │   └── IUserRepository.cs — GetUserByEmailAsync (invite flow), GetUserByIdAsync (filters !IsDeleted), GetAdminUserIdsAsync (raw SQL, APP_ADMIN role)
+│   │   │   │       └── UserRepository.cs    — Read-only cross-service user access; GetAdminUserIdsAsync joins ext schema (URR_UserRoles + RLE_Roles + USR_Users)
 │   │   │   ├── Services/
 │   │   │   │   ├── AdminCategoryService.cs  — Implements IAdminCategoryService; add/update/archive/unarchive categories and subcategories; validates parent not archived before adding sub; blocks archiving category with active subcategories
 │   │   │   │   ├── AdminCurrencyService.cs  — Implements IAdminCurrencyService; AddCurrencyAsync; SetDefaultFallback delegates to ICurrencyRateService
@@ -424,10 +423,8 @@ ExpenseManager/
 │   │       │   ├── CurrencyRateRepositoryTests.cs   — 21 integration tests: GetExact×2, GetMostRecentBefore×2, GetDefault×2, AddRate, ManualRateExists×2, AddConflict, GetPendingConflicts, SetDefault×2, GetHistory×2, UpdateRate, GetConflictById×2, UpdateConflict, CurrencyRateConflict.Resolution setter
 │   │       │   └── UserConfigRepositoryTests.cs     — 7 tests: GetByUserIdAsync null/found/loads-nav/wrong-user, UpsertAsync insert/update/clear/no-duplicate/loads-nav
 │   │       ├── Infrastructure/
-│   │       │   ├── EmailHelperTests.cs              — 9 tests: template replacement, no/empty params, multi-occurrence, family-invitation placeholders, @@YEAR@@ auto-sub×2, SendEmail delegation×2
 │   │       │   ├── ExpensesDbContextSchemaTests.cs  — 23 tests: all Phase 1 entities, composite PKs, unique constraints, cascades
-│   │       │   ├── JwtCookieReaderIsAdminTests.cs   — GetIsAdmin: true from cookie, false from cookie, missing cookie → false, Bearer header fallback
-│   │       │   └── SmtpEmailServiceTests.cs         — 10 tests: SendEmail SSL on/off, CC, BCC, HTML, null body, minimal, empty/single attachment, all params
+│   │       │   └── JwtCookieReaderIsAdminTests.cs   — GetIsAdmin: true from cookie, false from cookie, missing cookie → false, Bearer header fallback
 │   │       ├── Validators/
 │   │       │   ├── CreateTagRequestValidatorTests.cs — 4 tests: valid, empty name, name too long (51 chars), exact max length (50 chars)
 │   │       │   ├── ExpenseRequestValidatorTests.cs  — 13 tests: valid pass, amount/currency/date/description/subcategory rules for both Create and Update validators
@@ -472,12 +469,9 @@ ExpenseManager/
 │       │   ├── Touir.ExpensesManager.Users.csproj
 │       │   ├── Properties/
 │       │   │   └── launchSettings.json
-│       │   ├── Assets/EmailTemplates/
-│       │   │   ├── EMAIL_VERIFICATION_TEMPLATE.html
-│       │   │   └── PASSWORD_RESET_TEMPLATE.html
 │       │   ├── Messaging/
 │       │   │   ├── Messages/
-│       │   │   │   └── UserEventMessage.cs  — Outbound event DTO + UserEventType constants (Created/Updated/Deleted)
+│       │   │   │   └── UserEventMessage.cs  — Outbound event DTO + UserEventType constants (Created/Updated/Deleted + email.verification.requested/password.reset.requested/password.changed)
 │       │   │   └── Publishers/
 │       │   │       ├── IUserEventPublisher.cs — Publish(UserEventMessage), PublishRaw(eventType, payload, messageId)
 │       │   │       ├── UserEventPublisher.cs — Publishes to users.events topic exchange; sets MessageId property on AMQP message
@@ -485,17 +479,11 @@ ExpenseManager/
 │       │   ├── Infrastructure/
 │       │   │   ├── UsersAppDbContext.cs      — EF Core context for users schema
 │       │   │   ├── CryptographyHelper.cs     — Password hashing and HMAC utilities
-│       │   │   ├── EmailHelper.cs            — Email helper: validation, template loading; delegates send to IEmailService
-│       │   │   ├── SmtpEmailService.cs       — IEmailService implementation using System.Net.Mail SMTP
-│       │   │   ├── EmailHTMLTemplate.cs      — HTML email template keys and variable name constants
 │       │   │   ├── Contracts/
-│       │   │   │   ├── ICryptographyHelper.cs
-│       │   │   │   ├── IEmailHelper.cs
-│       │   │   │   └── IEmailService.cs      — Abstraction for email dispatch (OCP boundary)
+│       │   │   │   └── ICryptographyHelper.cs
 │       │   │   └── Options/
 │       │   │       ├── AuthenticationServiceOptions.cs — VerifyEmailBaseUrl, ResetPasswordBaseUrl, EmailVerificationExpiryInHours, PasswordResetExpiryInHours
 │       │   │       ├── CryptographyOptions.cs
-│       │   │       ├── EmailOptions.cs
 │       │   │       ├── JwtAuthOptions.cs            — SecretKey, ExpiryInMinutes, Audience, Issuer, RefreshExpiryInDays, ShortLivedRefreshExpiryInDays
 │       │   │       ├── PostgresOptions.cs
 │       │   │       └── RabbitMQOptions.cs
@@ -624,9 +612,7 @@ ExpenseManager/
 │           │   ├── RequestPasswordResetRequestValidatorTests.cs
 │           │   └── ResendVerificationRequestValidatorTests.cs — 3 tests: email empty, appCode empty, valid
 │           ├── Infrastructure/
-│           │   ├── CryptographyHelperTests.cs
-│           │   ├── EmailHelperTests.cs          — 8 tests: VerifyEmail×2, template replacement, no/empty params, multi-occurrence, @@YEAR@@ auto-sub×2, SendEmail delegation×2
-│           │   └── SmtpEmailServiceTests.cs
+│           │   └── CryptographyHelperTests.cs
 │           ├── Repositories/
 │           │   ├── ApplicationRepositoryTests.cs
 │           │   ├── AuthenticationRepositoryTests.cs

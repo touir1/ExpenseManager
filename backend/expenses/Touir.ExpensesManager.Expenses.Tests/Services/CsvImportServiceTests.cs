@@ -57,7 +57,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
                 categoryRepo,
                 familyRepo,
                 tagService ?? Mock.Of<ITagService>(),
-                expenseService ?? Mock.Of<IExpenseService>());
+                expenseService ?? Mock.Of<IExpenseService>(),
+                Mock.Of<IExpensesOutboxRepository>());
         }
 
         private static Stream MakeCsv(string content)

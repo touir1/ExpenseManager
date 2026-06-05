@@ -37,6 +37,14 @@ namespace Touir.ExpensesManager.Expenses.Repositories.External
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<int>> GetAdminUserIdsAsync()
+        {
+            return await _dbContext.Users
+                .Where(u => u.IsAdmin && !u.IsDeleted)
+                .Select(u => u.Id)
+                .ToListAsync();
+        }
+
         public async Task SaveOrUpdateUserAsync(User user)
         {
             var existing = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
@@ -51,6 +59,7 @@ namespace Touir.ExpensesManager.Expenses.Repositories.External
                 existing.LastName = user.LastName;
                 existing.Email = user.Email;
                 existing.FamilyId = user.FamilyId;
+                existing.IsAdmin = user.IsAdmin;
             }
             await _dbContext.SaveChangesAsync();
         }

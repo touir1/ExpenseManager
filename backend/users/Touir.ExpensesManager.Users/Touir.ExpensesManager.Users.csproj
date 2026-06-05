@@ -28,11 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Assets\EmailTemplates\EMAIL_VERIFICATION_TEMPLATE.html" />
-    <None Remove="Assets\EmailTemplates\PASSWORD_RESET_TEMPLATE.html" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
     <PackageReference Include="Microsoft.Bcl.Memory" Version="9.0.14" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.22" />
@@ -52,13 +47,5 @@
     <Folder Include="Messaging\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="Assets\EmailTemplates\EMAIL_VERIFICATION_TEMPLATE.html">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Assets\EmailTemplates\PASSWORD_RESET_TEMPLATE.html">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
 
 </Project>

@@ -18,5 +18,12 @@ namespace Touir.ExpensesManager.Notifications.Messaging.Messages
     public static class FamilyEventType
     {
         public const string MemberRemoved = "family.member.removed";
+        public const string InvitationRequested = "family.invitation.requested";
+        public const string InvitationAccepted = "family.invitation.accepted";
+        public const string MemberJoined = "family.member.joined";
+        public const string ExpenseAdded = "family.expense.added";
+        public const string ExpenseDeleted = "family.expense.deleted";
+        public const string ImportCompleted = "expenses.import.completed";
+        public const string RateConflict = "expenses.rate.conflict";
     }
 }

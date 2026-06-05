@@ -1,7 +1,10 @@
+using System.Text.Json;
 using Touir.ExpensesManager.Expenses.Controllers.DTO;
 using Touir.ExpensesManager.Expenses.Controllers.Requests;
+using Touir.ExpensesManager.Expenses.Messaging.Messages;
 using Touir.ExpensesManager.Expenses.Models;
 using Touir.ExpensesManager.Expenses.Repositories.Contracts;
+using Touir.ExpensesManager.Expenses.Repositories.External.Contracts;
 using Touir.ExpensesManager.Expenses.Services.Contracts;
 
 namespace Touir.ExpensesManager.Expenses.Services
@@ -14,6 +17,8 @@ namespace Touir.ExpensesManager.Expenses.Services
         private readonly ITagRepository _tagRepository;
         private readonly ICurrencyRateService _currencyRateService;
         private readonly ICurrencyRepository _currencyRepository;
+        private readonly IExpensesOutboxRepository _outboxRepo;
+        private readonly IUserRepository _userRepo;
 
         public ExpenseService(
             IExpenseRepository expenseRepository,
@@ -21,7 +26,9 @@ namespace Touir.ExpensesManager.Expenses.Services
             IFamilyRepository familyRepository,
             ITagRepository tagRepository,
             ICurrencyRateService currencyRateService,
-            ICurrencyRepository currencyRepository)
+            ICurrencyRepository currencyRepository,
+            IExpensesOutboxRepository outboxRepo,
+            IUserRepository userRepo)
         {
             _expenseRepository = expenseRepository;
             _auditService = auditService;
@@ -29,6 +36,8 @@ namespace Touir.ExpensesManager.Expenses.Services
             _tagRepository = tagRepository;
             _currencyRateService = currencyRateService;
             _currencyRepository = currencyRepository;
+            _outboxRepo = outboxRepo;
+            _userRepo = userRepo;
         }
 
         public async Task<ExpenseDto> AddAsync(CreateExpenseRequest request, int userId, int sourceId)
@@ -53,7 +62,9 @@ namespace Touir.ExpensesManager.Expenses.Services
             var tagsSnapshot = string.Join(",", tagDtos.Select(t => t.Id));
 
             await _auditService.WriteAddAuditAsync(expense, userId, sourceId, tagsSnapshot);
-            await WriteAttributionsAsync(expense.Id, request.FamilyIds, userId);
+            var attributedFamilyIds = await WriteAttributionsAsync(expense.Id, request.FamilyIds, userId);
+
+            await EnqueueExpenseFamilyNotificationsAsync(expense, attributedFamilyIds, userId, FamilyEventType.ExpenseAdded);
 
             return MapToDto(expense, tagDtos);
         }
@@ -95,9 +106,16 @@ namespace Touir.ExpensesManager.Expenses.Services
             if (existing is null)
                 return false;
 
+            var sharedFamilyIds = existing.ExpenseFamilyAttributions
+                .Where(a => !a.Family.IsDeleted && !a.Family.IsDefault)
+                .Select(a => a.FamilyId)
+                .ToList();
+
             var tags = string.Join(",", existing.ExpenseTags.Select(et => et.TagId));
             await _auditService.WriteDeleteAuditAsync(existing, userId, sourceId, tags);
             await _expenseRepository.SoftDeleteAsync(existing);
+
+            await EnqueueExpenseFamilyNotificationsAsync(existing, sharedFamilyIds, userId, FamilyEventType.ExpenseDeleted);
 
             return true;
         }
@@ -179,7 +197,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             return tags.Select(t => new TagDto { Id = t.Id, Name = t.Name });
         }
 
-        private async Task WriteAttributionsAsync(long expenseId, int[]? familyIds, int userId)
+        private async Task<IReadOnlyList<int>> WriteAttributionsAsync(long expenseId, int[]? familyIds, int userId)
         {
             IEnumerable<int> targetIds;
 
@@ -187,7 +205,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             {
                 var defaultFamily = await _familyRepository.GetDefaultFamilyForUserAsync(userId);
                 if (defaultFamily is null)
-                    return;
+                    return [];
                 targetIds = [defaultFamily.Id];
             }
             else
@@ -214,6 +232,61 @@ namespace Touir.ExpensesManager.Expenses.Services
 
             if (attributions.Count > 0)
                 await _familyRepository.AddAttributionsAsync(attributions);
+
+            return attributions.Select(a => a.FamilyId).ToList();
+        }
+
+        private async Task EnqueueExpenseFamilyNotificationsAsync(
+            Expense expense, IReadOnlyList<int> familyIds, int actorUserId, string eventType)
+        {
+            if (familyIds.Count == 0)
+                return;
+
+            try
+            {
+                var actor = await _userRepo.GetUserByIdAsync(actorUserId);
+                var actorName = actor is not null ? $"{actor.FirstName} {actor.LastName}".Trim() : string.Empty;
+                var currency = await _currencyRepository.GetByIdAsync(expense.CurrencyId);
+                var currencyCode = currency?.Code ?? string.Empty;
+
+                foreach (var familyId in familyIds)
+                {
+                    var (family, members) = await _familyRepository.GetByIdWithMembersAsync(familyId);
+                    if (family is null || family.IsDefault) continue;
+
+                    var coMemberIds = members
+                        .Select(m => m.UserId)
+                        .Where(id => id != actorUserId)
+                        .ToList();
+
+                    if (coMemberIds.Count == 0) continue;
+
+                    var msgId = Guid.NewGuid().ToString();
+                    await _outboxRepo.EnqueueAsync(new OutboxEvent
+                    {
+                        MessageId = msgId,
+                        EventType = eventType,
+                        Payload = JsonSerializer.Serialize(new FamilyExpenseEventMessage
+                        {
+                            MessageId = msgId,
+                            EventType = eventType,
+                            FamilyId = familyId,
+                            FamilyName = family.Name,
+                            ExpenseId = expense.Id,
+                            Amount = expense.Amount,
+                            CurrencyCode = currencyCode,
+                            ActorName = actorName,
+                            ActorUserId = actorUserId,
+                            MemberUserIds = coMemberIds
+                        }),
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(ex.Message);
+            }
         }
 
         private static ExpenseDto MapToDto(Expense e, IEnumerable<TagDto>? explicitTags = null, decimal? convertedAmount = null, CurrencyDto? displayCurrency = null) => new()

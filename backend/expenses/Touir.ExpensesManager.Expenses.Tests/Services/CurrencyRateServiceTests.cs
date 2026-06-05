@@ -3,6 +3,7 @@ using Touir.ExpensesManager.Expenses.Controllers.Requests;
 using Touir.ExpensesManager.Expenses.Models;
 using Touir.ExpensesManager.Expenses.Models.Lookups;
 using Touir.ExpensesManager.Expenses.Repositories.Contracts;
+using Touir.ExpensesManager.Expenses.Repositories.External.Contracts;
 using Touir.ExpensesManager.Expenses.Services;
 using Touir.ExpensesManager.Expenses.Services.Contracts;
 using Touir.ExpensesManager.Expenses.Infrastructure.Contracts;
@@ -16,14 +17,18 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             ICurrencyRepository? currencyRepo = null,
             IExpenseRepository? expenseRepo = null,
             IRateProvider? rateProvider = null,
-            ILookupCacheService? lookupCache = null)
+            ILookupCacheService? lookupCache = null,
+            IExpensesOutboxRepository? outboxRepo = null,
+            IUserRepository? userRepo = null)
         {
             return new CurrencyRateService(
                 rateRepo ?? Mock.Of<ICurrencyRateRepository>(),
                 currencyRepo ?? Mock.Of<ICurrencyRepository>(),
                 expenseRepo ?? Mock.Of<IExpenseRepository>(),
                 rateProvider ?? Mock.Of<IRateProvider>(),
-                lookupCache ?? Mock.Of<ILookupCacheService>());
+                lookupCache ?? Mock.Of<ILookupCacheService>(),
+                outboxRepo ?? Mock.Of<IExpensesOutboxRepository>(),
+                userRepo ?? Mock.Of<IUserRepository>());
         }
 
         private static CurrencyDailyRate MakeRate(int sourceId, int destId, DateOnly date, decimal rate, int rateSourceId = 1) => new()

@@ -1,21 +1,19 @@
-namespace Touir.ExpensesManager.Users.Messaging.Messages
+namespace Touir.ExpensesManager.Notifications.Messaging.Messages
 {
-    public class UserEventMessage
+    public class UserNotificationEventMessage
     {
+        public string MessageId { get; set; } = null!;
         public string EventType { get; set; } = null!;
         public int UserId { get; set; }
+        public string Email { get; set; } = null!;
         public string? FirstName { get; set; }
-        public string? LastName { get; set; }
-        public string? Email { get; set; }
-        public int? FamilyId { get; set; }
-        public bool IsAdmin { get; set; }
+        public string? VerificationLink { get; set; }
+        public string? ResetLink { get; set; }
+        public string? AppCode { get; set; }
     }
 
     public static class UserEventType
     {
-        public const string Created = "user.created";
-        public const string Updated = "user.updated";
-        public const string Deleted = "user.deleted";
         public const string EmailVerificationRequested = "user.email.verification.requested";
         public const string PasswordResetRequested = "user.password.reset.requested";
         public const string PasswordChanged = "user.password.changed";

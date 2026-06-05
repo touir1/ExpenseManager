@@ -1,8 +1,11 @@
+using System.Text.Json;
 using Touir.ExpensesManager.Expenses.Controllers.DTO;
 using Touir.ExpensesManager.Expenses.Controllers.Requests;
+using Touir.ExpensesManager.Expenses.Messaging.Messages;
 using Touir.ExpensesManager.Expenses.Models;
 using Touir.ExpensesManager.Expenses.Models.Lookups;
 using Touir.ExpensesManager.Expenses.Repositories.Contracts;
+using Touir.ExpensesManager.Expenses.Repositories.External.Contracts;
 using Touir.ExpensesManager.Expenses.Services.Contracts;
 using Touir.ExpensesManager.Expenses.Infrastructure.Contracts;
 
@@ -20,19 +23,25 @@ namespace Touir.ExpensesManager.Expenses.Services
         private readonly IExpenseRepository _expenseRepo;
         private readonly IRateProvider _rateProvider;
         private readonly ILookupCacheService _lookupCache;
+        private readonly IExpensesOutboxRepository _outboxRepo;
+        private readonly IUserRepository _userRepo;
 
         public CurrencyRateService(
             ICurrencyRateRepository rateRepo,
             ICurrencyRepository currencyRepo,
             IExpenseRepository expenseRepo,
             IRateProvider rateProvider,
-            ILookupCacheService lookupCache)
+            ILookupCacheService lookupCache,
+            IExpensesOutboxRepository outboxRepo,
+            IUserRepository userRepo)
         {
             _rateRepo = rateRepo;
             _currencyRepo = currencyRepo;
             _expenseRepo = expenseRepo;
             _rateProvider = rateProvider;
             _lookupCache = lookupCache;
+            _outboxRepo = outboxRepo;
+            _userRepo = userRepo;
         }
 
         public async Task<decimal?> ResolveRateAsync(int sourceCurrencyId, int destCurrencyId, DateOnly date)
@@ -367,7 +376,45 @@ namespace Touir.ExpensesManager.Expenses.Services
             if (newRates.Count > 0)
                 await _rateRepo.AddRatesBatchAsync(newRates);
             if (newConflicts.Count > 0)
+            {
                 await _rateRepo.AddConflictsBatchAsync(newConflicts);
+                await EnqueueRateConflictNotificationsAsync(newConflicts, allCurrencies.ToDictionary(c => c.Id, c => c.Code));
+            }
+        }
+
+        private async Task EnqueueRateConflictNotificationsAsync(
+            IEnumerable<CurrencyRateConflict> conflicts, Dictionary<int, string> idToCode)
+        {
+            try
+            {
+                var adminIds = (await _userRepo.GetAdminUserIdsAsync()).ToList();
+                foreach (var conflict in conflicts)
+                {
+                    var msgId = Guid.NewGuid().ToString();
+                    await _outboxRepo.EnqueueAsync(new OutboxEvent
+                    {
+                        MessageId = msgId,
+                        EventType = FamilyEventType.RateConflict,
+                        Payload = JsonSerializer.Serialize(new RateConflictEventMessage
+                        {
+                            MessageId = msgId,
+                            EventType = FamilyEventType.RateConflict,
+                            ConflictId = conflict.Id,
+                            SourceCurrencyCode = idToCode.GetValueOrDefault(conflict.SourceCurrencyId, string.Empty),
+                            DestCurrencyCode = idToCode.GetValueOrDefault(conflict.DestinationCurrencyId, string.Empty),
+                            Date = conflict.Date,
+                            AutoRate = conflict.AutomaticRate,
+                            ManualRate = conflict.ManualRate,
+                            AdminUserIds = adminIds
+                        }),
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(ex.Message);
+            }
         }
 
         private static RateDto MapToRateDto(CurrencyDailyRate r, string? sourceName = null) => new()

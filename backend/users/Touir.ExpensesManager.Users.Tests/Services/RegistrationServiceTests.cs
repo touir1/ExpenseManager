@@ -2,11 +2,9 @@ using Touir.ExpensesManager.Users.Models;
 using Touir.ExpensesManager.Users.Services;
 using Touir.ExpensesManager.Users.Services.Contracts;
 using Touir.ExpensesManager.Users.Repositories.Contracts;
-using Touir.ExpensesManager.Users.Infrastructure.Contracts;
 using Touir.ExpensesManager.Users.Infrastructure.Options;
 using Microsoft.Extensions.Options;
 using Moq;
-using System.Text.Json;
 
 namespace Touir.ExpensesManager.Users.Tests.Services
 {
@@ -19,29 +17,24 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             return mock;
         }
 
-        private static Mock<IEmailHelper> CreateEmailHelperMock()
+        private static Mock<IOutboxRepository> CreateDefaultOutboxMock()
         {
-            var mock = new Mock<IEmailHelper>();
-            mock.Setup(e => e.VerifyEmail(It.IsAny<string>())).Returns(true);
-            mock.Setup(e => e.GetEmailTemplate(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>())).Returns("<html></html>");
-            mock.Setup(e => e.SendEmail(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(),
-                It.IsAny<ICollection<string>>())).Returns(true);
+            var mock = new Mock<IOutboxRepository>();
+            mock.Setup(r => r.EnqueueAsync(It.IsAny<OutboxEvent>())).Returns(Task.CompletedTask);
             return mock;
         }
 
         private static RegistrationService CreateService(
             Mock<IUserRepository>? userRepo = null,
             Mock<IUserRoleAssignmentService>? roleAssignment = null,
-            Mock<IEmailHelper>? emailHelper = null,
             Mock<IOutboxRepository>? outboxRepo = null)
         {
+            var outbox = outboxRepo ?? CreateDefaultOutboxMock();
+
             return new RegistrationService(
                 Options.Create(new AuthenticationServiceOptions { VerifyEmailBaseUrl = "http://localhost/verify", EmailVerificationExpiryInHours = 24 }),
-                emailHelper?.Object ?? CreateEmailHelperMock().Object,
                 userRepo?.Object ?? new Mock<IUserRepository>().Object,
-                outboxRepo?.Object ?? new Mock<IOutboxRepository>().Object,
+                outbox.Object,
                 roleAssignment?.Object ?? CreateRoleAssignmentMock().Object
             );
         }
@@ -129,7 +122,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         }
 
         [Fact]
-        public async Task RegisterNewUserAsync_DeletesUser_WhenEmailSendFails()
+        public async Task RegisterNewUserAsync_DeletesUser_WhenOutboxEnqueueFails()
         {
             var user = new User { Id = 1, Email = "test@test.com", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
             var userRepo = new Mock<IUserRepository>();
@@ -138,16 +131,10 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             userRepo.Setup(r => r.CreateUserAsync(It.IsAny<User>())).ReturnsAsync(user);
             userRepo.Setup(r => r.DeleteUserAsync(user)).ReturnsAsync(true);
 
-            var emailHelper = new Mock<IEmailHelper>();
-            emailHelper.Setup(e => e.VerifyEmail(It.IsAny<string>())).Returns(true);
-            emailHelper.Setup(e => e.GetEmailTemplate(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>())).Returns("<html></html>");
-            emailHelper.Setup(e => e.SendEmail(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(),
-                It.IsAny<ICollection<string>>()))
-                .Throws(new Exception("Email send failed"));
+            var outboxRepo = new Mock<IOutboxRepository>();
+            outboxRepo.Setup(r => r.EnqueueAsync(It.IsAny<OutboxEvent>())).ThrowsAsync(new Exception("Outbox write failed"));
 
-            var service = CreateService(userRepo, emailHelper: emailHelper);
+            var service = CreateService(userRepo, outboxRepo: outboxRepo);
 
             await Assert.ThrowsAsync<Exception>(async () =>
                 await service.RegisterNewUserAsync("John", "Doe", "test@test.com", null));
@@ -220,7 +207,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         }
 
         [Fact]
-        public async Task ResendVerificationEmailAsync_SendsVerificationEmail()
+        public async Task ResendVerificationEmailAsync_EnqueuesOutboxEvent()
         {
             var user = new User { Id = 1, Email = "pending@test.com", IsEmailValidated = false, CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow };
             var userRepo = new Mock<IUserRepository>();
@@ -228,15 +215,14 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             userRepo.Setup(r => r.GetUsedEmailValidationHashesAsync()).ReturnsAsync(new List<string>());
             userRepo.Setup(r => r.UpdateEmailValidationHashAsync(1, It.IsAny<string>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
 
-            var emailHelper = CreateEmailHelperMock();
-            var service = CreateService(userRepo, emailHelper: emailHelper);
+            var outboxRepo = new Mock<IOutboxRepository>();
+            outboxRepo.Setup(r => r.EnqueueAsync(It.IsAny<OutboxEvent>())).Returns(Task.CompletedTask);
+
+            var service = CreateService(userRepo, outboxRepo: outboxRepo);
             await service.ResendVerificationEmailAsync("pending@test.com", "APP1");
 
-            emailHelper.Verify(e => e.SendEmail(
-                It.Is<string>(to => to == "pending@test.com"),
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<ICollection<string>>()),
-                Times.Once);
+            outboxRepo.Verify(r => r.EnqueueAsync(It.Is<OutboxEvent>(e =>
+                e.EventType == "user.email.verification.requested")), Times.Once);
         }
 
         [Fact]
@@ -258,10 +244,7 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         [Fact]
         public async Task ValidateEmailAsync_ReturnsFalse_WhenEmailFormatInvalid()
         {
-            var emailHelper = new Mock<IEmailHelper>();
-            emailHelper.Setup(e => e.VerifyEmail("invalidemail")).Returns(false);
-
-            var service = CreateService(emailHelper: emailHelper);
+            var service = CreateService();
             var result = await service.ValidateEmailAsync("hash", "invalidemail");
 
             Assert.False(result);

@@ -8,6 +8,7 @@ namespace Touir.ExpensesManager.Expenses.Messaging.Messages
         public string? LastName { get; set; }
         public string? Email { get; set; }
         public int? FamilyId { get; set; }
+        public bool IsAdmin { get; set; }
     }
 
     public static class UserEventType

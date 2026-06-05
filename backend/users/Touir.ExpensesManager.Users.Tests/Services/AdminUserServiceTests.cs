@@ -8,8 +8,14 @@ namespace Touir.ExpensesManager.Users.Tests.Services
 {
     public class AdminUserServiceTests
     {
-        private static AdminUserService CreateService(IUserRepository? userRepo = null, IRoleRepository? roleRepo = null)
-            => new(userRepo ?? Mock.Of<IUserRepository>(), roleRepo ?? Mock.Of<IRoleRepository>());
+        private static AdminUserService CreateService(
+            IUserRepository? userRepo = null,
+            IRoleRepository? roleRepo = null,
+            IOutboxRepository? outboxRepo = null)
+            => new(
+                userRepo ?? Mock.Of<IUserRepository>(),
+                roleRepo ?? Mock.Of<IRoleRepository>(),
+                outboxRepo ?? Mock.Of<IOutboxRepository>());
 
         private static User MakeUser(int id, string email, bool isDisabled = false)
         {
@@ -110,8 +116,15 @@ namespace Touir.ExpensesManager.Users.Tests.Services
             var roleRepo = new Mock<IRoleRepository>();
             roleRepo.Setup(r => r.RemoveUserRolesAsync(5)).Returns(Task.CompletedTask);
             roleRepo.Setup(r => r.AssignRoleToUserAsync(It.IsAny<int>(), 5, 1)).ReturnsAsync(true);
+            roleRepo.Setup(r => r.IsAdminAsync(5)).ReturnsAsync(false);
 
-            await CreateService(roleRepo: roleRepo.Object).SetUserRolesAsync(5, [1, 2], 1);
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByIdAsync(5)).ReturnsAsync(MakeUser(5, "u@test.com"));
+
+            var outboxRepo = new Mock<IOutboxRepository>();
+            outboxRepo.Setup(r => r.EnqueueAsync(It.IsAny<OutboxEvent>())).Returns(Task.CompletedTask);
+
+            await CreateService(userRepo.Object, roleRepo.Object, outboxRepo.Object).SetUserRolesAsync(5, [1, 2], 1);
 
             roleRepo.Verify(r => r.RemoveUserRolesAsync(5), Times.Once);
             roleRepo.Verify(r => r.AssignRoleToUserAsync(It.IsAny<int>(), 5, 1), Times.Exactly(2));
@@ -122,11 +135,74 @@ namespace Touir.ExpensesManager.Users.Tests.Services
         {
             var roleRepo = new Mock<IRoleRepository>();
             roleRepo.Setup(r => r.RemoveUserRolesAsync(5)).Returns(Task.CompletedTask);
+            roleRepo.Setup(r => r.IsAdminAsync(5)).ReturnsAsync(false);
 
-            await CreateService(roleRepo: roleRepo.Object).SetUserRolesAsync(5, [], 1);
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByIdAsync(5)).ReturnsAsync(MakeUser(5, "u@test.com"));
+
+            await CreateService(userRepo.Object, roleRepo.Object).SetUserRolesAsync(5, [], 1);
 
             roleRepo.Verify(r => r.RemoveUserRolesAsync(5), Times.Once);
             roleRepo.Verify(r => r.AssignRoleToUserAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task SetUserRolesAsync_EnqueuesUserUpdatedEvent_WithCorrectIsAdmin()
+        {
+            var user = MakeUser(5, "admin@test.com");
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByIdAsync(5)).ReturnsAsync(user);
+
+            var roleRepo = new Mock<IRoleRepository>();
+            roleRepo.Setup(r => r.RemoveUserRolesAsync(5)).Returns(Task.CompletedTask);
+            roleRepo.Setup(r => r.AssignRoleToUserAsync(It.IsAny<int>(), 5, 1)).ReturnsAsync(true);
+            roleRepo.Setup(r => r.IsAdminAsync(5)).ReturnsAsync(true);
+
+            var outboxRepo = new Mock<IOutboxRepository>();
+            outboxRepo.Setup(r => r.EnqueueAsync(It.IsAny<OutboxEvent>())).Returns(Task.CompletedTask);
+
+            await CreateService(userRepo.Object, roleRepo.Object, outboxRepo.Object).SetUserRolesAsync(5, [1], 1);
+
+            outboxRepo.Verify(r => r.EnqueueAsync(It.Is<OutboxEvent>(e =>
+                e.EventType == "user.updated" &&
+                e.Payload.Contains("\"IsAdmin\":true"))), Times.Once);
+        }
+
+        [Fact]
+        public async Task SetUserRolesAsync_EnqueuesUserUpdatedEvent_WithIsAdminFalse_WhenRoleRemoved()
+        {
+            var user = MakeUser(5, "user@test.com");
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByIdAsync(5)).ReturnsAsync(user);
+
+            var roleRepo = new Mock<IRoleRepository>();
+            roleRepo.Setup(r => r.RemoveUserRolesAsync(5)).Returns(Task.CompletedTask);
+            roleRepo.Setup(r => r.IsAdminAsync(5)).ReturnsAsync(false);
+
+            var outboxRepo = new Mock<IOutboxRepository>();
+            outboxRepo.Setup(r => r.EnqueueAsync(It.IsAny<OutboxEvent>())).Returns(Task.CompletedTask);
+
+            await CreateService(userRepo.Object, roleRepo.Object, outboxRepo.Object).SetUserRolesAsync(5, [], 1);
+
+            outboxRepo.Verify(r => r.EnqueueAsync(It.Is<OutboxEvent>(e =>
+                e.EventType == "user.updated" &&
+                e.Payload.Contains("\"IsAdmin\":false"))), Times.Once);
+        }
+
+        [Fact]
+        public async Task SetUserRolesAsync_SkipsOutbox_WhenUserNotFound()
+        {
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByIdAsync(99)).ReturnsAsync((User?)null);
+
+            var roleRepo = new Mock<IRoleRepository>();
+            roleRepo.Setup(r => r.RemoveUserRolesAsync(99)).Returns(Task.CompletedTask);
+
+            var outboxRepo = new Mock<IOutboxRepository>();
+
+            await CreateService(userRepo.Object, roleRepo.Object, outboxRepo.Object).SetUserRolesAsync(99, [], 1);
+
+            outboxRepo.Verify(r => r.EnqueueAsync(It.IsAny<OutboxEvent>()), Times.Never);
         }
 
         [Fact]

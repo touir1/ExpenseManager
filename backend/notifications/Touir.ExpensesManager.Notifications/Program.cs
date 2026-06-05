@@ -141,6 +141,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 
 #region Messaging
 builder.Services.AddHostedService<FamilyEventConsumer>();
+builder.Services.AddHostedService<UserNotificationEventConsumer>();
 #endregion
 
 #region Repositories

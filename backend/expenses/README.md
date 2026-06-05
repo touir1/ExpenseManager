@@ -120,15 +120,33 @@ http://localhost:9200/swagger
 
 All endpoints have XML `<summary>` docs and full `[ProducesResponseType]` coverage.
 
+## Email
+
+Email is **not sent by this service**. All outbound email is handled by the notifications service, which consumes outbox events published by this service.
+
 ## Architecture
 
 Layered structure: **Controllers → Services → Repositories → DbContext**
 
 - Migrations are applied automatically at startup via `db.Database.MigrateAsync()`
-- Reads user data from the users service's PostgreSQL database via `Repositories/External/UserRepository` (read-only, `ext.USR_Users` table)
-- `UserEventConsumer` (BackgroundService) subscribes to queue `expenses.users.sync` bound to `users.events` exchange (`user.#`); retries connection on `BrokerUnreachableException` every 5 s (host starts even if RabbitMQ not yet ready); uses **inbox deduplication** via `InboxEvents` table (`IInboxRepository.ExistsAsync` checked before processing; `InboxEvent { Status=Processed }` written on success); `user.created`/`user.updated` → `SaveOrUpdateUserAsync`, `user.deleted` → `DeleteUserAsync` on `ext.USR_Users`
-- `FamilyOutboxPublisherService` (BackgroundService) polls `OutboxEvents` every 5 s (max 5 retries) and publishes to `expenses.events` topic exchange via `IFamilyEventPublisher.PublishRaw`; written by `FamilyService.RemoveMemberAsync` after member + attribution removal — provides durable at-least-once delivery even if RabbitMQ is down at removal time
-- RabbitMQ connects to vhost `expense_management`; `expense_expenses` user has permissions only on this vhost. Env vars override `appsettings.json` values (env var checked first in `Program.cs`).
+- Reads user data from the users service's PostgreSQL database via `Repositories/External/UserRepository` (read-only, `ext.USR_Users` table); also reads admin user IDs via `GetAdminUserIdsAsync` (raw SQL joining `ext.URR_UserRoles` + `ext.RLE_Roles` + `ext.USR_Users`)
+- `UserEventConsumer` (BackgroundService) subscribes to queue `expenses.users.sync` bound to `users.events` exchange (`user.#`); retries connection on `BrokerUnreachableException` every 5 s; inbox deduplication via `InboxEvents`; `user.created`/`user.updated` → `SaveOrUpdateUserAsync`, `user.deleted` → `DeleteUserAsync`
+- `FamilyOutboxPublisherService` (BackgroundService) polls `OutboxEvents` every 5 s (max 5 retries) and publishes to `expenses.events` topic exchange via `IFamilyEventPublisher.PublishRaw`
+
+### Outbox events published to `expenses.events`
+
+| Routing key | Trigger | Payload |
+|---|---|---|
+| `family.member.removed` | `FamilyService.RemoveMemberAsync` | target user + family + removed-by + expense count |
+| `family.invitation.requested` | `FamilyService.InviteAsync` | invitee email + inviter name + family name + invite link |
+| `family.invitation.accepted` | `FamilyService.AcceptInviteAsync` | head user ID + acceptor name/email + family |
+| `family.member.joined` | `FamilyService.AcceptInviteAsync` | joiner info + `memberUserIds[]` (all existing members except joiner) |
+| `family.expense.added` | `ExpenseService.AddAsync` (shared families) | expense amount/currency + actor + `memberUserIds[]` per family |
+| `family.expense.deleted` | `ExpenseService.DeleteAsync` (shared families) | same as added |
+| `expenses.import.completed` | `CsvImportService.ConfirmImportAsync` | `userId, totalRows, importedCount, skippedCount` |
+| `expenses.rate.conflict` | `CurrencyRateService.RunDailyUpdateAsync` | conflict details + `adminUserIds[]` |
+
+- RabbitMQ connects to vhost `expense_management`; `expense_expenses` user has permissions only on this vhost. Env vars override `appsettings.json` values.
 
 ## Testing
 

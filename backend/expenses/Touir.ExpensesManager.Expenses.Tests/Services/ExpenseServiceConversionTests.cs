@@ -3,6 +3,7 @@ using Touir.ExpensesManager.Expenses.Controllers.DTO;
 using Touir.ExpensesManager.Expenses.Controllers.Requests;
 using Touir.ExpensesManager.Expenses.Models;
 using Touir.ExpensesManager.Expenses.Repositories.Contracts;
+using Touir.ExpensesManager.Expenses.Repositories.External.Contracts;
 using Touir.ExpensesManager.Expenses.Services;
 using Touir.ExpensesManager.Expenses.Services.Contracts;
 
@@ -24,7 +25,9 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
                 Mock.Of<IFamilyRepository>(),
                 Mock.Of<ITagRepository>(),
                 rateService ?? Mock.Of<ICurrencyRateService>(),
-                currencyRepo ?? Mock.Of<ICurrencyRepository>());
+                currencyRepo ?? Mock.Of<ICurrencyRepository>(),
+                Mock.Of<IExpensesOutboxRepository>(),
+                Mock.Of<IUserRepository>());
         }
 
         private static Expense MakeExpense(int currencyId = 1) => new()

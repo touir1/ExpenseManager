@@ -8,6 +8,7 @@ namespace Touir.ExpensesManager.Expenses.Models.External
         public string? Email { get; set; }
         public int? FamilyId { get; set; }
         public bool IsDeleted { get; set; }
+        public bool IsAdmin { get; set; }
 
     }
 }

@@ -3,6 +3,55 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.112.1] - 2026-06-05
+### Fix — IsAdmin sync gap between users and expenses services
+
+- **`UserEventMessage`** (users): added `IsAdmin: bool` field — was missing, so `ext.USR_Users.USR_IsAdmin` was always `false` regardless of role.
+- **`RegistrationService.ValidateEmailAsync`**: `user.created` payload now explicitly sets `IsAdmin = false`.
+- **`AdminUserService.SetUserRolesAsync`**: after removing and re-assigning roles, fetches user + calls `IsAdminAsync` then enqueues a `user.updated` outbox event with the new `IsAdmin` value; skips outbox if user not found (soft-deleted). Injected `IOutboxRepository`.
+- `GetAdminUserIdsAsync` in expenses now correctly returns admin user IDs once role changes propagate via the outbox.
+
+## [0.112.0] - 2026-06-05
+### Feature — Phase 14: Centralised notifications + email migration
+
+All email sending migrated from the users and expenses services to the notifications service. Both backends now publish outbox events; the notifications service consumes and dispatches email and in-app push.
+
+#### Users service
+- **Removed**: `IEmailService`, `IEmailHelper`, `SmtpEmailService`, `EmailHelper`, `EmailHTMLTemplate`, `EmailOptions`, `EMAIL_VERIFICATION_TEMPLATE.html`, `PASSWORD_RESET_TEMPLATE.html`, all DI registrations; `SmtpEmailServiceTests`, `EmailHelperTests`.
+- **`RegistrationService`**: `SendVerificationEmailAsync` replaced by `EnqueueVerificationEmailAsync` — writes outbox event `user.email.verification.requested` with `{userId, email, verificationLink}`. User is deleted if outbox enqueue fails.
+- **`PasswordManagementService`**: `RequestPasswordResetAsync` enqueues `user.password.reset.requested`; `ChangePasswordAsync` and `ResetPasswordAsync` enqueue `user.password.changed`.
+- **`UserNotificationEventMessage`** (new): DTO for all user notification events; `UserEventType` constants: `EmailVerificationRequested`, `PasswordResetRequested`, `PasswordChanged`.
+
+#### Expenses service
+- **Removed**: `IEmailService`, `IEmailHelper`, `SmtpEmailService`, `EmailHelper`, `EmailHtmlTemplate`, `EmailOptions`, `FAMILY_INVITATION_TEMPLATE.html`, all DI registrations; `SmtpEmailServiceTests`, `EmailHelperTests`.
+- **`FamilyService.InviteAsync`**: replaced `_emailHelper.SendEmail(...)` with outbox enqueue of `family.invitation.requested`.
+- **`FamilyService.AcceptInviteAsync`**: calls `GetByIdWithMembersAsync` (one query); enqueues `family.invitation.accepted` (for head) and `family.member.joined` (for all existing members except joiner).
+- **`ExpenseService.AddAsync` / `DeleteAsync`**: enqueues `family.expense.added` / `family.expense.deleted` for co-members of attributed non-default families; fan-out deferred to notifications service.
+- **`CsvImportService.ConfirmImportAsync`**: enqueues `expenses.import.completed` with `{userId, totalRows, importedCount, skippedCount}`.
+- **`CurrencyRateService.RunDailyUpdateAsync`**: enqueues `expenses.rate.conflict` per new conflict; admin user IDs fetched via `IUserRepository.GetAdminUserIdsAsync`.
+- **`IUserRepository` / `UserRepository` (external)**: added `GetAdminUserIdsAsync()` — raw SQL join across `ext.URR_UserRoles`, `ext.RLE_Roles`, `ext.USR_Users` filtered to `APP_ADMIN` non-deleted users.
+- **`FamilyNotificationEventMessages.cs`** (new): `FamilyInvitationEventMessage`, `FamilyInvitationAcceptedEventMessage`, `FamilyMemberJoinedEventMessage`, `FamilyExpenseEventMessage`, `ImportCompletedEventMessage`, `RateConflictEventMessage`.
+- **`FamilyEventMessage.cs`**: added `FamilyEventType` constants: `InvitationRequested`, `InvitationAccepted`, `MemberJoined`, `ExpenseAdded`, `ExpenseDeleted`, `ImportCompleted`, `RateConflict`.
+
+#### Notifications service
+- **`UserNotificationEventConsumer`** (new BackgroundService): exchange `users.events`, queue `notifications.users.email`, routing `user.#`; inbox deduplication; routes `user.email.verification.requested` → `HandleEmailVerificationAsync`, `user.password.reset.requested` → `HandlePasswordResetAsync`, `user.password.changed` → `HandlePasswordChangedAsync`.
+- **`FamilyEventConsumer`** refactored: added second `QueueBind` for `expenses.#` (in addition to `family.#`); `HandleMessageAsync` now takes raw body + `eventType` string and dispatches to type-specific deserialization; handles all 8 family/expenses event types.
+- **`NotificationService`**: 10 new handler methods:
+  - `HandleFamilyInvitationAsync` — email only
+  - `HandleFamilyInvitationAcceptedAsync` — in-app (head) + email (head)
+  - `HandleFamilyMemberJoinedAsync` — in-app fan-out to existing members
+  - `HandleFamilyExpenseAddedAsync` / `HandleFamilyExpenseDeletedAsync` — in-app fan-out to co-members
+  - `HandleImportCompletedAsync` — in-app to importer
+  - `HandleRateConflictAsync` — in-app fan-out to all admins
+  - `HandleEmailVerificationAsync` / `HandlePasswordResetAsync` / `HandlePasswordChangedAsync` — email only, no DB row
+- **`FamilyNotificationMessages.cs`** (new): all new message DTOs.
+- **`UserNotificationEventMessage.cs`** (new): user notification DTO + `UserEventType` constants.
+- **`Notification.cs`**: added `NotificationType` constants: `FamilyInvitationAccepted`, `FamilyMemberJoined`, `FamilyExpenseAdded`, `FamilyExpenseDeleted`, `CsvImportCompleted`, `RateConflictCreated`.
+- **`EmailHtmlTemplate.cs`**: added `EmailVerification`, `PasswordReset`, `PasswordChanged`, `FamilyInvitation`, `FamilyInvitationAccepted` template constant classes.
+- **New HTML templates** (5): `EMAIL_VERIFICATION_TEMPLATE.html`, `PASSWORD_RESET_TEMPLATE.html`, `PASSWORD_CHANGED_TEMPLATE.html`, `FAMILY_INVITATION_TEMPLATE.html`, `FAMILY_INVITATION_ACCEPTED_TEMPLATE.html`.
+- **`Program.cs`**: registered `UserNotificationEventConsumer` as hosted service.
+- **Tests**: all 1071 tests pass (329 users + 722 expenses + 20 notifications).
+
 ## [0.111.5] - 2026-06-04
 ### Fixed — Notifications REST API 404 + Swagger docs
 - **`NotificationController`**: changed `[Route("notifications")]` → `[Route("")]`; nginx strips `/api/notifications` prefix before forwarding to port 9300, so controller must mount at service root — matches expenses service controller pattern.

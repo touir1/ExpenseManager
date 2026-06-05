@@ -1,13 +1,13 @@
 # Notifications Service
 
-REST API and real-time push service for in-app and email notifications. Consumes family events from the expenses service via RabbitMQ and delivers notifications to connected clients over SignalR WebSocket.
+REST API and real-time push service for in-app and email notifications. Consumes events from the users and expenses services via RabbitMQ and delivers notifications to connected clients over SignalR WebSocket. Also the sole SMTP email dispatcher for the entire platform.
 
 ## Tech Stack
 
 - **.NET 8** — `net8.0` target framework
 - **Entity Framework Core 8** + **Npgsql** — PostgreSQL via EF Core
 - **SignalR** — real-time WebSocket push (hub at `/ws/notifications`)
-- **RabbitMQ.Client 6.8.1** — consumes `expenses.events` topic exchange (`family.#` routing)
+- **RabbitMQ.Client 6.8.1** — consumes `expenses.events` (`family.#` + `expenses.#`) and `users.events` (`user.#`) topic exchanges
 - **FluentValidation 11** — request DTO validation
 - **xUnit** + **Moq** — unit and integration tests
 
@@ -39,13 +39,75 @@ All REST endpoints require authentication enforced by nginx's `auth_request` sub
 **`NotificationDto`** — `{ id, type, payload: object, isRead, createdAt, readAt? }`
 
 **Notification types:**
-- `FAMILY_MEMBER_REMOVED` — payload: `{ type, familyId, familyName, removedByUserId, removedByName, expenseCount }`
+
+| Type | Delivery | Payload fields |
+|------|----------|----------------|
+| `FAMILY_MEMBER_REMOVED` | In-app + email | `familyId, familyName, removedByUserId, removedByName, expenseCount` |
+| `FAMILY_INVITATION_ACCEPTED` | In-app + email | `familyId, familyName, acceptorName, acceptorEmail` |
+| `FAMILY_MEMBER_JOINED` | In-app | `familyId, familyName, joinerName, joinerUserId` |
+| `FAMILY_EXPENSE_ADDED` | In-app | `familyId, familyName, expenseId, amount, currencyCode, actorName, actorUserId` |
+| `FAMILY_EXPENSE_DELETED` | In-app | same as added |
+| `CSV_IMPORT_COMPLETED` | In-app | `totalRows, importedCount, skippedCount` |
+| `RATE_CONFLICT_CREATED` | In-app (admins) | `conflictId, sourceCurrencyCode, destCurrencyCode, date, autoRate, manualRate` |
+
+Email-only events (no DB row stored):
+- `user.email.verification.requested` → verification email with link
+- `user.password.reset.requested` → password-reset email with link
+- `user.password.changed` → security notification email
 
 ## Architecture
 
-- `FamilyEventConsumer` (BackgroundService) subscribes to queue `notifications.expenses.sync` bound to `expenses.events` exchange (`family.#`); retries on `BrokerUnreachableException` every 5 s; deduplicates via `InboxEvents` table
-- On each consumed event: persists `Notification` row → pushes via `IHubContext<NotificationHub>` → sends email; hub push and email failures are non-fatal (wrapped in try/catch)
-- `NotificationHub` groups connections by `userId`; extracts user ID from `auth_token` cookie via `JwtCookieReader`; aborts connection if cookie missing or invalid
+### Consumers
+
+**`FamilyEventConsumer`** (BackgroundService) subscribes to queue `notifications.expenses.sync` bound to `expenses.events` exchange on two routing keys: `family.#` and `expenses.#`. Handles:
+- `family.member.removed` → persist + push + email (removed member)
+- `family.invitation.requested` → email only (invitee)
+- `family.invitation.accepted` → persist + push + email (family head)
+- `family.member.joined` → persist + push fan-out (existing members)
+- `family.expense.added` / `family.expense.deleted` → persist + push fan-out (co-members)
+- `expenses.import.completed` → persist + push (importer)
+- `expenses.rate.conflict` → persist + push fan-out (all admins)
+
+**`UserNotificationEventConsumer`** (BackgroundService) subscribes to queue `notifications.users.email` bound to `users.events` exchange (`user.#` routing). Handles:
+- `user.email.verification.requested` → verification email
+- `user.password.reset.requested` → password-reset email
+- `user.password.changed` → password-changed security email
+
+Both consumers retry on `BrokerUnreachableException` every 5 s and deduplicate via the `InboxEvents` table.
+
+### Notification dispatch
+
+`NotificationService` follows this pattern per handler:
+1. Persist `Notification` row (non-fatal try/catch for fan-out handlers)
+2. Push via `IHubContext<NotificationHub>` to the user's SignalR group (non-fatal)
+3. Send email via `IEmailHelper` when applicable (non-fatal)
+
+Email-only handlers (verification, reset, password changed) skip steps 1 and 2.
+
+`NotificationHub` groups connections by `userId`; extracts user ID from `auth_token` cookie via `JwtCookieReader`; aborts connection if cookie missing or invalid.
+
+### Email templates
+
+All SMTP email is sent from the notifications service. Templates live in `Assets/EmailTemplates/`:
+
+| Template file | Trigger | Placeholders |
+|---|---|---|
+| `FAMILY_MEMBER_REMOVED_TEMPLATE.html` | Member removed from family | `@@REMOVED_BY_NAME@@`, `@@FAMILY_NAME@@`, `@@EXPENSE_COUNT@@` |
+| `FAMILY_INVITATION_TEMPLATE.html` | Family invitation sent | `@@INVITER_NAME@@`, `@@FAMILY_NAME@@`, `@@INVITE_LINK@@` |
+| `FAMILY_INVITATION_ACCEPTED_TEMPLATE.html` | Invitation accepted | `@@ACCEPTOR_NAME@@`, `@@FAMILY_NAME@@` |
+| `EMAIL_VERIFICATION_TEMPLATE.html` | Registration verification | `@@VERIFICATION_LINK@@` |
+| `PASSWORD_RESET_TEMPLATE.html` | Password reset requested | `@@RESET_LINK@@` |
+| `PASSWORD_CHANGED_TEMPLATE.html` | Password changed | `@@FIRST_NAME@@` |
+
+All templates also support `@@YEAR@@` (auto-substituted).
+
+## Configuration
+
+SMTP config via `EXPENSES_MANAGEMENT_NOTIFICATIONS_EMAILAUTH_*` env vars (EMAIL, PASSWORD, HOST, PORT, ENABLE_SSL).
+
+RabbitMQ config via `EXPENSES_MANAGEMENT_NOTIFICATIONS_RABBITMQ_*` env vars.
+
+Database config via `EXPENSES_MANAGEMENT_NOTIFICATIONS_DATABASE_*` env vars.
 
 ## Testing
 
