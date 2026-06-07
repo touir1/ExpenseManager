@@ -5,6 +5,12 @@
         "markAllRead": "Tout marquer comme lu",
         "empty": "Aucune notification pour l'instant",
         "familyMemberRemoved": "{{removedByName}} vous a retiré(e) de \"{{familyName}}\". {{expenseCount}} attribution(s) supprimée(s).",
+        "familyInvitationAccepted": "{{acceptorName}} a accepté votre invitation à rejoindre \"{{familyName}}\".",
+        "familyMemberJoined": "{{joinerName}} a rejoint \"{{familyName}}\".",
+        "familyExpenseAdded": "{{actorName}} a ajouté une dépense de {{amount}} {{currencyCode}} dans \"{{familyName}}\".",
+        "familyExpenseDeleted": "{{actorName}} a supprimé une dépense de {{amount}} {{currencyCode}} dans \"{{familyName}}\".",
+        "csvImportCompleted": "Import terminé : {{importedCount}}/{{totalRows}} ligne(s) importée(s), {{skippedCount}} ignorée(s).",
+        "rateConflictCreated": "Conflit de taux : {{sourceCurrencyCode}}/{{destCurrencyCode}} — taux manuel remplacé par la mise à jour automatique.",
         "badge": "{{count}} non lu(s)"
     },
     "nav":  {

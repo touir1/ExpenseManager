@@ -5,6 +5,12 @@
         "markAllRead": "Mark all as read",
         "empty": "No notifications yet",
         "familyMemberRemoved": "{{removedByName}} removed you from \"{{familyName}}\". {{expenseCount}} attribution(s) cleared.",
+        "familyInvitationAccepted": "{{acceptorName}} accepted your invitation to join \"{{familyName}}\".",
+        "familyMemberJoined": "{{joinerName}} joined \"{{familyName}}\".",
+        "familyExpenseAdded": "{{actorName}} added an expense of {{amount}} {{currencyCode}} in \"{{familyName}}\".",
+        "familyExpenseDeleted": "{{actorName}} deleted an expense of {{amount}} {{currencyCode}} in \"{{familyName}}\".",
+        "csvImportCompleted": "Import complete: {{importedCount}}/{{totalRows}} row(s) imported, {{skippedCount}} skipped.",
+        "rateConflictCreated": "Rate conflict: {{sourceCurrencyCode}}/{{destCurrencyCode}} — manual rate overridden by auto-update.",
         "badge": "{{count}} unread"
     },
     "nav":  {

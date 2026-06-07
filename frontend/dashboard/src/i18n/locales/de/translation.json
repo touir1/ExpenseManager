@@ -5,6 +5,12 @@
         "markAllRead": "Alle als gelesen markieren",
         "empty": "Noch keine Benachrichtigungen",
         "familyMemberRemoved": "{{removedByName}} hat Sie aus \"{{familyName}}\" entfernt. {{expenseCount}} Zuordnung(en) gelöscht.",
+        "familyInvitationAccepted": "{{acceptorName}} hat Ihre Einladung zu \"{{familyName}}\" angenommen.",
+        "familyMemberJoined": "{{joinerName}} ist \"{{familyName}}\" beigetreten.",
+        "familyExpenseAdded": "{{actorName}} hat eine Ausgabe von {{amount}} {{currencyCode}} in \"{{familyName}}\" hinzugefügt.",
+        "familyExpenseDeleted": "{{actorName}} hat eine Ausgabe von {{amount}} {{currencyCode}} in \"{{familyName}}\" gelöscht.",
+        "csvImportCompleted": "Import abgeschlossen: {{importedCount}}/{{totalRows}} Zeile(n) importiert, {{skippedCount}} übersprungen.",
+        "rateConflictCreated": "Kurskonflikt: {{sourceCurrencyCode}}/{{destCurrencyCode}} — manueller Kurs durch automatische Aktualisierung ersetzt.",
         "badge": "{{count}} ungelesen"
     },
     "nav":  {

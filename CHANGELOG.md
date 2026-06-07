@@ -3,6 +3,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.112.3] - 2026-06-07
+### Fix — Notification bell showed raw type codes instead of labels
+
+- **`NotificationBell.tsx`**: extracted `getNotificationText()` helper with switch over all 7 notification types; previously only `FAMILY_MEMBER_REMOVED` was handled — all others fell through to the raw `n.type` string. Toast on new notification also now uses the same helper instead of only handling the removed-member case.
+- **`notification.type.ts`**: added 5 missing payload types (`FamilyInvitationAccepted`, `FamilyMemberJoined`, `FamilyExpense`, `CsvImportCompleted`, `RateConflictCreated`) and expanded `NotificationPayload` to a proper discriminated union.
+- **i18n** (`en`, `fr`, `de`, `es`): added 6 missing keys — `familyInvitationAccepted`, `familyMemberJoined`, `familyExpenseAdded`, `familyExpenseDeleted`, `csvImportCompleted`, `rateConflictCreated`.
+
 ## [0.112.2] - 2026-06-06
 ### Fix — 500 on POST /api/expenses when familyIds provided
 
