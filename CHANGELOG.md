@@ -3,6 +3,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.112.5] - 2026-06-07
+### Test coverage — frontend dashboard to near-100%
+
+- **New test files** (22): `components/__tests__/{BackLink,FieldError,SubmitButton}.test.tsx`, `hooks/__tests__/usePageTitle.test.ts`, `features/auth/components/__tests__/{AuthBrandPanel,AuthCard,AuthPageHeader,EmailField}.test.tsx`, `features/auth/__tests__/auth.schemas.test.ts`, `features/admin/components/__tests__/{AdminLayout,AdminRoute}.test.tsx`, `features/admin/services/__tests__/{adminCategories,adminCurrencies,adminRates,adminUsers}Api.service.test.ts`, `features/expenses/components/__tests__/{Add,Edit}ExpenseModal.test.tsx`, `features/notifications/__tests__/NotificationContext.test.tsx`, `features/notifications/components/__tests__/NotificationBell.test.tsx`, `features/notifications/services/__tests__/notificationApi.service.test.ts`, `features/tags/services/__tests__/tagsApi.service.test.ts`, `features/families/services/__tests__/familyApi.service.test.ts`.
+- **Coverage exclusions**: added `src/**/types/*.ts`, `src/types/**`, `src/constants/**` to `vitest.config.ts` and the same globs plus `**/i18n/index.ts`, `**/i18n/locales/**` to `sonar-project.properties` (both `sonar.exclusions` and `sonar.coverage.exclusions`).
+- **Bug fix — `NotificationBell.test.tsx`**: replaced `getByText(matcher)` (throws when multiple DOM elements match) with `getAllByText(matcher).length > 0` in parameterised notification-type tests.
+- **Bug fix — `NotificationContext.test.tsx`**: replaced `vi.fn().mockReturnValue({...})` for `HubConnectionBuilder` with a real `class MockHubConnectionBuilder` — arrow-function mocks can't be called with `new`, causing `TypeError: () => value is not a constructor`.
+- Total: 1023 tests passing, 0 failing.
+
 ## [0.112.4] - 2026-06-07
 ### Fix — Family selector in navbar had no effect on expenses list
 

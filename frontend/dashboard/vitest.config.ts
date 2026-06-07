@@ -21,7 +21,10 @@ export default defineConfig({
         'vite.config.ts',
         'vitest.config.ts',
         'src/i18n/index.ts',
-        'src/i18n/locales/**'
+        'src/i18n/locales/**',
+        'src/**/types/*.ts',
+        'src/types/**',
+        'src/constants/**'
       ]
     }
   },

@@ -237,7 +237,7 @@ ExpenseManager/
 │   │   │   │   │   ├── CategoryBreakdownDto.cs — Category: SubcategoryDto?, TotalAmount, ConvertedTotal?, Percentage, Subcategories: CategoryAmountDto[]
 │   │   │   │   │   ├── CurrencyBreakdownDto.cs — Currency: CurrencyDto, TotalAmount, ConvertedAmount?, ExpenseCount
 │   │   │   │   │   ├── DashboardSummaryDto.cs — TotalAmount, ConvertedTotal?, DisplayCurrency?, ExpenseCount, PreviousPeriodTotal?, ChangePercent?, TopCategory?: SubcategoryDto, TopCategoryAmount?
-│   │   │   │   │   ├── ExpenseFilterDto.cs  — DateFrom?, DateTo?, CategoryId?, SubcategoryId?, CurrencyId?, AmountMin?, AmountMax?, Description?, TagIds?, DisplayCurrencyId?, Page (default 1), PageSize (default 20)
+│   │   │   │   │   ├── ExpenseFilterDto.cs  — DateFrom?, DateTo?, CategoryId?, SubcategoryId?, CurrencyId?, AmountMin?, AmountMax?, Description?, TagIds?, DisplayCurrencyId?, FamilyId?, Page (default 1), PageSize (default 20)
 │   │   │   │   │   ├── MonthlyBreakdownDto.cs — Year, Month, TotalAmount, ConvertedTotal?, ByCategory: CategoryAmountDto[]
 │   │   │   │   │   ├── SameMonthYearlyDto.cs — Year, TotalAmount, ConvertedTotal?
 │   │   │   │   │   ├── RateDto.cs           — SourceCurrencyId, DestinationCurrencyId, Date, Rate, RateSource
@@ -668,10 +668,13 @@ ExpenseManager/
 │           │   ├── SubmitButton.tsx    — Submit button with spinner SVG and configurable labels
 │           │   ├── Toast.tsx           — Toast notification provider and hook
 │           │   └── __tests__/
+│           │       ├── BackLink.test.tsx
+│           │       ├── FieldError.test.tsx
 │           │       ├── FormCombobox.test.tsx
 │           │       ├── LanguageSwitcher.test.tsx
 │           │       ├── PasswordInput.test.tsx
 │           │       ├── PasswordStrength.test.tsx
+│           │       ├── SubmitButton.test.tsx
 │           │       └── Toast.test.tsx
 │           ├── i18n/                  — Internationalisation (react-i18next)
 │           │   ├── index.ts           — i18next singleton config; language detection via localStorage → navigator
@@ -692,7 +695,12 @@ ExpenseManager/
 │           │   │   │   ├── AuthPageHeader.tsx   — Page title + subtitle header
 │           │   │   │   ├── EmailField.tsx       — Shared email input field for auth forms
 │           │   │   │   ├── ProtectedRoute.tsx   — Redirects unauthenticated users to /login
-│           │   │   │   └── PublicOnlyRoute.tsx  — Redirects authenticated users to /dashboard
+│           │   │   │   ├── PublicOnlyRoute.tsx  — Redirects authenticated users to /dashboard
+│           │   │   │   └── __tests__/
+│           │   │   │       ├── AuthBrandPanel.test.tsx
+│           │   │   │       ├── AuthCard.test.tsx
+│           │   │   │       ├── AuthPageHeader.test.tsx
+│           │   │   │       └── EmailField.test.tsx
 │           │   │   ├── pages/
 │           │   │   │   ├── LoginPage.tsx
 │           │   │   │   ├── RegisterPage.tsx
@@ -717,6 +725,7 @@ ExpenseManager/
 │           │   │       ├── AuthContext.test.tsx
 │           │   │       ├── ProtectedRoute.test.tsx
 │           │   │       ├── PublicOnlyRoute.test.tsx
+│           │   │       ├── auth.schemas.test.ts
 │           │   │       └── authApi.service.test.ts
 │           │   ├── families/          — Family management feature
 │           │   │   ├── components/
@@ -729,7 +738,9 @@ ExpenseManager/
 │           │   │   │       ├── FamiliesPage.test.tsx
 │           │   │   │       └── AcceptInvitePage.test.tsx — 9 tests: loading state, success, error with/without res.error, missing token, no API call when token absent, silent:true call, go-to-families link on success/error
 │           │   │   ├── services/
-│           │   │   │   └── familyApi.service.ts  — All family CRUD + invitation + member management calls
+│           │   │   │   ├── familyApi.service.ts  — All family CRUD + invitation + member management calls
+│           │   │   │   └── __tests__/
+│           │   │   │       └── familyApi.service.test.ts
 │           │   │   ├── types/
 │           │   │   │   └── family.type.ts        — Family, FamilyDetail, FamilyMember, FamilyRole
 │           │   │   ├── FamilyContext.tsx          — FamilyProvider / useFamilies(); loads list on auth, persists activeFamilyId to localStorage
@@ -742,7 +753,9 @@ ExpenseManager/
 │           │   │   ├── types/
 │           │   │   │   └── tag.type.ts          — Tag { id, name }, TagList { own: Tag[], family: Tag[] }
 │           │   │   ├── services/
-│           │   │   │   └── tagsApi.service.ts   — getTags() → GET /api/expenses/tags; useTag(name) → POST; removeTag(id) → DELETE
+│           │   │   │   ├── tagsApi.service.ts   — getTags() → GET /api/expenses/tags; useTag(name) → POST; removeTag(id) → DELETE
+│           │   │   │   └── __tests__/
+│           │   │   │       └── tagsApi.service.test.ts
 │           │   │   └── components/
 │           │   │       ├── TagInput.tsx          — Combobox: grouped "My tags"/"Family tags" dropdown, chips, create option, keyboard (Enter/Escape/Backspace)
 │           │   │       └── __tests__/
@@ -776,6 +789,8 @@ ExpenseManager/
 │           │   │   │   ├── ExpenseForm.tsx     — RHF+Zod form: amount, currency (FormCombobox), date, category (FormCombobox), subcategory (FormCombobox, conditional), description, tags, families (default family hidden)
 │           │   │   │   ├── ExpenseFilters.tsx  — Collapsible filter panel; toggle with aria-expanded; resets page to 1 on apply; FilterCombobox for category/subcategory/currency (case-insensitive search)
 │           │   │   │   └── __tests__/
+│           │   │   │       ├── AddExpenseModal.test.tsx
+│           │   │   │       ├── EditExpenseModal.test.tsx
 │           │   │   │       ├── ExpenseForm.test.tsx
 │           │   │   │       └── ExpenseFilters.test.tsx
 │           │   │   ├── pages/
@@ -825,7 +840,10 @@ ExpenseManager/
 │           │   ├── admin/             — Admin feature (Phase 11)
 │           │   │   ├── components/
 │           │   │   │   ├── AdminRoute.tsx       — Route guard; redirects to /dashboard when isAdmin=false
-│           │   │   │   └── AdminLayout.tsx      — Sidebar nav (Users/Categories/Currencies/Rates/Rate Conflicts) + breadcrumb header
+│           │   │   │   ├── AdminLayout.tsx      — Sidebar nav (Users/Categories/Currencies/Rates/Rate Conflicts) + breadcrumb header
+│           │   │   │   └── __tests__/
+│           │   │   │       ├── AdminLayout.test.tsx
+│           │   │   │       └── AdminRoute.test.tsx
 │           │   │   ├── pages/
 │           │   │   │   ├── AdminUsersPage.tsx   — Searchable paginated user table; Disable/Enable actions; Manage Roles modal; APP_ADMIN checkbox disabled for own account
 │           │   │   │   ├── AdminCategoriesPage.tsx — Category tree; Add/Edit/Archive/Unarchive; subcategory management; "Show archived" toggle
@@ -843,7 +861,26 @@ ExpenseManager/
 │           │   │       ├── adminUsersApi.service.ts      — getUsers, getRoles, disableUser, enableUser, setUserRoles
 │           │   │       ├── adminCategoriesApi.service.ts — getCategories, addCategory, updateCategory, archiveCategory, unarchiveCategory, addSubcategory, updateSubcategory, archiveSubcategory, unarchiveSubcategory
 │           │   │       ├── adminCurrenciesApi.service.ts — addCurrency, updateCurrency, deleteCurrency, getCurrencyDefaults, setDefaultRate; CurrencyDefaultRateDto type
-│           │   │       └── adminRatesApi.service.ts      — getRateHistory (optional filters, paged), addManualRate, bulkAddRates, refreshRates (optional to), getPendingConflicts, resolveConflict; PagedRatesResponse + RateDto types
+│           │   │       ├── adminRatesApi.service.ts      — getRateHistory (optional filters, paged), addManualRate, bulkAddRates, refreshRates (optional to), getPendingConflicts, resolveConflict; PagedRatesResponse + RateDto types
+│           │   │       └── __tests__/
+│           │   │           ├── adminCategoriesApi.service.test.ts
+│           │   │           ├── adminCurrenciesApi.service.test.ts
+│           │   │           ├── adminRatesApi.service.test.ts
+│           │   │           └── adminUsersApi.service.test.ts
+│           │   ├── notifications/     — In-app notifications feature (Phase 13+14)
+│           │   │   ├── types/
+│           │   │   │   └── notification.type.ts  — NotificationPayload discriminated union (7 types); Notification shape
+│           │   │   ├── components/
+│           │   │   │   ├── NotificationBell.tsx  — Bell icon + badge + dropdown; getNotificationText() maps all 7 types to i18n labels; toast on new notification
+│           │   │   │   └── __tests__/
+│           │   │   │       └── NotificationBell.test.tsx
+│           │   │   ├── services/
+│           │   │   │   ├── notificationApi.service.ts  — getNotifications, getUnreadCount, markAsRead, markAllAsRead
+│           │   │   │   └── __tests__/
+│           │   │   │       └── notificationApi.service.test.ts
+│           │   │   ├── NotificationContext.tsx   — NotificationProvider / useNotifications(); loads on auth; SignalR connection via dynamic import; markRead/markAllRead/refresh
+│           │   │   └── __tests__/
+│           │   │       └── NotificationContext.test.tsx
 │           │   └── public/            — Public (unauthenticated) pages
 │           │       └── pages/
 │           │           ├── HomePublicPage.tsx    — Public landing page
@@ -858,7 +895,9 @@ ExpenseManager/
 │           │   └── __tests__/
 │           │       └── AppProviders.test.tsx
 │           ├── hooks/                 — Shared hooks
-│           │   └── usePageTitle.ts    — Sets document.title per page
+│           │   ├── usePageTitle.ts    — Sets document.title per page
+│           │   └── __tests__/
+│           │       └── usePageTitle.test.ts
 │           ├── layouts/               — App-wide layout components
 │           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive; "Admin" link shown only when isAdmin=true; right-side controls: FamilySelector → DisplayCurrencySelector → Add Expense `+` button → notification bell → user avatar dropdown
 │           │   └── __tests__/
