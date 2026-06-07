@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Touir.ExpensesManager.Notifications.Infrastructure.Contracts;
 
 namespace Touir.ExpensesManager.Notifications.Infrastructure
 {
+    [ExcludeFromCodeCoverage]
     public class EmailHelper : IEmailHelper
     {
         private readonly IEmailService _emailService;

@@ -160,14 +160,19 @@ ExpenseManager/
 │   │   └── Touir.ExpensesManager.Notifications.Tests/
 │   │       ├── Touir.ExpensesManager.Notifications.Tests.csproj
 │   │       ├── coverage.runsettings
+│   │       ├── Controllers/
+│   │       │   └── NotificationControllerTests.cs — 12 tests: 401 (no JWT), 200/204 (success), 400 (exception) per endpoint
+│   │       ├── Infrastructure/
+│   │       │   └── JwtCookieReaderTests.cs — 8 tests: cookie, Bearer header, null, invalid JWT, missing/non-int sub
 │   │       ├── TestHelpers/
 │   │       │   └── TestNotificationsDbContext.cs — SQLite in-memory wrapper (EnsureCreated)
 │   │       ├── Messaging/
 │   │       │   └── FamilyEventConsumerTests.cs — Tests via TestableConsumer for all 8 event types (valid dispatch, dedup, failure, unknown type)
 │   │       ├── Repositories/
+│   │       │   ├── InboxRepositoryTests.cs — ExistsAsync, AddAsync
 │   │       │   └── NotificationRepositoryTests.cs — Integration tests
 │   │       └── Services/
-│   │           └── NotificationServiceTests.cs — Unit tests (Moq) for all handlers
+│   │           └── NotificationServiceTests.cs — 48 unit tests (Moq) for all handlers including push/email failure paths
 │   │
 │   ├── expenses/
 │   │   ├── .dockerignore

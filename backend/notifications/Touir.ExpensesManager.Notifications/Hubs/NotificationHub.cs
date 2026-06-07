@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.SignalR;
+using System.Diagnostics.CodeAnalysis;
 using Touir.ExpensesManager.Notifications.Infrastructure;
 
 namespace Touir.ExpensesManager.Notifications.Hubs
 {
+    [ExcludeFromCodeCoverage]
     public class NotificationHub : Hub
     {
         public override async Task OnConnectedAsync()

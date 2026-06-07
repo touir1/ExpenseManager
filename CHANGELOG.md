@@ -3,6 +3,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.112.7] - 2026-06-07
+### Test coverage — backend/notifications to ~99%
+
+- **New test files**: `Infrastructure/JwtCookieReaderTests.cs`, `Repositories/InboxRepositoryTests.cs`, `Controllers/NotificationControllerTests.cs`.
+- **Extended**: `Services/NotificationServiceTests.cs` — added 30 tests covering `HandleFamilyInvitation*`, `HandleFamilyMemberJoined`, `HandleFamilyExpense*`, `HandleImportCompleted`, `HandleRateConflict`, `HandleEmailVerification`, `HandlePasswordReset`, `HandlePasswordChanged`, push/email failure paths.
+- **SonarQube exclusions**: added `**/Messaging/Messages/**`, `**/Controllers/DTO/**`, `**/Infrastructure/EmailHtmlTemplate.cs` to `sonar.coverage.exclusions`.
+- **`[ExcludeFromCodeCoverage]`**: added to `NotificationHub` (SignalR hub) and `EmailHelper` (reads files from disk).
+- Result: 70 tests passing, 0 failing, **99% effective SonarQube coverage** (4 uncovered Npgsql-guard lines in `NotificationsDbContext` only).
+
 ## [0.112.6] - 2026-06-07
 ### Test coverage — backend/expenses to 99%
 
