@@ -24,6 +24,7 @@ export function getExpenses(filter: ExpenseFilter = {}): Promise<ApiResponse<Exp
   if (filter.amountMax != null) params.set('amountMax', String(filter.amountMax))
   if (filter.description) params.set('description', filter.description)
   if (filter.tagIds?.length) filter.tagIds.forEach(id => params.append('tagIds', String(id)))
+  if (filter.familyId != null) params.set('familyId', String(filter.familyId))
   if (filter.displayCurrencyId != null) params.set('displayCurrencyId', String(filter.displayCurrencyId))
   if (filter.page != null) params.set('page', String(filter.page))
   if (filter.pageSize != null) params.set('pageSize', String(filter.pageSize))

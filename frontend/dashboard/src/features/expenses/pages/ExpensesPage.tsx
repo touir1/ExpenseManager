@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation, useMatch } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
@@ -7,6 +7,7 @@ import { getExpenses, deleteExpense } from '@/features/expenses/services/expense
 import ExpenseFilters from '@/features/expenses/components/ExpenseFilters'
 import AddExpenseModal from '@/features/expenses/components/AddExpenseModal'
 import EditExpenseModal from '@/features/expenses/components/EditExpenseModal'
+import { useFamilies } from '@/features/families/FamilyContext'
 import type { ExpenseDto, ExpenseFilter } from '@/features/expenses/types/expenses.type'
 
 const DEFAULT_PAGE_SIZE = 20
@@ -104,13 +105,21 @@ export default function ExpensesPage() {
   const editMatch = useMatch('/expenses/:id/edit')
   const editId = editMatch ? parseInt(editMatch.params.id ?? '') : null
   const isAddOpen = pathname === '/expenses/add'
+  const { activeFamilyId } = useFamilies()
   const [filter, setFilter] = useState<ExpenseFilter>({ page: 1, pageSize: DEFAULT_PAGE_SIZE })
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
+  // Reset to page 1 when active family changes
+  useEffect(() => {
+    setFilter(f => ({ ...f, page: 1 }))
+  }, [activeFamilyId])
+
+  const effectiveFilter: ExpenseFilter = { ...filter, familyId: activeFamilyId ?? undefined }
+
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['expenses', filter],
+    queryKey: ['expenses', effectiveFilter],
     queryFn: async () => {
-      const res = await getExpenses(filter)
+      const res = await getExpenses(effectiveFilter)
       if (!res.ok) throw new Error('load_failed')
       return res.data
     },

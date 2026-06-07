@@ -65,6 +65,7 @@ export type ExpenseFilter = {
   amountMax?: number
   description?: string
   tagIds?: number[]
+  familyId?: number
   displayCurrencyId?: number
   page?: number
   pageSize?: number

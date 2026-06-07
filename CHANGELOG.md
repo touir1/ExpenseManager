@@ -3,6 +3,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.112.4] - 2026-06-07
+### Fix — Family selector in navbar had no effect on expenses list
+
+- **`ExpenseFilterDto`** (backend): added `FamilyId?: int?` query param.
+- **`ExpenseRepository.GetPagedAsync`**: added `.Where(e => e.ExpenseFamilyAttributions.Any(a => a.FamilyId == filter.FamilyId && !a.Family.IsDeleted))` when `FamilyId` is set.
+- **`ExpenseFilter`** (frontend type): added `familyId?: number`.
+- **`expensesApi.service.ts`**: sends `familyId` as query param when set.
+- **`ExpensesPage.tsx`**: reads `activeFamilyId` from `FamilyContext`, merges into `effectiveFilter`, includes in `queryKey`; `useEffect` resets page to 1 on family change.
+
+Behaviour: personal view (`null`) shows all user expenses; selecting a family filters to expenses attributed to that family.
+
 ## [0.112.3] - 2026-06-07
 ### Fix — Notification bell showed raw type codes instead of labels
 

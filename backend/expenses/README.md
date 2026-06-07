@@ -106,7 +106,7 @@ All endpoints (except `/health`) require authentication, enforced by nginx's `au
 **`SameMonthYearlyDto`** — `{ year, totalAmount, convertedTotal? }`  
 **`CurrencyBreakdownDto`** — `{ currency: CurrencyDto, totalAmount, convertedAmount?, expenseCount }`
 
-**Query params for `GET /expenses`:** `dateFrom`, `dateTo`, `categoryId`, `subcategoryId`, `currencyId`, `amountMin`, `amountMax`, `description` (substring), `tagIds[]` (OR filter), `displayCurrencyId`, `page` (default 1), `pageSize` (default 20)
+**Query params for `GET /expenses`:** `dateFrom`, `dateTo`, `categoryId`, `subcategoryId`, `currencyId`, `amountMin`, `amountMax`, `description` (substring), `tagIds[]` (OR filter), `familyId` (filter to expenses attributed to that family), `displayCurrencyId`, `page` (default 1), `pageSize` (default 20)
 
 DTOs live in `Controllers/DTO/`; error envelopes (`{ message }`) in `Controllers/Responses/`.
 

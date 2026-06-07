@@ -94,6 +94,8 @@ namespace Touir.ExpensesManager.Expenses.Repositories
                 query = query.Where(e => e.Description != null && e.Description.Contains(filter.Description));
             if (filter.TagIds is { Length: > 0 })
                 query = query.Where(e => e.ExpenseTags.Any(et => filter.TagIds.Contains(et.TagId)));
+            if (filter.FamilyId.HasValue)
+                query = query.Where(e => e.ExpenseFamilyAttributions.Any(a => a.FamilyId == filter.FamilyId.Value && !a.Family.IsDeleted));
 
             var totalCount = await query.CountAsync();
 
