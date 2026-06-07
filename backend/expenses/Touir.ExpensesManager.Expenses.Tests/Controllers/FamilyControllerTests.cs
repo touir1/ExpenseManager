@@ -150,6 +150,18 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
             Assert.Equal("SERVER_ERROR", err.Message);
         }
 
+        [Fact]
+        public async Task Create_Returns409_OnFamilyConflictException()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.CreateAsync(It.IsAny<string>(), It.IsAny<int>()))
+                .ThrowsAsync(new FamilyConflictException("FAMILY_NAME_ALREADY_EXISTS"));
+
+            var result = await CreateController(service.Object).CreateAsync(new CreateFamilyRequest { Name = "Duplicate" });
+
+            Assert.IsType<ConflictObjectResult>(result);
+        }
+
         // ── RenameAsync ───────────────────────────────────────────────────────
 
         [Fact]

@@ -492,5 +492,92 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
 
             Assert.Equal(2, count);
         }
+
+        // ── ExistsWithNameForUserAsync ────────────────────────────────────────
+
+        [Fact]
+        public async Task ExistsWithNameForUserAsync_ReturnsTrue_WhenUserIsMemberOfFamilyWithName()
+        {
+            var family = await SeedFamilyAsync(createdById: 1);
+            await SeedMembershipAsync(family.Id, userId: 1, roleId: 1);
+
+            var result = await _sut.ExistsWithNameForUserAsync(family.Name, userId: 1);
+
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task ExistsWithNameForUserAsync_ReturnsFalse_WhenUserNotMember()
+        {
+            var family = await SeedFamilyAsync(createdById: 1);
+            await SeedMembershipAsync(family.Id, userId: 1, roleId: 1);
+
+            var result = await _sut.ExistsWithNameForUserAsync(family.Name, userId: 999);
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task ExistsWithNameForUserAsync_ReturnsFalse_WhenExcludeIdMatches()
+        {
+            var family = await SeedFamilyAsync(createdById: 1);
+            await SeedMembershipAsync(family.Id, userId: 1, roleId: 1);
+
+            var result = await _sut.ExistsWithNameForUserAsync(family.Name, userId: 1, excludeId: family.Id);
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task ExistsWithNameForUserAsync_ReturnsFalse_WhenFamilyDeleted()
+        {
+            var family = await SeedFamilyAsync(createdById: 1);
+            await SeedMembershipAsync(family.Id, userId: 1, roleId: 1);
+            family.IsDeleted = true;
+            _wrapper.Context.Families.Update(family);
+            await _wrapper.Context.SaveChangesAsync();
+
+            var result = await _sut.ExistsWithNameForUserAsync(family.Name, userId: 1);
+
+            Assert.False(result);
+        }
+
+        // ── CountMemberAttributionsAsync ──────────────────────────────────────
+
+        [Fact]
+        public async Task CountMemberAttributionsAsync_ReturnsCountForUserInFamily()
+        {
+            await SeedUserAsync(1);
+            await SeedUserAsync(2, "u2@test.com");
+            var family = await SeedFamilyAsync(createdById: 1);
+
+            _wrapper.Context.Currencies.Add(new Models.Currency { Id = 3001, Code = "CA1", Name = "Count A1", Symbol = "C", Decimals = 2 });
+            await _wrapper.Context.SaveChangesAsync();
+
+            var expense1 = new Models.Expense
+            {
+                UserId = 1, Amount = 10m, CurrencyId = 3001,
+                Date = DateOnly.FromDateTime(DateTime.UtcNow),
+                CreatedAt = DateTime.UtcNow, CreatedById = 1, CreatedFromId = 1
+            };
+            var expense2 = new Models.Expense
+            {
+                UserId = 2, Amount = 20m, CurrencyId = 3001,
+                Date = DateOnly.FromDateTime(DateTime.UtcNow),
+                CreatedAt = DateTime.UtcNow, CreatedById = 2, CreatedFromId = 1
+            };
+            _wrapper.Context.Expenses.AddRange(expense1, expense2);
+            await _wrapper.Context.SaveChangesAsync();
+
+            _wrapper.Context.ExpenseFamilyAttributions.AddRange(
+                new Models.ExpenseFamilyAttribution { ExpenseId = expense1.Id, FamilyId = family.Id, AttributedAt = DateTime.UtcNow, AttributedById = 1 },
+                new Models.ExpenseFamilyAttribution { ExpenseId = expense2.Id, FamilyId = family.Id, AttributedAt = DateTime.UtcNow, AttributedById = 2 }
+            );
+            await _wrapper.Context.SaveChangesAsync();
+
+            var count = await _sut.CountMemberAttributionsAsync(family.Id, userId: 1);
+
+            Assert.Equal(1, count);
+        }
     }
 }

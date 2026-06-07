@@ -501,6 +501,38 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
             Assert.Equal(2, _wrapper.Context.CurrencyDailyRates.Count());
         }
 
+        // ── IsUsedInRatesAsync ────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task IsUsedInRatesAsync_ReturnsTrue_WhenUsedAsSource()
+        {
+            var (src, dst) = await SeedCurrencyPairAsync();
+            await SeedRateAsync(src, dst, new DateOnly(2024, 1, 1), 1.1m);
+
+            var result = await _sut.IsUsedInRatesAsync(src);
+
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task IsUsedInRatesAsync_ReturnsTrue_WhenUsedAsDestination()
+        {
+            var (src, dst) = await SeedCurrencyPairAsync();
+            await SeedRateAsync(src, dst, new DateOnly(2024, 1, 1), 1.1m);
+
+            var result = await _sut.IsUsedInRatesAsync(dst);
+
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task IsUsedInRatesAsync_ReturnsFalse_WhenNotUsed()
+        {
+            var result = await _sut.IsUsedInRatesAsync(9999);
+
+            Assert.False(result);
+        }
+
         // ── AddConflictsBatchAsync ─────────────────────────────────────────────────
 
         [Fact]

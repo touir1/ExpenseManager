@@ -225,5 +225,77 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 CreateService(repo.Object).ArchiveSubcategoryAsync(1));
         }
+
+        // ── UnarchiveCategoryAsync (additional cases) ─────────────────────────
+
+        [Fact]
+        public async Task UnarchiveCategoryAsync_Throws_WhenNotFound()
+        {
+            var repo = new Mock<ICategoryRepository>();
+            repo.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Category?)null);
+
+            await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+                CreateService(repo.Object).UnarchiveCategoryAsync(99));
+        }
+
+        [Fact]
+        public async Task UnarchiveCategoryAsync_ReturnsEarly_WhenAlreadyActive()
+        {
+            var cat = MakeCategory(1, "Food", isDeleted: false);
+            var repo = new Mock<ICategoryRepository>();
+            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(cat);
+
+            await CreateService(repo.Object).UnarchiveCategoryAsync(1);
+
+            repo.Verify(r => r.UnarchiveAsync(It.IsAny<int>()), Times.Never);
+        }
+
+        // ── UnarchiveSubcategoryAsync ─────────────────────────────────────────
+
+        [Fact]
+        public async Task UnarchiveSubcategoryAsync_Throws_WhenNotFound()
+        {
+            var repo = new Mock<ICategoryRepository>();
+            repo.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Category?)null);
+
+            await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+                CreateService(repo.Object).UnarchiveSubcategoryAsync(99));
+        }
+
+        [Fact]
+        public async Task UnarchiveSubcategoryAsync_Throws_WhenNotSubcategory()
+        {
+            var top = MakeCategory(1, "Food");
+            var repo = new Mock<ICategoryRepository>();
+            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(top);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                CreateService(repo.Object).UnarchiveSubcategoryAsync(1));
+        }
+
+        [Fact]
+        public async Task UnarchiveSubcategoryAsync_ReturnsEarly_WhenAlreadyActive()
+        {
+            var sub = MakeCategory(5, "Sub", isDeleted: false, parentId: 1);
+            var repo = new Mock<ICategoryRepository>();
+            repo.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(sub);
+
+            await CreateService(repo.Object).UnarchiveSubcategoryAsync(5);
+
+            repo.Verify(r => r.UnarchiveAsync(It.IsAny<int>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UnarchiveSubcategoryAsync_CallsUnarchive_WhenArchivedSubcategory()
+        {
+            var sub = MakeCategory(5, "Sub", isDeleted: true, parentId: 1);
+            var repo = new Mock<ICategoryRepository>();
+            repo.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(sub);
+            repo.Setup(r => r.UnarchiveAsync(5)).Returns(Task.CompletedTask);
+
+            await CreateService(repo.Object).UnarchiveSubcategoryAsync(5);
+
+            repo.Verify(r => r.UnarchiveAsync(5), Times.Once);
+        }
     }
 }

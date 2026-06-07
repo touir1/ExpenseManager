@@ -199,5 +199,141 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
 
             Assert.Equal(StatusCodes.Status403Forbidden, ((ObjectResult)result).StatusCode);
         }
+
+        [Fact]
+        public async Task GetRecentAsync_Returns401_WhenNoCookie()
+        {
+            var result = await CreateController(jwtCookie: null).GetRecentAsync(null, null, null, null);
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetRecentAsync_Returns400_OnGenericException()
+        {
+            var service = new Mock<IDashboardService>();
+            service.Setup(s => s.GetRecentAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<DateOnly?>(), It.IsAny<DateOnly?>(), It.IsAny<int?>()))
+                   .ThrowsAsync(new Exception("db"));
+
+            var result = await CreateController(service.Object).GetRecentAsync(null, null, null, null);
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetMonthlyAsync_Returns403_OnFamilyForbiddenException()
+        {
+            var service = new Mock<IDashboardService>();
+            service.Setup(s => s.GetMonthlyAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), null))
+                   .ThrowsAsync(new FamilyForbiddenException());
+
+            var result = await CreateController(service.Object).GetMonthlyAsync(null, null, null, null);
+
+            Assert.Equal(StatusCodes.Status403Forbidden, ((ObjectResult)result).StatusCode);
+        }
+
+        [Fact]
+        public async Task GetMonthlyAsync_Returns400_OnGenericException()
+        {
+            var service = new Mock<IDashboardService>();
+            service.Setup(s => s.GetMonthlyAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), null))
+                   .ThrowsAsync(new Exception("db"));
+
+            var result = await CreateController(service.Object).GetMonthlyAsync(null, null, null, null);
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetCategoriesAsync_Returns401_WhenNoCookie()
+        {
+            var result = await CreateController(jwtCookie: null).GetCategoriesAsync(null, null, null, null);
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetCategoriesAsync_Returns403_OnFamilyForbiddenException()
+        {
+            var service = new Mock<IDashboardService>();
+            service.Setup(s => s.GetCategoriesAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), null))
+                   .ThrowsAsync(new FamilyForbiddenException());
+
+            var result = await CreateController(service.Object).GetCategoriesAsync(null, null, null, null);
+
+            Assert.Equal(StatusCodes.Status403Forbidden, ((ObjectResult)result).StatusCode);
+        }
+
+        [Fact]
+        public async Task GetCategoriesAsync_Returns400_OnGenericException()
+        {
+            var service = new Mock<IDashboardService>();
+            service.Setup(s => s.GetCategoriesAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), null))
+                   .ThrowsAsync(new Exception("db"));
+
+            var result = await CreateController(service.Object).GetCategoriesAsync(null, null, null, null);
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetSameMonthAcrossYearsAsync_Returns401_WhenNoCookie()
+        {
+            var result = await CreateController(jwtCookie: null).GetSameMonthAcrossYearsAsync(month: 3, null, null);
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetSameMonthAcrossYearsAsync_Returns403_OnFamilyForbiddenException()
+        {
+            var service = new Mock<IDashboardService>();
+            service.Setup(s => s.GetSameMonthAcrossYearsAsync(It.IsAny<int>(), It.IsAny<int?>(), 3, null))
+                   .ThrowsAsync(new FamilyForbiddenException());
+
+            var result = await CreateController(service.Object).GetSameMonthAcrossYearsAsync(month: 3, null, null);
+
+            Assert.Equal(StatusCodes.Status403Forbidden, ((ObjectResult)result).StatusCode);
+        }
+
+        [Fact]
+        public async Task GetSameMonthAcrossYearsAsync_Returns400_OnGenericException()
+        {
+            var service = new Mock<IDashboardService>();
+            service.Setup(s => s.GetSameMonthAcrossYearsAsync(It.IsAny<int>(), It.IsAny<int?>(), 3, null))
+                   .ThrowsAsync(new Exception("db"));
+
+            var result = await CreateController(service.Object).GetSameMonthAcrossYearsAsync(month: 3, null, null);
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetByCurrencyAsync_Returns401_WhenNoCookie()
+        {
+            var result = await CreateController(jwtCookie: null).GetByCurrencyAsync(null, null, null, null);
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetByCurrencyAsync_Returns403_OnFamilyForbiddenException()
+        {
+            var service = new Mock<IDashboardService>();
+            service.Setup(s => s.GetByCurrencyAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), null))
+                   .ThrowsAsync(new FamilyForbiddenException());
+
+            var result = await CreateController(service.Object).GetByCurrencyAsync(null, null, null, null);
+
+            Assert.Equal(StatusCodes.Status403Forbidden, ((ObjectResult)result).StatusCode);
+        }
+
+        [Fact]
+        public async Task GetByCurrencyAsync_Returns400_OnGenericException()
+        {
+            var service = new Mock<IDashboardService>();
+            service.Setup(s => s.GetByCurrencyAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), null))
+                   .ThrowsAsync(new Exception("db"));
+
+            var result = await CreateController(service.Object).GetByCurrencyAsync(null, null, null, null);
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
     }
 }

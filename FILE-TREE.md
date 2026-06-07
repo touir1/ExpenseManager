@@ -391,7 +391,8 @@ ExpenseManager/
 │   │   └── Touir.ExpensesManager.Expenses.Tests/
 │   │       ├── Touir.ExpensesManager.Expenses.Tests.csproj
 │   │       ├── TestHelpers/
-│   │       │   └── TestExpensesDbContext.cs  — In-memory DB wrapper for tests
+│   │       │   ├── TestExpensesDbContext.cs           — In-memory DB wrapper for tests (Migrate)
+│   │       │   └── TestExpensesDbContextEnsureCreated.cs — SQLite EnsureCreated wrapper (for OutboxEvents long PK)
 │   │       ├── Controllers/
 │   │       │   ├── AdminCategoryControllerTests.cs  — 403 for non-admin; 201/200/404 for all CRUD actions
 │   │       │   ├── AdminCurrencyControllerTests.cs  — 403 for non-admin; 201 add; 200/404 update; 204/409 delete; 200 defaults; 204 set default
@@ -409,7 +410,8 @@ ExpenseManager/
 │   │       ├── Jobs/
 │   │       │   └── RateAutoUpdateJobTests.cs        — 3 tests: Execute calls RunDailyUpdateAsync, exception does not propagate, exception logs error
 │   │       ├── Messaging/
-│   │       │   └── UserEventConsumerTests.cs        — 24 tests: constructor, ExecuteAsync, Dispose, OnMessageReceivedAsync (null msg, dedup, Created/Updated/Deleted/unknown/exception), HandleMessageAsync, UserEventMessage/UserEventType
+│   │       │   ├── UserEventConsumerTests.cs         — 24 tests: constructor, ExecuteAsync, Dispose, OnMessageReceivedAsync (null msg, dedup, Created/Updated/Deleted/unknown/exception), HandleMessageAsync, UserEventMessage/UserEventType
+│   │       │   └── FamilyEventPublisherTests.cs      — 3 tests: PublishRaw calls ExchangeDeclare+BasicPublish, Publish serializes+delegates, MessageId set on properties
 │   │       ├── Repositories/
 │   │       │   ├── External/
 │   │       │   │   └── UserRepositoryTests.cs
@@ -417,10 +419,11 @@ ExpenseManager/
 │   │       │   ├── CurrencyRepositoryTests.cs       — 4 tests: all currencies, field mapping, empty set, positive IDs
 │   │       │   ├── DashboardRepositoryTests.cs      — 13 integration tests: GetTotalsAsync×6, GetCategoryTotalsAsync×2, GetMonthlyTotalsAsync×2, GetMonthlyCategoryTotalsAsync×1, GetYearlyTotalsForMonthAsync×2
 │   │       │   ├── ExpenseRepositoryTests.cs        — 8 tests: AddAsync, GetByIdAsync (owned/wrong-user/soft-deleted), SoftDeleteAsync, GetPagedAsync (excludes deleted/other-users, pagination, UpdateAsync); BuildExpense static
-│   │       │   ├── FamilyRepositoryTests.cs         — family CRUD, membership, invitation, attribution, IsMemberAsync, HasDefaultFamilyAsync
+│   │       │   ├── ExpensesOutboxRepositoryTests.cs  — 8 tests (EnsureCreated): EnqueueAsync persists, GetPendingAsync (unpublished/exceeds retries), MarkPublishedAsync (found/not found), MarkFailedAsync (increments/truncates/not found)
+│   │       │   ├── FamilyRepositoryTests.cs         — family CRUD, membership, invitation, attribution, IsMemberAsync, HasDefaultFamilyAsync, ExistsWithNameForUserAsync×4, CountMemberAttributionsAsync
 │   │       │   ├── InboxRepositoryTests.cs          — 7 tests: ExistsAsync×3, AddAsync×4
 │   │       │   ├── TagRepositoryTests.cs            — 16 integration tests: GetOwnAsync×3, GetFamilyAsync×4, EnsureUserTagAsync×3, RemoveUserTagAsync×2, IsVisibleAsync×4
-│   │       │   ├── CurrencyRateRepositoryTests.cs   — 21 integration tests: GetExact×2, GetMostRecentBefore×2, GetDefault×2, AddRate, ManualRateExists×2, AddConflict, GetPendingConflicts, SetDefault×2, GetHistory×2, UpdateRate, GetConflictById×2, UpdateConflict, CurrencyRateConflict.Resolution setter
+│   │       │   ├── CurrencyRateRepositoryTests.cs   — 25 integration tests: GetExact×2, GetMostRecentBefore×2, GetDefault×2, AddRate, ManualRateExists×2, AddConflict, GetPendingConflicts, SetDefault×2, GetHistory×2, UpdateRate, GetConflictById×2, UpdateConflict, CurrencyRateConflict.Resolution setter, GetExistingOnDate×3, GetExistingInRange×2, GetExistingForPairs×2, AddRatesBatch×2, AddConflictsBatch, IsUsedInRates×3
 │   │       │   └── UserConfigRepositoryTests.cs     — 7 tests: GetByUserIdAsync null/found/loads-nav/wrong-user, UpsertAsync insert/update/clear/no-duplicate/loads-nav
 │   │       ├── Infrastructure/
 │   │       │   ├── ExpensesDbContextSchemaTests.cs  — 23 tests: all Phase 1 entities, composite PKs, unique constraints, cascades
@@ -438,7 +441,7 @@ ExpenseManager/
 │   │           ├── CategoryServiceTests.cs          — 11 tests: Mock<ICategoryRepository>; top-level, subcategories, archived exclusion, field mapping, call count; icon mapping (category icon, null icon, subcategory icon)
 │   │           ├── UserConfigServiceTests.cs        — 6 tests: GetAsync no-row/row, UpdateAsync invalid/valid/null currency, Upsert called, currency check skipped for null
 │   │           ├── CurrencyServiceTests.cs          — 5 tests: Mock<ICurrencyRepository>; all currencies, field mapping, empty set, ID mapping, call count
-│   │           ├── ExpenseServiceTests.cs           — 16 tests: AddAsync (repo called, audit written, DTO amount/currency), UpdateAsync (null when not found, repo called, audit written, fields updated), DeleteAsync (false/true/soft-delete/audit), GetByIdAsync (null/mapped), GetPagedAsync (result, total pages); updated for ICurrencyRateService dependency
+│   │           ├── ExpenseServiceTests.cs           — 20 tests: AddAsync (repo called, audit written, DTO amount/currency, enqueues outbox for non-default families with co-members, skips outbox for default-only), UpdateAsync (null when not found, repo called, audit written, fields updated), DeleteAsync (false/true/soft-delete/audit), GetByIdAsync (null/mapped), GetPagedAsync (result, total pages); updated for ICurrencyRateService dependency
 │   │           ├── ExpenseServiceConversionTests.cs — 5 tests: GetByIdAsync with displayCurrencyId set/same currency/no rate/not set; GetPagedAsync with conversion
 │   │           ├── ExpenseAuditServiceTests.cs      — 3 tests: WriteAddAuditAsync (log + after snapshot), WriteUpdateAuditAsync (log + before+after snapshots), WriteDeleteAuditAsync (log + before snapshot)
 │   │           ├── CurrencyRateServiceTests.cs      — 28 tests: ResolveRateAsync×5, AddManualRateAsync×2, BulkAdd×1, SetDefault×1, ResolveConflict×4, GetRateHistory×1, GetPendingConflicts×1, RunDailyUpdate×5, RefreshRatesFrom×7 (all/manualConflict/providerThrows/skipDest/sourceFilter/destFilter/unknownSource)

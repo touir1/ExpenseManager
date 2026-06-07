@@ -16,7 +16,7 @@ namespace Touir.ExpensesManager.Expenses.Migrations
                 name: "OutboxEvents",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
+                    Id = table.Column<long>(nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
                     MessageId = table.Column<string>(type: "character varying(36)", maxLength: 36, nullable: false),
                     EventType = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),

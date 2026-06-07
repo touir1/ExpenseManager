@@ -144,5 +144,75 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
 
             Assert.IsType<NoContentResult>(result);
         }
+
+        [Fact]
+        public async Task AddCurrencyAsync_ReturnsBadRequest_WhenServiceThrows()
+        {
+            var svc = new Mock<IAdminCurrencyService>();
+            svc.Setup(s => s.AddCurrencyAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+               .ThrowsAsync(new Exception("db"));
+
+            var result = await CreateController(svc.Object).AddCurrencyAsync(new AdminAddCurrencyRequest { Code = "X", Name = "X", Symbol = "X", Decimals = 2 });
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task UpdateCurrencyAsync_ReturnsBadRequest_WhenServiceThrows()
+        {
+            var svc = new Mock<IAdminCurrencyService>();
+            svc.Setup(s => s.UpdateCurrencyAsync(1, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+               .ThrowsAsync(new Exception("db"));
+
+            var result = await CreateController(svc.Object).UpdateCurrencyAsync(1, new AdminUpdateCurrencyRequest { Name = "X", Symbol = "X", Decimals = 2 });
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task DeleteCurrencyAsync_ReturnsNotFound_WhenKeyNotFound()
+        {
+            var svc = new Mock<IAdminCurrencyService>();
+            svc.Setup(s => s.DeleteCurrencyAsync(99)).ThrowsAsync(new KeyNotFoundException("CURRENCY_NOT_FOUND"));
+
+            var result = await CreateController(svc.Object).DeleteCurrencyAsync(99);
+
+            Assert.IsType<NotFoundObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task DeleteCurrencyAsync_ReturnsBadRequest_WhenServiceThrows()
+        {
+            var svc = new Mock<IAdminCurrencyService>();
+            svc.Setup(s => s.DeleteCurrencyAsync(1)).ThrowsAsync(new Exception("db"));
+
+            var result = await CreateController(svc.Object).DeleteCurrencyAsync(1);
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetCurrencyDefaultsAsync_ReturnsBadRequest_WhenServiceThrows()
+        {
+            var svc = new Mock<IAdminCurrencyService>();
+            svc.Setup(s => s.GetCurrencyDefaultsAsync(1)).ThrowsAsync(new Exception("db"));
+
+            var result = await CreateController(svc.Object).GetCurrencyDefaultsAsync(1);
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task SetDefaultRateAsync_ReturnsBadRequest_WhenServiceThrows()
+        {
+            var rateSvc = new Mock<ICurrencyRateService>();
+            rateSvc.Setup(s => s.SetDefaultFallbackAsync(It.IsAny<SetDefaultRateRequest>(), 1))
+                   .ThrowsAsync(new Exception("db"));
+
+            var result = await CreateController(rateSvc: rateSvc.Object, cookieJwt: AdminJwt)
+                .SetDefaultRateAsync(new SetDefaultRateRequest { SourceCurrencyId = 1, DestinationCurrencyId = 2, Rate = 1.2m });
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
     }
 }

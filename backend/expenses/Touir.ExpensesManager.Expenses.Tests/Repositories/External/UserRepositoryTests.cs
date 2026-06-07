@@ -353,5 +353,54 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories.External
 
             Assert.Null(result);
         }
+
+        [Fact]
+        public async Task GetAdminUserIdsAsync_ReturnsAdminIds()
+        {
+            using var db = new TestExpensesDbContextWrapper();
+            var repo = new UserRepository(db.Context);
+            await db.Context.Users.AddRangeAsync(
+                new User { Id = 10, FirstName = "Admin", LastName = "One", Email = "admin1@test.com", IsAdmin = true, IsDeleted = false },
+                new User { Id = 11, FirstName = "Regular", LastName = "User", Email = "user@test.com", IsAdmin = false, IsDeleted = false }
+            );
+            await db.Context.SaveChangesAsync();
+
+            var result = (await repo.GetAdminUserIdsAsync()).ToList();
+
+            Assert.Contains(10, result);
+            Assert.DoesNotContain(11, result);
+        }
+
+        [Fact]
+        public async Task GetAdminUserIdsAsync_ExcludesDeletedAdmins()
+        {
+            using var db = new TestExpensesDbContextWrapper();
+            var repo = new UserRepository(db.Context);
+            await db.Context.Users.AddRangeAsync(
+                new User { Id = 20, FirstName = "Active", LastName = "Admin", Email = "active@test.com", IsAdmin = true, IsDeleted = false },
+                new User { Id = 21, FirstName = "Deleted", LastName = "Admin", Email = "deleted@test.com", IsAdmin = true, IsDeleted = true }
+            );
+            await db.Context.SaveChangesAsync();
+
+            var result = (await repo.GetAdminUserIdsAsync()).ToList();
+
+            Assert.Contains(20, result);
+            Assert.DoesNotContain(21, result);
+        }
+
+        [Fact]
+        public async Task GetAdminUserIdsAsync_ReturnsEmpty_WhenNoAdmins()
+        {
+            using var db = new TestExpensesDbContextWrapper();
+            var repo = new UserRepository(db.Context);
+            await db.Context.Users.AddAsync(
+                new User { Id = 30, FirstName = "Normal", LastName = "User", Email = "normal@test.com", IsAdmin = false, IsDeleted = false }
+            );
+            await db.Context.SaveChangesAsync();
+
+            var result = (await repo.GetAdminUserIdsAsync()).ToList();
+
+            Assert.Empty(result);
+        }
     }
 }

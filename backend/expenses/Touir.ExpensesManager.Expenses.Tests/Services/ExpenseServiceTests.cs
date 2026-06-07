@@ -360,6 +360,59 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             Assert.Equal("travel", result.Tags.First().Name);
         }
 
+        // ── EnqueueExpenseFamilyNotificationsAsync (via AddAsync) ────────────────
+
+        [Fact]
+        public async Task AddAsync_EnqueuesOutboxEvent_WhenNonDefaultFamilyWithCoMembers()
+        {
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.AddAsync(It.IsAny<Expense>())).ReturnsAsync((Expense e) => e);
+
+            var nonDefaultFamily = new Models.Family { Id = 10, Name = "Shared", IsDefault = false, CreatedAt = DateTime.UtcNow, CreatedById = 1 };
+            var members = new[]
+            {
+                new Models.FamilyMembership { FamilyId = 10, UserId = 1, RoleId = 1, JoinedAt = DateTime.UtcNow },
+                new Models.FamilyMembership { FamilyId = 10, UserId = 2, RoleId = 2, JoinedAt = DateTime.UtcNow }
+            };
+            var familyRepo = new Mock<IFamilyRepository>();
+            familyRepo.Setup(r => r.GetFamiliesByUserAsync(1))
+                .ReturnsAsync(new[] { (new Models.Family { Id = 10, Name = "Shared", IsDefault = false, CreatedAt = DateTime.UtcNow, CreatedById = 1 }, new Models.FamilyMembership { FamilyId = 10, UserId = 1, RoleId = 1, JoinedAt = DateTime.UtcNow }) }.AsEnumerable());
+            familyRepo.Setup(r => r.GetByIdWithMembersAsync(10))
+                .ReturnsAsync((nonDefaultFamily, members.AsEnumerable()));
+
+            var outboxRepo = new Mock<IExpensesOutboxRepository>();
+            outboxRepo.Setup(r => r.EnqueueAsync(It.IsAny<Models.OutboxEvent>())).Returns(Task.CompletedTask);
+
+            await CreateService(repo: repo.Object, familyRepo: familyRepo.Object, outboxRepo: outboxRepo.Object).AddAsync(
+                new CreateExpenseRequest { Amount = 10m, CurrencyId = 1, Date = DateOnly.FromDateTime(DateTime.UtcNow), FamilyIds = [10] },
+                userId: 1, sourceId: 1);
+
+            outboxRepo.Verify(r => r.EnqueueAsync(It.Is<Models.OutboxEvent>(e =>
+                e.EventType == "family.expense.added")), Times.Once);
+        }
+
+        [Fact]
+        public async Task AddAsync_SkipsOutbox_WhenDefaultFamilyOnly()
+        {
+            var repo = new Mock<IExpenseRepository>();
+            repo.Setup(r => r.AddAsync(It.IsAny<Expense>())).ReturnsAsync((Expense e) => e);
+
+            var defaultFamily = new Models.Family { Id = 1, Name = "Default", IsDefault = true, CreatedAt = DateTime.UtcNow, CreatedById = 1 };
+            var familyRepo = new Mock<IFamilyRepository>();
+            familyRepo.Setup(r => r.GetDefaultFamilyForUserAsync(1)).ReturnsAsync(defaultFamily);
+            familyRepo.Setup(r => r.IsMemberAsync(1, 1)).ReturnsAsync(true);
+            familyRepo.Setup(r => r.GetByIdWithMembersAsync(1))
+                .ReturnsAsync((defaultFamily, Enumerable.Empty<Models.FamilyMembership>()));
+
+            var outboxRepo = new Mock<IExpensesOutboxRepository>();
+
+            await CreateService(repo: repo.Object, familyRepo: familyRepo.Object, outboxRepo: outboxRepo.Object).AddAsync(
+                new CreateExpenseRequest { Amount = 10m, CurrencyId = 1, Date = DateOnly.FromDateTime(DateTime.UtcNow), FamilyIds = null },
+                userId: 1, sourceId: 1);
+
+            outboxRepo.Verify(r => r.EnqueueAsync(It.IsAny<Models.OutboxEvent>()), Times.Never);
+        }
+
         // ── GetPagedAsync ────────────────────────────────────────────────────────
 
         [Fact]

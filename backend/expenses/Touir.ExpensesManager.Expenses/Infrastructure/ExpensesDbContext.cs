@@ -485,7 +485,11 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
             {
                 entity.ToTable("OutboxEvents");
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).UseIdentityAlwaysColumn();
+                var outboxIdProp = entity.Property(e => e.Id);
+                if (Database.IsNpgsql())
+                    outboxIdProp.UseIdentityAlwaysColumn();
+                else
+                    outboxIdProp.ValueGeneratedOnAdd();
                 entity.Property(e => e.MessageId).HasMaxLength(36).IsRequired();
                 entity.Property(e => e.EventType).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.Payload).IsRequired();

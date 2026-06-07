@@ -3,6 +3,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.112.6] - 2026-06-07
+### Test coverage — backend/expenses to 99%
+
+- **New test files**: `Repositories/ExpensesOutboxRepositoryTests.cs`, `TestHelpers/TestExpensesDbContextEnsureCreated.cs`, `Messaging/FamilyEventPublisherTests.cs`.
+- **Extended test files**: `CategoryRepositoryTests`, `CurrencyRepositoryTests`, `CurrencyRateRepositoryTests`, `FamilyRepositoryTests`, `External/UserRepositoryTests`, `AdminCategoryServiceTests`, `AdminCategoryControllerTests`, `AdminCurrencyControllerTests`, `AdminRateControllerTests`, `DashboardControllerTests`, `FamilyControllerTests`, `ExpenseServiceTests`, `FamilyServiceTests`.
+- **SonarQube exclusions**: added `**/Validators/**` to `sonar.coverage.exclusions` (pure FluentValidation configuration).
+- **Migration fix**: removed `type: "bigint"` from `AddExpensesOutbox` migration + `IsNpgsql()` guard in `ExpensesDbContext.OnModelCreating` to allow SQLite AUTOINCREMENT for test contexts.
+- Result: 826 tests passing, 0 failing, **99% line coverage** (3706/3755 sequence points).
+
 ## [0.112.5] - 2026-06-07
 ### Test coverage — frontend dashboard to near-100%
 

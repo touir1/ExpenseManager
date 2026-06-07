@@ -778,6 +778,100 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             repo.Verify(r => r.RemoveMemberAttributionsAsync(1, 10), Times.Once);
         }
 
+        // ── AcceptInviteAsync outbox paths ───────────────────────────────────
+
+        [Fact]
+        public async Task AcceptInviteAsync_EnqueuesInvitationAccepted_WhenHeadMemberPresent()
+        {
+            var invitation = new FamilyInvitation
+            {
+                Id = 1, FamilyId = 1, InviteeEmail = "user@example.com",
+                Token = "tok", InvitedById = 5,
+                InvitedAt = DateTime.UtcNow.AddDays(-1),
+                ExpiresAt = DateTime.UtcNow.AddDays(6)
+            };
+            var user = MakeUser(10, "user@example.com");
+            var headMembership = MakeMembership(1, userId: 5, roleId: 1);
+
+            var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.GetInvitationByTokenAsync("tok")).ReturnsAsync(invitation);
+            repo.Setup(r => r.GetByIdWithMembersAsync(1))
+                .ReturnsAsync((MakeFamily(1), new[] { headMembership }.AsEnumerable()));
+            repo.Setup(r => r.IsMemberAsync(1, 10)).ReturnsAsync(false);
+
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByIdAsync(10)).ReturnsAsync(user);
+
+            var outboxRepo = new Mock<IExpensesOutboxRepository>();
+            outboxRepo.Setup(r => r.EnqueueAsync(It.IsAny<OutboxEvent>())).Returns(Task.CompletedTask);
+
+            await CreateService(repo.Object, userRepo.Object, outboxRepo: outboxRepo.Object)
+                .AcceptInviteAsync("tok", userId: 10);
+
+            outboxRepo.Verify(r => r.EnqueueAsync(It.Is<OutboxEvent>(e =>
+                e.EventType == "family.invitation.accepted")), Times.Once);
+        }
+
+        [Fact]
+        public async Task AcceptInviteAsync_EnqueuesMemberJoined_WhenExistingMembersPresent()
+        {
+            var invitation = new FamilyInvitation
+            {
+                Id = 1, FamilyId = 1, InviteeEmail = "user@example.com",
+                Token = "tok", InvitedById = 5,
+                InvitedAt = DateTime.UtcNow.AddDays(-1),
+                ExpiresAt = DateTime.UtcNow.AddDays(6)
+            };
+            var user = MakeUser(10, "user@example.com");
+            var member1 = MakeMembership(1, userId: 5, roleId: 1);
+            var member2 = MakeMembership(1, userId: 7, roleId: 2);
+
+            var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.GetInvitationByTokenAsync("tok")).ReturnsAsync(invitation);
+            repo.Setup(r => r.GetByIdWithMembersAsync(1))
+                .ReturnsAsync((MakeFamily(1), new[] { member1, member2 }.AsEnumerable()));
+            repo.Setup(r => r.IsMemberAsync(1, 10)).ReturnsAsync(false);
+
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByIdAsync(10)).ReturnsAsync(user);
+
+            var outboxRepo = new Mock<IExpensesOutboxRepository>();
+            outboxRepo.Setup(r => r.EnqueueAsync(It.IsAny<OutboxEvent>())).Returns(Task.CompletedTask);
+
+            await CreateService(repo.Object, userRepo.Object, outboxRepo: outboxRepo.Object)
+                .AcceptInviteAsync("tok", userId: 10);
+
+            outboxRepo.Verify(r => r.EnqueueAsync(It.Is<OutboxEvent>(e =>
+                e.EventType == "family.member.joined")), Times.Once);
+        }
+
+        // ── RemoveMemberAsync outbox path ─────────────────────────────────────
+
+        [Fact]
+        public async Task RemoveMemberAsync_EnqueuesOutboxEvent_WhenTargetUserExists()
+        {
+            var headMembership = MakeMembership(1, userId: 10, roleId: 1);
+            var targetMembership = MakeMembership(1, userId: 20, roleId: 2);
+            var targetUser = MakeUser(20, "target@example.com");
+
+            var repo = new Mock<IFamilyRepository>();
+            repo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(MakeFamily(1));
+            repo.SetupSequence(r => r.GetMembershipAsync(1, 10)).ReturnsAsync(headMembership);
+            repo.SetupSequence(r => r.GetMembershipAsync(1, 20)).ReturnsAsync(targetMembership);
+
+            var userRepo = new Mock<IUserRepository>();
+            userRepo.Setup(r => r.GetUserByIdAsync(20)).ReturnsAsync(targetUser);
+
+            var outboxRepo = new Mock<IExpensesOutboxRepository>();
+            outboxRepo.Setup(r => r.EnqueueAsync(It.IsAny<OutboxEvent>())).Returns(Task.CompletedTask);
+
+            await CreateService(repo.Object, userRepo.Object, outboxRepo: outboxRepo.Object)
+                .RemoveMemberAsync(1, targetUserId: 20, removedById: 10);
+
+            outboxRepo.Verify(r => r.EnqueueAsync(It.Is<OutboxEvent>(e =>
+                e.EventType == "family.member.removed")), Times.Once);
+        }
+
         // ── ChangeRoleAsync ───────────────────────────────────────────────────
 
         [Fact]

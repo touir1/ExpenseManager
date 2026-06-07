@@ -197,5 +197,69 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
             svc.Verify(s => s.RefreshRatesFromAsync(
                 It.IsAny<DateOnly>(), toDate, It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()), Times.Once);
         }
+
+        [Fact]
+        public async Task GetPendingConflictsAsync_ReturnsBadRequest_WhenServiceThrows()
+        {
+            var svc = new Mock<ICurrencyRateService>();
+            svc.Setup(s => s.GetPendingConflictsAsync()).ThrowsAsync(new Exception("db"));
+
+            var result = await CreateController(svc.Object).GetPendingConflictsAsync();
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task ResolveConflictAsync_ReturnsArgumentBadRequest_WhenArgumentException()
+        {
+            var svc = new Mock<ICurrencyRateService>();
+            svc.Setup(s => s.ResolveConflictAsync(It.IsAny<int>(), It.IsAny<ResolveConflictRequest>(), It.IsAny<int>()))
+               .ThrowsAsync(new ArgumentException("INVALID_RESOLUTION"));
+
+            var result = await CreateController(svc.Object, UserJwt)
+                .ResolveConflictAsync(1, new ResolveConflictRequest { Resolution = "Custom", CustomRate = 1.5m });
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task ResolveConflictAsync_ReturnsBadRequest_WhenServiceThrows()
+        {
+            var svc = new Mock<ICurrencyRateService>();
+            svc.Setup(s => s.ResolveConflictAsync(It.IsAny<int>(), It.IsAny<ResolveConflictRequest>(), It.IsAny<int>()))
+               .ThrowsAsync(new Exception("db"));
+
+            var result = await CreateController(svc.Object, UserJwt)
+                .ResolveConflictAsync(1, new ResolveConflictRequest { Resolution = "AcceptAuto" });
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task RefreshRatesAsync_ReturnsBadRequest_WhenServiceThrows()
+        {
+            var svc = new Mock<ICurrencyRateService>();
+            svc.Setup(s => s.RefreshRatesFromAsync(
+                It.IsAny<DateOnly>(), It.IsAny<DateOnly?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
+               .ThrowsAsync(new Exception("db"));
+
+            var result = await CreateController(svc.Object, UserJwt)
+                .RefreshRatesAsync(new RefreshRatesRequest { From = new DateOnly(2024, 1, 1) });
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task BulkAddRatesAsync_ReturnsBadRequest_WhenServiceThrows()
+        {
+            var svc = new Mock<ICurrencyRateService>();
+            svc.Setup(s => s.BulkAddManualRatesAsync(It.IsAny<BulkAddRatesRequest>(), It.IsAny<int>()))
+               .ThrowsAsync(new Exception("db"));
+
+            var result = await CreateController(svc.Object, UserJwt)
+                .BulkAddRatesAsync(new BulkAddRatesRequest { Rates = [] });
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
     }
 }
