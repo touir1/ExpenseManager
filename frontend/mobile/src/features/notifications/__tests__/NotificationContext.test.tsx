@@ -92,6 +92,9 @@ function makeWrapper(authenticated = true) {
 
 describe('NotificationContext', () => {
   beforeEach(() => {
+    mockGetNotifications.mockReset()
+    mockGetUnreadCount.mockReset()
+    mockMarkAllAsRead.mockReset()
     mockGetNotifications.mockResolvedValue({ ok: true, status: 200, data: [mockNotification] })
     mockGetUnreadCount.mockResolvedValue({ ok: true, status: 200, data: { count: 1 } })
     mockMarkAllAsRead.mockResolvedValue({ ok: true, status: 204 })

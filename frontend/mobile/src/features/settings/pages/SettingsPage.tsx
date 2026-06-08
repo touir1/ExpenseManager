@@ -74,7 +74,7 @@ export default function SettingsPage() {
           <IonItem>
             <IonLabel>{t('settings.language', 'Language')}</IonLabel>
             <IonSelect
-              value={i18n.language.split('-')[0]}
+              value={(i18n.language ?? 'en').split('-')[0]}
               onIonChange={e => handleLanguageChange(e.detail.value)}
               interface="action-sheet"
               slot="end"

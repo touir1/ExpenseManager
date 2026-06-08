@@ -3,6 +3,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.113.3] - 2026-06-08
+### Mobile app — test fixes
+
+- **`frontend/mobile/src/features/auth/pages/__tests__/LoginPage.test.tsx`** — fixed two failing tests ("calls auth.login with credentials on valid submit" and "shows error toast on login failure"):
+  - Added `vi.mock('@hookform/resolvers/zod', ...)` that uses synchronous `safeParse` — `@hookform/resolvers@3.10.0` calls `parseAsync` which hangs indefinitely with `zod@4.4.3` in jsdom.
+  - Changed `IonInput` and `IonCheckbox` mocks to use `React.forwardRef` so RHF's `ref` callback reaches the native `<input>` element; without this, `field._f.ref.value` is `undefined` on submit.
+  - Replaced `userEvent.setup()` + `user.type()` with `fireEvent.change(input, { target: { value } })` for reliable RHF value injection.
+- **`frontend/mobile/src/features/settings/pages/SettingsPage.tsx`** — guarded `i18n.language` against `undefined`: `(i18n.language ?? 'en').split('-')[0]`; fixes crash in tests where `react-i18next` is not initialized.
+- **`frontend/mobile/src/features/notifications/__tests__/NotificationContext.test.tsx`** — added `mockReset()` calls in `beforeEach` to clear call counts between tests; prevents false positive from prior test's call leaking into "does not load when not authenticated" assertion.
+- **`frontend/mobile/src/features/expenses/pages/__tests__/ExpensesListPage.test.tsx`** — added `await waitFor(() => screen.getAllByText('Food'))` before pull-to-refresh click; TanStack Query deduplicates `refetch()` with in-flight queries, so refresh must wait for initial fetch to complete.
+
 ## [0.113.2] - 2026-06-08
 ### Mobile app — TypeScript build fixes and Vite entry point
 

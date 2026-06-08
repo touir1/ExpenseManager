@@ -131,6 +131,7 @@ describe('ExpensesListPage', () => {
 
   it('calls getExpenses on pull-to-refresh', async () => {
     render(<ExpensesListPage />, { wrapper: makeWrapper() })
+    await waitFor(() => screen.getAllByText('Food'))
     const refreshBtn = screen.getByText('Refresh')
     fireEvent.click(refreshBtn)
     await waitFor(() => {
