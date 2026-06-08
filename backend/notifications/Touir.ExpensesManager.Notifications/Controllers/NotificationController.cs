@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Text.Json;
 using Touir.ExpensesManager.Notifications.Controllers.DTO;
+using Touir.ExpensesManager.Notifications.Controllers.Requests;
 using Touir.ExpensesManager.Notifications.Controllers.Responses;
 using Touir.ExpensesManager.Notifications.Infrastructure;
 using Touir.ExpensesManager.Notifications.Services.Contracts;
@@ -130,6 +131,23 @@ namespace Touir.ExpensesManager.Notifications.Controllers
                 Console.Error.WriteLine(ex.Message);
                 return BadRequest(new ErrorResponse { Message = "SERVER_ERROR" });
             }
+        }
+
+        /// <summary>
+        /// Register a device push token for the authenticated user.
+        /// Stub — token is accepted and acknowledged; FCM/APNs dispatch is deferred to Phase 15.
+        /// </summary>
+        [HttpPost("push-token")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        public IActionResult RegisterPushToken([FromBody] RegisterPushTokenRequest request)
+        {
+            var userId = JwtCookieReader.GetUserId(Request);
+            if (userId is null)
+                return Unauthorized(new ErrorResponse { Message = "UNAUTHORIZED" });
+
+            // Phase 15: persist token to PushTokens table and integrate with FCM/APNs.
+            return Ok();
         }
     }
 }

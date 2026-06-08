@@ -3,6 +3,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.113.1] - 2026-06-08
+### Mobile app — CI, scripts, and project hygiene
+
+- **`frontend/mobile/.gitlab-ci.yml`** — GitLab CI pipeline: build → test → SonarQube → SCA (OWASP) → SAST (Semgrep) → secrets scan; mirrors dashboard pipeline; uses `VITE_API_BASE_URL`; no Docker/deploy stage (APK needs Android SDK).
+- **`frontend/mobile/sonar-project.properties`** — SonarQube project key `touir:expense-manager:frontend:mobile`; excludes `test-setup.ts` and `scripts/`.
+- **`.gitlab-ci.yml`** (root) — added `frontend-mobile-pipeline` trigger; fires on `frontend/mobile/**/*` changes or `TARGET == "frontend-mobile"`.
+- **`frontend/mobile/scripts/android-gradle.js`** — runs Gradle task (`assembleDebug` / `bundleRelease`) with JDK 21; Windows `gradlew.bat` + bash `./gradlew` auto-detect.
+- **`frontend/mobile/scripts/android-deploy.js`** — installs debug APK on device/emulator via `adb`; globs the output dir instead of hardcoding filename; reads `appId` from `package.json`.
+- **`frontend/mobile/package.json`** — added `appId` field; new scripts: `build:prod` (CI alias), `build:android` (Vite → cap sync → assembleDebug), `build:android-aab` (Vite → cap sync → bundleRelease), `deploy:android`, `test:android`.
+- **`frontend/mobile/.gitignore`** — ignores `node_modules`, `dist`, `coverage`, `.env.local`, `/android`, `/ios`, `.capacitor/`.
+- **`frontend/mobile/src/App.tsx`** — fixed import: `IonReactRouter` now imported from `@ionic/react` (not deprecated `@ionic/react-router` which requires react-router-dom v5).
+- Removed stale `mobile/` root placeholder folder; updated `README.md` workspace structure.
+
+## [0.113.0] - 2026-06-08
+### Phase 14 — Mobile App (Ionic + Capacitor + React)
+
+- **`frontend/mobile/`** — standalone Ionic React + Capacitor mobile app at; separate Vite build, shared backend and locale files with web dashboard.
+- **Five-tab navigation**: Dashboard, Expenses, + (quick-add FAB), Families, Settings via `IonTabs` + `IonRouterOutlet`.
+- **Hearth design tokens** mapped to Ionic CSS custom properties in `src/theme/variables.css` (clay primary, paper background, sage success, berry danger).
+- **QuickAddModal** — `IonModal` bottom sheet (0.75 breakpoint); amount, currency, date, category, description, tags, families; receipt photo capture via `@capacitor/camera` (base64 preview, upload Phase 15); haptic feedback on submit.
+- **ExpensesListPage** — `IonList` grouped by date with `IonItemDivider`; left-swipe delete via `IonItemSliding`; pull-to-refresh via `IonRefresher`; infinite scroll via `IonInfiniteScroll`; family filter via `IonSegment`.
+- **DashboardPage** — month hero `IonCard` with ±% delta; top-5 category breakdown via `IonProgressBar`; last 5 expenses `IonList`; display currency `IonSelect` in toolbar.
+- **FamiliesPage** — expandable family cards; inline member list; invite by email; leave family; create family modal.
+- **SettingsPage** — display currency + language selectors (persists language to both `localStorage` and `@capacitor/preferences`); logout.
+- **NotificationBell** — bell icon with unread badge in `IonHeader`; `IonPopover` notification list; mark-all-read.
+- **`useOfflineQueue`** — IndexedDB store via `idb` v8; `enqueue/drain/getAll/clear` API.
+- **`useNetworkSync`** — `@capacitor/network` listener; drains offline queue on reconnect; browser `online/offline` event fallback.
+- **`NotificationContext`** (mobile) — SignalR + push token registration via `@capacitor/push-notifications` → `POST /api/notifications/push-token` stub.
+- **Backend stub** — `POST /notifications/push-token` added to `NotificationController`; no persistence (Phase 15 will add FCM/APNs dispatch).
+- **Unit tests** — 8 test files: `useOfflineQueue`, `useNetworkSync`, `LoginPage`, `ExpensesListPage`, `QuickAddModal`, `DashboardPage`, `NotificationContext`, `SettingsPage`.
+- Capacitor plugin mocks in `src/test-setup.ts`; `fake-indexeddb` for IDB tests; `class MockHubConnectionBuilder` for SignalR (arrow fn can't be `new`'d).
+- **`frontend/mobile/README.md`** — setup, dev workflow, env vars, project structure, offline queue, device/emulator build instructions.
+
 ## [0.112.7] - 2026-06-07
 ### Test coverage — backend/notifications to ~99%
 

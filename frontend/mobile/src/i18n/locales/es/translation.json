@@ -1,0 +1,543 @@
+{
+    "appTitle":  "Expenses Manager",
+    "notifications": {
+        "title": "Notificaciones",
+        "markAllRead": "Marcar todo como leído",
+        "empty": "Sin notificaciones todavía",
+        "familyMemberRemoved": "{{removedByName}} te eliminó de \"{{familyName}}\". {{expenseCount}} atribución(es) eliminada(s).",
+        "familyInvitationAccepted": "{{acceptorName}} aceptó tu invitación para unirse a \"{{familyName}}\".",
+        "familyMemberJoined": "{{joinerName}} se unió a \"{{familyName}}\".",
+        "familyExpenseAdded": "{{actorName}} añadió un gasto de {{amount}} {{currencyCode}} en \"{{familyName}}\".",
+        "familyExpenseDeleted": "{{actorName}} eliminó un gasto de {{amount}} {{currencyCode}} en \"{{familyName}}\".",
+        "csvImportCompleted": "Importación completa: {{importedCount}}/{{totalRows}} fila(s) importada(s), {{skippedCount}} omitida(s).",
+        "rateConflictCreated": "Conflicto de tasa: {{sourceCurrencyCode}}/{{destCurrencyCode}} — tasa manual reemplazada por actualización automática.",
+        "badge": "{{count}} sin leer"
+    },
+    "nav":  {
+                "home":  "Inicio",
+                "dashboard":  "Panel",
+                "families":  "Familias",
+                "settings":  "Configuración",
+                "signIn":  "Iniciar sesión",
+                "signOut":  "Cerrar sesión",
+                "getStarted":  "Comenzar",
+                "toggleMenu":  "Abrir menú",
+                "mobileNav":  "Navegación móvil",
+                "userMenu":  "Menú de usuario",
+                "howItWorks":  "Cómo funciona",
+                "forFamilies":  "Para familias",
+                "pricing":  "Precios",
+                "help":  "Ayuda",
+                "notifications":  "Notificaciones",
+                "expenses":  "Gastos",
+                "addExpense":  "Añadir gasto",
+                "admin":  "Admin"
+            },
+    "auth":  {
+                 "login":  {
+                               "pageTitle":  "Inicio de sesión",
+                               "title":  "Bienvenido de nuevo",
+                               "subtitle":  "Inicia sesión en tu cuenta para continuar.",
+                               "password":  "Contraseña",
+                               "rememberMe":  "Recordarme",
+                               "submit":  "Iniciar sesión",
+                               "submitting":  "Iniciando sesión…",
+                               "invalidCredentials":  "Credenciales incorrectas. Por favor, inténtalo de nuevo.",
+                               "noAccount":  "¿No tienes cuenta?",
+                               "register":  "Registrarse",
+                               "forgotPassword":  "¿Olvidaste tu contraseña?",
+                               "haveVerificationLink":  "¿Tienes un enlace de verificación?",
+                               "backToHome":  "← Volver al inicio"
+                           },
+                 "register":  {
+                                  "pageTitle":  "Registro",
+                                  "title":  "Crear una cuenta",
+                                  "subtitle":  "Empieza — solo toma un momento.",
+                                  "firstName":  "Nombre",
+                                  "lastName":  "Apellido",
+                                  "emailAddress":  "Correo electrónico",
+                                  "submit":  "Registrarse",
+                                  "submitting":  "Enviando…",
+                                  "successMessage":  "¡Registro exitoso! Revisa tu bandeja de entrada. Haz clic en el enlace para verificar tu dirección y establecer tu contraseña — luego podrás iniciar sesión.",
+                                  "failedMessage":  "Error en el registro. Por favor, inténtalo de nuevo.",
+                                  "goToLogin":  "Ir al inicio de sesión →",
+                                  "alreadyHaveAccount":  "¿Ya tienes cuenta?",
+                                  "goToLoginLink":  "Ir al inicio de sesión"
+                              },
+                 "changePassword":  {
+                                        "pageTitle":  "Cambiar contraseña",
+                                        "title":  "Cambiar contraseña",
+                                        "subtitle":  "Actualiza tu contraseña de cuenta a continuación.",
+                                        "backToSettings":  "Volver a configuración",
+                                        "oldPassword":  "Contraseña actual",
+                                        "newPassword":  "Nueva contraseña",
+                                        "repeatPassword":  "Repetir nueva contraseña",
+                                        "submit":  "Cambiar contraseña",
+                                        "submitting":  "Guardando…",
+                                        "success":  "Contraseña cambiada.",
+                                        "error":  "Contraseña actual incorrecta."
+                                    },
+                 "requestPasswordReset":  {
+                                              "pageTitle":  "Restablecer contraseña",
+                                              "title":  "Restablecer contraseña",
+                                              "subtitle":  "Te enviaremos un enlace de restablecimiento si tu correo está registrado.",
+                                              "submit":  "Enviar enlace",
+                                              "submitting":  "Enviando…",
+                                              "successToast":  "Si el correo existe, se ha enviado un enlace de restablecimiento.",
+                                              "errorToast":  "Por favor, introduce un correo electrónico válido.",
+                                              "notAvailable":  "Restablecimiento no disponible",
+                                              "hint":  "Recibirás un correo con un enlace de verificación para restablecer tu contraseña.",
+                                              "backToLogin":  "Volver al inicio de sesión"
+                                          },
+                 "resetPassword":  {
+                                       "pageTitle":  "Restablecer contraseña",
+                                       "createPageTitle":  "Crear contraseña",
+                                       "title":  "Restablecer contraseña",
+                                       "createTitle":  "Crear contraseña",
+                                       "subtitle":  "Introduce una nueva contraseña para tu cuenta.",
+                                       "createSubtitle":  "Establece una contraseña para tu nueva cuenta.",
+                                       "newPassword":  "Nueva contraseña",
+                                       "repeatPassword":  "Repetir nueva contraseña",
+                                       "submit":  "Restablecer",
+                                       "createSubmit":  "Crear",
+                                       "submitting":  "Restableciendo…",
+                                       "createSubmitting":  "Creando…",
+                                       "successMessage":  "Contraseña restablecida correctamente. Redirigiendo…",
+                                       "createSuccessMessage":  "Contraseña creada correctamente. Redirigiendo…",
+                                       "errorMessage":  "Error al restablecer la contraseña. Por favor, inténtalo de nuevo.",
+                                       "createErrorMessage":  "Error al crear la contraseña. Por favor, inténtalo de nuevo.",
+                                       "invalidLink":  "Enlace de verificación inválido o faltante. Por favor, solicita un nuevo enlace.",
+                                       "requestReset":  "Solicitar restablecimiento"
+                                   },
+                 "email":  {
+                               "label":  "Correo electrónico",
+                               "placeholder":  "tu@ejemplo.com"
+                           }
+             },
+    "dashboard":  {
+                      "pageTitle":  "Panel",
+                      "title":  "Panel",
+                      "greeting":  "Hola, {{name}}",
+                      "defaultName":  "ahí",
+                      "loading":  "Cargando panel",
+                      "empty":  "Sin gastos para este período",
+                      "noData":  "Sin datos disponibles",
+                      "noCurrencies":  "Sin divisas para este período",
+                      "account":  {
+                                      "title":  "Cuenta",
+                                      "signedInAs":  "Conectado como"
+                                  },
+                      "settings":  {
+                                       "title":  "Configuración",
+                                       "changePassword":  "Cambiar contraseña"
+                                   },
+                      "expenses":  {
+                                       "title":  "Gastos",
+                                       "comingSoon":  "Próximamente…"
+                                   },
+                      "filters":  {
+                                      "thisMonth":  "Este mes",
+                                      "thisYear":  "Este año"
+                                  },
+                      "summary":  {
+                                      "total":  "Gasto total",
+                                      "vs":  "vs período ant.",
+                                      "expenses":  "gastos",
+                                      "converted":  "convertido",
+                                      "topCategory":  "Mayor gasto:"
+                                  },
+                      "charts":  {
+                                     "monthly":  "Gastos mensuales",
+                                     "categories":  "Por categoría",
+                                     "sameMonth":  "{{month}} en años anteriores",
+                                     "currencies":  "Por divisa"
+                                 },
+                      "recent":  {
+                                     "title":  "Gastos recientes",
+                                     "viewAll":  "Ver todos",
+                                     "empty":  "Sin gastos recientes"
+                                 }
+                  },
+    "settings":  {
+                     "pageTitle":  "Configuración",
+                     "title":  "Configuración",
+                     "subtitle":  "Administra la configuración de tu cuenta.",
+                     "password":  {
+                                      "title":  "Contraseña",
+                                      "description":  "Actualiza la contraseña usada para iniciar sesión.",
+                                      "changeLink":  "Cambiar contraseña"
+                                  },
+                     "currency":  {
+                                      "title":  "Moneda predeterminada",
+                                      "description":  "Elige la moneda utilizada para mostrar los totales en la app.",
+                                      "save":  "Guardar",
+                                      "saving":  "Guardando…",
+                                      "success":  "Moneda predeterminada actualizada.",
+                                      "error":  "Error al actualizar la moneda predeterminada."
+                                  },
+                     "language":  {
+                                      "title":  "Idioma",
+                                      "description":  "Elige tu idioma de visualización preferido."
+                                  }
+                 },
+    "public":  {
+                   "home":  {
+                                "headline":  "Controla tus gastos,",
+                                "headlineAccent":  "fácilmente.",
+                                "description":  "Una herramienta simple y limpia para gestionar tus finanzas. Inicia sesión o crea una cuenta — toma menos de un minuto.",
+                                "signIn":  "Iniciar sesión",
+                                "createAccount":  "Crear cuenta"
+                            },
+                   "notFound":  {
+                                    "pageTitle":  "Página no encontrada",
+                                    "title":  "Página no encontrada",
+                                    "description":  "La página que buscas no existe o ha sido movida.",
+                                    "goHome":  "Ir al inicio"
+                                },
+                   "verifyError":  {
+                                       "pageTitle":  "Verificación fallida",
+                                       "title":  "Enlace de verificación expirado",
+                                       "description":  "Este enlace de verificación ya ha sido utilizado o ha expirado. Por favor, regístrate de nuevo o solicita un nuevo correo de verificación.",
+                                       "backToRegister":  "Volver al registro",
+                                       "resend":  "Reenviar correo de verificación",
+                                       "resendSent":  "Un nuevo enlace de verificación se enviará en breve. Revisa tu bandeja de entrada."
+                                   }
+               },
+    "passwordStrength":  {
+                             "label":  "Seguridad",
+                             "requirements":  "Requisitos de contraseña",
+                             "criteria":  {
+                                              "length":  "Al menos 8 caracteres",
+                                              "uppercase":  "Letra mayúscula (A–Z)",
+                                              "lowercase":  "Letra minúscula (a–z)",
+                                              "number":  "Número (0–9)",
+                                              "special":  "Carácter especial (!@#…)"
+                                          },
+                             "levels":  {
+                                            "weak":  "Débil",
+                                            "fair":  "Regular",
+                                            "good":  "Buena",
+                                            "strong":  "Fuerte"
+                                        }
+                         },
+    "apiErrors":  {
+                      "server":  "Error del servidor. Por favor, inténtalo más tarde.",
+                      "rateLimit":  "Demasiadas solicitudes. Por favor, espera e inténtalo de nuevo.",
+                      "notFound":  "Recurso no encontrado.",
+                      "forbidden":  "Acceso denegado. Es posible que no tengas permiso.",
+                      "badRequest":  "Solicitud inválida. Por favor, revisa tu entrada.",
+                      "network":  "Error de red. Comprueba tu conexión e inténtalo de nuevo.",
+                      "unauthorized":  "No autorizado",
+                      "missingParameters":  "Por favor, completa todos los campos obligatorios.",
+                      "serverError":  "Error del servidor. Por favor, inténtalo más tarde.",
+                      "invalidUsernameOrPassword":  "Correo o contraseña inválidos.",
+                      "noAssignedRole":  "Tu cuenta no tiene un rol asignado. Por favor, contacta con soporte.",
+                      "emailVerificationFailed":  "Error en la verificación del correo. Comprueba el enlace e inténtalo de nuevo.",
+                      "notMatchingConfirmPassword":  "Las contraseñas no coinciden.",
+                      "setNewPasswordFailed":  "Error al establecer la nueva contraseña. Por favor, inténtalo de nuevo.",
+                      "requestPasswordResetFailed":  "Error al solicitar el restablecimiento. Por favor, inténtalo de nuevo.",
+                      "resetPasswordFailed":  "Error al restablecer la contraseña. Por favor, inténtalo de nuevo.",
+                      "missingToken":  "Falta el token de autenticación. Por favor, inicia sesión de nuevo.",
+                      "invalidToken":  "Token de autenticación inválido. Por favor, inicia sesión de nuevo.",
+                      "createPasswordFailed":  "Error al crear la contraseña. Por favor, inténtalo de nuevo.",
+                      "familyNotFound":  "Familia no encontrada.",
+                      "userNotFound":  "Usuario no encontrado.",
+                      "familyNotMember":  "El usuario no es miembro de esta familia.",
+                      "familyAlreadyMember":  "Este usuario ya es miembro de esta familia.",
+                      "familyCannotInviteDefault":  "No puedes invitar miembros a tu familia predeterminada.",
+                      "familyCannotRemoveDefault":  "No puedes eliminar miembros de tu familia predeterminada.",
+                      "familyCannotRemoveSelfHead":  "No puedes eliminarte siendo el único responsable de esta familia.",
+                      "familyCannotChangeOwnRole":  "No puedes cambiar tu propio rol.",
+                      "familyCannotArchiveDefault":  "Tu familia predeterminada no puede archivarse.",
+                      "familyCannotLeaveDefault":  "No puedes abandonar tu familia predeterminada.",
+                      "familyCannotLeaveLastHead":  "No puedes salir — eres el único responsable de esta familia.",
+                      "familyForbidden":  "No tienes acceso a esta familia.",
+                      "tagNotVisible":  "Una o más etiquetas no son visibles para ti.",
+                      "familyInvitationInvalid":  "Este enlace de invitación no es válido.",
+                      "familyInvitationAlreadyAccepted":  "Esta invitación ya fue aceptada.",
+                      "familyInvitationExpired":  "Esta invitación ha expirado.",
+                      "familyNameAlreadyExists":  "Ya existe una familia con este nombre."
+                  },
+    "families":  {
+                     "pageTitle":  "Familias",
+                     "title":  "Familias",
+                     "subtitle":  "Gestiona tus grupos familiares y sus miembros.",
+                     "createAction":  "Crear familia",
+                     "createTitle":  "Crear familia",
+                     "renameTitle":  "Renombrar familia",
+                     "nameLabel":  "Nombre de la familia",
+                     "namePlaceholder":  "ej. Familia García",
+                     "createSubmit":  "Crear",
+                     "createSubmitting":  "Creando…",
+                     "createSuccess":  "Familia creada.",
+                     "renameSubmit":  "Renombrar",
+                     "renamingSubmitting":  "Renombrando…",
+                     "renameSuccess":  "Familia renombrada.",
+                     "renameAction":  "Renombrar",
+                     "archiveAction":  "Archivar",
+                     "unarchiveAction":  "Desarchivar",
+                     "archiveSuccess":  "Familia archivada.",
+                     "unarchiveSuccess":  "Familia desarchivada.",
+                     "inviteTitle":  "Invitar a {{name}}",
+                     "inviteHint":  "El invitado deberá aceptar mediante el enlace enviado a su correo.",
+                     "inviteSubmit":  "Enviar invitación",
+                     "inviteSubmitting":  "Enviando…",
+                     "inviteSuccess":  "Invitación enviada.",
+                     "inviteAction":  "Invitar miembro",
+                     "tabActive":  "Activas",
+                     "tabArchived":  "Archivadas",
+                     "emptyActive":  "No hay familias activas.",
+                     "emptyArchived":  "No hay familias archivadas.",
+                     "default":  "Predeterminada",
+                     "archived":  "Archivada",
+                     "createdAt":  "Creada el {{date}}",
+                     "members":  "Miembros ({{count}})",
+                     "memberRemoved":  "{{name}} eliminado(a).",
+                     "roleChanged":  "Rol actualizado.",
+                     "changeRole":  "Cambiar rol",
+                     "removeMember":  "Eliminar miembro",
+                     "expand":  "Ver miembros",
+                     "collapse":  "Ocultar miembros",
+                     "selectorPersonal":  "Mis gastos",
+                     "leaveAction":  "Abandonar familia",
+                     "leaveSuccess":  "Has abandonado la familia.",
+                     "acceptInvite":  {
+                                          "pageTitle":  "Aceptar invitación",
+                                          "loading":  "Aceptando invitación…",
+                                          "success":  "¡Te has unido a la familia!",
+                                          "error":  "Esta invitación no es válida o ha expirado.",
+                                          "goToFamilies":  "Ir a familias"
+                                      }
+                 },
+    "currencies":  {
+                       "searchPlaceholder":  "Buscar por código o nombre…",
+                       "noConversion":  "Sin conversión",
+                       "displayCurrencySelector":  "Moneda de visualización"
+                   },
+    "validation":  {
+                       "emailRequired":  "El correo electrónico es obligatorio.",
+                       "emailInvalid":  "Por favor, introduce una dirección de correo válida.",
+                       "passwordRequired":  "La contraseña es obligatoria.",
+                       "firstNameRequired":  "El nombre es obligatorio.",
+                       "firstNameMax":  "El nombre no puede superar los 100 caracteres.",
+                       "lastNameRequired":  "El apellido es obligatorio.",
+                       "lastNameMax":  "El apellido no puede superar los 100 caracteres.",
+                       "emailMax":  "El correo electrónico no puede superar los 100 caracteres.",
+                       "currentPasswordRequired":  "La contraseña actual es obligatoria.",
+                       "newPasswordRequired":  "La nueva contraseña es obligatoria.",
+                       "passwordMin":  "La contraseña debe tener al menos 8 caracteres.",
+                       "repeatPasswordRequired":  "Por favor, repite tu nueva contraseña.",
+                       "passwordsNoMatch":  "Las nuevas contraseñas no coinciden.",
+                       "familyNameRequired":  "El nombre de la familia es obligatorio.",
+                       "familyNameMax":  "El nombre de la familia no puede superar los 30 caracteres.",
+                       "familyNameTaken":  "Ya existe una familia con este nombre.",
+                       "required":  "Este campo es obligatorio."
+                   },
+    "expenses":  {
+                     "pageTitle":  "Gastos",
+                     "addTitle":  "Añadir Gasto",
+                     "editTitle":  "Editar Gasto",
+                     "noExpenses":  "No se encontraron gastos.",
+                     "addExpense":  "Añadir gasto",
+                     "firstExpense":  "Añade tu primer gasto",
+                     "fields":  {
+                                    "amount":  "Importe",
+                                    "currency":  "Divisa",
+                                    "date":  "Fecha",
+                                    "category":  "Categoría",
+                                    "subcategory":  "Subcategoría",
+                                    "noCategorySelected":  "Selecciona una categoría primero",
+                                    "description":  "Descripción",
+                                    "tags":  "Etiquetas",
+                                    "families":  "Familias"
+                                },
+                     "filters":  {
+                                     "title":  "Filtros",
+                                     "toggle":  "Filtros",
+                                     "dateFrom":  "Desde",
+                                     "dateTo":  "Hasta",
+                                     "amountMin":  "Importe mínimo",
+                                     "amountMax":  "Importe máximo",
+                                     "apply":  "Aplicar",
+                                     "reset":  "Restablecer",
+                                     "tags":  "Etiquetas"
+                                 },
+                     "table":  {
+                                   "date":  "Fecha",
+                                   "amount":  "Importe",
+                                   "category":  "Categoría",
+                                   "tags":  "Etiquetas",
+                                   "families":  "Familias",
+                                   "actions":  "Acciones"
+                               },
+                     "actions":  {
+                                     "edit":  "Editar",
+                                     "delete":  "Eliminar",
+                                     "save":  "Guardar",
+                                     "saving":  "Guardando…",
+                                     "cancel":  "Cancelar"
+                                 },
+                     "delete":  {
+                                    "confirmTitle":  "¿Eliminar gasto?",
+                                    "confirmBody":  "Esta acción no se puede deshacer.",
+                                    "confirm":  "Eliminar",
+                                    "cancel":  "Cancelar"
+                                },
+                     "errors":  {
+                                    "loadFailed":  "Error al cargar los gastos.",
+                                    "saveFailed":  "Error al guardar el gasto.",
+                                    "deleteFailed":  "Error al eliminar el gasto.",
+                                    "subcategoryRequiresCategory":  "Selecciona una categoría primero.",
+                                    "amountPositive":  "El importe debe ser positivo.",
+                                    "dateFormat":  "Usa el formato AAAA-MM-DD."
+                                },
+                     "modifiedAt":  "Última modificación {{date}} vía {{source}}",
+                     "uncategorised":  "Sin categoría",
+                     "pagination":  {
+                                        "prev":  "← Anterior",
+                                        "next":  "Siguiente →",
+                                        "pageOf":  "Página {{page}} de {{total}}"
+                                    },
+                     "importCsv":  "Importar CSV",
+                     "import":  {
+                                    "pageTitle":  "Importar gastos desde CSV",
+                                    "templateLink":  "Descargar plantilla",
+                                    "dropzone":  "Arrastra un archivo CSV aquí o haz clic para seleccionar",
+                                    "validRows":  "{{count}} filas válidas",
+                                    "errorRows":  "{{count}} filas con errores",
+                                    "confirmButton":  "Importar {{count}} gastos",
+                                    "cancel":  "Cancelar",
+                                    "revalidate":  "Revalidar",
+                                    "editHint":  "Haz clic en ✎ para editar una fila, luego en Revalidar",
+                                    "editRow":  "Editar fila",
+                                    "saveRow":  "Guardar fila",
+                                    "cancelRow":  "Cancelar edición",
+                                    "success":  "{{count}} gastos importados correctamente",
+                                    "columns":  {
+                                                    "row":  "Fila",
+                                                    "status":  "Estado",
+                                                    "valid":  "Válido",
+                                                    "error":  "Error",
+                                                    "editing":  "Editando"
+                                                },
+                                    "errors":  {
+                                                   "DATE_INVALID":  "Fecha inválida (usar AAAA-MM-DD)",
+                                                   "DATE_IN_FUTURE":  "La fecha es futura",
+                                                   "AMOUNT_INVALID":  "Importe inválido",
+                                                   "AMOUNT_MUST_BE_POSITIVE":  "El importe debe ser positivo",
+                                                   "CURRENCY_NOT_FOUND":  "Código de moneda desconocido",
+                                                   "CATEGORY_NOT_FOUND":  "Categoría desconocida",
+                                                   "SUBCATEGORY_INVALID":  "La subcategoría no pertenece a la categoría",
+                                                   "FAMILY_FORBIDDEN":  "No es miembro de esta familia",
+                                                   "IMPORT_NO_FILE":  "Ningún archivo subido",
+                                                   "IMPORT_FILE_TOO_LARGE":  "Archivo demasiado grande (máx 1 MB)",
+                                                   "IMPORT_NO_ROWS":  "Sin filas para importar",
+                                                   "IMPORT_TOO_MANY_ROWS":  "Demasiadas filas (máx 500)",
+                                                   "INVALID_FILE_TYPE":  "Solo se aceptan archivos CSV",
+                                                   "INVALID_FILE_CONTENT":  "El contenido del archivo no es CSV válido",
+                                                   "IMPORT_TIMEOUT":  "Importación expirada — use un archivo más pequeño",
+                                                   "TOO_MANY_TAGS":  "Demasiadas etiquetas (máx 20 por fila)",
+                                                   "TAG_NAME_TOO_LONG":  "Nombre de etiqueta demasiado largo (máx 100 caracteres)",
+                                                   "MISSING_HEADERS":  "Al CSV le faltan columnas obligatorias",
+                                                   "TOO_MANY_COLUMNS":  "El CSV tiene demasiadas columnas (máx 20)"
+                                               }
+                                }
+                 },
+    "language":  {
+                     "label":  "Idioma",
+                     "en":  "English",
+                     "fr":  "Français",
+                     "es":  "Español",
+                     "de":  "Deutsch"
+                 },
+    "admin":  {
+                  "nav":  {
+                              "users":  "Usuarios",
+                              "categories":  "Categorías",
+                              "currencies":  "Divisas",
+                              "rates":  "Tipos",
+                              "rateConflicts":  "Conflictos de tipos"
+                          },
+                  "users":  {
+                                "pageTitle":  "Admin — Usuarios",
+                                "search":  "Buscar usuarios…",
+                                "disable":  "Desactivar",
+                                "enable":  "Activar",
+                                "manageRoles":  "Gestionar roles",
+                                "active":  "Activo",
+                                "disabled":  "Desactivado",
+                                "roles":  "Roles",
+                                "noUsers":  "No se encontraron usuarios.",
+                                "saveRoles":  "Guardar roles",
+                                "saving":  "Guardando…",
+                                "cannotRemoveOwnAdmin":  "You cannot remove your own admin role"
+                            },
+                  "categories":  {
+                                     "pageTitle":  "Admin — Categorías",
+                                     "add":  "Añadir categoría",
+                                     "addSub":  "Añadir subcategoría",
+                                     "edit":  "Editar",
+                                     "archive":  "Archivar",
+                                     "unarchive":  "Desarchivar",
+                                     "showArchived":  "Mostrar archivados",
+                                     "nameLabel":  "Nombre",
+                                     "descriptionLabel":  "Descripción",
+                                     "save":  "Guardar",
+                                     "saving":  "Guardando…",
+                                     "cancel":  "Cancelar"
+                                 },
+                  "currencies":  {
+                                     "pageTitle":  "Admin — Divisas",
+                                     "add":  "Añadir divisa",
+                                     "setDefaultRate":  "Establecer tipo por defecto",
+                                     "codeLabel":  "Código (ej. EUR)",
+                                     "nameLabel":  "Nombre",
+                                     "symbolLabel":  "Símbolo",
+                                     "destinationLabel":  "Divisa destino",
+                                     "rateLabel":  "Tipo",
+                                     "save":  "Guardar",
+                                     "saving":  "Guardando…",
+                                     "cancel":  "Cancelar",
+                                     "edit":  "Edit",
+                                     "delete":  "Delete",
+                                     "deleteConfirm":  "Delete this currency? This cannot be undone.",
+                                     "inUse":  "Cannot delete: currency is in use by existing expenses or rates.",
+                                     "defaults":  "Defaults",
+                                     "defaultRatesTitle":  "Default rates — {{code}}",
+                                     "addPair":  "Add pair",
+                                     "lastAutoRate":  "Last auto",
+                                     "lastRateDate":  "Date",
+                                     "search":  "Buscar por código o nombre",
+                                     "noResults":  "No se encontraron divisas."
+                                 },
+                  "rates":  {
+                                "pageTitle":  "Admin — Tipos",
+                                "addManual":  "Añadir tipo manual",
+                                "backfill":  "Rellenar",
+                                "source":  "Fuente",
+                                "save":  "Guardar",
+                                "saving":  "Guardando…",
+                                "cancel":  "Cancelar",
+                                "from":  "From",
+                                "to":  "To",
+                                "sourceCurrency":  "Source",
+                                "destinationCurrency":  "Destination",
+                                "noRates":  "No rates found.",
+                                "rateDate":  "Date",
+                                "rateValue":  "Rate",
+                                "fromCurrency":  "De",
+                                "toCurrency":  "A"
+                            },
+                  "rateConflicts":  {
+                                        "pageTitle":  "Admin — Conflictos de tipos",
+                                        "autoRate":  "Tipo automático",
+                                        "manualRate":  "Tipo manual",
+                                        "resolve":  "Resolver",
+                                        "acceptAuto":  "Aceptar auto",
+                                        "keepManual":  "Mantener manual",
+                                        "custom":  "Personalizado",
+                                        "resolveAll":  "Resolver todo como auto",
+                                        "noConflicts":  "No hay conflictos pendientes."
+                                    }
+              }
+}

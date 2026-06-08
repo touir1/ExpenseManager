@@ -6,6 +6,42 @@ Phase 14 was originally scoped as a PWA. The user wants a **standalone native-qu
 
 The web dashboard (`frontend/dashboard/`) stays unchanged. The mobile app lives at `frontend/mobile/` as a separate project.
 
+### Hearth → Ionic CSS variable mappings
+
+The Hearth design system (`docs/design/tokens.jsx`) maps to `src/theme/variables.css` as follows:
+
+| Hearth token | Value | Ionic CSS var |
+|---|---|---|
+| clay | `#C8623E` | `--ion-color-primary` |
+| paper | `#FAF6EE` | `--ion-background-color` |
+| card | `#FFFCF6` | `--ion-card-background` |
+| ink | `#23170E` | `--ion-text-color` |
+| ink2 | `#574A3D` | `--ion-color-medium` |
+| mute | `#8E8170` | `--ion-color-medium-shade` |
+| sage | `#6B8E5A` | `--ion-color-success` |
+| berry | `#B5443F` | `--ion-color-danger` |
+| mustard | `#D6A23F` | `--ion-color-warning` |
+| border | `#E8DECB` | `--ion-border-color` |
+| Manrope | sans-serif | `--ion-font-family` |
+
+### Push-token backend stub
+
+`POST /notifications/push-token` is added directly to `NotificationController` — no service/repository/migration needed in Phase 14. Phase 15 will add `PushToken` model + FCM/APNs dispatch.
+
+### i18n in Capacitor WebView
+
+`localStorage` works normally inside Capacitor WebView, so `i18next-browser-languagedetector` is kept unchanged. The Settings page writes language preference to both `localStorage` and `@capacitor/preferences` for future native access.
+
+**Design reference:** `docs/design/` contains the authoritative design assets for this project — use them as the source of truth for all design decisions:
+- `docs/design/mobile.jsx` — mobile-specific layout and component designs
+- `docs/design/tokens.jsx` — design tokens (colours, spacing, typography)
+- `docs/design/system.jsx` — design system components
+- `docs/design/app-flow.jsx` — navigation and user flow diagrams
+- `docs/design/auth.jsx` — auth screen designs
+- `docs/design/dashboard-a/b/c.jsx` — dashboard layout variants
+- `docs/design/ios-frame.jsx` — iOS device frame reference
+- `docs/design/ExpensesManager Redesign*.html` — full redesign mock-ups (standalone HTML)
+
 ---
 
 ## Goals

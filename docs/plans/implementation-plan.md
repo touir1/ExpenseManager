@@ -9,7 +9,7 @@ Reference: [application-description.md](application-description.md)
 | Users service | ✅ Complete — auth, registration, JWT (incl. `isAdmin` claim), refresh tokens, password management, FluentValidation, admin user management (`AdminUserController`) |
 | Expenses service | ✅ Phase 1–13 complete — schema, categories/currencies, expense CRUD, family system, tags, currency rates (daily storage, resolution, auto-update via Quartz, backfill, conflict management, display currency conversion), dashboard API, admin controllers (categories, currencies, rates), CSV bulk import, outbox for family events |
 | Notifications service | ✅ Phase 13 complete — dedicated microservice (port 9300); SignalR hub; RabbitMQ consumer (`family.member.removed`); inbox deduplication; in-app notifications + email; `NotificationBell` in frontend NavBar; 20 tests |
-| Frontend | ✅ Auth + family management + tag input + display currency selector + expense list/form (Phase 8) + dashboard (Phase 9 — Hearth design) + admin screens (Phase 11: users, categories, currencies, rates, rate conflicts, AdminRoute guard, AdminLayout, i18n) + CSV import (Phase 12) + notification bell with SignalR real-time push (Phase 13) complete; live currency preview pending (Phase 14+) |
+| Frontend | ✅ Auth + family management + tag input + display currency selector + expense list/form (Phase 8) + dashboard (Phase 9 — Hearth design) + admin screens (Phase 11: users, categories, currencies, rates, rate conflicts, AdminRoute guard, AdminLayout, i18n) + CSV import (Phase 12) + notification bell with SignalR real-time push (Phase 13) + Ionic + Capacitor native mobile app at `frontend/mobile/` (Phase 14) complete |
 | Infrastructure | ✅ Docker Compose, nginx, PostgreSQL, RabbitMQ, Grafana, Prometheus |
 
 ---
@@ -31,7 +31,7 @@ Reference: [application-description.md](application-description.md)
 | 11 | Admin Screens ✅ | Categories, currencies, rates, rate validation, users (v0.108.0) |
 | 12 | CSV Import ✅ | Bulk expense upload |
 | 13 | Notifications ✅ | In-app + email on attribution removal (dedicated microservice, SignalR, outbox/inbox) |
-| 14 | PWA / Mobile | Progressive web app, offline, quick-add |
+| 14 | Mobile App ✅ | Ionic + Capacitor + React native app at `frontend/mobile/`; offline queue, push token stub |
 | 15 | Suggested Additions | Budgets, recurring, splitting, reports |
 
 ---
@@ -604,21 +604,27 @@ Replace current model with:
 
 ---
 
-## Phase 14 — PWA / Mobile
+## Phase 14 — Mobile App ✅ Complete (v0.113.0)
 
-**Goal:** Progressive web app with offline support and mobile-optimised quick-add.
+**Goal:** Standalone Ionic + Capacitor + React native mobile app at `frontend/mobile/`. Shares backend and locale files with the web dashboard.
 
-### Tasks
+### Delivered
 
-- [ ] Add Vite PWA plugin (`vite-plugin-pwa`) — service worker, manifest, install prompt
-- [ ] Mobile-optimised layout and navigation (bottom tab bar)
-- [ ] Quick-add bottom sheet — amount, currency, category tiles, description, tags, date, families
-- [ ] Expense list grouped by day, swipe-to-delete
-- [ ] Mobile dashboard: month total, progress bar, category bar chart, last 5 expenses
-- [ ] Offline queue: IndexedDB via `idb` library; sync on reconnect
-- [ ] Receipt photo capture and attach (stored as base64 or object URL pending backend support)
-- [ ] Push notification support (Web Push API)
-- [ ] Home screen widget (limited — web apps can't do native widgets; document limitation)
+- [x] **`frontend/mobile/`** — separate Vite build; `@ionic/react` v8, `@capacitor/core` v7, `idb` v8
+- [x] **5-tab navigation** — Dashboard, Expenses, + FAB (QuickAddModal), Families, Settings via `IonTabs`
+- [x] **Hearth design tokens** — mapped to Ionic CSS custom properties in `theme/variables.css`
+- [x] **QuickAddModal** — `IonModal` bottom sheet (0.75 breakpoint); offline enqueue; `@capacitor/haptics`; `@capacitor/camera` receipt preview
+- [x] **ExpensesListPage** — `IonItemSliding` swipe-delete; `IonRefresher`; `IonInfiniteScroll`; family `IonSegment` filter
+- [x] **DashboardPage** — month hero `IonCard`; `IonProgressBar` category breakdown; last-5 feed; display currency `IonSelect`
+- [x] **FamiliesPage** — expandable cards; invite; leave; archive
+- [x] **SettingsPage** — currency + language selectors; language persisted to `@capacitor/preferences`
+- [x] **NotificationBell** — `IonButton` + `IonBadge`; `IonPopover` list; mark-all-read
+- [x] **`useOfflineQueue`** — IndexedDB (`expense-manager` DB, `offline-expense-queue` store)
+- [x] **`useNetworkSync`** — Capacitor Network listener; drain on reconnect; browser fallback
+- [x] **NotificationContext** — SignalR + `@capacitor/push-notifications`; push token via `POST /api/notifications/push-token` stub
+- [x] **Backend stub** — `POST /notifications/push-token` in `NotificationController` (Phase 15 will add FCM/APNs)
+- [x] **8 unit test files** — `useOfflineQueue`, `useNetworkSync`, `LoginPage`, `ExpensesListPage`, `QuickAddModal`, `DashboardPage`, `NotificationContext`, `SettingsPage`
+- [x] **`frontend/mobile/README.md`** — setup, env vars, device/emulator instructions, offline queue docs
 
 **Depends on:** Phase 8, Phase 9
 

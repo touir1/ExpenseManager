@@ -29,6 +29,7 @@ Service runs on port **9300** by default. Configuration via `appsettings.json` a
 | `GET` | `/notifications/unread-count` | Unread notification count → `{ count: int }` |
 | `POST` | `/notifications/{id}/read` | Mark a single notification as read → 204 |
 | `POST` | `/notifications/read-all` | Mark all notifications as read → 204 |
+| `POST` | `/notifications/push-token` | Register a device push token (Phase 14 stub — returns 200 OK, no persistence; FCM/APNs dispatch is Phase 15) |
 | `WS` | `/ws/notifications` | SignalR hub; pushes `notification` events to connected clients |
 | `GET` | `/health` | Liveness/readiness probe |
 

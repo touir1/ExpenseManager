@@ -70,3 +70,19 @@ frontend-dashboard-pipeline:
         - frontend/dashboard/**/*
       when: always
     - when: never
+
+frontend-mobile-pipeline:
+  stage: trigger
+  trigger:
+    include:
+      - local: frontend/mobile/.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - if: $TARGET == "frontend-mobile"
+      when: always
+    - if: $TARGET
+      when: never
+    - changes:
+        - frontend/mobile/**/*
+      when: always
+    - when: never

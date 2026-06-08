@@ -1,0 +1,71 @@
+/* Hearth design system → Ionic CSS variables */
+:root {
+  --ion-font-family: Manrope, system-ui, -apple-system, sans-serif;
+  --ion-background-color: #FAF6EE;
+  --ion-background-color-rgb: 250, 246, 238;
+  --ion-card-background: #FFFCF6;
+  --ion-text-color: #23170E;
+  --ion-text-color-rgb: 35, 23, 14;
+  --ion-border-color: #E8DECB;
+
+  /* Primary — clay */
+  --ion-color-primary: #C8623E;
+  --ion-color-primary-rgb: 200, 98, 62;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #b05637;
+  --ion-color-primary-tint: #ce7251;
+
+  /* Secondary — mustard */
+  --ion-color-secondary: #D6A23F;
+  --ion-color-secondary-rgb: 214, 162, 63;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #bc8e37;
+  --ion-color-secondary-tint: #daab52;
+
+  /* Success — sage */
+  --ion-color-success: #6B8E5A;
+  --ion-color-success-rgb: 107, 142, 90;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #5e7d4f;
+  --ion-color-success-tint: #7a996b;
+
+  /* Warning — mustard */
+  --ion-color-warning: #D6A23F;
+  --ion-color-warning-rgb: 214, 162, 63;
+  --ion-color-warning-contrast: #ffffff;
+  --ion-color-warning-contrast-rgb: 255, 255, 255;
+  --ion-color-warning-shade: #bc8e37;
+  --ion-color-warning-tint: #daab52;
+
+  /* Danger — berry */
+  --ion-color-danger: #B5443F;
+  --ion-color-danger-rgb: 181, 68, 63;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #9f3c37;
+  --ion-color-danger-tint: #bc5752;
+
+  /* Medium — ink2 */
+  --ion-color-medium: #574A3D;
+  --ion-color-medium-rgb: 87, 74, 61;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #4a3f35;
+  --ion-color-medium-tint: #685c50;
+
+  /* Light — card alt */
+  --ion-color-light: #F3ECDD;
+  --ion-color-light-rgb: 243, 236, 221;
+  --ion-color-light-contrast: #23170E;
+  --ion-color-light-contrast-rgb: 35, 23, 14;
+  --ion-color-light-shade: #d6d0c3;
+  --ion-color-light-tint: #f4eee1;
+
+  --ion-tab-bar-background: #FFFCF6;
+  --ion-tab-bar-border-color: #E8DECB;
+  --ion-toolbar-background: #FFFCF6;
+  --ion-item-background: #FFFCF6;
+}

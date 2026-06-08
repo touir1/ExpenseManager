@@ -8,9 +8,8 @@
 
 ```
 backend/         # .NET microservices (expenses, users, dashboard)
-frontend/        # React dashboard app (Vite + TypeScript)
+frontend/        # React apps: dashboard (Vite + TypeScript) + mobile (Ionic + Capacitor)
 infrastructure/  # Docker Compose, configs, scripts
-mobile/          # (Reserved for mobile app)
 ```
 
 ---

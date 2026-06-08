@@ -136,7 +136,7 @@ ExpenseManager/
 │   │   │   │       ├── PostgresOptions.cs   — Server/Port/UserName/Password/Database + computed ConnectionString
 │   │   │   │       └── RabbitMQOptions.cs
 │   │   │   ├── Controllers/
-│   │   │   │   ├── NotificationController.cs — GET /notifications, GET /notifications/unread-count, POST /notifications/{id}/read, POST /notifications/read-all
+│   │   │   │   ├── NotificationController.cs — GET /notifications, GET /notifications/unread-count, POST /notifications/{id}/read, POST /notifications/read-all, POST /notifications/push-token (Phase 14 stub)
 │   │   │   │   ├── DTO/
 │   │   │   │   │   └── NotificationDto.cs   — Id, Type, Payload: JsonElement, IsRead, CreatedAt, ReadAt?
 │   │   │   │   └── Responses/
@@ -886,7 +886,7 @@ ExpenseManager/
 │           │   │   │   ├── notificationApi.service.ts  — getNotifications, getUnreadCount, markAsRead, markAllAsRead
 │           │   │   │   └── __tests__/
 │           │   │   │       └── notificationApi.service.test.ts
-│           │   │   ├── NotificationContext.tsx   — NotificationProvider / useNotifications(); loads on auth; SignalR connection via dynamic import; markRead/markAllRead/refresh
+│           │   │   ├── NotificationContext.tsx   — NotificationProvider / useNotifications(); loads on auth; SignalR connection via dynamic import; markRead/markAllRead/refresh; setupPushNotifications() registers Capacitor PushNotifications + calls POST /api/notifications/push-token
 │           │   │   └── __tests__/
 │           │   │       └── NotificationContext.test.tsx
 │           │   └── public/            — Public (unauthenticated) pages
@@ -920,6 +920,97 @@ ExpenseManager/
 │           │   └── index.css          — Tailwind directives + @layer components
 │           └── types/                 — Shared TypeScript type definitions
 │               └── api.type.ts         — ApiResponse<T>
+│
+│   └── mobile/                        — Ionic + Capacitor native mobile app (Phase 14)
+│       ├── .env.local                 — Local env vars (gitignored; set VITE_API_BASE_URL=https://localhost)
+│       ├── .gitignore                 — Ignores node_modules, dist, coverage, .env.local, /android, /ios, .capacitor/
+│       ├── .gitlab-ci.yml             — Mobile CI pipeline: build→test→sonarqube→sca→sast→secrets-scan
+│       ├── capacitor.config.ts        — appId=com.touir.expensemanager, webDir=dist
+│       ├── ionic.config.json          — Ionic CLI project config (type: react-vite)
+│       ├── package.json               — @ionic/react v8, @capacitor/core v7 + plugins, idb v8, @microsoft/signalr, i18next, react-query v5; appId field; build:android/build:android-aab/deploy:android scripts
+│       ├── sonar-project.properties   — SonarQube project key touir:expense-manager:frontend:mobile
+│       ├── tsconfig.json
+│       ├── tsconfig.app.json          — ES2020, strict, path alias @/*→src/*, react-jsx
+│       ├── vite.config.ts             — @vitejs/plugin-react, alias @→./src, port 5174, Vitest config
+│       ├── README.md                  — Setup, dev, device/emulator, env vars, offline queue, tests docs
+│       ├── scripts/
+│       │   ├── android-gradle.js      — Runs Gradle task (assembleDebug/bundleRelease) with JDK 21; Windows/bash auto-detect
+│       │   └── android-deploy.js      — Installs debug APK via adb; globs output dir for APK; reads appId from package.json
+│       └── src/
+│           ├── main.tsx               — createRoot with <App />, imports Ionic CSS + theme
+│           ├── App.tsx                — <IonApp> + <IonReactRouter> (from @ionic/react) + <AppProviders> + <AppRouter>
+│           ├── router.tsx             — Auth guard + IonTabs (5 tabs: Dashboard/Expenses/+FAB/Families/Settings); QuickAddModal outside IonTabs
+│           ├── test-setup.ts          — Vitest global mocks for 5 Capacitor plugins + fake-indexeddb + @testing-library/jest-dom
+│           ├── theme/
+│           │   └── variables.css      — Ionic CSS vars mapped to Hearth tokens (clay primary, paper bg, sage success, berry danger)
+│           ├── i18n/                  — i18next config + locale JSON (en/fr/es/de copied from dashboard)
+│           ├── providers/
+│           │   └── AppProviders.tsx   — QueryClientProvider→AuthProvider→ExpensesDataProvider→FamilyProvider→DisplayCurrencyProvider→NotificationProvider
+│           ├── services/
+│           │   └── api.service.ts     — Adapted from dashboard; uses VITE_API_BASE_URL for Capacitor WebView absolute URLs
+│           ├── types/
+│           │   └── api.type.ts        — ApiResponse<T> (verbatim copy from dashboard)
+│           ├── constants/
+│           │   └── apiErrors.constant.ts — API_ERRORS + BACKEND_ERROR_CODES (verbatim copy)
+│           ├── hooks/
+│           │   ├── useOfflineQueue.ts — IndexedDB queue via idb v8; enqueue/drain/getAll/clear; store: offline-expense-queue
+│           │   ├── useNetworkSync.ts  — @capacitor/network listener; drains queue on reconnect; browser online/offline event fallback
+│           │   └── __tests__/
+│           │       ├── useOfflineQueue.test.ts — enqueue/drain/clear with fake-indexeddb
+│           │       └── useNetworkSync.test.ts  — offline→online triggers drain
+│           └── features/
+│               ├── auth/
+│               │   ├── AuthContext.tsx          — Cookie auth; adapted from dashboard (IonRouter navigation)
+│               │   ├── auth.schemas.ts          — Zod v4 schemas (verbatim copy)
+│               │   ├── services/authApi.service.ts
+│               │   ├── types/auth.type.ts
+│               │   └── pages/
+│               │       ├── LoginPage.tsx        — IonPage + IonContent wrapping auth form
+│               │       └── __tests__/LoginPage.test.tsx
+│               ├── expenses/
+│               │   ├── ExpensesDataContext.tsx  — ExpensesDataProvider / useExpensesData() (verbatim copy)
+│               │   ├── expense.schemas.ts       — makeExpenseSchema(t) with Zod v4 .catch(undefined) coercions
+│               │   ├── services/
+│               │   │   ├── expensesApi.service.ts
+│               │   │   ├── categoriesApi.service.ts
+│               │   │   └── currenciesApi.service.ts
+│               │   ├── types/expenses.type.ts
+│               │   └── pages/
+│               │       ├── ExpensesListPage.tsx   — IonList grouped by date; IonItemSliding swipe-delete; IonRefresher; IonInfiniteScroll; IonSegment family filter
+│               │       ├── QuickAddModal.tsx      — IonModal sheet (0.75 breakpoint); offline enqueue; Haptics; Camera receipt
+│               │       └── __tests__/
+│               │           ├── ExpensesListPage.test.tsx
+│               │           └── QuickAddModal.test.tsx
+│               ├── dashboard/
+│               │   ├── services/dashboardApi.service.ts — getDashboardCategories (renamed to avoid conflict), getSummary, getRecent
+│               │   ├── types/dashboard.type.ts
+│               │   └── pages/
+│               │       ├── DashboardPage.tsx     — IonCard month hero; IonProgressBar categories; last-5 IonList; DisplayCurrency IonSelect
+│               │       └── __tests__/DashboardPage.test.tsx
+│               ├── families/
+│               │   ├── FamilyContext.tsx         — FamilyProvider / useFamilies() (adapted from dashboard)
+│               │   ├── services/familyApi.service.ts
+│               │   ├── types/family.type.ts
+│               │   └── pages/FamiliesPage.tsx    — IonList family cards; invite by email; member list; leave/archive
+│               ├── notifications/
+│               │   ├── NotificationContext.tsx   — SignalR + @capacitor/push-notifications registration; POST /push-token on login
+│               │   ├── services/
+│               │   │   ├── notificationApi.service.ts — getNotifications, getUnreadCount, markAsRead, markAllAsRead, registerPushToken
+│               │   │   └── types/notification.type.ts
+│               │   ├── components/
+│               │   │   └── NotificationBell.tsx  — IonButton + IonBadge + IonPopover notification list
+│               │   └── __tests__/NotificationContext.test.tsx — real class MockHubConnectionBuilder
+│               ├── settings/
+│               │   └── pages/
+│               │       ├── SettingsPage.tsx      — Display currency + language selectors; persists language to @capacitor/preferences; logout
+│               │       └── __tests__/SettingsPage.test.tsx
+│               ├── currencies/
+│               │   ├── DisplayCurrencyContext.tsx  — Session state; adapted from dashboard (Preferences persistence)
+│               │   └── services/ratesApi.service.ts
+│               └── tags/
+│                   ├── services/
+│                   │   └── tagsApi.service.ts
+│                   └── types/
 │
 ├── infrastructure/
 │   ├── .env                           — Local infrastructure env vars (gitignored)
@@ -984,6 +1075,4 @@ ExpenseManager/
 │   └── scripts/
 │       └── gitlab-register-runner.sh  — GitLab Runner registration helper
 │
-└── mobile/
-    └── README.md                      — Mobile app placeholder
 ```
