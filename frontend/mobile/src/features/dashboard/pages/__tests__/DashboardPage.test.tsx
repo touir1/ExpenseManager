@@ -47,7 +47,7 @@ vi.mock('@ionic/react', async () => ({
   IonLabel: ({ children }: any) => <span>{children}</span>,
   IonProgressBar: ({ value }: any) => <progress value={value} />,
   IonText: ({ children }: any) => <span>{children}</span>,
-  IonSkeletonText: ({ animated }: any) => <span data-testid="skeleton" />,
+  IonSkeletonText: () => <span data-testid="skeleton" />,
   IonSelect: ({ children, onIonChange, value }: any) => (
     <select defaultValue={value} onChange={e => onIonChange?.({ detail: { value: Number(e.target.value) } })}>
       {children}

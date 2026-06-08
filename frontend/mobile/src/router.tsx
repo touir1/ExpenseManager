@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Redirect, Route } from 'react-router-dom'
+import { Navigate, Route } from 'react-router-dom'
 import {
   IonIcon,
   IonLabel,
@@ -20,7 +20,7 @@ import SettingsPage from '@/features/settings/pages/SettingsPage'
 function AuthGuard({ children }: Readonly<{ children: React.ReactNode }>) {
   const { isAuthenticated, isLoading } = useAuth()
   if (isLoading) return null
-  if (!isAuthenticated) return <Redirect to="/login" />
+  if (!isAuthenticated) return <Navigate to="/login" replace />
   return <>{children}</>
 }
 
@@ -30,56 +30,49 @@ export function AppRouter() {
   return (
     <>
       <IonRouterOutlet id="main">
-        <Route path="/login" exact>
-          <LoginPage />
-        </Route>
-        <Route path="/">
-          <AuthGuard>
-            <IonTabs>
-              <IonRouterOutlet>
-                <Route path="/dashboard" exact>
-                  <DashboardPage />
-                </Route>
-                <Route path="/expenses" exact>
-                  <ExpensesListPage />
-                </Route>
-                <Route path="/families" exact>
-                  <FamiliesPage />
-                </Route>
-                <Route path="/settings" exact>
-                  <SettingsPage />
-                </Route>
-                <Redirect exact from="/" to="/dashboard" />
-              </IonRouterOutlet>
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/"
+          element={
+            <AuthGuard>
+              <IonTabs>
+                <IonRouterOutlet>
+                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route path="/expenses" element={<ExpensesListPage />} />
+                  <Route path="/families" element={<FamiliesPage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route index element={<Navigate to="/dashboard" replace />} />
+                </IonRouterOutlet>
 
-              <IonTabBar slot="bottom">
-                <IonTabButton tab="dashboard" href="/dashboard">
-                  <IonIcon icon={homeOutline} />
-                  <IonLabel>Dashboard</IonLabel>
-                </IonTabButton>
+                <IonTabBar slot="bottom">
+                  <IonTabButton tab="dashboard" href="/dashboard">
+                    <IonIcon icon={homeOutline} />
+                    <IonLabel>Dashboard</IonLabel>
+                  </IonTabButton>
 
-                <IonTabButton tab="expenses" href="/expenses">
-                  <IonIcon icon={receiptOutline} />
-                  <IonLabel>Expenses</IonLabel>
-                </IonTabButton>
+                  <IonTabButton tab="expenses" href="/expenses">
+                    <IonIcon icon={receiptOutline} />
+                    <IonLabel>Expenses</IonLabel>
+                  </IonTabButton>
 
-                <IonTabButton tab="add" onClick={() => setShowAddModal(true)}>
-                  <IonIcon icon={addCircle} style={{ fontSize: '2.2rem', color: 'var(--ion-color-primary)' }} />
-                </IonTabButton>
+                  <IonTabButton tab="add" onClick={() => setShowAddModal(true)}>
+                    <IonIcon icon={addCircle} style={{ fontSize: '2.2rem', color: 'var(--ion-color-primary)' }} />
+                  </IonTabButton>
 
-                <IonTabButton tab="families" href="/families">
-                  <IonIcon icon={peopleOutline} />
-                  <IonLabel>Family</IonLabel>
-                </IonTabButton>
+                  <IonTabButton tab="families" href="/families">
+                    <IonIcon icon={peopleOutline} />
+                    <IonLabel>Family</IonLabel>
+                  </IonTabButton>
 
-                <IonTabButton tab="settings" href="/settings">
-                  <IonIcon icon={settingsOutline} />
-                  <IonLabel>Settings</IonLabel>
-                </IonTabButton>
-              </IonTabBar>
-            </IonTabs>
-          </AuthGuard>
-        </Route>
+                  <IonTabButton tab="settings" href="/settings">
+                    <IonIcon icon={settingsOutline} />
+                    <IonLabel>Settings</IonLabel>
+                  </IonTabButton>
+                </IonTabBar>
+              </IonTabs>
+            </AuthGuard>
+          }
+        />
       </IonRouterOutlet>
 
       <QuickAddModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} />

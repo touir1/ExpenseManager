@@ -8,7 +8,6 @@ import {
   IonItem,
   IonLabel,
   IonText,
-  IonButton as IonHeaderButton,
 } from '@ionic/react'
 import { notificationsOutline } from 'ionicons/icons'
 import { useTranslation } from 'react-i18next'

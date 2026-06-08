@@ -926,6 +926,7 @@ ExpenseManager/
 │       ├── .gitignore                 — Ignores node_modules, dist, coverage, .env.local, /android, /ios, .capacitor/
 │       ├── .gitlab-ci.yml             — Mobile CI pipeline: build→test→sonarqube→sca→sast→secrets-scan
 │       ├── capacitor.config.ts        — appId=com.touir.expensemanager, webDir=dist
+│       ├── index.html                 — Vite HTML entry point (root; required by Vite build)
 │       ├── ionic.config.json          — Ionic CLI project config (type: react-vite)
 │       ├── package.json               — @ionic/react v8, @capacitor/core v7 + plugins, idb v8, @microsoft/signalr, i18next, react-query v5; appId field; build:android/build:android-aab/deploy:android scripts
 │       ├── sonar-project.properties   — SonarQube project key touir:expense-manager:frontend:mobile
@@ -938,7 +939,7 @@ ExpenseManager/
 │       │   └── android-deploy.js      — Installs debug APK via adb; globs output dir for APK; reads appId from package.json
 │       └── src/
 │           ├── main.tsx               — createRoot with <App />, imports Ionic CSS + theme
-│           ├── App.tsx                — <IonApp> + <IonReactRouter> (from @ionic/react) + <AppProviders> + <AppRouter>
+│           ├── App.tsx                — <IonApp> + <BrowserRouter> (react-router-dom v6) + <AppProviders> + <AppRouter>
 │           ├── router.tsx             — Auth guard + IonTabs (5 tabs: Dashboard/Expenses/+FAB/Families/Settings); QuickAddModal outside IonTabs
 │           ├── test-setup.ts          — Vitest global mocks for 5 Capacitor plugins + fake-indexeddb + @testing-library/jest-dom
 │           ├── theme/

@@ -224,7 +224,7 @@ export default function ExpensesListPage() {
         message={t('expenses.deleteConfirmMessage', 'This cannot be undone.')}
         buttons={[
           { text: t('common.cancel', 'Cancel'), role: 'cancel', handler: () => setDeleteTarget(null) },
-          { text: t('common.delete', 'Delete'), role: 'destructive', handler: () => deleteTarget && handleDelete(deleteTarget) },
+          { text: t('common.delete', 'Delete'), role: 'destructive', handler: () => { if (deleteTarget) handleDelete(deleteTarget) } },
         ]}
         onDidDismiss={() => setDeleteTarget(null)}
       />

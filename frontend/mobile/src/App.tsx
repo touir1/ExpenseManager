@@ -1,4 +1,5 @@
-import { IonApp, IonReactRouter, setupIonicReact } from '@ionic/react'
+import { IonApp, setupIonicReact } from '@ionic/react'
+import { BrowserRouter } from 'react-router-dom'
 import { AppProviders } from '@/providers/AppProviders'
 import { AppRouter } from '@/router'
 
@@ -7,11 +8,11 @@ setupIonicReact()
 export default function App() {
   return (
     <IonApp>
-      <IonReactRouter>
+      <BrowserRouter>
         <AppProviders>
           <AppRouter />
         </AppProviders>
-      </IonReactRouter>
+      </BrowserRouter>
     </IonApp>
   )
 }

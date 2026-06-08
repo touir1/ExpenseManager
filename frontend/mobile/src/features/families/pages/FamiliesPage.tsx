@@ -220,7 +220,7 @@ export default function FamiliesPage() {
         message={t('families.leaveConfirmMessage', 'You will lose access to shared expenses.')}
         buttons={[
           { text: t('common.cancel', 'Cancel'), role: 'cancel', handler: () => setLeaveTarget(null) },
-          { text: t('families.leave', 'Leave'), role: 'destructive', handler: () => leaveTarget && handleLeave(leaveTarget) },
+          { text: t('families.leave', 'Leave'), role: 'destructive', handler: () => { if (leaveTarget) handleLeave(leaveTarget) } },
         ]}
       />
 

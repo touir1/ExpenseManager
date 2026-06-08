@@ -3,6 +3,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.113.2] - 2026-06-08
+### Mobile app — TypeScript build fixes and Vite entry point
+
+- **`frontend/mobile/index.html`** — created (was missing; caused `Could not resolve entry module "index.html"` Vite build error).
+- **`frontend/mobile/vite.config.ts`** — `defineConfig` import changed from `'vite'` to `'vitest/config'` so the `test` block is typed correctly.
+- **`frontend/mobile/tsconfig.app.json`** — added `"vite/client"` and `"node"` to `types` array; fixes `import.meta.env` (TS2339) and CSS module import (TS2307) errors.
+- **`frontend/mobile/src/App.tsx`** — replaced `IonReactRouter` (does not exist in `@ionic/react`) with `BrowserRouter` from `react-router-dom`; fixes TS2305.
+- **`frontend/mobile/src/router.tsx`** — full migration to React Router v6: `Redirect` → `Navigate`, `<Route component>` → `<Route element={}>`, removed `exact` props (v6 default), `useHistory` → `useNavigate` in `LoginPage.tsx`.
+- **`frontend/mobile/src/features/expenses/pages/ExpensesListPage.tsx`** — `IonAlert` `handler` changed from `&&` short-circuit to `if` block to satisfy `AlertButton` handler return type.
+- **`frontend/mobile/src/features/families/pages/FamiliesPage.tsx`** — same `AlertButton` handler fix.
+- **`frontend/mobile/src/features/notifications/components/NotificationBell.tsx`** — removed unused `IonButton as IonHeaderButton` import alias (TS6133).
+- **`frontend/mobile/src/features/dashboard/pages/DashboardPage.tsx`** — removed unused `useState` import (TS6133).
+- **Test mocks cleaned up** (`DashboardPage.test.tsx`, `QuickAddModal.test.tsx`, `SettingsPage.test.tsx`) — removed unused `animated`, `onDidDismiss`, `strong`, `fill`, `expand`, `waitFor` from mock props to satisfy `noUnusedParameters` strict mode.
+- All 14 modified files now pass `tsc --noEmit`; `vite build` completes with 0 errors.
+
 ## [0.113.1] - 2026-06-08
 ### Mobile app — CI, scripts, and project hygiene
 

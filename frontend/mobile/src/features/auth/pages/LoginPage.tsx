@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   IonPage,
   IonContent,
@@ -21,7 +21,7 @@ import { makeLoginSchema, type LoginFormData } from '@/features/auth/auth.schema
 export default function LoginPage() {
   const { t } = useTranslation()
   const { login } = useAuth()
-  const history = useHistory()
+  const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
 
   const schema = makeLoginSchema(t)
@@ -33,7 +33,7 @@ export default function LoginPage() {
     setError(null)
     const result = await login(data.email, data.password, data.rememberMe ?? false)
     if (result.ok) {
-      history.replace('/dashboard')
+      navigate('/dashboard', { replace: true })
     } else {
       setError(result.error ?? t('auth.login.invalidCredentials'))
     }

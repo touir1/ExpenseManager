@@ -36,7 +36,7 @@ vi.mock('@/hooks/useOfflineQueue', () => ({
 }))
 
 vi.mock('@ionic/react', async () => ({
-  IonModal: ({ isOpen, children, onDidDismiss }: any) =>
+  IonModal: ({ isOpen, children }: any) =>
     isOpen ? <div role="dialog">{children}</div> : null,
   IonHeader: ({ children }: any) => <div>{children}</div>,
   IonToolbar: ({ children }: any) => <div>{children}</div>,
@@ -47,7 +47,7 @@ vi.mock('@ionic/react', async () => ({
   IonInput: ({ onIonInput, type, value }: any) => (
     <input type={type ?? 'text'} defaultValue={value} onChange={e => onIonInput?.({ detail: { value: e.target.value } })} />
   ),
-  IonButton: ({ children, onClick, disabled, strong }: any) => (
+  IonButton: ({ children, onClick, disabled }: any) => (
     <button onClick={onClick} disabled={disabled}>{children}</button>
   ),
   IonButtons: ({ children }: any) => <div>{children}</div>,

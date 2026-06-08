@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 vi.mock('@/features/auth/AuthContext', () => ({
@@ -30,7 +30,7 @@ vi.mock('@ionic/react', async () => ({
     </select>
   ),
   IonSelectOption: ({ children, value }: any) => <option value={value}>{children}</option>,
-  IonButton: ({ children, onClick, color, fill, expand }: any) => (
+  IonButton: ({ children, onClick, color }: any) => (
     <button onClick={onClick} data-color={color}>{children}</button>
   ),
   IonText: ({ children }: any) => <span>{children}</span>,
