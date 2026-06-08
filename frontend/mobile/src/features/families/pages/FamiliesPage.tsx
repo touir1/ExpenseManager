@@ -202,7 +202,7 @@ export default function FamiliesPage() {
         </IonHeader>
         <IonContent className="ion-padding">
           <IonItem>
-            <IonLabel position="stacked">{t('auth.email', 'Email')}</IonLabel>
+            <IonLabel position="stacked">{t('auth.email.label', 'Email')}</IonLabel>
             <IonInput
               type="email"
               value={inviteEmail}

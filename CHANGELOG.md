@@ -3,6 +3,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.113.5] - 2026-06-09
+### Mobile app — dev server proxy fix + runtime i18n + login UX
+
+- **`frontend/mobile/vite.config.ts`** — added `followRedirects: true` to proxy config so Vite follows nginx 301 redirects server-side; without this, browser received the 301 and followed to `https://localhost` directly, where cookies were not sent (SameSite=Strict + schemeful same-site: http→https scheme change = cross-site). Root cause: Vite's bundled `http-proxy-3` was connecting via port 80 (plain HTTP) for the `https://localhost` target in some cases; `followRedirects` uses the `follow-redirects` package as the HTTP agent, which transparently follows 301→443 internally so the browser only sees the final 200/401 response.
+- **`frontend/mobile/src/router.tsx`** — fixed routing: added `<Routes>` wrapper inside `IonRouterOutlet` (Ionic v7+ no longer creates a Routes context); extracted `TabsLayout` component; parent route uses `path="/*"` with relative child paths; `IonTabButton href` uses absolute paths (`/dashboard`, `/expenses`, etc.).
+- **`frontend/mobile/src/features/auth/pages/LoginPage.tsx`** — two fixes:
+  - `register()` → `Controller` + `onIonInput`/`onIonChange` for all Ionic inputs (Ionic web components fire `ionInput`/`ionChange` custom events, not standard DOM `onChange` — RHF `register()` spread never captures values).
+  - Added `useEffect` to redirect already-authenticated users to `/dashboard` on mount.
+  - `disabled={isSubmitting}` → conditional spread `{...(isSubmitting ? { disabled: true } : {})}` to avoid Ionic rendering `disabled` attribute when value is false.
+- **`frontend/mobile/src/features/auth/pages/LoginPage.tsx`**, **`frontend/mobile/src/features/families/pages/FamiliesPage.tsx`** — `t('auth.email')` → `t('auth.email.label')` (translation key is a nested object `{ label, placeholder }`, not a string).
+- **`frontend/mobile/src/features/settings/pages/SettingsPage.tsx`** — `t('settings.language')` → `t('settings.language.title')`, `t('settings.displayCurrency')` → `t('settings.currency.title')` (same nested object pattern).
+- **`frontend/mobile/src/App.tsx`** — added `future={{ v7_startTransition: true, v7_relativeSplatPath: true }}` to suppress React Router v7 deprecation warnings.
+
 ## [0.113.4] - 2026-06-08
 ### Mobile app — QuickAddModal test OOM fix
 

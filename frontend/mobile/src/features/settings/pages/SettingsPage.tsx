@@ -58,7 +58,7 @@ export default function SettingsPage() {
 
         <IonList>
           <IonItem>
-            <IonLabel>{t('settings.displayCurrency', 'Display currency')}</IonLabel>
+            <IonLabel>{t('settings.currency.title', 'Display currency')}</IonLabel>
             <IonSelect
               value={displayCurrencyId}
               onIonChange={e => setDisplayCurrencyId(e.detail.value)}
@@ -72,7 +72,7 @@ export default function SettingsPage() {
           </IonItem>
 
           <IonItem>
-            <IonLabel>{t('settings.language', 'Language')}</IonLabel>
+            <IonLabel>{t('settings.language.title', 'Language')}</IonLabel>
             <IonSelect
               value={(i18n.language ?? 'en').split('-')[0]}
               onIonChange={e => handleLanguageChange(e.detail.value)}

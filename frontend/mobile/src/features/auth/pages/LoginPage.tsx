@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useState, useEffect } from 'react'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -20,13 +20,18 @@ import { makeLoginSchema, type LoginFormData } from '@/features/auth/auth.schema
 
 export default function LoginPage() {
   const { t } = useTranslation()
-  const { login } = useAuth()
+  const { login, isAuthenticated, isLoading } = useAuth()
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
 
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) navigate('/dashboard', { replace: true })
+  }, [isAuthenticated, isLoading, navigate])
+
   const schema = makeLoginSchema(t)
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>({
+  const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>({
     resolver: zodResolver(schema),
+    defaultValues: { email: '', password: '', rememberMe: false },
   })
 
   async function onSubmit(data: LoginFormData) {
@@ -52,11 +57,19 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <IonItem style={{ marginBottom: 12 }}>
-              <IonLabel position="stacked">{t('auth.email')}</IonLabel>
-              <IonInput
-                type="email"
-                autocomplete="email"
-                {...register('email')}
+              <IonLabel position="stacked">{t('auth.email.label')}</IonLabel>
+              <Controller
+                name="email"
+                control={control}
+                render={({ field }) => (
+                  <IonInput
+                    type="email"
+                    autocomplete="email"
+                    value={field.value}
+                    onIonInput={e => field.onChange(e.detail.value ?? '')}
+                    onBlur={field.onBlur}
+                  />
+                )}
               />
             </IonItem>
             {errors.email && (
@@ -67,10 +80,18 @@ export default function LoginPage() {
 
             <IonItem style={{ marginBottom: 12 }}>
               <IonLabel position="stacked">{t('auth.login.password')}</IonLabel>
-              <IonInput
-                type="password"
-                autocomplete="current-password"
-                {...register('password')}
+              <Controller
+                name="password"
+                control={control}
+                render={({ field }) => (
+                  <IonInput
+                    type="password"
+                    autocomplete="current-password"
+                    value={field.value}
+                    onIonInput={e => field.onChange(e.detail.value ?? '')}
+                    onBlur={field.onBlur}
+                  />
+                )}
               />
             </IonItem>
             {errors.password && (
@@ -81,13 +102,23 @@ export default function LoginPage() {
 
             <IonItem lines="none" style={{ marginBottom: 24 }}>
               <IonLabel>{t('auth.login.rememberMe')}</IonLabel>
-              <IonCheckbox slot="start" {...register('rememberMe')} />
+              <Controller
+                name="rememberMe"
+                control={control}
+                render={({ field }) => (
+                  <IonCheckbox
+                    slot="start"
+                    checked={field.value ?? false}
+                    onIonChange={e => field.onChange(e.detail.checked)}
+                  />
+                )}
+              />
             </IonItem>
 
             <IonButton
               expand="block"
               type="submit"
-              disabled={isSubmitting}
+              {...(isSubmitting ? { disabled: true } : {})}
               color="primary"
             >
               {isSubmitting ? <IonSpinner name="crescent" /> : t('auth.login.submit')}

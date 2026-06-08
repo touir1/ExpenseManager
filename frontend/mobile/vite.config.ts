@@ -12,6 +12,16 @@ export default defineConfig({
   server: {
     port: Number(process.env.VITE_PORT) || 5174,
     strictPort: true,
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_BASE_URL || 'https://localhost',
+        changeOrigin: true,
+        secure: false,
+        // Follow 301/302s server-side — prevents browser from following http→https
+        // redirects directly (which breaks SameSite=Strict cookies across schemes)
+        followRedirects: true,
+      },
+    },
   },
   test: {
     globals: true,
