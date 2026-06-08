@@ -3,6 +3,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.113.4] - 2026-06-08
+### Mobile app — QuickAddModal test OOM fix
+
+- **`frontend/mobile/src/features/expenses/pages/__tests__/QuickAddModal.test.tsx`** — fixed V8 heap OOM (`FATAL ERROR: Ineffective mark-compacts near heap limit`, worker crash after ~300 s, 0 tests run):
+  - Root cause: `useExpensesData()` mock returned a new `currencies` array object on every call. `QuickAddModal` has `useEffect([isOpen, currencies, reset])` — new array reference each render → effect fires → `reset()` → re-render → new reference → infinite loop → 15 MB/s heap growth.
+  - Fix: moved mock data inside the factory so it is created once: `vi.mock('...', () => { const data = { currencies: [...], ... }; return { useExpensesData: () => data } })`. Same stable-reference pattern applied to `categories` and `tags`.
+  - Also added `import React from 'react'` and `React.forwardRef` on `IonInput`/`IonTextarea` mocks (same pattern as `LoginPage.test.tsx`).
+- All 31 mobile tests now pass.
+
 ## [0.113.3] - 2026-06-08
 ### Mobile app — test fixes
 
