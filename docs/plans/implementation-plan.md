@@ -407,7 +407,7 @@ Replace current model with:
   - [x] Tag autocomplete via `TagInput`
   - [x] Family multi-select (Default always included)
   - [ ] Live converted amount preview — deferred to Phase 9+
-  - [ ] Edit screen: shows modified by / at / from — deferred to Phase 9+
+  - [x] Edit screen: shows modified by / at / from — implemented (`ExpenseForm.tsx:251`)
 - [x] `ExpenseForm` — shared form component with Zod v4 schemas + React Hook Form
 - [x] i18n coverage for all new strings (en/fr/es/de)
 - [x] Tests: 56 new tests (13 `ExpensesPage`, 15 `AddExpensePage`, 14 `EditExpensePage`, 14 `ExpenseForm`); 644 total passing
@@ -437,7 +437,7 @@ Replace current model with:
 - [x] Tests: 9 test files — `dashboardApi.service.test.ts`, 7 component tests, updated `HomeDashboardPage.test.tsx` (full mock suite + `QueryClientProvider`)
 - [ ] Tag filter in `ExpenseFilters` — deferred to Phase 10+
 - [ ] Live converted amount preview in add/edit form — deferred to Phase 10+
-- [ ] Edit screen: shows modified by / at / from — deferred to Phase 10+
+- [x] Edit screen: shows modified by / at / from — implemented (`ExpenseForm.tsx:251`)
 - [ ] Head "remove from family" action in expense list — deferred to Phase 10+
 
 **Depends on:** Phase 7, Phase 8 (for shared components)
@@ -457,9 +457,9 @@ Replace current model with:
 - [x] Rename family, family settings
 - [x] Leave family — `DELETE /families/{id}/leave`; heads blocked if last head (`FAMILY_CANNOT_LEAVE_LAST_HEAD`); button in expanded detail panel; 6 service tests
 - [x] Accept invite flow (email link → web page) — `AcceptInvitePage` at `/families/accept-invite?token=`
-- [ ] Notification when attribution removed (in-app)
+- [x] Notification when attribution removed (in-app) — implemented in Phase 13 (`FamilyEventConsumer`, `family.member.removed` event)
 - [x] i18n coverage — all 4 locales (en/fr/es/de) complete for families + currencies sections
-- [ ] Tests — `FamiliesPage.test.tsx` exists (layout, cards, detail panel, create/rename modals) but missing coverage for leave button and `DisplayCurrencySelector` search
+- [ ] Tests — `FamiliesPage.test.tsx` missing coverage for `DisplayCurrencySelector` search (leave button tests added at line 705)
 
 **Depends on:** Phase 4
 
@@ -627,6 +627,23 @@ Replace current model with:
 - [x] **`frontend/mobile/README.md`** — setup, env vars, device/emulator instructions, offline queue docs
 
 **Depends on:** Phase 8, Phase 9
+
+---
+
+## Deferred Items
+
+Items explicitly deferred across phases 5–14 that are not yet implemented. Sorted by theme.
+
+| # | Item | Originally deferred in | Status |
+|---|------|------------------------|--------|
+| 1 | Tag filter in expense list (`ExpenseFilters` + `getExpenses` backend param) | Phase 5, 8, 9 | ⏳ Pending |
+| 2 | Live converted amount preview in add/edit expense form | Phase 6, 8, 9 | ⏳ Pending |
+| 3 | Bulk select → bulk delete / export CSV in expense list | Phase 8 | ⏳ Pending |
+| 4 | Head "remove from family" action in expense list (unattribute expense from a family) | Phase 8, 9 | ⏳ Pending |
+| 5 | Edit screen: shows modified by / at / from | Phase 8, 9 | ✅ Done — `ExpenseForm.tsx:251` |
+| 6 | Notification when attribution removed (in-app) | Phase 10 | ✅ Done — Phase 13 (`FamilyEventConsumer`, `family.member.removed`) |
+| 7 | `FamiliesPage` test: `DisplayCurrencySelector` search coverage | Phase 10 | ⏳ Pending |
+| 8 | Platform audit log — rate changes and user management events | Phase 11 | ⏳ Pending (Phase 15) |
 
 ---
 
