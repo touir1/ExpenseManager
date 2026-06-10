@@ -15,6 +15,10 @@ vi.mock('@/features/expenses/ExpensesDataContext', () => ({
   useExpensesData: vi.fn(),
 }))
 
+vi.mock('@/features/settings/ThemeContext', () => ({
+  useTheme: () => ({ theme: 'system', setTheme: vi.fn() }),
+}))
+
 vi.mock('@ionic/react', async () => ({
   IonPage: ({ children }: any) => <div>{children}</div>,
   IonHeader: ({ children }: any) => <div>{children}</div>,

@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - **`frontend/mobile/src/features/settings/pages/SettingsPage.tsx`** — added `IonItem` + `IonSelect` (action-sheet interface) for theme selection before the logout button.
 - **`frontend/mobile/src/i18n/locales/{en,fr,es,de}/translation.json`** — added `settings.theme` keys matching dashboard locale files.
 - **`docs/plans/implementation-plan.md`** — added Deferred Items table (8 items, 5 pending / 2 done); marked "Dark mode" backlog item as ✅ Done; updated Current State frontend row.
+- **`frontend/mobile/src/features/settings/pages/__tests__/SettingsPage.test.tsx`** — added `vi.mock('@/features/settings/ThemeContext', …)` to fix 4 failing tests (`useTheme must be used inside ThemeProvider`).
 
 ## [0.113.5] - 2026-06-09
 ### Mobile app — dev server proxy fix + runtime i18n + login UX
