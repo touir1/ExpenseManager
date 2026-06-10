@@ -9,7 +9,7 @@ Reference: [application-description.md](application-description.md)
 | Users service | ✅ Complete — auth, registration, JWT (incl. `isAdmin` claim), refresh tokens, password management, FluentValidation, admin user management (`AdminUserController`) |
 | Expenses service | ✅ Phase 1–13 complete — schema, categories/currencies, expense CRUD, family system, tags, currency rates (daily storage, resolution, auto-update via Quartz, backfill, conflict management, display currency conversion), dashboard API, admin controllers (categories, currencies, rates), CSV bulk import, outbox for family events |
 | Notifications service | ✅ Phase 13 complete — dedicated microservice (port 9300); SignalR hub; RabbitMQ consumer (`family.member.removed`); inbox deduplication; in-app notifications + email; `NotificationBell` in frontend NavBar; 20 tests |
-| Frontend | ✅ Auth + family management + tag input + display currency selector + expense list/form (Phase 8) + dashboard (Phase 9 — Hearth design) + admin screens (Phase 11: users, categories, currencies, rates, rate conflicts, AdminRoute guard, AdminLayout, i18n) + CSV import (Phase 12) + notification bell with SignalR real-time push (Phase 13) + Ionic + Capacitor native mobile app at `frontend/mobile/` (Phase 14) complete |
+| Frontend | ✅ Auth + family management + tag input + display currency selector + expense list/form (Phase 8) + dashboard (Phase 9 — Hearth design) + admin screens (Phase 11: users, categories, currencies, rates, rate conflicts, AdminRoute guard, AdminLayout, i18n) + CSV import (Phase 12) + notification bell with SignalR real-time push (Phase 13) + Ionic + Capacitor native mobile app at `frontend/mobile/` (Phase 14) + three-mode theme (Day/Default/Dark) in both dashboard and mobile apps complete |
 | Infrastructure | ✅ Docker Compose, nginx, PostgreSQL, RabbitMQ, Grafana, Prometheus |
 
 ---
@@ -658,7 +658,7 @@ Not scheduled. Implement after core is stable.
 | **Expense splitting** | Split across family members; settle-up view |
 | **Custom family categories** | Family-level categories alongside global ones |
 | **Reports & exports** | Scheduled monthly PDF email; year-end export |
-| **Dark mode** | Theme toggle in profile settings |
+| **Dark mode** | ✅ Done — three-mode (Day/Default/Dark) theme toggle in dashboard NavBar & SettingsPage and mobile SettingsPage; CSS variable palette; `ThemeContext` + `ThemeProvider` in both apps; persisted via `localStorage` (dashboard) and `@capacitor/preferences` (mobile) |
 | **Audit log UI** | Expense owner and family head can view audit history per expense |
 | **Soft delete option** | If hard delete proves insufficient for reporting; adds `deleted_at` flag |
 

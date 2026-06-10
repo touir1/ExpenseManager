@@ -23,6 +23,10 @@ vi.mock('@/components/Toast', () => ({
   useToast: () => ({ show: mockShow }),
 }))
 
+vi.mock('@/features/settings/ThemeContext', () => ({
+  useTheme: () => ({ theme: 'system', setTheme: vi.fn() }),
+}))
+
 const currencies = [
   { id: 1, code: 'USD', name: 'US Dollar', symbol: '$', decimals: 2 },
   { id: 2, code: 'EUR', name: 'Euro', symbol: '€', decimals: 2 },

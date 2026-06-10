@@ -5,6 +5,7 @@ import { ExpensesDataProvider } from '@/features/expenses/ExpensesDataContext'
 import { FamilyProvider } from '@/features/families/FamilyContext'
 import { DisplayCurrencyProvider } from '@/features/currencies/DisplayCurrencyContext'
 import { NotificationProvider } from '@/features/notifications/NotificationContext'
+import { ThemeProvider } from '@/features/settings/ThemeContext'
 
 const queryClient = new QueryClient()
 
@@ -16,6 +17,7 @@ function composeProviders(...providers: ProviderComponent[]): ProviderComponent 
 }
 
 const InnerProviders = composeProviders(
+  ThemeProvider,
   AuthProvider,
   ExpensesDataProvider,
   FamilyProvider,

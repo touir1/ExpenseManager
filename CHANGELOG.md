@@ -3,6 +3,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.114.0] - 2026-06-10
+### Three-mode theme (Day / Default / Dark) — dashboard + mobile
+
+- **`frontend/dashboard/src/features/settings/ThemeContext.tsx`** *(new)* — `ThemeProvider` / `useTheme()` hook; three modes: `light` (Day), `dark`, `system` (Default — follows `prefers-color-scheme`); applies `.dark` / `.light` class to `document.documentElement`; persists selection to `localStorage` (synchronous read in `useState` initialiser so no flash).
+- **`frontend/dashboard/src/components/ThemeToggle.tsx`** *(new)* — segmented 3-button control (sun / monitor / moon icons); `aria-pressed` + `aria-label`; active button = `bg-brand-500 text-white`; labels hidden on mobile.
+- **`frontend/dashboard/tailwind.config.ts`** — added `darkMode: 'class'`; converted `surface.*` and `ink.*` palette values to CSS variable references (`var(--color-surface-*)`, `var(--color-ink-*)`) so all existing Tailwind utility classes auto-adapt when the mode class changes — zero component changes needed.
+- **`frontend/dashboard/src/styles/index.css`** — added CSS variable definitions for light palette (`:root`) and dark palette (`.dark`), plus `@media (prefers-color-scheme: dark) { :root:not(.light) { … } }` for the `system` mode.
+- **`frontend/dashboard/src/providers/AppProviders.tsx`** — added `ThemeProvider` as outermost provider in `composeProviders`.
+- **`frontend/dashboard/src/layouts/NavBar.tsx`** — added `ThemeToggle` row in the user avatar dropdown (between language switcher and sign-out divider).
+- **`frontend/dashboard/src/features/dashboard/pages/SettingsPage.tsx`** — added theme card (moon icon, title/description from i18n, `ThemeToggle`).
+- **`frontend/dashboard/src/i18n/locales/{en,fr,es,de}/translation.json`** — added `settings.theme` object: `{ title, description, label, light, dark, system }`.
+- **`frontend/dashboard/src/layouts/__tests__/NavBar.test.tsx`**, **`frontend/dashboard/src/features/dashboard/pages/__tests__/SettingsPage.test.tsx`** — added `vi.mock('@/features/settings/ThemeContext', …)` to prevent `useTheme must be used inside ThemeProvider` in tests.
+- **`frontend/mobile/src/features/settings/ThemeContext.tsx`** *(new)* — same API as dashboard but persistence via `@capacitor/preferences` (async load in `useEffect`, localStorage fallback).
+- **`frontend/mobile/src/theme/variables.css`** — added `.dark { … }` block and `@media (prefers-color-scheme: dark) { :root:not(.light) { … } }` with full Ionic CSS variable dark palette (Hearth warm-dark browns: `--ion-background-color: #1C1610`, `--ion-card-background: #251D16`, `--ion-text-color: #F0E9E1`).
+- **`frontend/mobile/src/providers/AppProviders.tsx`** — added `ThemeProvider` as first provider.
+- **`frontend/mobile/src/features/settings/pages/SettingsPage.tsx`** — added `IonItem` + `IonSelect` (action-sheet interface) for theme selection before the logout button.
+- **`frontend/mobile/src/i18n/locales/{en,fr,es,de}/translation.json`** — added `settings.theme` keys matching dashboard locale files.
+- **`docs/plans/implementation-plan.md`** — added Deferred Items table (8 items, 5 pending / 2 done); marked "Dark mode" backlog item as ✅ Done; updated Current State frontend row.
+
 ## [0.113.5] - 2026-06-09
 ### Mobile app — dev server proxy fix + runtime i18n + login UX
 

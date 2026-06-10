@@ -69,3 +69,48 @@
   --ion-toolbar-background: #FFFCF6;
   --ion-item-background: #FFFCF6;
 }
+
+/* ── Dark mode — Hearth dark palette ──────────────────────────────── */
+.dark {
+  --ion-background-color: #1C1610;
+  --ion-background-color-rgb: 28, 22, 16;
+  --ion-card-background: #251D16;
+  --ion-text-color: #F0E9E1;
+  --ion-text-color-rgb: 240, 233, 225;
+  --ion-border-color: #3E2E22;
+
+  --ion-color-light: #2E2318;
+  --ion-color-light-rgb: 46, 35, 24;
+  --ion-color-light-contrast: #F0E9E1;
+  --ion-color-light-contrast-rgb: 240, 233, 225;
+  --ion-color-light-shade: #251D16;
+  --ion-color-light-tint: #3A2B1C;
+
+  --ion-tab-bar-background: #251D16;
+  --ion-tab-bar-border-color: #3E2E22;
+  --ion-toolbar-background: #251D16;
+  --ion-item-background: #251D16;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --ion-background-color: #1C1610;
+    --ion-background-color-rgb: 28, 22, 16;
+    --ion-card-background: #251D16;
+    --ion-text-color: #F0E9E1;
+    --ion-text-color-rgb: 240, 233, 225;
+    --ion-border-color: #3E2E22;
+
+    --ion-color-light: #2E2318;
+    --ion-color-light-rgb: 46, 35, 24;
+    --ion-color-light-contrast: #F0E9E1;
+    --ion-color-light-contrast-rgb: 240, 233, 225;
+    --ion-color-light-shade: #251D16;
+    --ion-color-light-tint: #3A2B1C;
+
+    --ion-tab-bar-background: #251D16;
+    --ion-tab-bar-border-color: #3E2E22;
+    --ion-toolbar-background: #251D16;
+    --ion-item-background: #251D16;
+  }
+}

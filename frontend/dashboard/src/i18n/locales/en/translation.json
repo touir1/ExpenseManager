@@ -178,7 +178,15 @@
                      "language":  {
                                       "title":  "Language",
                                       "description":  "Choose your preferred display language."
-                                  }
+                                  },
+                     "theme":  {
+                                   "title":  "Appearance",
+                                   "description":  "Choose how the app looks. Default follows your system setting.",
+                                   "label":  "Theme",
+                                   "light":  "Day",
+                                   "dark":  "Dark",
+                                   "system":  "Default"
+                               }
                  },
     "public":  {
                    "home":  {

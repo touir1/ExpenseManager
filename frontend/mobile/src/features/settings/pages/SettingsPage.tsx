@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
 import { useDisplayCurrency } from '@/features/currencies/DisplayCurrencyContext'
 import { useExpensesData } from '@/features/expenses/ExpensesDataContext'
+import { useTheme, type Theme } from '@/features/settings/ThemeContext'
 
 const LANGUAGES = [
   { code: 'en', label: 'English' },
@@ -24,11 +25,18 @@ const LANGUAGES = [
   { code: 'de', label: 'Deutsch' },
 ]
 
+const THEMES: { value: Theme; labelKey: string }[] = [
+  { value: 'light', labelKey: 'settings.theme.light' },
+  { value: 'system', labelKey: 'settings.theme.system' },
+  { value: 'dark', labelKey: 'settings.theme.dark' },
+]
+
 export default function SettingsPage() {
   const { t, i18n } = useTranslation()
   const { user, logout } = useAuth()
   const { displayCurrencyId, setDisplayCurrencyId } = useDisplayCurrency()
   const { currencies } = useExpensesData()
+  const { theme, setTheme } = useTheme()
 
   async function handleLanguageChange(lang: string) {
     await i18n.changeLanguage(lang)
@@ -81,6 +89,19 @@ export default function SettingsPage() {
             >
               {LANGUAGES.map(l => (
                 <IonSelectOption key={l.code} value={l.code}>{l.label}</IonSelectOption>
+              ))}
+            </IonSelect>
+          </IonItem>
+          <IonItem>
+            <IonLabel>{t('settings.theme.label', 'Theme')}</IonLabel>
+            <IonSelect
+              value={theme}
+              onIonChange={e => setTheme(e.detail.value as Theme)}
+              interface="action-sheet"
+              slot="end"
+            >
+              {THEMES.map(opt => (
+                <IonSelectOption key={opt.value} value={opt.value}>{t(opt.labelKey)}</IonSelectOption>
               ))}
             </IonSelect>
           </IonItem>

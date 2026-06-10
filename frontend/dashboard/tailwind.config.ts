@@ -2,6 +2,7 @@ import type { Config } from 'tailwindcss'
 
 const config: Config = {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       fontFamily: {
@@ -46,20 +47,20 @@ const config: Config = {
           900: '#3E1A0F',
           950: '#1E0C06',
         },
-        // Warm cream surfaces
+        // Warm cream surfaces — CSS-variable-driven so dark mode auto-adapts
         surface: {
-          page:   '#FAF6EE',
-          card:   '#FFFCF6',
-          subtle: '#F3ECDD',
-          border: '#E8DECB',
-          muted:  '#EFE6D3',
+          page:   'var(--color-surface-page)',
+          card:   'var(--color-surface-card)',
+          subtle: 'var(--color-surface-subtle)',
+          border: 'var(--color-surface-border)',
+          muted:  'var(--color-surface-muted)',
         },
-        // Deep cocoa ink hierarchy
+        // Deep cocoa ink hierarchy — CSS-variable-driven
         ink: {
-          DEFAULT: '#23170E',
-          body:    '#574A3D',
-          mute:    '#8E8170',
-          faint:   '#B8AB99',
+          DEFAULT: 'var(--color-ink)',
+          body:    'var(--color-ink-body)',
+          mute:    'var(--color-ink-mute)',
+          faint:   'var(--color-ink-faint)',
         },
         // Signal palette
         sage: {

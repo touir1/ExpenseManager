@@ -6,6 +6,7 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import { useExpensesData } from '@/features/expenses/ExpensesDataContext'
 import { getConfig, updateConfig } from '@/features/settings/services/userConfigApi.service'
 import { useToast } from '@/components/Toast'
+import ThemeToggle from '@/components/ThemeToggle'
 
 function DefaultCurrencyCard() {
   const { t } = useTranslation()
@@ -129,6 +130,27 @@ export default function SettingsPage() {
 
         {/* Default currency card */}
         <DefaultCurrencyCard />
+
+        {/* Theme card */}
+        <div className="bg-surface-card rounded-2xl border border-surface-border shadow-card p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100">
+              <svg
+                className="h-4.5 w-4.5 text-brand-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            </span>
+            <h2 className="text-sm font-semibold text-ink">{t('settings.theme.title')}</h2>
+          </div>
+          <p className="text-xs text-ink-mute mb-4">{t('settings.theme.description')}</p>
+          <ThemeToggle />
+        </div>
       </div>
     </div>
   )

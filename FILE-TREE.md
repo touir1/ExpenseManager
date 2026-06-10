@@ -654,7 +654,7 @@ ExpenseManager/
 │       ├── postcss.config.cjs         — PostCSS pipeline for Tailwind
 │       ├── setupTests.ts              — Vitest global test setup
 │       ├── sonar-project.properties   — SonarQube project settings
-│       ├── tailwind.config.ts         — Hearth design system tokens (brand/surface/ink/sage/berry/mustard palette, custom fonts, shadows)
+│       ├── tailwind.config.ts         — Hearth design system tokens (brand/surface/ink/sage/berry/mustard palette, custom fonts, shadows); darkMode: 'class'; surface+ink use CSS variable references for automatic dark-mode adaptation
 │       ├── tsconfig.json
 │       ├── tsconfig.app.json
 │       ├── tsconfig.node.json
@@ -674,6 +674,7 @@ ExpenseManager/
 │           │   ├── PasswordInput.tsx   — Password input with show/hide toggle
 │           │   ├── PasswordStrength.tsx — Live password strength indicator (5-segment bar + checklist)
 │           │   ├── SubmitButton.tsx    — Submit button with spinner SVG and configurable labels
+│           │   ├── ThemeToggle.tsx     — Segmented 3-button control (Day/Default/Dark); uses useTheme(); aria-pressed; active = brand-500
 │           │   ├── Toast.tsx           — Toast notification provider and hook
 │           │   └── __tests__/
 │           │       ├── BackLink.test.tsx
@@ -841,7 +842,7 @@ ExpenseManager/
 │           │   │   │       └── DashboardFilters.test.tsx
 │           │   │   └── pages/
 │           │   │       ├── HomeDashboardPage.tsx — Hearth layout; 6 useQuery calls; DashboardFilters + MonthHero + SpendChart + CategoryDonut + SameMonthChart + CurrenciesPanel + RecentExpenses
-│           │   │       ├── SettingsPage.tsx       — Settings hub; password card (link to /change-password)
+│           │   │       ├── SettingsPage.tsx       — Settings hub; password card (link to /change-password); default-currency card; theme card (ThemeToggle)
 │           │   │       └── __tests__/
 │           │   │           ├── HomeDashboardPage.test.tsx
 │           │   │           └── SettingsPage.test.tsx
@@ -889,6 +890,8 @@ ExpenseManager/
 │           │   │   ├── NotificationContext.tsx   — NotificationProvider / useNotifications(); loads on auth; SignalR connection via dynamic import; markRead/markAllRead/refresh; setupPushNotifications() registers Capacitor PushNotifications + calls POST /api/notifications/push-token
 │           │   │   └── __tests__/
 │           │   │       └── NotificationContext.test.tsx
+│           │   ├── settings/          — Settings feature (theme)
+│           │   │   └── ThemeContext.tsx — ThemeProvider / useTheme(); three modes: light/dark/system; applies .dark/.light class to <html>; persists to localStorage
 │           │   └── public/            — Public (unauthenticated) pages
 │           │       └── pages/
 │           │           ├── HomePublicPage.tsx    — Public landing page
@@ -899,7 +902,7 @@ ExpenseManager/
 │           │               ├── NotFoundPage.test.tsx
 │           │               └── VerifyErrorPage.test.tsx
 │           ├── providers/             — Composed provider tree
-│           │   ├── AppProviders.tsx   — Nests AuthProvider → ExpensesDataProvider → FamilyProvider → DisplayCurrencyProvider
+│           │   ├── AppProviders.tsx   — Nests ThemeProvider → AuthProvider → ExpensesDataProvider → FamilyProvider → DisplayCurrencyProvider
 │           │   └── __tests__/
 │           │       └── AppProviders.test.tsx
 │           ├── hooks/                 — Shared hooks
@@ -907,7 +910,7 @@ ExpenseManager/
 │           │   └── __tests__/
 │           │       └── usePageTitle.test.ts
 │           ├── layouts/               — App-wide layout components
-│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive; "Admin" link shown only when isAdmin=true; right-side controls: FamilySelector → DisplayCurrencySelector → Add Expense `+` button → notification bell → user avatar dropdown
+│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive; "Admin" link shown only when isAdmin=true; right-side controls: FamilySelector → DisplayCurrencySelector → Add Expense `+` button → notification bell → user avatar dropdown (includes ThemeToggle row)
 │           │   └── __tests__/
 │           │       └── NavBar.test.tsx
 │           ├── services/              — Shared base services
@@ -917,7 +920,7 @@ ExpenseManager/
 │           │       ├── api.service.env.test.ts — Isolated env tests: VITE_API_BASE prefix and trailing-slash strip
 │           │       └── api.test.ts
 │           ├── styles/
-│           │   └── index.css          — Tailwind directives + @layer components
+│           │   └── index.css          — Tailwind directives + @layer components; CSS variable light/dark palette definitions; @media prefers-color-scheme dark for system mode
 │           └── types/                 — Shared TypeScript type definitions
 │               └── api.type.ts         — ApiResponse<T>
 │
@@ -943,10 +946,10 @@ ExpenseManager/
 │           ├── router.tsx             — Auth guard + IonTabs (5 tabs: Dashboard/Expenses/+FAB/Families/Settings); QuickAddModal outside IonTabs
 │           ├── test-setup.ts          — Vitest global mocks for 5 Capacitor plugins + fake-indexeddb + @testing-library/jest-dom
 │           ├── theme/
-│           │   └── variables.css      — Ionic CSS vars mapped to Hearth tokens (clay primary, paper bg, sage success, berry danger)
+│           │   └── variables.css      — Ionic CSS vars mapped to Hearth tokens (clay primary, paper bg, sage success, berry danger); .dark block + @media prefers-color-scheme dark for system mode
 │           ├── i18n/                  — i18next config + locale JSON (en/fr/es/de copied from dashboard)
 │           ├── providers/
-│           │   └── AppProviders.tsx   — QueryClientProvider→AuthProvider→ExpensesDataProvider→FamilyProvider→DisplayCurrencyProvider→NotificationProvider
+│           │   └── AppProviders.tsx   — QueryClientProvider→ThemeProvider→AuthProvider→ExpensesDataProvider→FamilyProvider→DisplayCurrencyProvider→NotificationProvider
 │           ├── services/
 │           │   └── api.service.ts     — Adapted from dashboard; uses VITE_API_BASE_URL for Capacitor WebView absolute URLs
 │           ├── types/
@@ -1002,8 +1005,9 @@ ExpenseManager/
 │               │   │   └── NotificationBell.tsx  — IonButton + IonBadge + IonPopover notification list
 │               │   └── __tests__/NotificationContext.test.tsx — real class MockHubConnectionBuilder
 │               ├── settings/
+│               │   ├── ThemeContext.tsx          — ThemeProvider / useTheme(); async load via @capacitor/preferences (localStorage fallback); applies .dark/.light to <html>
 │               │   └── pages/
-│               │       ├── SettingsPage.tsx      — Display currency + language selectors; persists language to @capacitor/preferences; logout
+│               │       ├── SettingsPage.tsx      — Display currency + language + theme (IonSelect, action-sheet) selectors; persists language to @capacitor/preferences; logout
 │               │       └── __tests__/SettingsPage.test.tsx
 │               ├── currencies/
 │               │   ├── DisplayCurrencyContext.tsx  — Session state; adapted from dashboard (Preferences persistence)

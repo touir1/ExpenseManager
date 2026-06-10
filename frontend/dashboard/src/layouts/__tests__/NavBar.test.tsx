@@ -49,6 +49,10 @@ vi.mock('@/features/notifications/NotificationContext', () => ({
   }),
 }))
 
+vi.mock('@/features/settings/ThemeContext', () => ({
+  useTheme: () => ({ theme: 'system', setTheme: vi.fn() }),
+}))
+
 function makeQc() {
   return new QueryClient({ defaultOptions: { queries: { retry: false } } })
 }

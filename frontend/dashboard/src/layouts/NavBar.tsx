@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/features/auth/AuthContext'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import ThemeToggle from '@/components/ThemeToggle'
 import FamilySelector from '@/features/families/components/FamilySelector'
 import DisplayCurrencySelector from '@/features/currencies/components/DisplayCurrencySelector'
 import AddExpenseModal from '@/features/expenses/components/AddExpenseModal'
@@ -199,6 +200,10 @@ export default function NavBar() {
                     <div className="px-3 py-1.5 flex items-center gap-2">
                       <span className="text-sm font-semibold text-ink-mute shrink-0">{t('language.label')}</span>
                       <LanguageSwitcher />
+                    </div>
+                    <div className="px-3 py-1.5 flex items-center gap-2">
+                      <span className="text-sm font-semibold text-ink-mute shrink-0">{t('settings.theme.label')}</span>
+                      <ThemeToggle />
                     </div>
                     <div className="border-t border-surface-border my-1" />
                     <button

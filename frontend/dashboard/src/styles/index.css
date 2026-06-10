@@ -2,6 +2,48 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Hearth design tokens — light mode ──────────────────────────── */
+:root {
+  --color-surface-page:   #FAF6EE;
+  --color-surface-card:   #FFFCF6;
+  --color-surface-subtle: #F3ECDD;
+  --color-surface-border: #E8DECB;
+  --color-surface-muted:  #EFE6D3;
+  --color-ink:      #23170E;
+  --color-ink-body: #574A3D;
+  --color-ink-mute: #8E8170;
+  --color-ink-faint:#B8AB99;
+}
+
+/* ── Dark mode overrides ─────────────────────────────────────────── */
+/* Applied when .dark is on <html>; also respects system preference   */
+/* when neither .dark nor .light is set.                              */
+.dark {
+  --color-surface-page:   #1C1610;
+  --color-surface-card:   #251D16;
+  --color-surface-subtle: #2E2318;
+  --color-surface-border: #3E2E22;
+  --color-surface-muted:  #2A2018;
+  --color-ink:      #F0E9E1;
+  --color-ink-body: #C9BAA8;
+  --color-ink-mute: #8E8170;
+  --color-ink-faint:#5C5044;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --color-surface-page:   #1C1610;
+    --color-surface-card:   #251D16;
+    --color-surface-subtle: #2E2318;
+    --color-surface-border: #3E2E22;
+    --color-surface-muted:  #2A2018;
+    --color-ink:      #F0E9E1;
+    --color-ink-body: #C9BAA8;
+    --color-ink-mute: #8E8170;
+    --color-ink-faint:#5C5044;
+  }
+}
+
 @layer base {
   *,
   *::before,

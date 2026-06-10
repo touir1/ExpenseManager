@@ -1,5 +1,5 @@
 {
-    "appTitle":  "Expenses Manager",
+    "appTitle": "Expenses Manager",
     "notifications": {
         "title": "Benachrichtigungen",
         "markAllRead": "Alle als gelesen markieren",
@@ -13,531 +13,539 @@
         "rateConflictCreated": "Kurskonflikt: {{sourceCurrencyCode}}/{{destCurrencyCode}} — manueller Kurs durch automatische Aktualisierung ersetzt.",
         "badge": "{{count}} ungelesen"
     },
-    "nav":  {
-                "home":  "Startseite",
-                "dashboard":  "Übersicht",
-                "families":  "Familien",
-                "settings":  "Einstellungen",
-                "signIn":  "Anmelden",
-                "signOut":  "Abmelden",
-                "getStarted":  "Loslegen",
-                "toggleMenu":  "Menü öffnen",
-                "mobileNav":  "Mobile Navigation",
-                "userMenu":  "Benutzermenü",
-                "howItWorks":  "Wie es funktioniert",
-                "forFamilies":  "Für Familien",
-                "pricing":  "Preise",
-                "help":  "Hilfe",
-                "notifications":  "Benachrichtigungen",
-                "expenses":  "Ausgaben",
-                "addExpense":  "Ausgabe hinzufügen",
-                "admin":  "Admin"
+    "nav": {
+        "home": "Startseite",
+        "dashboard": "Übersicht",
+        "families": "Familien",
+        "settings": "Einstellungen",
+        "signIn": "Anmelden",
+        "signOut": "Abmelden",
+        "getStarted": "Loslegen",
+        "toggleMenu": "Menü öffnen",
+        "mobileNav": "Mobile Navigation",
+        "userMenu": "Benutzermenü",
+        "howItWorks": "Wie es funktioniert",
+        "forFamilies": "Für Familien",
+        "pricing": "Preise",
+        "help": "Hilfe",
+        "notifications": "Benachrichtigungen",
+        "expenses": "Ausgaben",
+        "addExpense": "Ausgabe hinzufügen",
+        "admin": "Admin"
+    },
+    "auth": {
+        "login": {
+            "pageTitle": "Anmelden",
+            "title": "Willkommen zurück",
+            "subtitle": "Melde dich bei deinem Konto an, um fortzufahren.",
+            "password": "Passwort",
+            "rememberMe": "Angemeldet bleiben",
+            "submit": "Anmelden",
+            "submitting": "Anmelden…",
+            "invalidCredentials": "Ungültige Anmeldedaten. Bitte versuche es erneut.",
+            "noAccount": "Noch kein Konto?",
+            "register": "Registrieren",
+            "forgotPassword": "Passwort vergessen?",
+            "haveVerificationLink": "Hast du einen Verifizierungslink?",
+            "backToHome": "← Zurück zur Startseite"
+        },
+        "register": {
+            "pageTitle": "Registrieren",
+            "title": "Konto erstellen",
+            "subtitle": "Loslegen — es dauert nur einen Moment.",
+            "firstName": "Vorname",
+            "lastName": "Nachname",
+            "emailAddress": "E-Mail-Adresse",
+            "submit": "Registrieren",
+            "submitting": "Wird gesendet…",
+            "successMessage": "Registrierung erfolgreich! Überprüfe deinen Posteingang. Klicke auf den Link, um deine Adresse zu bestätigen und dein Passwort festzulegen — dann kannst du dich anmelden.",
+            "failedMessage": "Registrierung fehlgeschlagen. Bitte versuche es erneut.",
+            "goToLogin": "Zur Anmeldung →",
+            "alreadyHaveAccount": "Bereits ein Konto?",
+            "goToLoginLink": "Zur Anmeldung"
+        },
+        "changePassword": {
+            "pageTitle": "Passwort ändern",
+            "title": "Passwort ändern",
+            "subtitle": "Aktualisiere dein Kontopasswort unten.",
+            "backToSettings": "Zurück zu Einstellungen",
+            "oldPassword": "Altes Passwort",
+            "newPassword": "Neues Passwort",
+            "repeatPassword": "Neues Passwort wiederholen",
+            "submit": "Passwort ändern",
+            "submitting": "Wird gespeichert…",
+            "success": "Passwort geändert.",
+            "error": "Aktuelles Passwort falsch."
+        },
+        "requestPasswordReset": {
+            "pageTitle": "Passwort zurücksetzen",
+            "title": "Passwort zurücksetzen",
+            "subtitle": "Wir senden dir einen Reset-Link, wenn deine E-Mail registriert ist.",
+            "submit": "Link senden",
+            "submitting": "Wird gesendet…",
+            "successToast": "Falls die E-Mail existiert, wurde ein Reset-Link gesendet.",
+            "errorToast": "Bitte gib eine gültige E-Mail-Adresse ein.",
+            "notAvailable": "Zurücksetzen nicht verfügbar",
+            "hint": "Du erhältst eine E-Mail mit einem Verifizierungslink zum Zurücksetzen deines Passworts.",
+            "backToLogin": "Zurück zur Anmeldung"
+        },
+        "resetPassword": {
+            "pageTitle": "Passwort zurücksetzen",
+            "createPageTitle": "Passwort erstellen",
+            "title": "Passwort zurücksetzen",
+            "createTitle": "Passwort erstellen",
+            "subtitle": "Gib ein neues Passwort für dein Konto ein.",
+            "createSubtitle": "Lege ein Passwort für dein neues Konto fest.",
+            "newPassword": "Neues Passwort",
+            "repeatPassword": "Neues Passwort wiederholen",
+            "submit": "Zurücksetzen",
+            "createSubmit": "Erstellen",
+            "submitting": "Wird zurückgesetzt…",
+            "createSubmitting": "Wird erstellt…",
+            "successMessage": "Passwort erfolgreich zurückgesetzt. Weiterleitung…",
+            "createSuccessMessage": "Passwort erfolgreich erstellt. Weiterleitung…",
+            "errorMessage": "Zurücksetzen fehlgeschlagen. Bitte versuche es erneut.",
+            "createErrorMessage": "Erstellen fehlgeschlagen. Bitte versuche es erneut.",
+            "invalidLink": "Ungültiger oder fehlender Verifizierungslink. Bitte fordere einen neuen an.",
+            "requestReset": "Passwort zurücksetzen anfordern"
+        },
+        "email": {
+            "label": "E-Mail-Adresse",
+            "placeholder": "du@beispiel.de"
+        }
+    },
+    "dashboard": {
+        "pageTitle": "Übersicht",
+        "title": "Übersicht",
+        "greeting": "Hallo, {{name}}",
+        "defaultName": "du",
+        "loading": "Übersicht wird geladen",
+        "empty": "Keine Ausgaben für diesen Zeitraum",
+        "noData": "Keine Daten verfügbar",
+        "noCurrencies": "Keine Währungen für diesen Zeitraum",
+        "account": {
+            "title": "Konto",
+            "signedInAs": "Angemeldet als"
+        },
+        "settings": {
+            "title": "Einstellungen",
+            "changePassword": "Passwort ändern"
+        },
+        "expenses": {
+            "title": "Ausgaben",
+            "comingSoon": "Demnächst verfügbar…"
+        },
+        "filters": {
+            "thisMonth": "Dieser Monat",
+            "thisYear": "Dieses Jahr"
+        },
+        "summary": {
+            "total": "Gesamtausgaben",
+            "vs": "vs. vorh. Zeitr.",
+            "expenses": "Ausgaben",
+            "converted": "umgerechnet",
+            "topCategory": "Höchste Ausgabe:"
+        },
+        "charts": {
+            "monthly": "Monatliche Ausgaben",
+            "categories": "Nach Kategorie",
+            "sameMonth": "{{month}} im Jahresvergleich",
+            "currencies": "Nach Währung"
+        },
+        "recent": {
+            "title": "Aktuelle Ausgaben",
+            "viewAll": "Alle anzeigen",
+            "empty": "Keine aktuellen Ausgaben"
+        }
+    },
+    "settings": {
+        "pageTitle": "Einstellungen",
+        "title": "Einstellungen",
+        "subtitle": "Verwalte deine Kontoeinstellungen.",
+        "password": {
+            "title": "Passwort",
+            "description": "Aktualisiere das Passwort für die Anmeldung an deinem Konto.",
+            "changeLink": "Passwort ändern"
+        },
+        "currency": {
+            "title": "Standardwährung",
+            "description": "Wähle die Währung, in der Gesamtbeträge angezeigt werden.",
+            "save": "Speichern",
+            "saving": "Wird gespeichert…",
+            "success": "Standardwährung aktualisiert.",
+            "error": "Standardwährung konnte nicht aktualisiert werden."
+        },
+        "language": {
+            "title": "Sprache",
+            "description": "Wähle deine bevorzugte Anzeigesprache."
+        },
+        "theme": {
+            "title": "Erscheinungsbild",
+            "description": "Wähle das Aussehen der App. Standard folgt den Systemeinstellungen.",
+            "label": "Design",
+            "light": "Hell",
+            "dark": "Dunkel",
+            "system": "Standard"
+        }
+    },
+    "public": {
+        "home": {
+            "headline": "Verwalte deine Ausgaben,",
+            "headlineAccent": "einfach.",
+            "description": "Ein klares, schlankes Werkzeug zur Finanzkontrolle. Melde dich an oder erstelle ein Konto — es dauert weniger als eine Minute.",
+            "signIn": "Anmelden",
+            "createAccount": "Konto erstellen"
+        },
+        "notFound": {
+            "pageTitle": "Seite nicht gefunden",
+            "title": "Seite nicht gefunden",
+            "description": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+            "goHome": "Zur Startseite"
+        },
+        "verifyError": {
+            "pageTitle": "Verifizierung fehlgeschlagen",
+            "title": "Verifizierungslink abgelaufen",
+            "description": "Dieser Verifizierungslink wurde bereits verwendet oder ist abgelaufen. Bitte registriere dich erneut oder fordere eine neue Bestätigungs-E-Mail an.",
+            "backToRegister": "Zurück zur Registrierung",
+            "resend": "Bestätigungs-E-Mail erneut senden",
+            "resendSent": "Ein neuer Verifizierungslink wird in Kürze gesendet. Prüfe deinen Posteingang."
+        }
+    },
+    "passwordStrength": {
+        "label": "Stärke",
+        "requirements": "Passwortanforderungen",
+        "criteria": {
+            "length": "Mindestens 8 Zeichen",
+            "uppercase": "Großbuchstabe (A–Z)",
+            "lowercase": "Kleinbuchstabe (a–z)",
+            "number": "Ziffer (0–9)",
+            "special": "Sonderzeichen (!@#…)"
+        },
+        "levels": {
+            "weak": "Schwach",
+            "fair": "Mäßig",
+            "good": "Gut",
+            "strong": "Stark"
+        }
+    },
+    "apiErrors": {
+        "server": "Serverfehler, bitte versuche es später erneut.",
+        "rateLimit": "Zu viele Anfragen. Bitte warte und versuche es erneut.",
+        "notFound": "Ressource nicht gefunden.",
+        "forbidden": "Zugriff verweigert. Möglicherweise fehlen dir die Berechtigungen.",
+        "badRequest": "Ungültige Anfrage. Bitte überprüfe deine Eingabe.",
+        "network": "Netzwerkfehler. Überprüfe deine Verbindung und versuche es erneut.",
+        "unauthorized": "Nicht autorisiert",
+        "missingParameters": "Bitte fülle alle Pflichtfelder aus.",
+        "serverError": "Serverfehler, bitte versuche es später erneut.",
+        "invalidUsernameOrPassword": "Ungültige E-Mail oder Passwort.",
+        "noAssignedRole": "Deinem Konto ist keine Rolle zugewiesen. Bitte kontaktiere den Support.",
+        "emailVerificationFailed": "E-Mail-Verifizierung fehlgeschlagen. Überprüfe den Link und versuche es erneut.",
+        "notMatchingConfirmPassword": "Die Passwörter stimmen nicht überein.",
+        "setNewPasswordFailed": "Neues Passwort konnte nicht gesetzt werden. Bitte versuche es erneut.",
+        "requestPasswordResetFailed": "Anforderung zum Zurücksetzen fehlgeschlagen. Bitte versuche es erneut.",
+        "resetPasswordFailed": "Passwort zurücksetzen fehlgeschlagen. Bitte versuche es erneut.",
+        "missingToken": "Authentifizierungstoken fehlt. Bitte melde dich erneut an.",
+        "invalidToken": "Ungültiger Authentifizierungstoken. Bitte melde dich erneut an.",
+        "createPasswordFailed": "Passwort konnte nicht erstellt werden. Bitte versuche es erneut.",
+        "familyNotFound": "Familie nicht gefunden.",
+        "userNotFound": "Benutzer nicht gefunden.",
+        "familyNotMember": "Der Benutzer ist kein Mitglied dieser Familie.",
+        "familyAlreadyMember": "Dieser Benutzer ist bereits Mitglied dieser Familie.",
+        "familyCannotInviteDefault": "Du kannst keine Mitglieder in deine Standardfamilie einladen.",
+        "familyCannotRemoveDefault": "Du kannst keine Mitglieder aus deiner Standardfamilie entfernen.",
+        "familyCannotRemoveSelfHead": "Du kannst dich nicht entfernen, da du der einzige Kopf dieser Familie bist.",
+        "familyCannotChangeOwnRole": "Du kannst deine eigene Rolle nicht ändern.",
+        "familyCannotArchiveDefault": "Deine Standardfamilie kann nicht archiviert werden.",
+        "familyCannotLeaveDefault": "Du kannst deine Standardfamilie nicht verlassen.",
+        "familyCannotLeaveLastHead": "Du kannst nicht gehen — du bist der einzige Kopf dieser Familie.",
+        "familyForbidden": "Du hast keinen Zugriff auf diese Familie.",
+        "tagNotVisible": "Ein oder mehrere Tags sind für dich nicht sichtbar.",
+        "familyInvitationInvalid": "Dieser Einladungslink ist ungültig.",
+        "familyInvitationAlreadyAccepted": "Diese Einladung wurde bereits angenommen.",
+        "familyInvitationExpired": "Diese Einladung ist abgelaufen.",
+        "familyNameAlreadyExists": "Eine Familie mit diesem Namen existiert bereits."
+    },
+    "families": {
+        "pageTitle": "Familien",
+        "title": "Familien",
+        "subtitle": "Verwalte deine Familiengruppen und Mitglieder.",
+        "createAction": "Familie erstellen",
+        "createTitle": "Familie erstellen",
+        "renameTitle": "Familie umbenennen",
+        "nameLabel": "Familienname",
+        "namePlaceholder": "z.B. Familie Müller",
+        "createSubmit": "Erstellen",
+        "createSubmitting": "Wird erstellt…",
+        "createSuccess": "Familie erstellt.",
+        "renameSubmit": "Umbenennen",
+        "renamingSubmitting": "Wird umbenannt…",
+        "renameSuccess": "Familie umbenannt.",
+        "renameAction": "Umbenennen",
+        "archiveAction": "Archivieren",
+        "unarchiveAction": "Wiederherstellen",
+        "archiveSuccess": "Familie archiviert.",
+        "unarchiveSuccess": "Familie wiederhergestellt.",
+        "inviteTitle": "In {{name}} einladen",
+        "inviteHint": "Der Eingeladene muss über den Link in seiner E-Mail akzeptieren.",
+        "inviteSubmit": "Einladung senden",
+        "inviteSubmitting": "Wird gesendet…",
+        "inviteSuccess": "Einladung gesendet.",
+        "inviteAction": "Mitglied einladen",
+        "tabActive": "Aktiv",
+        "tabArchived": "Archiviert",
+        "emptyActive": "Keine aktiven Familien.",
+        "emptyArchived": "Keine archivierten Familien.",
+        "default": "Standard",
+        "archived": "Archiviert",
+        "createdAt": "Erstellt am {{date}}",
+        "members": "Mitglieder ({{count}})",
+        "memberRemoved": "{{name}} entfernt.",
+        "roleChanged": "Rolle aktualisiert.",
+        "changeRole": "Rolle ändern",
+        "removeMember": "Mitglied entfernen",
+        "expand": "Mitglieder anzeigen",
+        "collapse": "Mitglieder ausblenden",
+        "selectorPersonal": "Meine Ausgaben",
+        "leaveAction": "Familie verlassen",
+        "leaveSuccess": "Du hast die Familie verlassen.",
+        "acceptInvite": {
+            "pageTitle": "Einladung annehmen",
+            "loading": "Einladung wird angenommen…",
+            "success": "Du bist der Familie beigetreten!",
+            "error": "Diese Einladung ist ungültig oder abgelaufen.",
+            "goToFamilies": "Zu den Familien"
+        }
+    },
+    "currencies": {
+        "searchPlaceholder": "Nach Code oder Name suchen…",
+        "noConversion": "Keine Umrechnung",
+        "displayCurrencySelector": "Anzeigewährung"
+    },
+    "validation": {
+        "emailRequired": "E-Mail-Adresse ist erforderlich.",
+        "emailInvalid": "Bitte gib eine gültige E-Mail-Adresse ein.",
+        "passwordRequired": "Passwort ist erforderlich.",
+        "firstNameRequired": "Vorname ist erforderlich.",
+        "firstNameMax": "Vorname darf maximal 100 Zeichen lang sein.",
+        "lastNameRequired": "Nachname ist erforderlich.",
+        "lastNameMax": "Nachname darf maximal 100 Zeichen lang sein.",
+        "emailMax": "E-Mail-Adresse darf maximal 100 Zeichen lang sein.",
+        "currentPasswordRequired": "Aktuelles Passwort ist erforderlich.",
+        "newPasswordRequired": "Neues Passwort ist erforderlich.",
+        "passwordMin": "Das Passwort muss mindestens 8 Zeichen lang sein.",
+        "repeatPasswordRequired": "Bitte wiederhole dein neues Passwort.",
+        "passwordsNoMatch": "Die neuen Passwörter stimmen nicht überein.",
+        "familyNameRequired": "Familienname ist erforderlich.",
+        "familyNameMax": "Familienname darf maximal 30 Zeichen lang sein.",
+        "familyNameTaken": "Eine Familie mit diesem Namen existiert bereits.",
+        "required": "Dieses Feld ist erforderlich."
+    },
+    "expenses": {
+        "pageTitle": "Ausgaben",
+        "addTitle": "Ausgabe hinzufügen",
+        "editTitle": "Ausgabe bearbeiten",
+        "noExpenses": "Keine Ausgaben gefunden.",
+        "addExpense": "Ausgabe hinzufügen",
+        "firstExpense": "Füge deine erste Ausgabe hinzu",
+        "fields": {
+            "amount": "Betrag",
+            "currency": "Währung",
+            "date": "Datum",
+            "category": "Kategorie",
+            "subcategory": "Unterkategorie",
+            "noCategorySelected": "Zuerst eine Kategorie wählen",
+            "description": "Beschreibung",
+            "tags": "Schlagwörter",
+            "families": "Familien"
+        },
+        "filters": {
+            "title": "Filter",
+            "toggle": "Filter",
+            "dateFrom": "Von",
+            "dateTo": "Bis",
+            "amountMin": "Mindestbetrag",
+            "amountMax": "Höchstbetrag",
+            "apply": "Anwenden",
+            "reset": "Zurücksetzen",
+            "tags": "Etiketten"
+        },
+        "table": {
+            "date": "Datum",
+            "amount": "Betrag",
+            "category": "Kategorie",
+            "tags": "Schlagwörter",
+            "families": "Familien",
+            "actions": "Aktionen"
+        },
+        "actions": {
+            "edit": "Bearbeiten",
+            "delete": "Löschen",
+            "save": "Speichern",
+            "saving": "Speichern…",
+            "cancel": "Abbrechen"
+        },
+        "delete": {
+            "confirmTitle": "Ausgabe löschen?",
+            "confirmBody": "Dies kann nicht rückgängig gemacht werden.",
+            "confirm": "Löschen",
+            "cancel": "Abbrechen"
+        },
+        "errors": {
+            "loadFailed": "Ausgaben konnten nicht geladen werden.",
+            "saveFailed": "Ausgabe konnte nicht gespeichert werden.",
+            "deleteFailed": "Ausgabe konnte nicht gelöscht werden.",
+            "subcategoryRequiresCategory": "Zuerst eine Kategorie wählen.",
+            "amountPositive": "Betrag muss positiv sein.",
+            "dateFormat": "Format JJJJ-MM-TT verwenden."
+        },
+        "modifiedAt": "Zuletzt geändert {{date}} via {{source}}",
+        "uncategorised": "Ohne Kategorie",
+        "pagination": {
+            "prev": "← Zurück",
+            "next": "Weiter →",
+            "pageOf": "Seite {{page}} von {{total}}"
+        },
+        "importCsv": "CSV importieren",
+        "import": {
+            "pageTitle": "Ausgaben aus CSV importieren",
+            "templateLink": "Vorlage herunterladen",
+            "dropzone": "CSV-Datei hier ablegen oder klicken zum Auswählen",
+            "validRows": "{{count}} gültige Zeilen",
+            "errorRows": "{{count}} Zeilen mit Fehlern",
+            "confirmButton": "{{count}} Ausgaben importieren",
+            "cancel": "Abbrechen",
+            "revalidate": "Neu validieren",
+            "editHint": "✎ anklicken zum Bearbeiten einer Zeile, dann Neu validieren klicken",
+            "editRow": "Zeile bearbeiten",
+            "saveRow": "Zeile speichern",
+            "cancelRow": "Bearbeitung abbrechen",
+            "success": "{{count}} Ausgaben erfolgreich importiert",
+            "columns": {
+                "row": "Zeile",
+                "status": "Status",
+                "valid": "Gültig",
+                "error": "Fehler",
+                "editing": "Wird bearbeitet"
             },
-    "auth":  {
-                 "login":  {
-                               "pageTitle":  "Anmelden",
-                               "title":  "Willkommen zurück",
-                               "subtitle":  "Melde dich bei deinem Konto an, um fortzufahren.",
-                               "password":  "Passwort",
-                               "rememberMe":  "Angemeldet bleiben",
-                               "submit":  "Anmelden",
-                               "submitting":  "Anmelden…",
-                               "invalidCredentials":  "Ungültige Anmeldedaten. Bitte versuche es erneut.",
-                               "noAccount":  "Noch kein Konto?",
-                               "register":  "Registrieren",
-                               "forgotPassword":  "Passwort vergessen?",
-                               "haveVerificationLink":  "Hast du einen Verifizierungslink?",
-                               "backToHome":  "← Zurück zur Startseite"
-                           },
-                 "register":  {
-                                  "pageTitle":  "Registrieren",
-                                  "title":  "Konto erstellen",
-                                  "subtitle":  "Loslegen — es dauert nur einen Moment.",
-                                  "firstName":  "Vorname",
-                                  "lastName":  "Nachname",
-                                  "emailAddress":  "E-Mail-Adresse",
-                                  "submit":  "Registrieren",
-                                  "submitting":  "Wird gesendet…",
-                                  "successMessage":  "Registrierung erfolgreich! Überprüfe deinen Posteingang. Klicke auf den Link, um deine Adresse zu bestätigen und dein Passwort festzulegen — dann kannst du dich anmelden.",
-                                  "failedMessage":  "Registrierung fehlgeschlagen. Bitte versuche es erneut.",
-                                  "goToLogin":  "Zur Anmeldung →",
-                                  "alreadyHaveAccount":  "Bereits ein Konto?",
-                                  "goToLoginLink":  "Zur Anmeldung"
-                              },
-                 "changePassword":  {
-                                        "pageTitle":  "Passwort ändern",
-                                        "title":  "Passwort ändern",
-                                        "subtitle":  "Aktualisiere dein Kontopasswort unten.",
-                                        "backToSettings":  "Zurück zu Einstellungen",
-                                        "oldPassword":  "Altes Passwort",
-                                        "newPassword":  "Neues Passwort",
-                                        "repeatPassword":  "Neues Passwort wiederholen",
-                                        "submit":  "Passwort ändern",
-                                        "submitting":  "Wird gespeichert…",
-                                        "success":  "Passwort geändert.",
-                                        "error":  "Aktuelles Passwort falsch."
-                                    },
-                 "requestPasswordReset":  {
-                                              "pageTitle":  "Passwort zurücksetzen",
-                                              "title":  "Passwort zurücksetzen",
-                                              "subtitle":  "Wir senden dir einen Reset-Link, wenn deine E-Mail registriert ist.",
-                                              "submit":  "Link senden",
-                                              "submitting":  "Wird gesendet…",
-                                              "successToast":  "Falls die E-Mail existiert, wurde ein Reset-Link gesendet.",
-                                              "errorToast":  "Bitte gib eine gültige E-Mail-Adresse ein.",
-                                              "notAvailable":  "Zurücksetzen nicht verfügbar",
-                                              "hint":  "Du erhältst eine E-Mail mit einem Verifizierungslink zum Zurücksetzen deines Passworts.",
-                                              "backToLogin":  "Zurück zur Anmeldung"
-                                          },
-                 "resetPassword":  {
-                                       "pageTitle":  "Passwort zurücksetzen",
-                                       "createPageTitle":  "Passwort erstellen",
-                                       "title":  "Passwort zurücksetzen",
-                                       "createTitle":  "Passwort erstellen",
-                                       "subtitle":  "Gib ein neues Passwort für dein Konto ein.",
-                                       "createSubtitle":  "Lege ein Passwort für dein neues Konto fest.",
-                                       "newPassword":  "Neues Passwort",
-                                       "repeatPassword":  "Neues Passwort wiederholen",
-                                       "submit":  "Zurücksetzen",
-                                       "createSubmit":  "Erstellen",
-                                       "submitting":  "Wird zurückgesetzt…",
-                                       "createSubmitting":  "Wird erstellt…",
-                                       "successMessage":  "Passwort erfolgreich zurückgesetzt. Weiterleitung…",
-                                       "createSuccessMessage":  "Passwort erfolgreich erstellt. Weiterleitung…",
-                                       "errorMessage":  "Zurücksetzen fehlgeschlagen. Bitte versuche es erneut.",
-                                       "createErrorMessage":  "Erstellen fehlgeschlagen. Bitte versuche es erneut.",
-                                       "invalidLink":  "Ungültiger oder fehlender Verifizierungslink. Bitte fordere einen neuen an.",
-                                       "requestReset":  "Passwort zurücksetzen anfordern"
-                                   },
-                 "email":  {
-                               "label":  "E-Mail-Adresse",
-                               "placeholder":  "du@beispiel.de"
-                           }
-             },
-    "dashboard":  {
-                      "pageTitle":  "Übersicht",
-                      "title":  "Übersicht",
-                      "greeting":  "Hallo, {{name}}",
-                      "defaultName":  "du",
-                      "loading":  "Übersicht wird geladen",
-                      "empty":  "Keine Ausgaben für diesen Zeitraum",
-                      "noData":  "Keine Daten verfügbar",
-                      "noCurrencies":  "Keine Währungen für diesen Zeitraum",
-                      "account":  {
-                                      "title":  "Konto",
-                                      "signedInAs":  "Angemeldet als"
-                                  },
-                      "settings":  {
-                                       "title":  "Einstellungen",
-                                       "changePassword":  "Passwort ändern"
-                                   },
-                      "expenses":  {
-                                       "title":  "Ausgaben",
-                                       "comingSoon":  "Demnächst verfügbar…"
-                                   },
-                      "filters":  {
-                                      "thisMonth":  "Dieser Monat",
-                                      "thisYear":  "Dieses Jahr"
-                                  },
-                      "summary":  {
-                                      "total":  "Gesamtausgaben",
-                                      "vs":  "vs. vorh. Zeitr.",
-                                      "expenses":  "Ausgaben",
-                                      "converted":  "umgerechnet",
-                                      "topCategory":  "Höchste Ausgabe:"
-                                  },
-                      "charts":  {
-                                     "monthly":  "Monatliche Ausgaben",
-                                     "categories":  "Nach Kategorie",
-                                     "sameMonth":  "{{month}} im Jahresvergleich",
-                                     "currencies":  "Nach Währung"
-                                 },
-                      "recent":  {
-                                     "title":  "Aktuelle Ausgaben",
-                                     "viewAll":  "Alle anzeigen",
-                                     "empty":  "Keine aktuellen Ausgaben"
-                                 }
-                  },
-    "settings":  {
-                     "pageTitle":  "Einstellungen",
-                     "title":  "Einstellungen",
-                     "subtitle":  "Verwalte deine Kontoeinstellungen.",
-                     "password":  {
-                                      "title":  "Passwort",
-                                      "description":  "Aktualisiere das Passwort für die Anmeldung an deinem Konto.",
-                                      "changeLink":  "Passwort ändern"
-                                  },
-                     "currency":  {
-                                      "title":  "Standardwährung",
-                                      "description":  "Wähle die Währung, in der Gesamtbeträge angezeigt werden.",
-                                      "save":  "Speichern",
-                                      "saving":  "Wird gespeichert…",
-                                      "success":  "Standardwährung aktualisiert.",
-                                      "error":  "Standardwährung konnte nicht aktualisiert werden."
-                                  },
-                     "language":  {
-                                      "title":  "Sprache",
-                                      "description":  "Wähle deine bevorzugte Anzeigesprache."
-                                  }
-                 },
-    "public":  {
-                   "home":  {
-                                "headline":  "Verwalte deine Ausgaben,",
-                                "headlineAccent":  "einfach.",
-                                "description":  "Ein klares, schlankes Werkzeug zur Finanzkontrolle. Melde dich an oder erstelle ein Konto — es dauert weniger als eine Minute.",
-                                "signIn":  "Anmelden",
-                                "createAccount":  "Konto erstellen"
-                            },
-                   "notFound":  {
-                                    "pageTitle":  "Seite nicht gefunden",
-                                    "title":  "Seite nicht gefunden",
-                                    "description":  "Die gesuchte Seite existiert nicht oder wurde verschoben.",
-                                    "goHome":  "Zur Startseite"
-                                },
-                   "verifyError":  {
-                                       "pageTitle":  "Verifizierung fehlgeschlagen",
-                                       "title":  "Verifizierungslink abgelaufen",
-                                       "description":  "Dieser Verifizierungslink wurde bereits verwendet oder ist abgelaufen. Bitte registriere dich erneut oder fordere eine neue Bestätigungs-E-Mail an.",
-                                       "backToRegister":  "Zurück zur Registrierung",
-                                       "resend":  "Bestätigungs-E-Mail erneut senden",
-                                       "resendSent":  "Ein neuer Verifizierungslink wird in Kürze gesendet. Prüfe deinen Posteingang."
-                                   }
-               },
-    "passwordStrength":  {
-                             "label":  "Stärke",
-                             "requirements":  "Passwortanforderungen",
-                             "criteria":  {
-                                              "length":  "Mindestens 8 Zeichen",
-                                              "uppercase":  "Großbuchstabe (A–Z)",
-                                              "lowercase":  "Kleinbuchstabe (a–z)",
-                                              "number":  "Ziffer (0–9)",
-                                              "special":  "Sonderzeichen (!@#…)"
-                                          },
-                             "levels":  {
-                                            "weak":  "Schwach",
-                                            "fair":  "Mäßig",
-                                            "good":  "Gut",
-                                            "strong":  "Stark"
-                                        }
-                         },
-    "apiErrors":  {
-                      "server":  "Serverfehler, bitte versuche es später erneut.",
-                      "rateLimit":  "Zu viele Anfragen. Bitte warte und versuche es erneut.",
-                      "notFound":  "Ressource nicht gefunden.",
-                      "forbidden":  "Zugriff verweigert. Möglicherweise fehlen dir die Berechtigungen.",
-                      "badRequest":  "Ungültige Anfrage. Bitte überprüfe deine Eingabe.",
-                      "network":  "Netzwerkfehler. Überprüfe deine Verbindung und versuche es erneut.",
-                      "unauthorized":  "Nicht autorisiert",
-                      "missingParameters":  "Bitte fülle alle Pflichtfelder aus.",
-                      "serverError":  "Serverfehler, bitte versuche es später erneut.",
-                      "invalidUsernameOrPassword":  "Ungültige E-Mail oder Passwort.",
-                      "noAssignedRole":  "Deinem Konto ist keine Rolle zugewiesen. Bitte kontaktiere den Support.",
-                      "emailVerificationFailed":  "E-Mail-Verifizierung fehlgeschlagen. Überprüfe den Link und versuche es erneut.",
-                      "notMatchingConfirmPassword":  "Die Passwörter stimmen nicht überein.",
-                      "setNewPasswordFailed":  "Neues Passwort konnte nicht gesetzt werden. Bitte versuche es erneut.",
-                      "requestPasswordResetFailed":  "Anforderung zum Zurücksetzen fehlgeschlagen. Bitte versuche es erneut.",
-                      "resetPasswordFailed":  "Passwort zurücksetzen fehlgeschlagen. Bitte versuche es erneut.",
-                      "missingToken":  "Authentifizierungstoken fehlt. Bitte melde dich erneut an.",
-                      "invalidToken":  "Ungültiger Authentifizierungstoken. Bitte melde dich erneut an.",
-                      "createPasswordFailed":  "Passwort konnte nicht erstellt werden. Bitte versuche es erneut.",
-                      "familyNotFound":  "Familie nicht gefunden.",
-                      "userNotFound":  "Benutzer nicht gefunden.",
-                      "familyNotMember":  "Der Benutzer ist kein Mitglied dieser Familie.",
-                      "familyAlreadyMember":  "Dieser Benutzer ist bereits Mitglied dieser Familie.",
-                      "familyCannotInviteDefault":  "Du kannst keine Mitglieder in deine Standardfamilie einladen.",
-                      "familyCannotRemoveDefault":  "Du kannst keine Mitglieder aus deiner Standardfamilie entfernen.",
-                      "familyCannotRemoveSelfHead":  "Du kannst dich nicht entfernen, da du der einzige Kopf dieser Familie bist.",
-                      "familyCannotChangeOwnRole":  "Du kannst deine eigene Rolle nicht ändern.",
-                      "familyCannotArchiveDefault":  "Deine Standardfamilie kann nicht archiviert werden.",
-                      "familyCannotLeaveDefault":  "Du kannst deine Standardfamilie nicht verlassen.",
-                      "familyCannotLeaveLastHead":  "Du kannst nicht gehen — du bist der einzige Kopf dieser Familie.",
-                      "familyForbidden":  "Du hast keinen Zugriff auf diese Familie.",
-                      "tagNotVisible":  "Ein oder mehrere Tags sind für dich nicht sichtbar.",
-                      "familyInvitationInvalid":  "Dieser Einladungslink ist ungültig.",
-                      "familyInvitationAlreadyAccepted":  "Diese Einladung wurde bereits angenommen.",
-                      "familyInvitationExpired":  "Diese Einladung ist abgelaufen.",
-                      "familyNameAlreadyExists":  "Eine Familie mit diesem Namen existiert bereits."
-                  },
-    "families":  {
-                     "pageTitle":  "Familien",
-                     "title":  "Familien",
-                     "subtitle":  "Verwalte deine Familiengruppen und Mitglieder.",
-                     "createAction":  "Familie erstellen",
-                     "createTitle":  "Familie erstellen",
-                     "renameTitle":  "Familie umbenennen",
-                     "nameLabel":  "Familienname",
-                     "namePlaceholder":  "z.B. Familie Müller",
-                     "createSubmit":  "Erstellen",
-                     "createSubmitting":  "Wird erstellt…",
-                     "createSuccess":  "Familie erstellt.",
-                     "renameSubmit":  "Umbenennen",
-                     "renamingSubmitting":  "Wird umbenannt…",
-                     "renameSuccess":  "Familie umbenannt.",
-                     "renameAction":  "Umbenennen",
-                     "archiveAction":  "Archivieren",
-                     "unarchiveAction":  "Wiederherstellen",
-                     "archiveSuccess":  "Familie archiviert.",
-                     "unarchiveSuccess":  "Familie wiederhergestellt.",
-                     "inviteTitle":  "In {{name}} einladen",
-                     "inviteHint":  "Der Eingeladene muss über den Link in seiner E-Mail akzeptieren.",
-                     "inviteSubmit":  "Einladung senden",
-                     "inviteSubmitting":  "Wird gesendet…",
-                     "inviteSuccess":  "Einladung gesendet.",
-                     "inviteAction":  "Mitglied einladen",
-                     "tabActive":  "Aktiv",
-                     "tabArchived":  "Archiviert",
-                     "emptyActive":  "Keine aktiven Familien.",
-                     "emptyArchived":  "Keine archivierten Familien.",
-                     "default":  "Standard",
-                     "archived":  "Archiviert",
-                     "createdAt":  "Erstellt am {{date}}",
-                     "members":  "Mitglieder ({{count}})",
-                     "memberRemoved":  "{{name}} entfernt.",
-                     "roleChanged":  "Rolle aktualisiert.",
-                     "changeRole":  "Rolle ändern",
-                     "removeMember":  "Mitglied entfernen",
-                     "expand":  "Mitglieder anzeigen",
-                     "collapse":  "Mitglieder ausblenden",
-                     "selectorPersonal":  "Meine Ausgaben",
-                     "leaveAction":  "Familie verlassen",
-                     "leaveSuccess":  "Du hast die Familie verlassen.",
-                     "acceptInvite":  {
-                                          "pageTitle":  "Einladung annehmen",
-                                          "loading":  "Einladung wird angenommen…",
-                                          "success":  "Du bist der Familie beigetreten!",
-                                          "error":  "Diese Einladung ist ungültig oder abgelaufen.",
-                                          "goToFamilies":  "Zu den Familien"
-                                      }
-                 },
-    "currencies":  {
-                       "searchPlaceholder":  "Nach Code oder Name suchen…",
-                       "noConversion":  "Keine Umrechnung",
-                       "displayCurrencySelector":  "Anzeigewährung"
-                   },
-    "validation":  {
-                       "emailRequired":  "E-Mail-Adresse ist erforderlich.",
-                       "emailInvalid":  "Bitte gib eine gültige E-Mail-Adresse ein.",
-                       "passwordRequired":  "Passwort ist erforderlich.",
-                       "firstNameRequired":  "Vorname ist erforderlich.",
-                       "firstNameMax":  "Vorname darf maximal 100 Zeichen lang sein.",
-                       "lastNameRequired":  "Nachname ist erforderlich.",
-                       "lastNameMax":  "Nachname darf maximal 100 Zeichen lang sein.",
-                       "emailMax":  "E-Mail-Adresse darf maximal 100 Zeichen lang sein.",
-                       "currentPasswordRequired":  "Aktuelles Passwort ist erforderlich.",
-                       "newPasswordRequired":  "Neues Passwort ist erforderlich.",
-                       "passwordMin":  "Das Passwort muss mindestens 8 Zeichen lang sein.",
-                       "repeatPasswordRequired":  "Bitte wiederhole dein neues Passwort.",
-                       "passwordsNoMatch":  "Die neuen Passwörter stimmen nicht überein.",
-                       "familyNameRequired":  "Familienname ist erforderlich.",
-                       "familyNameMax":  "Familienname darf maximal 30 Zeichen lang sein.",
-                       "familyNameTaken":  "Eine Familie mit diesem Namen existiert bereits.",
-                       "required":  "Dieses Feld ist erforderlich."
-                   },
-    "expenses":  {
-                     "pageTitle":  "Ausgaben",
-                     "addTitle":  "Ausgabe hinzufügen",
-                     "editTitle":  "Ausgabe bearbeiten",
-                     "noExpenses":  "Keine Ausgaben gefunden.",
-                     "addExpense":  "Ausgabe hinzufügen",
-                     "firstExpense":  "Füge deine erste Ausgabe hinzu",
-                     "fields":  {
-                                    "amount":  "Betrag",
-                                    "currency":  "Währung",
-                                    "date":  "Datum",
-                                    "category":  "Kategorie",
-                                    "subcategory":  "Unterkategorie",
-                                    "noCategorySelected":  "Zuerst eine Kategorie wählen",
-                                    "description":  "Beschreibung",
-                                    "tags":  "Schlagwörter",
-                                    "families":  "Familien"
-                                },
-                     "filters":  {
-                                     "title":  "Filter",
-                                     "toggle":  "Filter",
-                                     "dateFrom":  "Von",
-                                     "dateTo":  "Bis",
-                                     "amountMin":  "Mindestbetrag",
-                                     "amountMax":  "Höchstbetrag",
-                                     "apply":  "Anwenden",
-                                     "reset":  "Zurücksetzen",
-                                     "tags":  "Etiketten"
-                                 },
-                     "table":  {
-                                   "date":  "Datum",
-                                   "amount":  "Betrag",
-                                   "category":  "Kategorie",
-                                   "tags":  "Schlagwörter",
-                                   "families":  "Familien",
-                                   "actions":  "Aktionen"
-                               },
-                     "actions":  {
-                                     "edit":  "Bearbeiten",
-                                     "delete":  "Löschen",
-                                     "save":  "Speichern",
-                                     "saving":  "Speichern…",
-                                     "cancel":  "Abbrechen"
-                                 },
-                     "delete":  {
-                                    "confirmTitle":  "Ausgabe löschen?",
-                                    "confirmBody":  "Dies kann nicht rückgängig gemacht werden.",
-                                    "confirm":  "Löschen",
-                                    "cancel":  "Abbrechen"
-                                },
-                     "errors":  {
-                                    "loadFailed":  "Ausgaben konnten nicht geladen werden.",
-                                    "saveFailed":  "Ausgabe konnte nicht gespeichert werden.",
-                                    "deleteFailed":  "Ausgabe konnte nicht gelöscht werden.",
-                                    "subcategoryRequiresCategory":  "Zuerst eine Kategorie wählen.",
-                                    "amountPositive":  "Betrag muss positiv sein.",
-                                    "dateFormat":  "Format JJJJ-MM-TT verwenden."
-                                },
-                     "modifiedAt":  "Zuletzt geändert {{date}} via {{source}}",
-                     "uncategorised":  "Ohne Kategorie",
-                     "pagination":  {
-                                        "prev":  "← Zurück",
-                                        "next":  "Weiter →",
-                                        "pageOf":  "Seite {{page}} von {{total}}"
-                                    },
-                     "importCsv":  "CSV importieren",
-                     "import":  {
-                                    "pageTitle":  "Ausgaben aus CSV importieren",
-                                    "templateLink":  "Vorlage herunterladen",
-                                    "dropzone":  "CSV-Datei hier ablegen oder klicken zum Auswählen",
-                                    "validRows":  "{{count}} gültige Zeilen",
-                                    "errorRows":  "{{count}} Zeilen mit Fehlern",
-                                    "confirmButton":  "{{count}} Ausgaben importieren",
-                                    "cancel":  "Abbrechen",
-                                    "revalidate":  "Neu validieren",
-                                    "editHint":  "✎ anklicken zum Bearbeiten einer Zeile, dann Neu validieren klicken",
-                                    "editRow":  "Zeile bearbeiten",
-                                    "saveRow":  "Zeile speichern",
-                                    "cancelRow":  "Bearbeitung abbrechen",
-                                    "success":  "{{count}} Ausgaben erfolgreich importiert",
-                                    "columns":  {
-                                                    "row":  "Zeile",
-                                                    "status":  "Status",
-                                                    "valid":  "Gültig",
-                                                    "error":  "Fehler",
-                                                    "editing":  "Wird bearbeitet"
-                                                },
-                                    "errors":  {
-                                                   "DATE_INVALID":  "Ungültiges Datum (JJJJ-MM-TT)",
-                                                   "DATE_IN_FUTURE":  "Datum liegt in der Zukunft",
-                                                   "AMOUNT_INVALID":  "Ungültiger Betrag",
-                                                   "AMOUNT_MUST_BE_POSITIVE":  "Betrag muss positiv sein",
-                                                   "CURRENCY_NOT_FOUND":  "Unbekannter Währungscode",
-                                                   "CATEGORY_NOT_FOUND":  "Unbekannte Kategorie",
-                                                   "SUBCATEGORY_INVALID":  "Unterkategorie gehört nicht zur Kategorie",
-                                                   "FAMILY_FORBIDDEN":  "Kein Mitglied dieser Familie",
-                                                   "IMPORT_NO_FILE":  "Keine Datei hochgeladen",
-                                                   "IMPORT_FILE_TOO_LARGE":  "Datei zu groß (max 1 MB)",
-                                                   "IMPORT_NO_ROWS":  "Keine Zeilen zum Importieren",
-                                                   "IMPORT_TOO_MANY_ROWS":  "Zu viele Zeilen (max 500)",
-                                                   "INVALID_FILE_TYPE":  "Nur CSV-Dateien werden akzeptiert",
-                                                   "INVALID_FILE_CONTENT":  "Der Dateiinhalt ist kein gültiges CSV",
-                                                   "IMPORT_TIMEOUT":  "Import abgelaufen — verwenden Sie eine kleinere Datei",
-                                                   "TOO_MANY_TAGS":  "Zu viele Tags (max 20 pro Zeile)",
-                                                   "TAG_NAME_TOO_LONG":  "Tag-Name zu lang (max 100 Zeichen)",
-                                                   "MISSING_HEADERS":  "CSV fehlen Pflichtfelder",
-                                                   "TOO_MANY_COLUMNS":  "CSV hat zu viele Spalten (max 20)"
-                                               }
-                                }
-                 },
-    "language":  {
-                     "label":  "Sprache",
-                     "en":  "English",
-                     "fr":  "Français",
-                     "es":  "Español",
-                     "de":  "Deutsch"
-                 },
-    "admin":  {
-                  "nav":  {
-                              "users":  "Benutzer",
-                              "categories":  "Kategorien",
-                              "currencies":  "Währungen",
-                              "rates":  "Kurse",
-                              "rateConflicts":  "Kurskonflikte"
-                          },
-                  "users":  {
-                                "pageTitle":  "Admin — Benutzer",
-                                "search":  "Benutzer suchen…",
-                                "disable":  "Deaktivieren",
-                                "enable":  "Aktivieren",
-                                "manageRoles":  "Rollen verwalten",
-                                "active":  "Aktiv",
-                                "disabled":  "Deaktiviert",
-                                "roles":  "Rollen",
-                                "noUsers":  "Keine Benutzer gefunden.",
-                                "saveRoles":  "Rollen speichern",
-                                "saving":  "Speichern…",
-                                "cannotRemoveOwnAdmin":  "You cannot remove your own admin role"
-                            },
-                  "categories":  {
-                                     "pageTitle":  "Admin — Kategorien",
-                                     "add":  "Kategorie hinzufügen",
-                                     "addSub":  "Unterkategorie hinzufügen",
-                                     "edit":  "Bearbeiten",
-                                     "archive":  "Archivieren",
-                                     "unarchive":  "Dearchivieren",
-                                     "showArchived":  "Archivierte anzeigen",
-                                     "nameLabel":  "Name",
-                                     "descriptionLabel":  "Beschreibung",
-                                     "save":  "Speichern",
-                                     "saving":  "Speichern…",
-                                     "cancel":  "Abbrechen"
-                                 },
-                  "currencies":  {
-                                     "pageTitle":  "Admin — Währungen",
-                                     "add":  "Währung hinzufügen",
-                                     "setDefaultRate":  "Standardkurs festlegen",
-                                     "codeLabel":  "Code (z.B. EUR)",
-                                     "nameLabel":  "Name",
-                                     "symbolLabel":  "Symbol",
-                                     "destinationLabel":  "Zielwährung",
-                                     "rateLabel":  "Kurs",
-                                     "save":  "Speichern",
-                                     "saving":  "Speichern…",
-                                     "cancel":  "Abbrechen",
-                                     "edit":  "Edit",
-                                     "delete":  "Delete",
-                                     "deleteConfirm":  "Delete this currency? This cannot be undone.",
-                                     "inUse":  "Cannot delete: currency is in use by existing expenses or rates.",
-                                     "defaults":  "Defaults",
-                                     "defaultRatesTitle":  "Default rates — {{code}}",
-                                     "addPair":  "Add pair",
-                                     "lastAutoRate":  "Last auto",
-                                     "lastRateDate":  "Date",
-                                     "search":  "Nach Code oder Name suchen",
-                                     "noResults":  "Keine Währungen gefunden."
-                                 },
-                  "rates":  {
-                                "pageTitle":  "Admin — Kurse",
-                                "addManual":  "Manuellen Kurs hinzufügen",
-                                "backfill":  "Auffüllen",
-                                "source":  "Quelle",
-                                "save":  "Speichern",
-                                "saving":  "Speichern…",
-                                "cancel":  "Abbrechen",
-                                "from":  "From",
-                                "to":  "To",
-                                "sourceCurrency":  "Source",
-                                "destinationCurrency":  "Destination",
-                                "noRates":  "No rates found.",
-                                "rateDate":  "Date",
-                                "rateValue":  "Rate",
-                                "fromCurrency":  "Von",
-                                "toCurrency":  "Nach"
-                            },
-                  "rateConflicts":  {
-                                        "pageTitle":  "Admin — Kurskonflikte",
-                                        "autoRate":  "Automatischer Kurs",
-                                        "manualRate":  "Manueller Kurs",
-                                        "resolve":  "Auflösen",
-                                        "acceptAuto":  "Auto akzeptieren",
-                                        "keepManual":  "Manuell beibehalten",
-                                        "custom":  "Benutzerdefiniert",
-                                        "resolveAll":  "Alle als Auto auflösen",
-                                        "noConflicts":  "Keine ausstehenden Konflikte."
-                                    }
-              }
+            "errors": {
+                "DATE_INVALID": "Ungültiges Datum (JJJJ-MM-TT)",
+                "DATE_IN_FUTURE": "Datum liegt in der Zukunft",
+                "AMOUNT_INVALID": "Ungültiger Betrag",
+                "AMOUNT_MUST_BE_POSITIVE": "Betrag muss positiv sein",
+                "CURRENCY_NOT_FOUND": "Unbekannter Währungscode",
+                "CATEGORY_NOT_FOUND": "Unbekannte Kategorie",
+                "SUBCATEGORY_INVALID": "Unterkategorie gehört nicht zur Kategorie",
+                "FAMILY_FORBIDDEN": "Kein Mitglied dieser Familie",
+                "IMPORT_NO_FILE": "Keine Datei hochgeladen",
+                "IMPORT_FILE_TOO_LARGE": "Datei zu groß (max 1 MB)",
+                "IMPORT_NO_ROWS": "Keine Zeilen zum Importieren",
+                "IMPORT_TOO_MANY_ROWS": "Zu viele Zeilen (max 500)",
+                "INVALID_FILE_TYPE": "Nur CSV-Dateien werden akzeptiert",
+                "INVALID_FILE_CONTENT": "Der Dateiinhalt ist kein gültiges CSV",
+                "IMPORT_TIMEOUT": "Import abgelaufen — verwenden Sie eine kleinere Datei",
+                "TOO_MANY_TAGS": "Zu viele Tags (max 20 pro Zeile)",
+                "TAG_NAME_TOO_LONG": "Tag-Name zu lang (max 100 Zeichen)",
+                "MISSING_HEADERS": "CSV fehlen Pflichtfelder",
+                "TOO_MANY_COLUMNS": "CSV hat zu viele Spalten (max 20)"
+            }
+        }
+    },
+    "language": {
+        "label": "Sprache",
+        "en": "English",
+        "fr": "Français",
+        "es": "Español",
+        "de": "Deutsch"
+    },
+    "admin": {
+        "nav": {
+            "users": "Benutzer",
+            "categories": "Kategorien",
+            "currencies": "Währungen",
+            "rates": "Kurse",
+            "rateConflicts": "Kurskonflikte"
+        },
+        "users": {
+            "pageTitle": "Admin — Benutzer",
+            "search": "Benutzer suchen…",
+            "disable": "Deaktivieren",
+            "enable": "Aktivieren",
+            "manageRoles": "Rollen verwalten",
+            "active": "Aktiv",
+            "disabled": "Deaktiviert",
+            "roles": "Rollen",
+            "noUsers": "Keine Benutzer gefunden.",
+            "saveRoles": "Rollen speichern",
+            "saving": "Speichern…",
+            "cannotRemoveOwnAdmin": "You cannot remove your own admin role"
+        },
+        "categories": {
+            "pageTitle": "Admin — Kategorien",
+            "add": "Kategorie hinzufügen",
+            "addSub": "Unterkategorie hinzufügen",
+            "edit": "Bearbeiten",
+            "archive": "Archivieren",
+            "unarchive": "Dearchivieren",
+            "showArchived": "Archivierte anzeigen",
+            "nameLabel": "Name",
+            "descriptionLabel": "Beschreibung",
+            "save": "Speichern",
+            "saving": "Speichern…",
+            "cancel": "Abbrechen"
+        },
+        "currencies": {
+            "pageTitle": "Admin — Währungen",
+            "add": "Währung hinzufügen",
+            "setDefaultRate": "Standardkurs festlegen",
+            "codeLabel": "Code (z.B. EUR)",
+            "nameLabel": "Name",
+            "symbolLabel": "Symbol",
+            "destinationLabel": "Zielwährung",
+            "rateLabel": "Kurs",
+            "save": "Speichern",
+            "saving": "Speichern…",
+            "cancel": "Abbrechen",
+            "edit": "Edit",
+            "delete": "Delete",
+            "deleteConfirm": "Delete this currency? This cannot be undone.",
+            "inUse": "Cannot delete: currency is in use by existing expenses or rates.",
+            "defaults": "Defaults",
+            "defaultRatesTitle": "Default rates — {{code}}",
+            "addPair": "Add pair",
+            "lastAutoRate": "Last auto",
+            "lastRateDate": "Date",
+            "search": "Nach Code oder Name suchen",
+            "noResults": "Keine Währungen gefunden."
+        },
+        "rates": {
+            "pageTitle": "Admin — Kurse",
+            "addManual": "Manuellen Kurs hinzufügen",
+            "backfill": "Auffüllen",
+            "source": "Quelle",
+            "save": "Speichern",
+            "saving": "Speichern…",
+            "cancel": "Abbrechen",
+            "from": "From",
+            "to": "To",
+            "sourceCurrency": "Source",
+            "destinationCurrency": "Destination",
+            "noRates": "No rates found.",
+            "rateDate": "Date",
+            "rateValue": "Rate",
+            "fromCurrency": "Von",
+            "toCurrency": "Nach"
+        },
+        "rateConflicts": {
+            "pageTitle": "Admin — Kurskonflikte",
+            "autoRate": "Automatischer Kurs",
+            "manualRate": "Manueller Kurs",
+            "resolve": "Auflösen",
+            "acceptAuto": "Auto akzeptieren",
+            "keepManual": "Manuell beibehalten",
+            "custom": "Benutzerdefiniert",
+            "resolveAll": "Alle als Auto auflösen",
+            "noConflicts": "Keine ausstehenden Konflikte."
+        }
+    }
 }
