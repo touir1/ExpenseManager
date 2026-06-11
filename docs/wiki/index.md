@@ -12,6 +12,7 @@
 | [Use Cases](./use-cases.md) | User-facing workflows and functional scope |
 | [Backend — Users Service](./backend-users-service.md) | Auth, registration, password management, JWT, email, outbox |
 | [Backend — Expenses Service](./backend-expenses-service.md) | Expense CRUD, categories, currencies, families, audit |
+| Backend — Notifications Service | SignalR hub, RabbitMQ consumers, email dispatch, push token (no dedicated wiki page yet) |
 | [Family System](./family-system.md) | Family management — creation, invitations, roles, expense attribution |
 | [Messaging](./messaging.md) | RabbitMQ topology, outbox pattern, inbox deduplication, event payloads |
 | [Frontend Dashboard](./frontend.md) | React SPA, routing, auth context, component library |
@@ -34,6 +35,7 @@
 | Styling | Tailwind CSS v3 |
 | Routing | React Router v6 |
 | Testing (backend) | xUnit + Moq |
+| Mobile framework | Ionic v8 + Capacitor v7 + React |
 | Testing (frontend) | Vitest 4 + React Testing Library |
 | Database | PostgreSQL |
 | Message broker | RabbitMQ |
@@ -54,6 +56,7 @@
 | nginx (HTTPS) | 443 | Main ingress |
 | Users service | 9100 | Internal; also exposed directly |
 | Expenses service | 9200 | Internal; also exposed directly |
+| Notifications service | 9300 | Internal; also exposed directly |
 | RabbitMQ AMQP | 5672 | |
 | RabbitMQ Management UI | 15672 | |
 | Grafana | 3000 | |
@@ -65,9 +68,9 @@
 
 ---
 
-## Current Status (v0.109.3)
+## Current Status (v0.114.0)
 
-The project is in active development. The users service (auth, registration, password management, outbox messaging) and the frontend auth flow are production-ready. The expenses backend is fully implemented — CRUD for expenses, categories, currencies, tags, families, dashboard analytics, currency rate management, and user configuration. The frontend expenses UI is fully shipped: paginated list with filters, add/edit/delete (modal), and a live dashboard with Recharts visualisations (spend over time, category donut, same-month year comparison, currency breakdown, recent expenses). A full admin panel is live: user management (enable/disable/roles), category management, currency management (add/edit/delete/defaults), rate management, and rate conflict resolution. Admin access is guarded by `APP_ADMIN` role and reflected in `isAdmin` JWT claim.
+The project is in active development. All backend services are production-ready. The expenses backend is fully implemented — CRUD for expenses, categories, currencies, tags, families, dashboard analytics, currency rate management, and user configuration. The notifications service (port 9300) is live: real-time SignalR WebSocket push, RabbitMQ consumer for family and expense events, inbox deduplication, in-app notifications, and sole SMTP email dispatcher for the platform. The frontend dashboard is fully shipped: paginated expense list, add/edit/delete modals, live dashboard with Recharts visualisations (spend over time, category donut, same-month year comparison, currency breakdown, recent expenses), CSV bulk import, admin panel (users/categories/currencies/rates/rate-conflicts), notification bell with real-time push, and three-mode theme (Day/Default/Dark). A native mobile app (`frontend/mobile/`) built with Ionic + Capacitor + React is complete (Phase 14): five-tab navigation, QuickAddModal, ExpensesListPage with swipe-delete and infinite scroll, offline queue via IndexedDB, push token stub, and Hearth dark theme.
 
 **Open issues:**
 - `S-2` — Missing CSP and security headers (nginx fix pending)

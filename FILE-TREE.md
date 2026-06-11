@@ -30,15 +30,6 @@ ExpenseManager/
 ├── LICENSE                            — Project license
 ├── README.md                          — Main project README
 ├── docs/
-│   ├── issues/
-│   │   ├── ongoing/
-│   │   │   ├── fixes-and-suggestions.md          — Open improvement ideas and technical debt backlog
-│   │   │   └── qa_test_results/
-│   │   │       └── 2026-03-22-frontend-dashboard-qa.md  — Frontend dashboard QA (open items only)
-│   │   └── fixed/
-│   │       ├── fixes-and-suggestions-applied.md  — Applied suggestions (moved here from ongoing once shipped)
-│   │       └── qa/
-│   │           └── 2026-03-22-frontend-dashboard-fixes.md  — Resolved issues from the 2026-03-22 QA session
 │   ├── design/                        — UI design reference files (generated with Claude)
 │   │   ├── ExpensesManager Redesign.html             — Full-page design mockup
 │   │   ├── ExpensesManager Redesign (standalone).html — Standalone design (minified)
@@ -83,6 +74,8 @@ ExpenseManager/
 │       ├── implementation-plan.md      — 15-phase implementation plan
 │       └── done/
 │           ├── nexus-proxy-integration.md  — Completed plan: Nexus Repository Manager integration
+│           ├── phase-13-notifications.md   — Completed plan: notifications microservice (SignalR, RabbitMQ, email, v0.112.x)
+│           ├── phase-14-mobile-app.md      — Completed plan: Ionic + Capacitor mobile app (v0.113.0–v0.114.0)
 │           └── upload_protection.md    — Completed plan: CSV upload security hardening (10 fixes, v0.110.8)
 │
 ├── backend/
@@ -642,7 +635,7 @@ ExpenseManager/
 │           │   └── ModelPropertyTests.cs        — 4 tests: navigation-property setters for User, UserDto, UserRole; RefreshToken.Id setter
 │
 ├── frontend/
-│   └── dashboard/
+│   ├── dashboard/
 │       ├── .env                       — Local env vars (gitignored)
 │       ├── .env.example               — Env vars template
 │       ├── .gitignore
@@ -902,7 +895,7 @@ ExpenseManager/
 │           │               ├── NotFoundPage.test.tsx
 │           │               └── VerifyErrorPage.test.tsx
 │           ├── providers/             — Composed provider tree
-│           │   ├── AppProviders.tsx   — Nests ThemeProvider → AuthProvider → ExpensesDataProvider → FamilyProvider → DisplayCurrencyProvider
+│           │   ├── AppProviders.tsx   — Nests ThemeProvider → AuthProvider → ExpensesDataProvider → FamilyProvider → DisplayCurrencyProvider → NotificationProvider
 │           │   └── __tests__/
 │           │       └── AppProviders.test.tsx
 │           ├── hooks/                 — Shared hooks

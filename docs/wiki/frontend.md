@@ -41,7 +41,10 @@ frontend/dashboard/src/
 ├── components/                ← Shared reusable UI primitives
 │   ├── BackLink.tsx           ← Back navigation link
 │   ├── FieldError.tsx         ← Inline form field error display
+│   ├── FormCombobox.tsx       ← Searchable combobox (text input + listbox dropdown)
+│   ├── LanguageSwitcher.tsx   ← Language selector wired to i18n.changeLanguage
 │   ├── SubmitButton.tsx       ← Loading-aware form submit button
+│   ├── ThemeToggle.tsx        ← Segmented 3-button Day/Default/Dark control
 │   ├── Toast.tsx              ← Toast notification provider and hook
 │   ├── PasswordInput.tsx      ← Password field with show/hide toggle
 │   ├── PasswordStrength.tsx   ← Password strength indicator
@@ -49,9 +52,11 @@ frontend/dashboard/src/
 │
 ├── features/
 │   ├── auth/
-│   │   ├── AuthContext.tsx         ← Auth state, session restore, token refresh
+│   │   ├── AuthContext.tsx         ← Auth state, session restore, token refresh; isAdmin claim
+│   │   ├── auth.schemas.ts         ← Zod validation schemas for all auth forms
 │   │   ├── components/
 │   │   │   ├── AuthCard.tsx        ← Centered card layout for auth pages
+│   │   │   ├── AuthBrandPanel.tsx  ← Split-screen terracotta brand panel
 │   │   │   ├── AuthPageHeader.tsx  ← Page title + subtitle for auth forms
 │   │   │   ├── EmailField.tsx      ← Reusable email input
 │   │   │   ├── ProtectedRoute.tsx  ← Redirects to /login if not authenticated
@@ -64,10 +69,11 @@ frontend/dashboard/src/
 │   │   │   └── ResetPasswordPage.tsx
 │   │   ├── services/
 │   │   │   └── authApi.service.ts  ← Auth API calls (login, register, etc.)
-│   │   ├── types/
-│   │   │   └── auth.type.ts        ← AuthContextValue, User types
-│   │   └── schemas/
-│   │       └── auth.schemas.ts     ← Zod validation schemas
+│   │   └── types/
+│   │       └── auth.type.ts        ← AuthContextValue, User types (incl. isAdmin?)
+│   │
+│   ├── settings/
+│   │   └── ThemeContext.tsx        ← ThemeProvider / useTheme(); light/dark/system; persists to localStorage
 │   │
 │   ├── dashboard/
 │   │   ├── components/
@@ -81,7 +87,7 @@ frontend/dashboard/src/
 │   │   │   └── __tests__/
 │   │   ├── pages/
 │   │   │   ├── HomeDashboardPage.tsx  ← Dashboard with all chart/stat components
-│   │   │   └── SettingsPage.tsx
+│   │   │   └── SettingsPage.tsx       ← Password, default currency, theme cards
 │   │   ├── services/
 │   │   │   └── dashboardApi.service.ts ← Dashboard API calls (summary, monthly, etc.)
 │   │   └── types/
@@ -89,30 +95,76 @@ frontend/dashboard/src/
 │   │
 │   ├── expenses/
 │   │   ├── components/
-│   │   │   ├── ExpenseFilters.tsx     ← Filter panel (date, category, currency, tags, amount)
-│   │   │   ├── ExpenseForm.tsx        ← Shared add/edit form (RHF + Zod)
+│   │   │   ├── AddExpenseModal.tsx    ← Modal overlay wrapping ExpenseForm for create
+│   │   │   ├── EditExpenseModal.tsx   ← Modal overlay wrapping ExpenseForm for update
+│   │   │   ├── ExpenseFilters.tsx     ← Collapsible filter panel (date, category, currency, tags, amount, family)
+│   │   │   ├── ExpenseForm.tsx        ← Shared add/edit form (RHF + Zod v4)
 │   │   │   └── __tests__/
 │   │   ├── pages/
-│   │   │   ├── ExpensesPage.tsx       ← Paginated expense list with filters + delete
-│   │   │   ├── AddExpensePage.tsx     ← Thin wrapper — renders ExpenseForm for create
-│   │   │   ├── EditExpensePage.tsx    ← Loads expense by id, renders ExpenseForm for update
+│   │   │   ├── ExpensesPage.tsx       ← Paginated expense list with filters + delete + family scope
+│   │   │   ├── CsvImportPage.tsx      ← Two-step upload→preview CSV import; per-row edit; re-validate
 │   │   │   └── __tests__/
 │   │   ├── services/
-│   │   │   └── expensesApi.service.ts ← Expense CRUD + getById API calls
+│   │   │   ├── expensesApi.service.ts ← Expense CRUD + CSV preview/confirm/validate-rows
+│   │   │   ├── categoriesApi.service.ts
+│   │   │   └── currenciesApi.service.ts
 │   │   ├── types/
-│   │   │   └── expenses.type.ts       ← ExpenseDto, ExpenseFilter, ExpenseRequest, etc.
-│   │   └── expense.schemas.ts         ← Zod schema for ExpenseForm
+│   │   │   └── expenses.type.ts       ← ExpenseDto, ExpenseFilter, CsvImport* types
+│   │   ├── ExpensesDataContext.tsx    ← ExpensesDataProvider / useExpensesData(); categories + currencies + tags
+│   │   └── expense.schemas.ts         ← makeExpenseSchema(t): Zod v4 with .catch(undefined) coercions
+│   │
+│   ├── families/
+│   │   ├── FamilyContext.tsx          ← FamilyProvider / useFamilies(); activeFamilyId persisted to localStorage
+│   │   ├── family.schemas.ts          ← Zod schemas for create-family and invite-member forms
+│   │   ├── components/
+│   │   │   └── FamilySelector.tsx     ← NavBar dropdown to switch active family scope
+│   │   ├── pages/
+│   │   │   ├── FamiliesPage.tsx       ← Family management: active/archived tabs, invite, members
+│   │   │   └── AcceptInvitePage.tsx   ← Token-based invitation acceptance page
+│   │   ├── services/
+│   │   │   └── familyApi.service.ts   ← Family CRUD + invitation + member management
+│   │   └── types/
+│   │       └── family.type.ts
+│   │
+│   ├── tags/
+│   │   ├── components/
+│   │   │   └── TagInput.tsx           ← Combobox: "My tags"/"Family tags" dropdown, chips, keyboard nav
+│   │   ├── services/
+│   │   │   └── tagsApi.service.ts     ← getTags, useTag, removeTag
+│   │   └── types/
+│   │       └── tag.type.ts
+│   │
+│   ├── currencies/
+│   │   ├── DisplayCurrencyContext.tsx ← Session-only display currency state
+│   │   ├── components/
+│   │   │   └── DisplayCurrencySelector.tsx ← NavBar dropdown; reads from ExpensesDataContext
+│   │   └── services/
+│   │       └── ratesApi.service.ts    ← refreshRates()
+│   │
+│   ├── notifications/
+│   │   ├── NotificationContext.tsx    ← NotificationProvider; SignalR dynamic import; mark-read
+│   │   ├── components/
+│   │   │   └── NotificationBell.tsx   ← Bell icon + badge + dropdown; getNotificationText() maps 7 types
+│   │   ├── services/
+│   │   │   └── notificationApi.service.ts ← getNotifications, getUnreadCount, markAsRead, markAllAsRead
+│   │   └── types/
+│   │       └── notification.type.ts   ← NotificationPayload discriminated union (7 types)
 │   │
 │   ├── admin/
 │   │   ├── components/
 │   │   │   ├── AdminRoute.tsx          ← Guard: redirects non-admins to /dashboard
 │   │   │   └── AdminLayout.tsx         ← Shared sidebar layout for /admin/* routes
-│   │   └── pages/
-│   │       ├── AdminUsersPage.tsx
-│   │       ├── AdminCategoriesPage.tsx
-│   │       ├── AdminCurrenciesPage.tsx
-│   │       ├── AdminRatesPage.tsx
-│   │       └── AdminRateConflictsPage.tsx
+│   │   ├── pages/
+│   │   │   ├── AdminUsersPage.tsx
+│   │   │   ├── AdminCategoriesPage.tsx
+│   │   │   ├── AdminCurrenciesPage.tsx
+│   │   │   ├── AdminRatesPage.tsx
+│   │   │   └── AdminRateConflictsPage.tsx
+│   │   └── services/
+│   │       ├── adminUsersApi.service.ts
+│   │       ├── adminCategoriesApi.service.ts
+│   │       ├── adminCurrenciesApi.service.ts
+│   │       └── adminRatesApi.service.ts
 │   │
 │   └── public/
 │       └── pages/
@@ -120,28 +172,46 @@ frontend/dashboard/src/
 │           ├── NotFoundPage.tsx
 │           └── VerifyErrorPage.tsx     ← Friendly "Verification link expired" page
 │
+├── providers/
+│   └── AppProviders.tsx        ← Composes full provider tree
+│
+├── hooks/
+│   └── usePageTitle.ts         ← Sets document.title per page
+│
+├── i18n/                       ← react-i18next; en/fr/es/de locales
+│
 ├── layouts/
-│   └── NavBar.tsx              ← Navigation bar with auth-aware links
+│   └── NavBar.tsx              ← Auth-aware nav; FamilySelector → DisplayCurrencySelector → bell → avatar (ThemeToggle)
+│
+├── styles/
+│   └── index.css               ← Tailwind directives + CSS variable light/dark palette definitions
 │
 └── services/
-    └── api.service.ts          ← Base HTTP client (fetch wrapper)
+    └── api.service.ts          ← Base HTTP client; transparent 401 refresh-and-retry
 ```
+
+**Mobile app:** `frontend/mobile/` — Ionic v8 + Capacitor v7 + React (Phase 14). Shares API service pattern and locale files with the dashboard. Five-tab navigation: Dashboard, Expenses, +FAB (QuickAddModal), Families, Settings. See [FILE-TREE.md](../../FILE-TREE.md) for the full mobile structure.
 
 ---
 
 ## App.tsx — Provider Composition
 
-`App.tsx` composes the full provider tree:
+`AppProviders.tsx` composes the full provider tree via `composeProviders`:
 
 ```tsx
-<BrowserRouter>
-  <ToastProvider>          ← Global toast notifications
-    <AuthProvider>         ← Authentication state
-      <NavBar />
-      <router.tsx />       ← All page routes
-    </AuthProvider>
-  </ToastProvider>
-</BrowserRouter>
+<ThemeProvider>            ← Three-mode theme (light/dark/system); persists to localStorage
+  <AuthProvider>           ← Authentication state, session restore
+    <ExpensesDataProvider> ← Categories + currencies + tags (fetched on auth)
+      <FamilyProvider>     ← Family list + activeFamilyId (persisted to localStorage)
+        <DisplayCurrencyProvider>  ← Session-only display currency state
+          <NotificationProvider>   ← SignalR connection + unread count
+            <App />        ← BrowserRouter + NavBar + router.tsx routes
+          </NotificationProvider>
+        </DisplayCurrencyProvider>
+      </FamilyProvider>
+    </ExpensesDataProvider>
+  </AuthProvider>
+</ThemeProvider>
 ```
 
 ---
@@ -161,11 +231,12 @@ Defined in `router.tsx`:
 | `/dashboard` | Protected | `HomeDashboardPage` | Dashboard with charts and stats |
 | `/settings` | Protected | `SettingsPage` | User settings |
 | `/change-password` | Protected | `ChangePasswordPage` | Change password form |
-| `/families` | Protected | `FamiliesPage` | Family management |
-| `/families/accept-invite` | Protected | `AcceptInvitePage` | Accept family invitation |
-| `/expenses` | Protected | `ExpensesPage` | Paginated expense list with filters |
+| `/families` | Protected | `FamiliesPage` | Family management: active/archived tabs, invite, members |
+| `/families/accept-invite` | Protected | `AcceptInvitePage` | Token-based invitation acceptance |
+| `/expenses` | Protected | `ExpensesPage` | Paginated expense list with filters + family scope |
 | `/expenses/add` | Protected | `ExpensesPage` | Opens add-expense modal (same page) |
 | `/expenses/:id/edit` | Protected | `ExpensesPage` | Opens edit-expense modal (same page) |
+| `/expenses/import` | Protected | `CsvImportPage` | Two-step CSV bulk import (upload→preview→confirm) |
 | `/admin` | Admin | redirect | Redirects to `/admin/users` |
 | `/admin/users` | Admin | `AdminUsersPage` | User management (enable/disable/roles) |
 | `/admin/categories` | Admin | `AdminCategoriesPage` | Category management |
@@ -285,6 +356,18 @@ showToast('message', 'success' | 'error' | 'info')
 
 Auto-dismisses after a configurable duration. Positioned fixed at top-right.
 
+### ThemeToggle
+
+Segmented 3-button control for Day / Default (system) / Dark theme. Reads/writes via `useTheme()`. Active button = `bg-brand-500 text-white`. Used in the NavBar avatar dropdown and in `SettingsPage`.
+
+### FormCombobox
+
+Searchable combobox (text `<input>` + listbox dropdown). Used in `ExpenseForm` for currency, category, and subcategory fields, and in admin pages. Renders via `createPortal` at `position: fixed` to escape `overflow: hidden` containers.
+
+### LanguageSwitcher
+
+Language selector dropdown wired to `i18n.changeLanguage`. Appears in NavBar and Settings.
+
 ### PasswordInput
 
 Password field with a toggle button to show/hide the value. Used in all password entry forms.
@@ -311,8 +394,10 @@ A `←` navigation link that routes back to a specified path. Used at the top of
 
 Tailwind CSS v3 with a custom design system in `tailwind.config.ts` and `src/styles/index.css`.
 
-**Brand color:** Indigo — `brand-600` = `#4f46e5`  
+**Brand color:** Terracotta/clay — `brand-600` (Hearth design system)  
 **Font:** Inter (Google Fonts, loaded in `index.html`)
+
+**Dark mode:** `darkMode: 'class'` in `tailwind.config.ts`. `surface.*` and `ink.*` palette values are CSS variable references (`var(--color-surface-*)`, `var(--color-ink-*)`). CSS variables are defined in `index.css` for `:root` (light) and `.dark` (dark), plus `@media (prefers-color-scheme: dark) { :root:not(.light) }` for the system mode. Toggled by `ThemeProvider` which adds/removes `.dark`/`.light` classes on `<html>`.
 
 **Component classes (`@layer components`):**
 

@@ -7,7 +7,7 @@
 ## Workspace Structure
 
 ```
-backend/         # .NET microservices (expenses, users, dashboard)
+backend/         # .NET microservices (users, expenses, notifications, dashboard)
 frontend/        # React apps: dashboard (Vite + TypeScript) + mobile (Ionic + Capacitor)
 infrastructure/  # Docker Compose, configs, scripts
 ```
@@ -16,10 +16,10 @@ infrastructure/  # Docker Compose, configs, scripts
 
 ## Backend Services
 
-- **expenses** (port 9200): Expense management API — .NET 8, EF Core 8, PostgreSQL
 - **users** (port 9100): User management and JWT auth API — .NET 8, EF Core 8, PostgreSQL
+- **expenses** (port 9200): Expense management API — .NET 8, EF Core 8, PostgreSQL
 - **notifications** (port 9300): In-app + email notifications via SignalR WebSocket — .NET 8, EF Core 8, PostgreSQL, RabbitMQ consumer
-- **dashboard**: (Planned) Dashboard API
+- **dashboard**: (Planned) Dedicated dashboard API
 
 Each service has its own solution and project files. Configurations use environment variables for secrets (see `appsettings.json` and Docker Compose files).
 
@@ -38,7 +38,7 @@ Each service has its own solution and project files. Configurations use environm
 
 Location: `frontend/dashboard`
 
-React 18 + TypeScript + Vite 7 SPA styled with Tailwind CSS v3. All traffic flows through nginx (port 80/443), which enforces JWT auth before forwarding to backend services.
+React 18 + TypeScript + Vite 7 SPA styled with Tailwind CSS v3 (Hearth design system). All traffic flows through nginx (port 80/443), which enforces JWT auth before forwarding to backend services. Includes three-mode theme (Day/Default/Dark), CSV bulk import, real-time notification bell (SignalR), and full admin panel.
 
 ### Quick Start
 
@@ -51,6 +51,27 @@ npm run dev
 Configure API base URL in `.env`:
 ```
 VITE_API_BASE="http://localhost:80" # nginx reverse proxy
+```
+
+---
+
+## Mobile App
+
+Location: `frontend/mobile`
+
+Ionic v8 + Capacitor v7 + React native app. Shares locale files and API patterns with the dashboard. Five-tab navigation: Dashboard, Expenses, +FAB (QuickAddModal), Families, Settings. Offline queue via IndexedDB.
+
+### Quick Start
+
+```sh
+cd frontend/mobile
+npm ci
+npm run dev    # web preview on port 5174
+```
+
+Configure API base URL in `.env.local`:
+```
+VITE_API_BASE_URL=https://localhost
 ```
 
 ---
