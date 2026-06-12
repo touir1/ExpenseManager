@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   IonPage,
@@ -13,19 +14,30 @@ import {
   IonList,
   IonItem,
   IonLabel,
-  IonProgressBar,
   IonText,
   IonSkeletonText,
   IonSelect,
   IonSelectOption,
 } from '@ionic/react'
 import { useTranslation } from 'react-i18next'
-import { getSummary, getDashboardCategories, getRecent } from '@/features/dashboard/services/dashboardApi.service'
+import {
+  getSummary,
+  getDashboardCategories,
+  getMonthly,
+  getSameMonthYearly,
+  getByCurrency,
+  getRecent,
+} from '@/features/dashboard/services/dashboardApi.service'
 import { useFamilies } from '@/features/families/FamilyContext'
 import { useDisplayCurrency } from '@/features/currencies/DisplayCurrencyContext'
 import { useExpensesData } from '@/features/expenses/ExpensesDataContext'
 import { NotificationBell } from '@/features/notifications/components/NotificationBell'
-import type { CategoryBreakdownDto } from '@/features/dashboard/types/dashboard.type'
+import { DashboardDateFilter, getPeriodDates } from '@/features/dashboard/components/DashboardDateFilter'
+import { SpendTrendChart } from '@/features/dashboard/components/SpendTrendChart'
+import { CategoryPieChart } from '@/features/dashboard/components/CategoryPieChart'
+import { SameMonthChart } from '@/features/dashboard/components/SameMonthChart'
+import { CurrenciesPanel } from '@/features/dashboard/components/CurrenciesPanel'
+import type { Period } from '@/features/dashboard/components/DashboardDateFilter'
 
 function formatAmount(amount: number, decimals = 2): string {
   return amount.toFixed(decimals)
@@ -37,9 +49,8 @@ export default function DashboardPage() {
   const { displayCurrencyId, setDisplayCurrencyId } = useDisplayCurrency()
   const { currencies } = useExpensesData()
 
-  const now = new Date()
-  const dateFrom = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
-  const dateTo = now.toISOString().substring(0, 10)
+  const [period, setPeriod] = useState<Period>('month')
+  const { dateFrom, dateTo } = getPeriodDates(period)
 
   const filter = {
     familyId: activeFamilyId ?? undefined,
@@ -58,6 +69,22 @@ export default function DashboardPage() {
     queryFn: () => getDashboardCategories(filter),
   })
 
+  const { data: monthlyRes, isLoading: monthlyLoading } = useQuery({
+    queryKey: ['dashboard-monthly', filter],
+    queryFn: () => getMonthly(filter),
+  })
+
+  const { data: byCurrencyRes, isLoading: currencyLoading } = useQuery({
+    queryKey: ['dashboard-by-currency', filter],
+    queryFn: () => getByCurrency(filter),
+  })
+
+  const now = new Date()
+  const { data: sameMonthRes, isLoading: sameMonthLoading } = useQuery({
+    queryKey: ['dashboard-same-month', now.getMonth() + 1, activeFamilyId, displayCurrencyId],
+    queryFn: () => getSameMonthYearly(now.getMonth() + 1, activeFamilyId ?? undefined, displayCurrencyId ?? undefined),
+  })
+
   const { data: recentRes } = useQuery({
     queryKey: ['dashboard-recent', filter],
     queryFn: () => getRecent(filter),
@@ -65,13 +92,14 @@ export default function DashboardPage() {
 
   const summary = summaryRes?.ok ? summaryRes.data : null
   const categories = (categoriesRes?.ok ? categoriesRes.data : null) ?? []
+  const monthly = (monthlyRes?.ok ? monthlyRes.data : null) ?? []
+  const byCurrency = (byCurrencyRes?.ok ? byCurrencyRes.data : null) ?? []
+  const sameMonth = (sameMonthRes?.ok ? sameMonthRes.data : null) ?? []
   const recentExpenses = (recentRes?.ok ? recentRes.data?.items : null) ?? []
-
-  const topCategories = categories.slice(0, 5)
-  const maxCatAmount = topCategories[0]?.totalAmount ?? 1
 
   const changePercent = summary?.changePercent ?? null
   const isPositive = changePercent !== null && changePercent >= 0
+  const displayCurrency = summary?.displayCurrency ?? null
 
   return (
     <IonPage>
@@ -94,10 +122,15 @@ export default function DashboardPage() {
       </IonHeader>
 
       <IonContent>
+        <DashboardDateFilter
+          value={period}
+          onChange={({ period: p }) => setPeriod(p)}
+        />
+
         {/* Month hero card */}
         <IonCard>
           <IonCardHeader>
-            <IonCardSubtitle>{t('dashboard.thisMonth', 'This month')}</IonCardSubtitle>
+            <IonCardSubtitle>{t('dashboard.filters.thisMonth')}</IonCardSubtitle>
             {summaryLoading ? (
               <IonSkeletonText animated style={{ width: '60%', height: 28 }} />
             ) : (
@@ -111,56 +144,60 @@ export default function DashboardPage() {
             {changePercent !== null && (
               <IonText color={isPositive ? 'danger' : 'success'}>
                 <span style={{ fontWeight: 600 }}>
-                  {isPositive ? '+' : ''}{changePercent.toFixed(1)}% vs last month
+                  {isPositive ? '+' : ''}{changePercent.toFixed(1)}% {t('dashboard.summary.vs')}
                 </span>
               </IonText>
             )}
             {summary?.topCategory && (
               <p style={{ color: 'var(--ion-color-medium)', marginTop: 4, fontSize: 13 }}>
-                Top: {summary.topCategory.name}
+                {t('dashboard.summary.topCategory')} {summary.topCategory.name}
               </p>
+            )}
+            {summaryLoading && (
+              <IonSkeletonText animated style={{ width: '80%', height: 14 }} />
             )}
           </IonCardContent>
         </IonCard>
 
+        {/* Monthly spend trend */}
+        <SpendTrendChart
+          data={monthly}
+          isLoading={monthlyLoading}
+          displayCurrency={displayCurrency}
+        />
+
         {/* Category breakdown */}
-        {topCategories.length > 0 && (
-          <IonCard>
-            <IonCardHeader>
-              <IonCardTitle style={{ fontSize: 16 }}>{t('dashboard.byCategory', 'By category')}</IonCardTitle>
-            </IonCardHeader>
-            <IonCardContent>
-              {catsLoading ? (
-                [1, 2, 3].map(i => <IonSkeletonText key={i} animated style={{ height: 16, marginBottom: 12 }} />)
-              ) : (
-                topCategories.map((cat: CategoryBreakdownDto) => (
-                  <div key={cat.category?.id ?? 'uncategorized'} style={{ marginBottom: 12 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <IonText style={{ fontSize: 13 }}>{cat.category?.name ?? t('expenses.uncategorized', 'Uncategorized')}</IonText>
-                      <IonText style={{ fontSize: 13, fontWeight: 600 }}>{cat.percentage.toFixed(0)}%</IonText>
-                    </div>
-                    <IonProgressBar
-                      value={cat.totalAmount / maxCatAmount}
-                      color="primary"
-                    />
-                  </div>
-                ))
-              )}
-            </IonCardContent>
-          </IonCard>
-        )}
+        <CategoryPieChart
+          data={categories}
+          isLoading={catsLoading}
+          displayCurrency={displayCurrency}
+        />
+
+        {/* Currency breakdown */}
+        <CurrenciesPanel
+          data={byCurrency}
+          isLoading={currencyLoading}
+          displayCurrency={displayCurrency}
+        />
+
+        {/* Year-over-year same month */}
+        <SameMonthChart
+          data={sameMonth}
+          isLoading={sameMonthLoading}
+          displayCurrency={displayCurrency}
+        />
 
         {/* Recent expenses */}
-        {recentExpenses.length > 0 && (
+        {(recentExpenses.length > 0 || summaryLoading) && (
           <IonCard>
             <IonCardHeader>
-              <IonCardTitle style={{ fontSize: 16 }}>{t('dashboard.recentExpenses', 'Recent expenses')}</IonCardTitle>
+              <IonCardTitle style={{ fontSize: 16 }}>{t('dashboard.recent.title')}</IonCardTitle>
             </IonCardHeader>
             <IonList>
               {recentExpenses.slice(0, 5).map(expense => (
                 <IonItem key={expense.id}>
                   <IonLabel>
-                    <h3>{expense.category?.name ?? t('expenses.uncategorized', 'Uncategorized')}</h3>
+                    <h3>{expense.category?.name ?? t('expenses.uncategorised')}</h3>
                     <p>{expense.date.substring(0, 10)}</p>
                   </IonLabel>
                   <IonText slot="end" color="dark">

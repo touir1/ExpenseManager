@@ -1,6 +1,22 @@
 
 # Changelog
 
+## [0.115.0] - 2026-06-12
+### Mobile dashboard — graphs & stats home screen
+
+- **`frontend/mobile`** — `recharts` added as dependency (same library as web dashboard; SVG-based, works in Ionic WebView).
+- **`frontend/mobile/src/features/dashboard/components/DashboardDateFilter.tsx`** *(new)* — `IonSegment` with three preset buttons (This Month / 6 Months / This Year); exports `getPeriodDates(period)` pure helper that computes `{ dateFrom, dateTo }` from current date.
+- **`frontend/mobile/src/features/dashboard/components/SpendTrendChart.tsx`** *(new)* — Recharts `AreaChart`; X = month abbreviation, Y = amount; gradient fill; uses `convertedTotal` when `displayCurrency` set; skeleton + empty-state messages.
+- **`frontend/mobile/src/features/dashboard/components/CategoryPieChart.tsx`** *(new)* — Recharts `PieChart` (donut); top-6 categories + "Other" bucket for overflow; inline legend with percentage labels; 6-color palette.
+- **`frontend/mobile/src/features/dashboard/components/SameMonthChart.tsx`** *(new)* — Recharts `BarChart`; year-over-year comparison for the current month; X = year labels.
+- **`frontend/mobile/src/features/dashboard/components/CurrenciesPanel.tsx`** *(new)* — `IonList`; one row per currency showing code, expense count, and total amount; converts via `displayCurrency` when set.
+- **`frontend/mobile/src/features/dashboard/pages/DashboardPage.tsx`** — replaced hardcoded current-month dates with `period` state (`useState<Period>('month')`); added `DashboardDateFilter` at top; added 3 new `useQuery` calls (`getMonthly`, `getByCurrency`, `getSameMonthYearly`); section order: DateFilter → Hero → SpendTrendChart → CategoryPieChart → CurrenciesPanel → SameMonthChart → recent expenses.
+- **`frontend/mobile/src/i18n/locales/{en,fr,es,de}/translation.json`** — added `dashboard.filters.sixMonths` key (EN: "6 Months", FR: "6 mois", ES: "6 meses", DE: "6 Monate").
+- **`frontend/mobile/src/features/dashboard/components/__tests__/{DashboardDateFilter,SpendTrendChart,CategoryPieChart,SameMonthChart,CurrenciesPanel}.test.tsx`** *(new)* — 5 new test files; recharts mocked via `vi.mock('recharts', …)` overriding `ResponsiveContainer` with a plain `<div data-testid="responsive-container">`; covers: skeleton/loading state, empty state, data render, currency conversion paths.
+- **`frontend/mobile/src/features/dashboard/pages/__tests__/DashboardPage.test.tsx`** — expanded from 4 to 11 tests; all 6 queries verified on mount; date-filter state change tested; chart components mocked to assert data propagation via `data-count` attributes.
+- **`docs/plans/phase-15-mobile-dashboard.md`** *(new)* — completed plan document for this phase.
+
+
 All notable changes to this project will be documented in this file.
 
 ## [0.114.0] - 2026-06-10

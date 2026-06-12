@@ -979,10 +979,22 @@ ExpenseManager/
 │               │           ├── ExpensesListPage.test.tsx
 │               │           └── QuickAddModal.test.tsx
 │               ├── dashboard/
-│               │   ├── services/dashboardApi.service.ts — getDashboardCategories (renamed to avoid conflict), getSummary, getRecent
+│               │   ├── services/dashboardApi.service.ts — getSummary, getMonthly, getDashboardCategories, getSameMonthYearly, getByCurrency, getRecent
 │               │   ├── types/dashboard.type.ts
+│               │   ├── components/
+│               │   │   ├── DashboardDateFilter.tsx — IonSegment (This Month / 6 Months / This Year); exports getPeriodDates(period) pure helper
+│               │   │   ├── SpendTrendChart.tsx    — Recharts AreaChart; monthly spend trend; displayCurrency-aware
+│               │   │   ├── CategoryPieChart.tsx   — Recharts PieChart (donut); top-6 categories + Other bucket; percentage legend
+│               │   │   ├── SameMonthChart.tsx     — Recharts BarChart; year-over-year same-month comparison
+│               │   │   ├── CurrenciesPanel.tsx    — IonList; per-currency totals + expense counts
+│               │   │   └── __tests__/
+│               │   │       ├── DashboardDateFilter.test.tsx
+│               │   │       ├── SpendTrendChart.test.tsx
+│               │   │       ├── CategoryPieChart.test.tsx
+│               │   │       ├── SameMonthChart.test.tsx
+│               │   │       └── CurrenciesPanel.test.tsx
 │               │   └── pages/
-│               │       ├── DashboardPage.tsx     — IonCard month hero; IonProgressBar categories; last-5 IonList; DisplayCurrency IonSelect
+│               │       ├── DashboardPage.tsx     — Period filter state; 6 useQuery calls; DateFilter + hero + SpendTrendChart + CategoryPieChart + CurrenciesPanel + SameMonthChart + recent-5 IonList
 │               │       └── __tests__/DashboardPage.test.tsx
 │               ├── families/
 │               │   ├── FamilyContext.tsx         — FamilyProvider / useFamilies() (adapted from dashboard)

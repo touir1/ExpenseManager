@@ -9,7 +9,7 @@ Reference: [application-description.md](application-description.md)
 | Users service | ✅ Complete — auth, registration, JWT (incl. `isAdmin` claim), refresh tokens, password management, FluentValidation, admin user management (`AdminUserController`) |
 | Expenses service | ✅ Phase 1–13 complete — schema, categories/currencies, expense CRUD, family system, tags, currency rates (daily storage, resolution, auto-update via Quartz, backfill, conflict management, display currency conversion), dashboard API, admin controllers (categories, currencies, rates), CSV bulk import, outbox for family events |
 | Notifications service | ✅ Phase 13 complete — dedicated microservice (port 9300); SignalR hub; RabbitMQ consumer (`family.member.removed`); inbox deduplication; in-app notifications + email; `NotificationBell` in frontend NavBar; 20 tests |
-| Frontend | ✅ Auth + family management + tag input + display currency selector + expense list/form (Phase 8) + dashboard (Phase 9 — Hearth design) + admin screens (Phase 11: users, categories, currencies, rates, rate conflicts, AdminRoute guard, AdminLayout, i18n) + CSV import (Phase 12) + notification bell with SignalR real-time push (Phase 13) + Ionic + Capacitor native mobile app at `frontend/mobile/` (Phase 14) + three-mode theme (Day/Default/Dark) in both dashboard and mobile apps complete |
+| Frontend | ✅ Auth + family management + tag input + display currency selector + expense list/form (Phase 8) + dashboard (Phase 9 — Hearth design) + admin screens (Phase 11: users, categories, currencies, rates, rate conflicts, AdminRoute guard, AdminLayout, i18n) + CSV import (Phase 12) + notification bell with SignalR real-time push (Phase 13) + Ionic + Capacitor native mobile app at `frontend/mobile/` (Phase 14) + three-mode theme (Day/Default/Dark) in both dashboard and mobile apps + mobile dashboard charts (Recharts AreaChart / PieChart / BarChart, date filter, 5 new test files — v0.115.0) |
 | Infrastructure | ✅ Docker Compose, nginx, PostgreSQL, RabbitMQ, Grafana, Prometheus |
 
 ---
@@ -615,7 +615,7 @@ Replace current model with:
 - [x] **Hearth design tokens** — mapped to Ionic CSS custom properties in `theme/variables.css`
 - [x] **QuickAddModal** — `IonModal` bottom sheet (0.75 breakpoint); offline enqueue; `@capacitor/haptics`; `@capacitor/camera` receipt preview
 - [x] **ExpensesListPage** — `IonItemSliding` swipe-delete; `IonRefresher`; `IonInfiniteScroll`; family `IonSegment` filter
-- [x] **DashboardPage** — month hero `IonCard`; `IonProgressBar` category breakdown; last-5 feed; display currency `IonSelect`
+- [x] **DashboardPage** — period filter `IonSegment` (This Month / 6 Months / This Year); month hero `IonCard`; Recharts `AreaChart` monthly trend + `PieChart` category donut (top-6 + Other) + `BarChart` year-over-year + `IonList` currency breakdown; last-5 recent feed; display currency `IonSelect` (v0.115.0)
 - [x] **FamiliesPage** — expandable cards; invite; leave; archive
 - [x] **SettingsPage** — currency + language selectors; language persisted to `@capacitor/preferences`
 - [x] **NotificationBell** — `IonButton` + `IonBadge`; `IonPopover` list; mark-all-read
@@ -623,7 +623,7 @@ Replace current model with:
 - [x] **`useNetworkSync`** — Capacitor Network listener; drain on reconnect; browser fallback
 - [x] **NotificationContext** — SignalR + `@capacitor/push-notifications`; push token via `POST /api/notifications/push-token` stub
 - [x] **Backend stub** — `POST /notifications/push-token` in `NotificationController` (Phase 15 will add FCM/APNs)
-- [x] **8 unit test files** — `useOfflineQueue`, `useNetworkSync`, `LoginPage`, `ExpensesListPage`, `QuickAddModal`, `DashboardPage`, `NotificationContext`, `SettingsPage`
+- [x] **13 unit test files** — `useOfflineQueue`, `useNetworkSync`, `LoginPage`, `ExpensesListPage`, `QuickAddModal`, `DashboardPage` (11 tests), `NotificationContext`, `SettingsPage`, `DashboardDateFilter`, `SpendTrendChart`, `CategoryPieChart`, `SameMonthChart`, `CurrenciesPanel`
 - [x] **`frontend/mobile/README.md`** — setup, env vars, device/emulator instructions, offline queue docs
 
 **Depends on:** Phase 8, Phase 9

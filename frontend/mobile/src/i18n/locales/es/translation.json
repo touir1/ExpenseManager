@@ -137,6 +137,7 @@
         },
         "filters": {
             "thisMonth": "Este mes",
+            "sixMonths": "6 meses",
             "thisYear": "Este año"
         },
         "summary": {
