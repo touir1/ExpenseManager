@@ -1,6 +1,15 @@
 
 # Changelog
 
+## [0.115.1] - 2026-06-13
+### Fix TypeScript build errors in mobile dashboard chart components
+
+- **`frontend/mobile/src/features/dashboard/components/CategoryPieChart.tsx`** — `Tooltip formatter` param changed from `(v: number)` to `(v)` with `(v as number)` cast; recharts `Formatter` type passes `ValueType | undefined`, not `number`.
+- **`frontend/mobile/src/features/dashboard/components/SameMonthChart.tsx`** — same `formatter` cast fix.
+- **`frontend/mobile/src/features/dashboard/components/SpendTrendChart.tsx`** — same `formatter` cast fix.
+- **`frontend/mobile/src/features/dashboard/components/__tests__/CategoryPieChart.test.tsx`** — `description: null, icon: null` → `description: undefined, icon: undefined`; `Subcategory.description/icon` are `string | undefined`, not nullable.
+- **`frontend/mobile/src/features/dashboard/components/__tests__/DashboardDateFilter.test.tsx`** — removed unused `fireEvent` import and unused `onIonChange` mock destructure.
+
 ## [0.115.0] - 2026-06-12
 ### Mobile dashboard — graphs & stats home screen
 

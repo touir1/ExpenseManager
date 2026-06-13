@@ -63,7 +63,7 @@ export function CategoryPieChart({ data, isLoading, displayCurrency }: Props) {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(v: number) => [v.toFixed(2), '']}
+                    formatter={(v) => [(v as number).toFixed(2), '']}
                     contentStyle={{ borderRadius: 8, fontSize: 11 }}
                   />
                 </PieChart>

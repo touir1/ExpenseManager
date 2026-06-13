@@ -39,7 +39,7 @@ import type { CategoryBreakdownDto } from '@/features/dashboard/types/dashboard.
 
 function makeCategory(id: number, name: string, amount: number, pct: number): CategoryBreakdownDto {
   return {
-    category: { id, name, description: null, icon: null },
+    category: { id, name, description: undefined, icon: undefined },
     totalAmount: amount,
     convertedTotal: null,
     percentage: pct,

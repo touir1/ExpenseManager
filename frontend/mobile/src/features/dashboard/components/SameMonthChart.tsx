@@ -43,7 +43,7 @@ export function SameMonthChart({ data, isLoading, displayCurrency }: Props) {
                 tickFormatter={v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
               />
               <Tooltip
-                formatter={(v: number) => [`${sym}${sym ? ' ' : ''}${v.toFixed(2)}`, '']}
+                formatter={(v) => [`${sym}${sym ? ' ' : ''}${(v as number).toFixed(2)}`, '']}
                 contentStyle={{ borderRadius: 8, fontSize: 12 }}
               />
               <Bar dataKey="amount" fill="#5C8C9E" radius={[4, 4, 0, 0]} maxBarSize={40} />

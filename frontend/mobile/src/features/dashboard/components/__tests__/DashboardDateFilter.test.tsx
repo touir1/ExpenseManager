@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 
 vi.mock('@ionic/react', () => ({
-  IonSegment: ({ children, onIonChange, value }: any) => (
+  IonSegment: ({ children, value }: any) => (
     <div data-testid="segment" data-value={value}>
       {/* simulate change via the child buttons */}
       {children}
