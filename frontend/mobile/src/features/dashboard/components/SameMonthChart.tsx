@@ -34,7 +34,7 @@ export function SameMonthChart({ data, isLoading, displayCurrency }: Props) {
         ) : (
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: -16 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis
                 tick={{ fontSize: 10 }}
@@ -44,7 +44,13 @@ export function SameMonthChart({ data, isLoading, displayCurrency }: Props) {
               />
               <Tooltip
                 formatter={(v) => [`${sym}${sym ? ' ' : ''}${(v as number).toFixed(2)}`, '']}
-                contentStyle={{ borderRadius: 8, fontSize: 12 }}
+                contentStyle={{
+                  borderRadius: 8,
+                  fontSize: 12,
+                  backgroundColor: 'var(--chart-tooltip-bg)',
+                  borderColor: 'var(--chart-tooltip-border)',
+                  color: 'var(--chart-tooltip-text)',
+                }}
               />
               <Bar dataKey="amount" fill="#5C8C9E" radius={[4, 4, 0, 0]} maxBarSize={40} />
             </BarChart>

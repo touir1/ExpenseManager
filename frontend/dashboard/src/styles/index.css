@@ -13,6 +13,12 @@
   --color-ink-body: #574A3D;
   --color-ink-mute: #8E8170;
   --color-ink-faint:#B8AB99;
+
+  /* Signal soft surfaces — themed so dark mode patches don't glow */
+  --color-berry-soft:   #F2D2CB;
+  --color-sage-soft:    #DCE7CF;
+  --color-mustard-soft: #F4E1B5;
+  --color-sky-soft:     #CFE0E6;
 }
 
 /* ── Dark mode overrides ─────────────────────────────────────────── */
@@ -26,8 +32,15 @@
   --color-surface-muted:  #2A2018;
   --color-ink:      #F0E9E1;
   --color-ink-body: #C9BAA8;
-  --color-ink-mute: #8E8170;
-  --color-ink-faint:#5C5044;
+  /* lifted from #8E8170 (4.5:1) → #A09285 (~5.6:1) for comfortable muted text */
+  --color-ink-mute: #A09285;
+  /* lifted from #5C5044 (~2.3:1) → #8A7868 (~4.1:1) for placeholders/disabled */
+  --color-ink-faint:#8A7868;
+
+  --color-berry-soft:   #3D1A17;
+  --color-sage-soft:    #192E16;
+  --color-mustard-soft: #2E2510;
+  --color-sky-soft:     #162430;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -39,8 +52,13 @@
     --color-surface-muted:  #2A2018;
     --color-ink:      #F0E9E1;
     --color-ink-body: #C9BAA8;
-    --color-ink-mute: #8E8170;
-    --color-ink-faint:#5C5044;
+    --color-ink-mute: #A09285;
+    --color-ink-faint:#8A7868;
+
+    --color-berry-soft:   #3D1A17;
+    --color-sage-soft:    #192E16;
+    --color-mustard-soft: #2E2510;
+    --color-sky-soft:     #162430;
   }
 }
 

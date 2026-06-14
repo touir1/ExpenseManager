@@ -1,6 +1,15 @@
 
 # Changelog
 
+## [0.115.2] - 2026-06-14
+### Fix dark mode color harmony — dashboard + mobile
+
+- **`frontend/dashboard/src/styles/index.css`** — fixed three dark-mode token bugs: `--color-ink-mute` was identical to light mode (`#8E8170`), now `#A09285` (~5.6:1 contrast); `--color-ink-faint` was `#5C5044` (~2.3:1, nearly invisible for placeholders/disabled), now `#8A7868` (~4.1:1); added `--color-berry/sage/mustard/sky-soft` CSS variables with dark counterparts (`#3D1A17` / `#192E16` / `#2E2510` / `#162430`) so Toast and msg blocks no longer glow on dark backgrounds.
+- **`frontend/dashboard/tailwind.config.ts`** — `berry/sage/mustard/sky.soft` values changed from hardcoded hex to `var(--color-*-soft)` so dark-mode overrides take effect via the CSS variables.
+- **`frontend/mobile/src/theme/variables.css`** — `--ion-color-medium` dark override added: `#574A3D` (~1.97:1) → `#A09285` (~5.6:1); `--ion-color-dark` dark override added: Ionic default `#222428` (invisible on dark card) → `#F0E9E1` (primary text), fixing expense amounts in recent-expenses list; added `--chart-grid`, `--chart-tooltip-bg/border/text` CSS variables with light/dark values.
+- **`frontend/mobile/src/features/dashboard/components/SpendTrendChart.tsx`** — gridline `stroke` changed from `#f1f5f9` (bright white on dark) to `var(--chart-grid)`; Recharts `contentStyle` now uses CSS-variable-driven bg/border/text.
+- **`frontend/mobile/src/features/dashboard/components/SameMonthChart.tsx`** — same gridline and tooltip fixes as `SpendTrendChart`.
+
 ## [0.115.1] - 2026-06-13
 ### Fix TypeScript build errors in mobile dashboard chart components
 

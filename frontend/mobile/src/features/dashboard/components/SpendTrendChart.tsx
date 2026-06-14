@@ -48,7 +48,7 @@ export function SpendTrendChart({ data, isLoading, displayCurrency }: Props) {
                   <stop offset="95%" stopColor="#C8623E" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis
                 tick={{ fontSize: 10 }}
@@ -58,7 +58,13 @@ export function SpendTrendChart({ data, isLoading, displayCurrency }: Props) {
               />
               <Tooltip
                 formatter={(v) => [`${sym}${sym ? ' ' : ''}${(v as number).toFixed(2)}`, '']}
-                contentStyle={{ borderRadius: 8, fontSize: 12 }}
+                contentStyle={{
+                  borderRadius: 8,
+                  fontSize: 12,
+                  backgroundColor: 'var(--chart-tooltip-bg)',
+                  borderColor: 'var(--chart-tooltip-border)',
+                  color: 'var(--chart-tooltip-text)',
+                }}
               />
               <Area
                 type="monotone"

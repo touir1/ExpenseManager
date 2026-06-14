@@ -68,6 +68,20 @@
   --ion-tab-bar-border-color: #E8DECB;
   --ion-toolbar-background: #FFFCF6;
   --ion-item-background: #FFFCF6;
+
+  /* Dark semantic tokens — used in dark mode to override "dark"/"medium" color roles */
+  --ion-color-dark: #1A1410;
+  --ion-color-dark-rgb: 26, 20, 16;
+  --ion-color-dark-contrast: #F0E9E1;
+  --ion-color-dark-contrast-rgb: 240, 233, 225;
+  --ion-color-dark-shade: #160f0b;
+  --ion-color-dark-tint: #312720;
+
+  /* Chart theming */
+  --chart-grid: #E8DECB;
+  --chart-tooltip-bg: #FFFCF6;
+  --chart-tooltip-border: #E8DECB;
+  --chart-tooltip-text: #23170E;
 }
 
 /* ── Dark mode — Hearth dark palette ──────────────────────────────── */
@@ -86,10 +100,31 @@
   --ion-color-light-shade: #251D16;
   --ion-color-light-tint: #3A2B1C;
 
+  /* medium: #574A3D (~1.97:1 on dark bg) → #A09285 (~5.6:1) */
+  --ion-color-medium: #A09285;
+  --ion-color-medium-rgb: 160, 146, 133;
+  --ion-color-medium-contrast: #1C1610;
+  --ion-color-medium-contrast-rgb: 28, 22, 16;
+  --ion-color-medium-shade: #8e8173;
+  --ion-color-medium-tint: #a99e92;
+
+  /* dark: Ionic default #222428 is invisible on dark cards → invert to light */
+  --ion-color-dark: #F0E9E1;
+  --ion-color-dark-rgb: 240, 233, 225;
+  --ion-color-dark-contrast: #1C1610;
+  --ion-color-dark-contrast-rgb: 28, 22, 16;
+  --ion-color-dark-shade: #d4cdc6;
+  --ion-color-dark-tint: #f2ebe4;
+
   --ion-tab-bar-background: #251D16;
   --ion-tab-bar-border-color: #3E2E22;
   --ion-toolbar-background: #251D16;
   --ion-item-background: #251D16;
+
+  --chart-grid: #3E2E22;
+  --chart-tooltip-bg: #251D16;
+  --chart-tooltip-border: #3E2E22;
+  --chart-tooltip-text: #F0E9E1;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -108,9 +143,28 @@
     --ion-color-light-shade: #251D16;
     --ion-color-light-tint: #3A2B1C;
 
+    --ion-color-medium: #A09285;
+    --ion-color-medium-rgb: 160, 146, 133;
+    --ion-color-medium-contrast: #1C1610;
+    --ion-color-medium-contrast-rgb: 28, 22, 16;
+    --ion-color-medium-shade: #8e8173;
+    --ion-color-medium-tint: #a99e92;
+
+    --ion-color-dark: #F0E9E1;
+    --ion-color-dark-rgb: 240, 233, 225;
+    --ion-color-dark-contrast: #1C1610;
+    --ion-color-dark-contrast-rgb: 28, 22, 16;
+    --ion-color-dark-shade: #d4cdc6;
+    --ion-color-dark-tint: #f2ebe4;
+
     --ion-tab-bar-background: #251D16;
     --ion-tab-bar-border-color: #3E2E22;
     --ion-toolbar-background: #251D16;
     --ion-item-background: #251D16;
+
+    --chart-grid: #3E2E22;
+    --chart-tooltip-bg: #251D16;
+    --chart-tooltip-border: #3E2E22;
+    --chart-tooltip-text: #F0E9E1;
   }
 }

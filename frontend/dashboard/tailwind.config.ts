@@ -62,22 +62,22 @@ const config: Config = {
           mute:    'var(--color-ink-mute)',
           faint:   'var(--color-ink-faint)',
         },
-        // Signal palette
+        // Signal palette — .soft uses CSS vars so dark mode overrides apply
         sage: {
           DEFAULT: '#6B8E5A',
-          soft:    '#DCE7CF',
+          soft:    'var(--color-sage-soft)',
         },
         berry: {
           DEFAULT: '#B5443F',
-          soft:    '#F2D2CB',
+          soft:    'var(--color-berry-soft)',
         },
         mustard: {
           DEFAULT: '#D6A23F',
-          soft:    '#F4E1B5',
+          soft:    'var(--color-mustard-soft)',
         },
         sky: {
           DEFAULT: '#5C8C9E',
-          soft:    '#CFE0E6',
+          soft:    'var(--color-sky-soft)',
         },
       },
       borderRadius: {
