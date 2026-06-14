@@ -579,3 +579,528 @@
 | Dark mode | ✅ | ✅ | ✅ Done |
 | Offline queue | ❌ None | ✅ Full | 🟢 Low (web unlikely to need) |
 | Receipt capture | ❌ N/A | ⚠️ Captured but not stored | 🔴 Fix or remove |
+
+---
+
+## 16. Visual Design Deep-Dive (Code-Level)
+
+> Based on ui-ux-pro-max design system analysis + direct code audit.  
+> The project uses a **"Hearth"** design system — warm earthy palette (cream surfaces, clay #C8623E primary, cocoa ink), Manrope typeface, JetBrains Mono for data.  
+> The tokens are well-defined. The problem is **inconsistent usage** — several components bypass the token system entirely.
+
+---
+
+### 🔴 Design Token Violations — Dark Mode Breaks
+
+The biggest visual issue in the codebase. These hardcoded Tailwind colors ignore `--color-surface-*` and `--color-ink-*` tokens and **will not adapt to dark mode**:
+
+#### `ExpensesPage.tsx` — ConfirmDeleteModal (lines 22–41)
+```tsx
+// ❌ Current — hardcoded, dark-mode blind
+<div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-sm mx-4 p-6">
+  <h2 className="text-base font-semibold text-slate-900 mb-2">…</h2>
+  <p className="text-sm text-slate-500 mb-5">…</p>
+  <button className="… border border-slate-200 hover:bg-slate-50 …">…</button>
+
+// ✅ Fix — use Hearth tokens
+<div className="bg-surface-card rounded-2xl shadow-warm border border-surface-border w-full max-w-sm mx-4 p-6">
+  <h2 className="text-base font-semibold text-ink mb-2">…</h2>
+  <p className="text-sm text-ink-mute mb-5">…</p>
+  <button className="… border border-surface-border hover:bg-surface-subtle …">…</button>
+```
+
+#### `ExpensesPage.tsx` — ExpenseRow (lines 56–97) and table body (line 205)
+```tsx
+// ❌ Current
+<tr className="border-b border-slate-100 hover:bg-slate-50 …">
+<span className="… bg-slate-100 text-slate-600 …">{tag.name}</span>  // tag badge
+<tbody className="bg-white">
+
+// ✅ Fix
+<tr className="border-b border-surface-border hover:bg-surface-subtle …">
+<span className="… bg-surface-subtle text-ink-mute …">{tag.name}</span>
+<tbody className="bg-surface-card">
+```
+
+#### `ExpensesPage.tsx` — CSV Import button (line 147)
+```tsx
+// ❌ Current
+className="… border border-slate-200 bg-white hover:bg-slate-50 …"
+
+// ✅ Fix
+className="… border border-surface-border bg-surface-card hover:bg-surface-subtle …"
+```
+
+**Files affected:** [ExpensesPage.tsx](frontend/dashboard/src/features/expenses/pages/ExpensesPage.tsx)  
+**Effort:** 20 min
+
+---
+
+### 🔴 Chart Colors — Dark Mode Breaks
+
+`SpendChart.tsx` has hardcoded colors throughout despite `--chart-*` CSS variables already existing in `variables.css`:
+
+```tsx
+// ❌ Current — all hardcoded
+const BAR_COLOR = '#c8623e'          // OK in light, but static
+const LINE_COLOR = '#94a3b8'         // slate-400 — not from Hearth palette
+<CartesianGrid stroke="#f1f5f9" />   // near-invisible in dark mode
+<XAxis tick={{ fill: '#94a3b8' }} /> // hardcoded
+<Tooltip contentStyle={{ border: '1px solid #e2e8f0' }} />  // light-only
+
+// ✅ Fix — read CSS variables at render time
+const isDark = document.documentElement.classList.contains('dark')
+const gridColor   = isDark ? '#3E2E22' : '#E8DECB'   // --chart-grid
+const tickColor   = isDark ? '#A09285' : '#8E8170'   // ink-mute
+const tooltipBg   = isDark ? '#251D16' : '#FFFCF6'   // --chart-tooltip-bg
+const tooltipBorder = isDark ? '#3E2E22' : '#E8DECB' // --chart-tooltip-border
+```
+
+Or better — read directly from CSS variables:
+```tsx
+function getCSSVar(name: string) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+}
+// then use getCSSVar('--chart-grid') etc.
+```
+
+**Same issue in:** `SameMonthChart.tsx`, `CategoryDonut.tsx`, `CurrenciesPanel.tsx`  
+**Files affected:** [SpendChart.tsx](frontend/dashboard/src/features/dashboard/components/SpendChart.tsx), [SameMonthChart.tsx](frontend/dashboard/src/features/dashboard/components/SameMonthChart.tsx), [CategoryDonut.tsx](frontend/dashboard/src/features/dashboard/components/CategoryDonut.tsx)
+
+---
+
+### 🔴 MonthHero — Wrong Signal Colors for Delta Badge
+
+```tsx
+// ❌ Current — generic green/red, not Hearth semantic tokens
+const deltaClass = deltaPositive
+  ? 'bg-green-50 text-green-700'
+  : 'bg-red-50 text-red-700'
+
+// ✅ Fix — use Hearth sage/berry tokens (already defined, dark-mode aware)
+const deltaClass = deltaPositive
+  ? 'bg-sage-soft text-sage'
+  : 'bg-berry-soft text-berry'
+```
+
+**File:** [MonthHero.tsx](frontend/dashboard/src/features/dashboard/components/MonthHero.tsx:42-44)
+
+---
+
+### 🔴 Touch Targets Too Small (32px vs 44px minimum)
+
+Three navbar controls are `h-8 w-8` = 32×32px, violating the 44×44pt minimum:
+
+```tsx
+// ❌ NavBar.tsx — Add Expense button, Avatar button  
+className="h-8 w-8 rounded-lg bg-brand-500 …"   // 32px
+className="h-8 w-8 rounded-full bg-brand-500 …"  // 32px
+
+// ❌ NotificationBell.tsx
+className="relative h-8 w-8 rounded-lg …"         // 32px
+
+// ✅ Fix — increase to h-9 w-9 (36px) minimum, ideally h-10 w-10 (40px)
+// Or keep visual size but expand hit area:
+className="relative h-8 w-8 … before:absolute before:inset-[-6px] before:content-['']"
+```
+
+**Files:** [NavBar.tsx](frontend/dashboard/src/layouts/NavBar.tsx:161-179), [NotificationBell.tsx](frontend/dashboard/src/features/notifications/components/NotificationBell.tsx:92)
+
+---
+
+### 🟡 FormCombobox — No Selected-Item Visual Indicator
+
+When an option is selected, only `font-semibold` is applied — no checkmark, no color highlight. Users can't tell at a glance which item is active:
+
+```tsx
+// ❌ Current — barely noticeable
+className={`px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-subtle ${o.value === value ? 'font-semibold' : ''}`}
+
+// ✅ Fix — add brand color + checkmark for selected
+className={`px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-subtle flex items-center justify-between
+  ${o.value === value ? 'font-semibold text-brand-600 bg-brand-50' : 'text-ink-body'}`}
+// Add checkmark SVG when o.value === value
+```
+
+Also: the dropdown uses `shadow-lg` (generic) but the tailwind config defines `shadow-warm` which matches the Hearth aesthetic. Use `shadow-warm` here.
+
+**File:** [FormCombobox.tsx](frontend/dashboard/src/components/FormCombobox.tsx:72-74)
+
+---
+
+### 🟡 FormCombobox — No Dropdown Arrow Indicator
+
+The combobox input looks like a plain text field — no chevron-down icon signals it is a dropdown. Users may type into it thinking it's a regular search box:
+
+```tsx
+// ✅ Fix — add a positioned chevron icon inside the input wrapper
+<div ref={containerRef} className="relative">
+  <input … />
+  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint">
+    <svg className="h-4 w-4" …><path d="M19 9l-7 7-7-7" /></svg>
+  </span>
+</div>
+```
+
+**File:** [FormCombobox.tsx](frontend/dashboard/src/components/FormCombobox.tsx:41-54)
+
+---
+
+### 🟡 ExpenseForm — Textarea Has No Character Counter
+
+The description `<textarea>` has `maxLength={500}` but shows no counter. Users type freely until characters stop appearing:
+
+```tsx
+// ✅ Fix — add counter below textarea
+<textarea … maxLength={500} value={watch('description')} />
+<p className="text-xs text-ink-faint text-right mt-0.5">
+  {(watch('description') ?? '').length}/500
+</p>
+```
+
+**File:** [ExpenseForm.tsx](frontend/dashboard/src/features/expenses/components/ExpenseForm.tsx:210-217)
+
+---
+
+### 🟡 ExpenseForm — Family Checkboxes Use Browser-Default Styling
+
+The browser's native checkbox renders with the OS chrome (gray square on Windows, blue on Mac). Only the fill color is overridden via `accent-brand-500`. The border, size, and shape are inconsistent with the Hearth rounded aesthetic:
+
+```tsx
+// ❌ Current — native checkbox with accent override
+<input type="checkbox" className="h-4 w-4 rounded border-surface-border accent-brand-500 cursor-pointer" />
+
+// ✅ Fix — custom checkbox using Tailwind peer trick
+<label className="flex items-center gap-2.5 cursor-pointer">
+  <input type="checkbox" className="peer sr-only" … />
+  <span className="h-4 w-4 rounded-md border border-surface-border bg-surface-card
+                   peer-checked:bg-brand-500 peer-checked:border-brand-500
+                   flex items-center justify-center transition-colors duration-150">
+    <svg className="hidden peer-checked:block h-2.5 w-2.5 text-white" …>…</svg>
+  </span>
+  {f.name}
+</label>
+```
+
+**File:** [ExpenseForm.tsx](frontend/dashboard/src/features/expenses/components/ExpenseForm.tsx:237-244)
+
+---
+
+### 🟡 Expense Table — Amounts Not Tabular-Aligned
+
+Amount values in the expense list render with proportional-width digits (default). In a column of numbers, digits don't vertically align — `1` is narrower than `8`, making amounts hard to compare at a glance. The project already has JetBrains Mono configured:
+
+```tsx
+// ❌ Current
+<td className="px-4 py-3 text-sm font-medium text-ink whitespace-nowrap">{amount}</td>
+
+// ✅ Fix — add font-mono or tabular-nums
+<td className="px-4 py-3 text-sm font-medium text-ink whitespace-nowrap font-mono tabular-nums">{amount}</td>
+```
+
+Same fix applies to: date column (use `tabular-nums`), MonthHero amount (`font-mono` already big, but add `tabular-nums`), CurrenciesPanel amounts.
+
+**File:** [ExpensesPage.tsx](frontend/dashboard/src/features/expenses/pages/ExpensesPage.tsx:58)
+
+---
+
+### 🟡 Expense Table — Date Shown in ISO Format
+
+The date column shows raw `YYYY-MM-DD` ISO strings ("2026-01-15"). This is machine-readable, not human-friendly:
+
+```tsx
+// ❌ Current
+<td className="…">{expense.date}</td>
+
+// ✅ Fix — locale-format
+<td className="… tabular-nums">
+  {new Date(expense.date + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+</td>
+// Renders: "15 Jan 2026" (or locale equivalent)
+```
+
+**File:** [ExpensesPage.tsx](frontend/dashboard/src/features/expenses/pages/ExpensesPage.tsx:57)
+
+---
+
+### 🟡 Table Action Buttons — Too Small, No Icon
+
+"Edit" and "Delete" are plain text links with no padding or icon. Tiny click targets on a row, easy to misclick between them. Also purely text — no visual affordance of destructiveness for Delete:
+
+```tsx
+// ❌ Current — text links crammed together
+<button className="text-brand-600 hover:text-brand-700 font-medium mr-3 …">{t('…edit')}</button>
+<button className="text-red-500 hover:text-red-700 font-medium …">{t('…delete')}</button>
+
+// ✅ Fix — icon buttons with tooltip
+<button aria-label="Edit expense" className="p-1.5 rounded-lg text-ink-mute hover:text-brand-600 hover:bg-brand-50 transition-colors">
+  <PencilIcon className="h-4 w-4" />
+</button>
+<button aria-label="Delete expense" className="p-1.5 rounded-lg text-ink-mute hover:text-berry hover:bg-berry-soft transition-colors">
+  <TrashIcon className="h-4 w-4" />
+</button>
+```
+
+**File:** [ExpensesPage.tsx](frontend/dashboard/src/features/expenses/pages/ExpensesPage.tsx:83-94)
+
+---
+
+### 🟡 Pagination — Text Links With No Button Shape
+
+"Prev" / "Next" are styled as text links. They look inactive even when enabled — no pill/button shape, no icon:
+
+```tsx
+// ❌ Current — text only
+<button className="text-sm font-medium text-brand-600 hover:text-brand-700 disabled:opacity-40 …">
+  {t('expenses.pagination.prev')}
+</button>
+
+// ✅ Fix — button shape with chevron icons
+<button className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-surface-border
+                   text-sm font-medium text-ink-body hover:bg-surface-subtle
+                   disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+  <ChevronLeftIcon className="h-4 w-4" />
+  {t('expenses.pagination.prev')}
+</button>
+```
+
+**File:** [ExpensesPage.tsx](frontend/dashboard/src/features/expenses/pages/ExpensesPage.tsx:217-233)
+
+---
+
+### 🟡 NavBar — User Dropdown Missing Backdrop / Transition
+
+The user dropdown (`userMenuOpen ? '' : 'hidden'`) uses a hard `hidden` class toggle — appears/disappears instantly with no animation. Jarring compared to the 150ms transitions elsewhere:
+
+```tsx
+// ❌ Current — instant show/hide
+className={`… ${userMenuOpen ? '' : 'hidden'}`}
+
+// ✅ Fix — use opacity + scale transition
+className={`… transition-all duration-150 origin-top-right
+  ${userMenuOpen
+    ? 'opacity-100 scale-100 pointer-events-auto'
+    : 'opacity-0 scale-95 pointer-events-none'}`}
+```
+
+**File:** [NavBar.tsx](frontend/dashboard/src/layouts/NavBar.tsx:185)
+
+---
+
+### 🟡 NavBar — Logo Text Needs `font-serif` for Brand Distinction
+
+The logo text uses `font-bold text-[15px]` (Manrope, the body font). The Hearth design system includes `Instrument Serif` as a serif font for brand moments. The logo is a great candidate:
+
+```tsx
+// ❌ Current — same font as nav links
+<span className="font-bold text-ink text-[15px] tracking-tight">
+  Expense<span className="text-brand-500">Manager.</span>
+</span>
+
+// ✅ Fix — use serif for "ExpenseManager" wordmark
+<span className="font-serif font-bold text-ink text-[17px] tracking-tight">
+  Expense<span className="text-brand-500">Manager.</span>
+</span>
+```
+
+**File:** [NavBar.tsx](frontend/dashboard/src/layouts/NavBar.tsx:128-130)
+
+---
+
+### 🟡 Notification Dropdown — Loading State Is Just `…`
+
+When notifications are loading, the dropdown shows a `…` ellipsis centered in the list. Every other loading state in the app uses skeleton placeholders:
+
+```tsx
+// ❌ Current
+{isLoading && notifications.length === 0 ? (
+  <div className="px-3 py-4 text-sm text-ink-mute text-center">…</div>
+) : …}
+
+// ✅ Fix — 3 skeleton notification rows
+{isLoading && notifications.length === 0 ? (
+  <div className="divide-y divide-surface-border">
+    {[1,2,3].map(i => (
+      <div key={i} className="px-3 py-2.5 animate-pulse">
+        <div className="h-3.5 bg-surface-muted rounded w-3/4 mb-1.5" />
+        <div className="h-2.5 bg-surface-subtle rounded w-1/3" />
+      </div>
+    ))}
+  </div>
+) : …}
+```
+
+**File:** [NotificationBell.tsx](frontend/dashboard/src/features/notifications/components/NotificationBell.tsx:127-129)
+
+---
+
+### 🟡 TopCategory Badge Uses Emoji Icon
+
+In `MonthHero`, the top category badge renders `data.topCategory.icon` which is an emoji from the database:
+
+```tsx
+{data.topCategory.icon && <span>{data.topCategory.icon}</span>}
+```
+
+Emojis render inconsistently across platforms (different sizes, colors, styles on Windows vs macOS vs Android). The design system explicitly avoids emojis as structural icons. Two options:
+- Map category icons to SVG icons from a consistent icon library (Lucide)
+- Remove the icon from the badge and rely on the category name text alone
+
+**File:** [MonthHero.tsx](frontend/dashboard/src/features/dashboard/components/MonthHero.tsx:83)
+
+---
+
+### 🟡 Shadow Inconsistency Across Modals
+
+Three different shadow styles used across overlays:
+- ConfirmDeleteModal: `shadow-xl` (generic Tailwind)
+- NavBar user dropdown: `boxShadow: '0 8px 20px -10px rgba(30,20,10,0.5)'` (inline)
+- NotificationBell dropdown: `boxShadow: '0 8px 20px -10px rgba(30,20,10,0.5)'` (inline)
+- Cards: `shadow-card` (design token)
+
+The inline shadow is already defined as `shadow-warm` in `tailwind.config.ts`. Use it:
+
+```tsx
+// ❌ Inline style
+style={{ boxShadow: '0 8px 20px -10px rgba(30,20,10,0.5)' }}
+
+// ✅ Design token class
+className="… shadow-warm"
+```
+
+Consolidate ConfirmDeleteModal to `shadow-warm` as well for cohesion.
+
+**Files:** [NavBar.tsx](frontend/dashboard/src/layouts/NavBar.tsx:186), [NotificationBell.tsx](frontend/dashboard/src/features/notifications/components/NotificationBell.tsx:109), [ExpensesPage.tsx](frontend/dashboard/src/features/expenses/pages/ExpensesPage.tsx:22)
+
+---
+
+### 🟡 Missing `font-display: swap` on Manrope
+
+Both web and mobile use Manrope. If loaded from Google Fonts without `font-display: swap`, the browser shows invisible text (FOIT) until the font loads. Check `index.html`:
+
+```html
+<!-- Ensure this is present in the Google Fonts URL -->
+&display=swap
+<!-- or add to @font-face in CSS -->
+font-display: swap;
+```
+
+---
+
+### 🟢 ExpenseForm — Amount+Currency Row Proportions
+
+The row splits as `flex-1` (amount) + `w-36` (currency = 144px). On narrow viewports the currency field is cramped. Currency codes are 3 characters ("USD", "EUR") — the field could be `w-28` and still look fine, giving more space to the amount:
+
+```tsx
+// ❌ Current — w-36 is wider than needed for 3-char codes
+<div className="w-36">
+
+// ✅ Fix — w-28 is sufficient for "EUR" with the combobox dropdown arrow
+<div className="w-28">
+```
+
+**File:** [ExpenseForm.tsx](frontend/dashboard/src/features/expenses/components/ExpenseForm.tsx:124)
+
+---
+
+### 🟢 SpendChart — Average Line Uses Slate, Not Hearth
+
+```tsx
+// ❌ Current
+const LINE_COLOR = '#94a3b8'   // Tailwind slate-400 — not from Hearth palette
+
+// ✅ Fix — use Hearth mustard for contrast against clay bars
+const LINE_COLOR = '#D6A23F'   // mustard — in palette, good contrast on cream
+```
+
+**File:** [SpendChart.tsx](frontend/dashboard/src/features/dashboard/components/SpendChart.tsx:16)
+
+---
+
+### 🟢 FormCombobox — Option List Item Height Too Dense
+
+List items use `py-1.5` (6px top+bottom = 28–30px total height). Below the 44px touch target minimum. While this is a mouse-first dropdown on web, improving density helps reduce misclicks:
+
+```tsx
+// ❌ Current
+className="px-3 py-1.5 text-sm cursor-pointer …"
+
+// ✅ Fix — py-2 gives ~32px, more comfortable
+className="px-3 py-2 text-sm cursor-pointer …"
+```
+
+**File:** [FormCombobox.tsx](frontend/dashboard/src/components/FormCombobox.tsx:63-74)
+
+---
+
+### 🟢 ExpensesPage — Error State Uses Raw `text-red-500`
+
+```tsx
+// ❌ Current — raw Tailwind red, not Hearth berry
+<span className="text-red-500">{t('expenses.errors.loadFailed')}</span>
+
+// ✅ Fix — use Hearth semantic color
+<span className="text-berry">{t('expenses.errors.loadFailed')}</span>
+```
+
+**File:** [ExpensesPage.tsx](frontend/dashboard/src/features/expenses/pages/ExpensesPage.tsx:175)
+
+---
+
+## 17. Design System Recommendations (from ui-ux-pro-max)
+
+### Typography — Confirmed Good Choice
+
+The project uses **Manrope** — rated "Friendly SaaS" by the design system:
+> *Friendly, modern, SaaS, clean, approachable, professional. Best for SaaS products, web apps, dashboards, B2B.*
+
+The existing font stack is optimal. No change needed, just ensure `font-display: swap` is set.
+
+**Potential enhancement:** The design system recommends **Plus Jakarta Sans** as an alternative. Both are excellent for fintech dashboards. Manrope's slightly geometric letterforms match the earthy palette well — keep it.
+
+### Color Palette Assessment
+
+The **Hearth palette** maps well onto the "Expense Splitter / Bill Split" fintech pattern from the design system:
+- Primary: sage green `#059669` → **close to Hearth sage `#6B8E5A`** ✅
+- Accent: berry red → **matches Hearth berry `#B5443F`** ✅
+- The clay brand color `#C8623E` is a distinctive differentiator — not typical for fintech but gives warmth and personality
+
+**One gap:** The fintech pattern uses **pure green** for "income/positive" and **red** for "debt/expense". The Hearth sage is more muted. Consider brighter `#059669` (emerald) for explicit positive-balance scenarios while keeping clay as the brand primary.
+
+### Mobile Style — Recommended Direction
+
+For the Ionic mobile app, the design system recommends **"SaaS Mobile (High-Tech Boutique)"** or **"Flat Design Mobile"** for a fintech tracker:
+
+Key suggestions to incorporate:
+- **Cards:** `borderRadius: 16` + subtle border + very light shadow — Hearth already does this ✅
+- **Buttons:** Height 56px for primary CTAs — Ionic's default IonButton may be shorter; verify
+- **Press feedback:** `scale: 0.97` on press — Ionic provides this via CSS but custom Pressable components may not
+- **Staggered entrance:** Fade-in list items on screen mount (Y: 20→0 + opacity: 0→1, staggered 30ms per item) — not currently implemented
+- **JetBrains Mono for data labels** — already in tailwind config, not confirmed used on mobile
+
+---
+
+## 18. Visual Polish — Quick Wins (Component Level)
+
+| # | Fix | File | Lines | Effort |
+|---|-----|------|-------|--------|
+| 1 | Replace `bg-white`/`border-slate-*` in ConfirmDeleteModal with tokens | `ExpensesPage.tsx` | 22–41 | 5 min |
+| 2 | Replace `border-slate-100 hover:bg-slate-50` in ExpenseRow with tokens | `ExpensesPage.tsx` | 56 | 5 min |
+| 3 | Replace `bg-white` in `<tbody>` with `bg-surface-card` | `ExpensesPage.tsx` | 205 | 2 min |
+| 4 | Replace `bg-slate-100 text-slate-600` tag badge with Hearth tokens | `ExpensesPage.tsx` | 67 | 5 min |
+| 5 | `bg-sage-soft text-sage` / `bg-berry-soft text-berry` for delta badge | `MonthHero.tsx` | 43-44 | 5 min |
+| 6 | Add `tabular-nums font-mono` to amount column in expense table | `ExpensesPage.tsx` | 58 | 2 min |
+| 7 | Locale-format date column (remove raw ISO display) | `ExpensesPage.tsx` | 57 | 10 min |
+| 8 | Add `shadow-warm` class to dropdown overlays (remove inline style) | `NavBar.tsx`, `NotificationBell.tsx` | — | 5 min |
+| 9 | Add chevron-down icon to FormCombobox input | `FormCombobox.tsx` | 41-54 | 15 min |
+| 10 | Highlight selected option in FormCombobox with brand color + checkmark | `FormCombobox.tsx` | 72 | 15 min |
+| 11 | Add opacity+scale transition to NavBar user dropdown (remove `hidden`) | `NavBar.tsx` | 185 | 10 min |
+| 12 | Replace `…` loading in NotificationBell with 3-row skeleton | `NotificationBell.tsx` | 127 | 15 min |
+| 13 | Add character counter below description textarea | `ExpenseForm.tsx` | 210-217 | 10 min |
+| 14 | Icon buttons (pencil/trash) replace text Edit/Delete in expense row | `ExpensesPage.tsx` | 83-94 | 20 min |
+| 15 | Pill-shaped pagination buttons with chevron icons | `ExpensesPage.tsx` | 217-233 | 15 min |
+| 16 | Chart colors — use `--chart-*` CSS vars instead of hardcoded hex | `SpendChart.tsx` | 14-16, 70-87 | 30 min |
+| 17 | Replace `text-red-500` error text with `text-berry` | `ExpensesPage.tsx` | 175 | 2 min |
+| 18 | SpendChart average line: `#94a3b8` → `#D6A23F` (mustard) | `SpendChart.tsx` | 16 | 2 min |
+| 19 | Increase navbar icon buttons from `h-8 w-8` to `h-9 w-9` | `NavBar.tsx`, `NotificationBell.tsx` | 161, 179, 92 | 5 min |
+| 20 | Custom styled checkbox for family multi-select | `ExpenseForm.tsx` | 240-244 | 20 min |
