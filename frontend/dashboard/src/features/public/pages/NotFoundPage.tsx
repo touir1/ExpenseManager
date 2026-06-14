@@ -8,9 +8,9 @@ export default function NotFoundPage() {
   return (
     <div className="auth-page">
       <div className="text-center max-w-lg px-4">
-        <span className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-200 mb-6 shadow-card-md">
+        <span className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-subtle mb-6 shadow-card-md">
           <svg
-            className="h-8 w-8 text-slate-500"
+            className="h-8 w-8 text-ink-mute"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -25,11 +25,11 @@ export default function NotFoundPage() {
           </svg>
         </span>
 
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-3">
+        <h1 className="text-3xl font-bold text-ink tracking-tight mb-3">
           {t('public.notFound.title')}
         </h1>
 
-        <p className="text-base text-slate-500 leading-relaxed mb-8">
+        <p className="text-base text-ink-mute leading-relaxed mb-8">
           {t('public.notFound.description')}
         </p>
 

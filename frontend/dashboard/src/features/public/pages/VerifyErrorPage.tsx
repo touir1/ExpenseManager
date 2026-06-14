@@ -45,11 +45,11 @@ export default function VerifyErrorPage() {
           </svg>
         </span>
 
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-3">
+        <h1 className="text-3xl font-bold text-ink tracking-tight mb-3">
           {t('public.verifyError.title')}
         </h1>
 
-        <p className="text-base text-slate-500 leading-relaxed mb-8">
+        <p className="text-base text-ink-mute leading-relaxed mb-8">
           {t('public.verifyError.description')}
         </p>
 

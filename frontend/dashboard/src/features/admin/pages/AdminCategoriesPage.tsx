@@ -99,7 +99,7 @@ export default function AdminCategoriesPage() {
       ) : (
         <div className="flex flex-col gap-2">
           {visible.map((cat: AdminCategory) => (
-            <div key={cat.id} className={`bg-white border border-slate-200 rounded-xl shadow-card ${cat.isArchived ? 'opacity-60' : ''}`}>
+            <div key={cat.id} className={`bg-surface-card border border-surface-border rounded-xl shadow-card ${cat.isArchived ? 'opacity-60' : ''}`}>
               <div className="flex items-center justify-between px-4 py-3">
                 <button
                   onClick={() => setExpanded(prev => { const s = new Set(prev); s.has(cat.id) ? s.delete(cat.id) : s.add(cat.id); return s })}
@@ -110,7 +110,7 @@ export default function AdminCategoriesPage() {
                   {cat.isArchived && <span className="text-xs text-ink-mute ml-1">(archived)</span>}
                 </button>
                 <div className="flex gap-2">
-                  <button onClick={() => openCatModal({ mode: 'edit', id: cat.id, name: cat.name, description: cat.description })} className="text-xs px-2 py-1 rounded bg-surface-subtle text-ink-mute hover:bg-slate-200">{t('admin.categories.edit')}</button>
+                  <button onClick={() => openCatModal({ mode: 'edit', id: cat.id, name: cat.name, description: cat.description })} className="text-xs px-2 py-1 rounded bg-surface-subtle text-ink-mute hover:bg-surface-muted">{t('admin.categories.edit')}</button>
                   {cat.isArchived ? (
                     <button onClick={() => unarchiveCatMutation.mutate(cat.id)} className="text-xs px-2 py-1 rounded bg-green-50 text-green-700 hover:bg-green-100">{t('admin.categories.unarchive')}</button>
                   ) : (
@@ -123,12 +123,12 @@ export default function AdminCategoriesPage() {
               </div>
 
               {expanded.has(cat.id) && cat.subcategories.length > 0 && (
-                <div className="border-t border-slate-100 px-4 py-2 flex flex-col gap-1">
+                <div className="border-t border-surface-border px-4 py-2 flex flex-col gap-1">
                   {cat.subcategories.filter((s: AdminSubcategory) => showArchived || !s.isArchived).map((sub: AdminSubcategory) => (
                     <div key={sub.id} className={`flex items-center justify-between text-sm py-1 ${sub.isArchived ? 'opacity-60' : ''}`}>
                       <span className="text-ink-mute">{sub.name}{sub.isArchived && ' (archived)'}</span>
                       <div className="flex gap-2">
-                        <button onClick={() => openSubModal({ mode: 'edit', parentId: cat.id, id: sub.id, name: sub.name, description: sub.description })} className="text-xs px-2 py-0.5 rounded bg-surface-subtle text-ink-mute hover:bg-slate-200">{t('admin.categories.edit')}</button>
+                        <button onClick={() => openSubModal({ mode: 'edit', parentId: cat.id, id: sub.id, name: sub.name, description: sub.description })} className="text-xs px-2 py-0.5 rounded bg-surface-subtle text-ink-mute hover:bg-surface-muted">{t('admin.categories.edit')}</button>
                         {sub.isArchived ? (
                           <button onClick={() => unarchiveSubMutation.mutate({ pid: cat.id, id: sub.id })} className="text-xs px-2 py-0.5 rounded bg-green-50 text-green-700 hover:bg-green-100">{t('admin.categories.unarchive')}</button>
                         ) : (
@@ -146,7 +146,7 @@ export default function AdminCategoriesPage() {
 
       {(catModal || subModal) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-80">
+          <div className="bg-surface-card rounded-2xl shadow-xl p-6 w-80">
             <h2 className="text-base font-semibold text-ink mb-3">
               {catModal ? (catModal.mode === 'add' ? t('admin.categories.add') : t('admin.categories.edit'))
                         : (subModal!.mode === 'add' ? t('admin.categories.addSub') : t('admin.categories.edit'))}

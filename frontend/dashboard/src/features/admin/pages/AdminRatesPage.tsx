@@ -105,7 +105,7 @@ export default function AdminRatesPage() {
         />
       </div>
 
-      <div className="bg-white shadow-card border border-slate-200 rounded-2xl overflow-hidden">
+      <div className="bg-surface-card shadow-card border border-surface-border rounded-2xl overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-surface-subtle">
             <tr>
@@ -146,7 +146,7 @@ export default function AdminRatesPage() {
 
       {addModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-80">
+          <div className="bg-surface-card rounded-2xl shadow-xl p-6 w-80">
             <h2 className="text-base font-semibold text-ink mb-3">{t('admin.rates.addManual')}</h2>
             <div className="mb-2">
               <label className="block text-xs text-ink-mute mb-1">{t('admin.rates.sourceCurrency')}</label>
@@ -172,7 +172,7 @@ export default function AdminRatesPage() {
 
       {backfillModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-72">
+          <div className="bg-surface-card rounded-2xl shadow-xl p-6 w-72">
             <h2 className="text-base font-semibold text-ink mb-3">{t('admin.rates.backfill')}</h2>
             <label className="block text-xs text-ink-mute mb-1">{t('admin.rates.from')}</label>
             <input type="date" value={backfillFrom} onChange={e => setBackfillFrom(e.target.value)}

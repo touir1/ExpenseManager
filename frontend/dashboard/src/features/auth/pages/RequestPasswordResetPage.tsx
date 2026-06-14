@@ -54,7 +54,7 @@ export default function RequestPasswordResetPage() {
         <SubmitButton isSubmitting={isSubmitting} label={t('auth.requestPasswordReset.submit')} loadingLabel={t('auth.requestPasswordReset.submitting')} />
       </form>
 
-      <p className="mt-5 text-xs text-slate-400 text-center leading-relaxed">
+      <p className="mt-5 text-xs text-ink-faint text-center leading-relaxed">
         {t('auth.requestPasswordReset.hint')}
       </p>
 

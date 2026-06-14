@@ -36,8 +36,8 @@ function RoleBadge({ role }: Readonly<{ role: string }>) {
     <span
       className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
         isHead
-          ? 'bg-brand-50 text-brand-700'
-          : 'bg-slate-100 text-slate-600'
+          ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300'
+          : 'bg-surface-subtle text-ink-mute'
       }`}
     >
       {role}
@@ -75,13 +75,13 @@ function Modal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div
         ref={ref}
-        className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md mx-4 p-6"
+        className="bg-surface-card rounded-2xl shadow-xl border border-surface-border w-full max-w-md mx-4 p-6"
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold text-slate-900">{title}</h2>
+          <h2 className="text-base font-semibold text-ink">{title}</h2>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="p-1 rounded-lg text-ink-faint hover:text-ink-body hover:bg-surface-subtle transition-colors cursor-pointer"
             aria-label="Close"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -120,14 +120,14 @@ function CreateFamilyModal({ onClose, onCreated }: Readonly<{ onClose: () => voi
     <Modal title={t('families.createTitle')} onClose={onClose}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div>
-          <label htmlFor="family-name" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="family-name" className="field-label">
             {t('families.nameLabel')}
           </label>
           <input
             id="family-name"
             type="text"
             autoFocus
-            className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition"
+            className="field-input"
             placeholder={t('families.namePlaceholder')}
             aria-describedby={errors.name ? 'family-name-error' : undefined}
             {...register('name')}
@@ -174,14 +174,14 @@ function RenameFamilyModal({
     <Modal title={t('families.renameTitle')} onClose={onClose}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div>
-          <label htmlFor="rename-family" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="rename-family" className="field-label">
             {t('families.nameLabel')}
           </label>
           <input
             id="rename-family"
             type="text"
             autoFocus
-            className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition"
+            className="field-input"
             aria-describedby={errors.name ? 'rename-family-error' : undefined}
             {...register('name')}
           />
@@ -222,21 +222,21 @@ function InviteMemberModal({
     <Modal title={t('families.inviteTitle', { name: family.name })} onClose={onClose}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div>
-          <label htmlFor="invite-email" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="invite-email" className="field-label">
             {t('auth.email.label')}
           </label>
           <input
             id="invite-email"
             type="email"
             autoFocus
-            className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition"
+            className="field-input"
             placeholder={t('auth.email.placeholder')}
             aria-describedby={errors.email ? 'invite-email-error' : undefined}
             {...register('email')}
           />
           <FieldError id="invite-email-error" message={errors.email?.message} />
         </div>
-        <p className="text-xs text-slate-500">{t('families.inviteHint')}</p>
+        <p className="text-xs text-ink-mute">{t('families.inviteHint')}</p>
         <SubmitButton isSubmitting={isSubmitting} label={t('families.inviteSubmit')} loadingLabel={t('families.inviteSubmitting')} />
       </form>
     </Modal>
@@ -290,9 +290,9 @@ function FamilyDetailPanel({
   }
 
   return (
-    <div className="mt-4 pt-4 border-t border-slate-100">
+    <div className="mt-4 pt-4 border-t border-surface-border">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+        <span className="text-xs font-semibold text-ink-mute uppercase tracking-wide">
           {t('families.members', { count: detail.members.length })}
         </span>
         {isHead && !family.isDefault && (
@@ -313,17 +313,17 @@ function FamilyDetailPanel({
           return (
             <li key={member.userId} className="flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-slate-800 truncate">
+                <p className="text-sm font-medium text-ink truncate">
                   {member.firstName} {member.lastName}
                 </p>
-                <p className="text-xs text-slate-400 truncate">{member.email}</p>
+                <p className="text-xs text-ink-faint truncate">{member.email}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <RoleBadge role={member.role} />
                 {canToggleRole && (
                   <button
                     onClick={() => handleToggleRole(member)}
-                    className="text-xs text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
+                    className="text-xs text-ink-mute hover:text-ink-body transition-colors cursor-pointer"
                     title={t('families.changeRole')}
                   >
                     <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -349,7 +349,7 @@ function FamilyDetailPanel({
       </ul>
 
       {canLeave && (
-        <div className="mt-3 pt-3 border-t border-slate-100 flex justify-end">
+        <div className="mt-3 pt-3 border-t border-surface-border flex justify-end">
           <button
             onClick={handleLeave}
             className="text-xs font-medium text-red-500 hover:text-red-700 transition-colors cursor-pointer"
@@ -426,35 +426,35 @@ function FamilyCard({
   ) : null
 
   const expandedContent = loadingDetail ? (
-    <div className="mt-4 pt-4 border-t border-slate-100 animate-pulse space-y-2">
+    <div className="mt-4 pt-4 border-t border-surface-border animate-pulse space-y-2">
       {[0, 1].map(i => (
         <div key={i} className="flex items-center gap-3">
-          <div className="h-3 bg-slate-100 rounded w-32" />
-          <div className="h-3 bg-slate-100 rounded w-20" />
+          <div className="h-3 bg-surface-subtle rounded w-32" />
+          <div className="h-3 bg-surface-subtle rounded w-20" />
         </div>
       ))}
     </div>
   ) : detailPanel
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-card p-5">
+    <div className="bg-surface-card rounded-2xl border border-surface-border shadow-card p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-sm font-semibold text-slate-900 truncate">{family.name}</h3>
+            <h3 className="text-sm font-semibold text-ink truncate">{family.name}</h3>
             {family.isDefault && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
                 {t('families.default')}
               </span>
             )}
             {family.isArchived && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-surface-subtle text-ink-mute">
                 {t('families.archived')}
               </span>
             )}
             <RoleBadge role={family.userRole} />
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-ink-faint mt-0.5">
             {t('families.createdAt', { date: new Date(family.createdAt).toLocaleDateString() })}
           </p>
         </div>
@@ -463,7 +463,7 @@ function FamilyCard({
           {isHead && !family.isDefault && !family.isArchived && (
             <button
               onClick={() => setShowRename(true)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg text-ink-faint hover:text-ink-body hover:bg-surface-subtle transition-colors cursor-pointer"
               title={t('families.renameAction')}
             >
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -475,7 +475,7 @@ function FamilyCard({
             family.isArchived ? (
               <button
                 onClick={handleUnarchive}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-ink-faint hover:text-emerald-600 hover:bg-emerald-50 dark:hover:text-emerald-400 dark:hover:bg-emerald-900/20 transition-colors cursor-pointer"
                 title={t('families.unarchiveAction')}
               >
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -485,7 +485,7 @@ function FamilyCard({
             ) : (
               <button
                 onClick={handleArchive}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-ink-faint hover:text-amber-600 hover:bg-amber-50 dark:hover:text-amber-400 dark:hover:bg-amber-900/20 transition-colors cursor-pointer"
                 title={t('families.archiveAction')}
               >
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -496,7 +496,7 @@ function FamilyCard({
           )}
           <button
             onClick={handleExpand}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-ink-faint hover:text-ink-body hover:bg-surface-subtle transition-colors cursor-pointer"
             aria-expanded={expanded}
             title={expanded ? t('families.collapse') : t('families.expand')}
           >
@@ -554,7 +554,7 @@ export default function FamiliesPage() {
 
   const familiesList = displayed.length === 0 ? (
     <div className="text-center py-16">
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-ink-faint">
         {tab === 'active' ? t('families.emptyActive') : t('families.emptyArchived')}
       </p>
     </div>
@@ -569,9 +569,9 @@ export default function FamiliesPage() {
   const listContent = isLoading ? (
     <div className="grid gap-4 sm:grid-cols-2">
       {[0, 1, 2].map(i => (
-        <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-card p-5 animate-pulse">
-          <div className="h-4 bg-slate-200 rounded w-32 mb-2" />
-          <div className="h-3 bg-slate-100 rounded w-20" />
+        <div key={i} className="bg-surface-card rounded-2xl border border-surface-border shadow-card p-5 animate-pulse">
+          <div className="h-4 bg-surface-border rounded w-32 mb-2" />
+          <div className="h-3 bg-surface-subtle rounded w-20" />
         </div>
       ))}
     </div>
@@ -580,16 +580,16 @@ export default function FamiliesPage() {
   const tabClass = (t: Tab) =>
     `px-3 py-1.5 text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer ${
       tab === t
-        ? 'bg-brand-50 text-brand-700'
-        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+        ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300'
+        : 'text-ink-mute hover:text-ink hover:bg-surface-subtle'
     }`
 
   return (
     <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-8">
       <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">{t('families.title')}</h1>
-          <p className="text-sm text-slate-500 mt-1">{t('families.subtitle')}</p>
+          <h1 className="text-2xl font-semibold text-ink tracking-tight">{t('families.title')}</h1>
+          <p className="text-sm text-ink-mute mt-1">{t('families.subtitle')}</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
@@ -606,11 +606,11 @@ export default function FamiliesPage() {
       <div className="flex items-center gap-1 mb-4">
         <button className={tabClass('active')} onClick={() => setTab('active')}>
           {t('families.tabActive')}
-          <span className="ml-1.5 text-xs text-slate-400">({activeFamilies.length})</span>
+          <span className="ml-1.5 text-xs text-ink-faint">({activeFamilies.length})</span>
         </button>
         <button className={tabClass('archived')} onClick={() => setTab('archived')}>
           {t('families.tabArchived')}
-          <span className="ml-1.5 text-xs text-slate-400">({archivedFamilies.length})</span>
+          <span className="ml-1.5 text-xs text-ink-faint">({archivedFamilies.length})</span>
         </button>
       </div>
 

@@ -150,7 +150,7 @@ export default function AdminCurrenciesPage() {
         />
       </div>
 
-      <div className="bg-white shadow-card border border-slate-200 rounded-2xl overflow-hidden">
+      <div className="bg-surface-card shadow-card border border-surface-border rounded-2xl overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-surface-subtle">
             <tr>
@@ -179,7 +179,7 @@ export default function AdminCurrenciesPage() {
                   <button onClick={() => openDelete(c)} className="text-xs px-2 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100">
                     {t('admin.currencies.delete')}
                   </button>
-                  <button onClick={() => openDefaults(c)} className="text-xs px-2 py-1 rounded bg-surface-subtle text-ink-mute hover:bg-slate-100">
+                  <button onClick={() => openDefaults(c)} className="text-xs px-2 py-1 rounded bg-surface-subtle text-ink-mute hover:bg-surface-muted">
                     {t('admin.currencies.defaults')}
                   </button>
                 </td>
@@ -202,7 +202,7 @@ export default function AdminCurrenciesPage() {
       {/* Add modal */}
       {addModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-80">
+          <div className="bg-surface-card rounded-2xl shadow-xl p-6 w-80">
             <h2 className="text-base font-semibold text-ink mb-3">{t('admin.currencies.add')}</h2>
             {[
               { label: t('admin.currencies.codeLabel'), value: code, set: setCode },
@@ -224,7 +224,7 @@ export default function AdminCurrenciesPage() {
       {/* Edit modal */}
       {editModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-80">
+          <div className="bg-surface-card rounded-2xl shadow-xl p-6 w-80">
             <h2 className="text-base font-semibold text-ink mb-3">{t('admin.currencies.edit')} — {editModal.code}</h2>
             <input type="text" placeholder={t('admin.currencies.nameLabel')} value={editName} onChange={e => setEditName(e.target.value)} className={`${INPUT} mb-2`} />
             <input type="text" placeholder={t('admin.currencies.symbolLabel')} value={editSymbol} onChange={e => setEditSymbol(e.target.value)} className={`${INPUT} mb-2`} />
@@ -241,7 +241,7 @@ export default function AdminCurrenciesPage() {
       {/* Delete modal */}
       {deleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-80">
+          <div className="bg-surface-card rounded-2xl shadow-xl p-6 w-80">
             <h2 className="text-base font-semibold text-ink mb-3">{t('admin.currencies.delete')} — {deleteModal.code}</h2>
             <p className="text-sm text-ink-body mb-3">{t('admin.currencies.deleteConfirm')}</p>
             {deleteError && <p className="text-xs text-red-600 mb-3">{deleteError}</p>}
@@ -257,7 +257,7 @@ export default function AdminCurrenciesPage() {
       {/* Defaults modal */}
       {defaultsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-[560px]">
+          <div className="bg-surface-card rounded-2xl shadow-xl p-6 w-[560px]">
             <h2 className="text-base font-semibold text-ink mb-4">
               {t('admin.currencies.defaultRatesTitle', { code: defaultsModal.code })}
             </h2>

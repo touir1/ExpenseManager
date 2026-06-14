@@ -1,6 +1,31 @@
 
 # Changelog
 
+## [0.115.7] - 2026-06-14
+### Fix dark mode: replace all hardcoded `slate-*`/`bg-white` with semantic tokens across all frontend pages and components
+
+- **`frontend/dashboard/src/features/families/pages/FamiliesPage.tsx`** — full dark-mode pass: `RoleBadge` (Member: `bg-surface-subtle text-ink-mute`; Head: `dark:bg-brand-900/40 dark:text-brand-300`), `Modal` (`bg-surface-card border-surface-border`), all form labels/inputs use `field-label`/`field-input` classes, `FamilyDetailPanel` dividers `border-surface-border`, member name/email `text-ink`/`text-ink-faint`, role toggle `text-ink-mute hover:text-ink-body`, `FamilyCard` (`bg-surface-card border-surface-border`, `text-ink`, date/icon `text-ink-faint`, action button hover `hover:bg-surface-subtle`), skeleton `bg-surface-border`/`bg-surface-subtle`, default badge `dark:bg-emerald-900/30 dark:text-emerald-400`, archived badge `bg-surface-subtle text-ink-mute`, archive/unarchive hover `dark:hover:bg-amber-900/20`/`dark:hover:bg-emerald-900/20`, tabs `dark:bg-brand-900/40 dark:text-brand-300` (active) and `text-ink-mute hover:text-ink hover:bg-surface-subtle` (inactive), headings `text-ink`, subtitles `text-ink-mute`, empty state `text-ink-faint`.
+- **`frontend/dashboard/src/features/families/components/FamilySelector.tsx`** — trigger `text-ink-mute hover:text-ink hover:bg-surface-subtle`, chevron/icon `text-ink-faint`, dropdown `bg-surface-card border-surface-border`, inactive items `text-ink hover:bg-surface-subtle`.
+- **`frontend/dashboard/src/features/currencies/components/DisplayCurrencySelector.tsx`** — same trigger/dropdown/icon fixes as `FamilySelector`; search input `bg-surface-card text-ink border-surface-border`; divider `border-surface-border`; inactive items `text-ink hover:bg-surface-subtle`.
+- **`frontend/dashboard/src/features/tags/components/TagInput.tsx`** — tag container `bg-surface-card border-surface-border`; dropdown `bg-surface-card border-surface-border`; group headers `text-ink-faint`; items `text-ink hover:bg-surface-subtle`.
+- **`frontend/dashboard/src/features/expenses/pages/CsvImportPage.tsx`** — `StringCombobox` input/dropdown/items, `TagChips` input/dropdown/items, `FamilyMultiSelect` add-button/dropdown/items, `TagDisplay` chips, `ImportRow` inputClass, row error/editing backgrounds (`dark:bg-red-900/20` / `dark:bg-amber-900/20`), loading span, cancel button, upload card, dropzone border, dropzone icon, table border, tbody dividers, footer cancel button — all converted to semantic tokens.
+- **`frontend/dashboard/src/features/families/pages\AcceptInvitePage.tsx`** — heading `text-ink`, spinner icon `text-ink-faint`, error back-button `bg-surface-subtle hover:bg-surface-muted text-ink`.
+- **`frontend/dashboard/src/components\PasswordInput.tsx`** — show/hide toggle `text-ink-faint hover:text-ink-mute`.
+- **`frontend/dashboard/src/features/public/pages/VerifyErrorPage.tsx`** — heading `text-ink`, description `text-ink-mute`.
+- **`frontend/dashboard/src/features/public/pages/NotFoundPage.tsx`** — icon container `bg-surface-subtle`, icon `text-ink-mute`, heading `text-ink`, description `text-ink-mute`.
+- **`frontend/dashboard/src/features/auth/pages/RequestPasswordResetPage.tsx`** — hint text `text-ink-faint`.
+- **`frontend/dashboard/src/features/admin/pages/AdminCategoriesPage.tsx`** — category cards `bg-surface-card border-surface-border`, subcategory divider `border-surface-border`, modal `bg-surface-card`, edit button hover `hover:bg-surface-muted`.
+- **`frontend/dashboard/src/features/admin/pages/AdminUsersPage.tsx`** — table wrapper `bg-surface-card border-surface-border`, modal `bg-surface-card`.
+- **`frontend/dashboard/src/features/admin/pages/AdminRatesPage.tsx`** — table wrapper `bg-surface-card border-surface-border`, both modals `bg-surface-card`.
+- **`frontend/dashboard/src/features/admin/pages/AdminCurrenciesPage.tsx`** — table wrapper `bg-surface-card border-surface-border`, all four modals `bg-surface-card`, defaults button `hover:bg-surface-muted`.
+- **`frontend/dashboard/src/features/admin/pages/AdminRateConflictsPage.tsx`** — conflict cards `bg-surface-card border-surface-border`.
+- **`frontend/dashboard/src/features/families/pages/__tests__/FamiliesPage.test.tsx`** — updated modal DOM selector from `.bg-white.rounded-2xl.shadow-xl` to `[class*="rounded-2xl"][class*="shadow-xl"]` to match renamed `bg-surface-card` class.
+
+## [0.115.6] - 2026-06-14
+### Fix dark mode color discrepancies on FamiliesPage
+
+- **`frontend/dashboard/src/features/families/pages/FamiliesPage.tsx`** — initial pass (superseded and consolidated into [0.115.7] above).
+
 ## [0.115.5] - 2026-06-14
 ### Fix dark mode color discrepancies on ExpensesPage + redesign filters as inline section
 

@@ -82,7 +82,7 @@ export default function TagInput({ value, onChange }: TagInputProps) {
 
   return (
     <div ref={containerRef} className="relative">
-      <div className="flex flex-wrap gap-1 p-1.5 min-h-[2.5rem] border border-slate-300 rounded-lg focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-brand-500 bg-white cursor-text">
+      <div className="flex flex-wrap gap-1 p-1.5 min-h-[2.5rem] border border-surface-border rounded-lg focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-brand-500 bg-surface-card cursor-text">
         {value.map((tag, i) => (
           <span
             key={tag.id}
@@ -120,11 +120,11 @@ export default function TagInput({ value, onChange }: TagInputProps) {
         <div
           id="tag-input-menu"
           role="menu"
-          className="absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg py-1 max-h-60 overflow-y-auto"
+          className="absolute z-50 left-0 right-0 top-full mt-1 bg-surface-card border border-surface-border rounded-xl shadow-lg py-1 max-h-60 overflow-y-auto"
         >
           {filteredOwn.length > 0 && (
             <>
-              <div className="px-3 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wide select-none">
+              <div className="px-3 py-1 text-xs font-semibold text-ink-faint uppercase tracking-wide select-none">
                 My tags
               </div>
               {filteredOwn.map(tag => (
@@ -133,7 +133,7 @@ export default function TagInput({ value, onChange }: TagInputProps) {
                   type="button"
                   role="menuitem"
                   onClick={() => select(tag)}
-                  className="w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer"
+                  className="w-full text-left px-3 py-1.5 text-sm text-ink hover:bg-surface-subtle cursor-pointer"
                 >
                   {tag.name}
                 </button>
@@ -143,7 +143,7 @@ export default function TagInput({ value, onChange }: TagInputProps) {
 
           {filteredFamily.length > 0 && (
             <>
-              <div className="px-3 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wide select-none">
+              <div className="px-3 py-1 text-xs font-semibold text-ink-faint uppercase tracking-wide select-none">
                 Family tags
               </div>
               {filteredFamily.map(tag => (
@@ -152,7 +152,7 @@ export default function TagInput({ value, onChange }: TagInputProps) {
                   type="button"
                   role="menuitem"
                   onClick={() => select(tag)}
-                  className="w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer"
+                  className="w-full text-left px-3 py-1.5 text-sm text-ink hover:bg-surface-subtle cursor-pointer"
                 >
                   {tag.name}
                 </button>

@@ -72,7 +72,7 @@ export default function AdminRateConflictsPage() {
               ? (Math.abs(c.autoRate - c.manualRate) / c.manualRate * 100).toFixed(1)
               : '—'
             return (
-              <div key={c.id} className="bg-white shadow-card border border-slate-200 rounded-xl p-4">
+              <div key={c.id} className="bg-surface-card shadow-card border border-surface-border rounded-xl p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="text-sm">
                     <p className="font-medium text-ink">

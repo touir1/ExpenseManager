@@ -115,15 +115,15 @@ function StringCombobox({
         onFocus={handleFocus}
         placeholder={placeholder ?? '—'}
         disabled={disabled}
-        className={`w-full px-2 py-1 text-xs border rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-brand-400 ${
-          disabled ? 'opacity-40 cursor-not-allowed border-slate-200' : 'border-slate-300'
+        className={`w-full px-2 py-1 text-xs border rounded-lg bg-surface-card text-ink focus:outline-none focus:ring-1 focus:ring-brand-400 ${
+          disabled ? 'opacity-40 cursor-not-allowed border-surface-border' : 'border-surface-border'
         }`}
       />
       {open && !disabled && pos && createPortal(
         <ul
           ref={listRef}
           style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 9999 }}
-          className="max-h-40 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-xl text-xs"
+          className="max-h-40 overflow-y-auto bg-surface-card border border-surface-border rounded-lg shadow-xl text-xs"
         >
           {filtered.length === 0 ? (
             <li className="px-3 py-1.5 text-ink-mute">—</li>
@@ -132,7 +132,7 @@ function StringCombobox({
               <li
                 key={o.value}
                 onMouseDown={() => { onChange(o.value); setQuery(o.value); setOpen(false) }}
-                className={`px-3 py-1.5 cursor-pointer hover:bg-slate-50 whitespace-nowrap ${o.value === value ? 'font-semibold text-brand-600' : ''}`}
+                className={`px-3 py-1.5 cursor-pointer hover:bg-surface-subtle text-ink whitespace-nowrap ${o.value === value ? 'font-semibold text-brand-600' : ''}`}
               >
                 {o.label}
               </li>
@@ -218,16 +218,16 @@ function TagChips({
           else if (e.key === 'Escape') { setOpen(false); setQuery('') }
         }}
         placeholder={value.length === 0 ? 'tag…' : ''}
-        className="flex-1 min-w-[3rem] px-1 py-0.5 text-xs outline-none border-b border-slate-300 bg-transparent"
+        className="flex-1 min-w-[3rem] px-1 py-0.5 text-xs outline-none border-b border-surface-border bg-transparent text-ink"
       />
       {open && pos && createPortal(
         <ul
           ref={listRef}
           style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 9999 }}
-          className="bg-white border border-slate-200 rounded-lg shadow-xl text-xs max-h-40 overflow-y-auto"
+          className="bg-surface-card border border-surface-border rounded-lg shadow-xl text-xs max-h-40 overflow-y-auto"
         >
           {filtered.map(t => (
-            <li key={t.id} onMouseDown={() => add(t.name)} className="px-3 py-1.5 cursor-pointer hover:bg-slate-50">{t.name}</li>
+            <li key={t.id} onMouseDown={() => add(t.name)} className="px-3 py-1.5 cursor-pointer hover:bg-surface-subtle text-ink">{t.name}</li>
           ))}
           {showCreate && (
             <li onMouseDown={() => add(query.trim())} className="px-3 py-1.5 cursor-pointer hover:bg-brand-50 text-brand-600 font-medium">
@@ -300,7 +300,7 @@ function FamilyMultiSelect({
         type="button"
         aria-label={ariaLabel}
         onMouseDown={e => { e.preventDefault(); openDropdown() }}
-        className="px-1.5 py-0.5 text-xs text-ink-mute hover:text-brand-600 border border-dashed border-slate-300 rounded hover:border-brand-400 transition-colors"
+        className="px-1.5 py-0.5 text-xs text-ink-mute hover:text-brand-600 border border-dashed border-surface-border rounded hover:border-brand-400 transition-colors"
       >
         +
       </button>
@@ -308,7 +308,7 @@ function FamilyMultiSelect({
         <ul
           ref={listRef}
           style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 9999 }}
-          className="bg-white border border-slate-200 rounded-lg shadow-xl text-xs max-h-40 overflow-y-auto"
+          className="bg-surface-card border border-surface-border rounded-lg shadow-xl text-xs max-h-40 overflow-y-auto"
         >
           {options.length === 0 ? (
             <li className="px-3 py-1.5 text-ink-mute">—</li>
@@ -317,7 +317,7 @@ function FamilyMultiSelect({
               <li
                 key={o.id}
                 onMouseDown={() => toggle(o.id)}
-                className={`px-3 py-1.5 cursor-pointer hover:bg-slate-50 flex items-center gap-2 ${selectedSet.has(o.id) ? 'font-semibold text-brand-600' : ''}`}
+                className={`px-3 py-1.5 cursor-pointer hover:bg-surface-subtle text-ink flex items-center gap-2 ${selectedSet.has(o.id) ? 'font-semibold text-brand-600' : ''}`}
               >
                 <span className="w-3 text-center">{selectedSet.has(o.id) ? '✓' : ''}</span>
                 {o.name}
@@ -352,7 +352,7 @@ function TagDisplay({ tags }: Readonly<{ tags: string[] }>) {
   return (
     <div className="flex flex-wrap gap-0.5">
       {tags.map(t => (
-        <span key={t} className="px-1.5 py-0.5 bg-slate-100 text-ink text-xs rounded">{t}</span>
+        <span key={t} className="px-1.5 py-0.5 bg-surface-subtle text-ink text-xs rounded">{t}</span>
       ))}
     </div>
   )
@@ -400,9 +400,9 @@ function ImportRow({
   onPendingChange: (field: keyof EditedFields, value: string | string[]) => void
 }) {
   const { t } = useTranslation()
-  const inputClass = 'w-full px-2 py-1 text-xs border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-brand-400'
+  const inputClass = 'w-full px-2 py-1 text-xs border border-surface-border rounded-lg bg-surface-card text-ink focus:outline-none focus:ring-1 focus:ring-brand-400'
 
-  const rowClass = editing ? 'bg-amber-50' : row.isValid ? '' : 'bg-red-50'
+  const rowClass = editing ? 'bg-amber-50 dark:bg-amber-900/20' : row.isValid ? '' : 'bg-red-50 dark:bg-red-900/20'
 
   return (
     <tr className={rowClass}>
@@ -497,7 +497,7 @@ function ImportRow({
 
       <td className="px-2 py-2 min-w-[7rem]">
         {isValidating ? (
-          <span className="text-slate-400 text-xs">{t('expenses.loading', 'Loading…')}</span>
+          <span className="text-ink-faint text-xs">{t('expenses.loading', 'Loading…')}</span>
         ) : row.isValid && !editing ? (
           <span className="text-emerald-600 text-xs font-medium">{t('expenses.import.columns.valid')}</span>
         ) : editing ? (
@@ -526,7 +526,7 @@ function ImportRow({
               onClick={onCancel}
               aria-label={`Cancel editing row ${row.rowNumber}`}
               title={t('expenses.import.cancelRow')}
-              className="p-1 rounded-lg text-ink-mute hover:bg-slate-100 transition-colors"
+              className="p-1 rounded-lg text-ink-mute hover:bg-surface-subtle transition-colors"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -753,7 +753,7 @@ export default function CsvImportPage() {
       )}
 
       {!preview ? (
-        <div className="max-w-2xl bg-white shadow-card border border-slate-200 rounded-2xl p-8">
+        <div className="max-w-2xl bg-surface-card shadow-card border border-surface-border rounded-2xl p-8">
           <div
             role="button" tabIndex={0} aria-label={t('expenses.import.dropzone')}
             onDragOver={e => { e.preventDefault(); setDragging(true) }}
@@ -761,9 +761,9 @@ export default function CsvImportPage() {
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
             onKeyDown={e => e.key === 'Enter' && fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${dragging ? 'border-brand-600 bg-brand-50' : 'border-slate-300 hover:border-brand-400'}`}
+            className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${dragging ? 'border-brand-600 bg-brand-50' : 'border-surface-border hover:border-brand-400'}`}
           >
-            <svg className="mx-auto h-10 w-10 text-slate-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="mx-auto h-10 w-10 text-ink-faint mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
             </svg>
             <p className="text-sm text-ink-mute">{loadingPreview ? t('expenses.loading', 'Loading…') : t('expenses.import.dropzone')}</p>
@@ -789,7 +789,7 @@ export default function CsvImportPage() {
             <span className="text-xs text-ink-mute ml-1">{t('expenses.import.editHint')}</span>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-card mb-5">
+          <div className="overflow-x-auto rounded-2xl border border-surface-border shadow-card mb-5">
             <table className="w-full text-sm">
               <thead className="bg-surface-subtle">
                 <tr>
@@ -806,7 +806,7 @@ export default function CsvImportPage() {
                   <th className="px-2 py-2.5 w-20"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-surface-border">
                 {preview.rows.map(row => {
                   const isEditing = editingRows.has(row.rowNumber)
                   const pending = pendingEdits[row.rowNumber] ?? getDisplayFields(row.rowNumber)
@@ -840,7 +840,7 @@ export default function CsvImportPage() {
           <div className="flex gap-3 justify-end flex-wrap">
             <button
               onClick={() => { setPreview(null); setEditedRows({}); setPendingEdits({}); setEditingRows(new Set()); setError(null) }}
-              className="px-4 py-2 text-sm font-medium rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors"
+              className="px-4 py-2 text-sm font-medium rounded-xl border border-surface-border text-ink hover:bg-surface-subtle transition-colors"
             >
               {t('expenses.import.cancel')}
             </button>

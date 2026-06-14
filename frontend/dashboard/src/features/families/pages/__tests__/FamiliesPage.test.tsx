@@ -764,7 +764,7 @@ describe('FamiliesPage', () => {
       const user = userEvent.setup()
       render(<FamiliesPage />)
       await user.click(screen.getByRole('button', { name: /families\.createAction/i }))
-      const inner = document.querySelector('.bg-white.rounded-2xl.shadow-xl')!
+      const inner = document.querySelector('[class*="rounded-2xl"][class*="shadow-xl"]')!
       await user.click(inner)
       expect(screen.getByText('families.createTitle')).toBeInTheDocument()
     })

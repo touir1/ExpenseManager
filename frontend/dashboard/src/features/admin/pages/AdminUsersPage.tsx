@@ -80,7 +80,7 @@ export default function AdminUsersPage() {
       {isLoading ? (
         <p className="text-ink-mute text-sm">{t('common.loading', 'Loading…')}</p>
       ) : (
-        <div className="bg-white shadow-card border border-slate-200 rounded-2xl overflow-hidden">
+        <div className="bg-surface-card shadow-card border border-surface-border rounded-2xl overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-surface-subtle">
               <tr>
@@ -163,7 +163,7 @@ export default function AdminUsersPage() {
 
       {rolesModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-80">
+          <div className="bg-surface-card rounded-2xl shadow-xl p-6 w-80">
             <h2 className="text-base font-semibold text-ink mb-3">
               {t('admin.users.manageRoles')} — {rolesModal.email}
             </h2>
