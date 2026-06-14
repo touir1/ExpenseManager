@@ -1,6 +1,13 @@
 
 # Changelog
 
+## [0.115.5] - 2026-06-14
+### Fix dark mode color discrepancies on ExpensesPage + redesign filters as inline section
+
+- **`frontend/dashboard/src/features/expenses/pages/ExpensesPage.tsx`** — replaced all hardcoded `slate-*` / `bg-white` with design-token classes: `tbody bg-surface-card` (was `bg-white`), table rows `border-surface-border hover:bg-surface-subtle` (was `border-slate-100 hover:bg-slate-50`), tag chips `bg-surface-subtle text-ink-body` (was `bg-slate-100 text-slate-600`), families badge `dark:bg-brand-900 dark:text-brand-200` added for dark mode, ConfirmDeleteModal `bg-surface-card border-surface-border text-ink text-ink-mute` (was `bg-white border-slate-200 text-slate-900 text-slate-500`), Import CSV button `bg-surface-card border-surface-border hover:bg-surface-subtle` (was `bg-white border-slate-200 hover:bg-slate-50`); moved `<ExpenseFilters>` out of the header button row and into a dedicated section between the header and the content area; `mb-6` on header → `mb-4`.
+- **`frontend/dashboard/src/features/expenses/components/ExpenseFilters.tsx`** — redesigned from a floating absolute dropdown to an inline collapsible section; panel now renders in page flow with a responsive 2/3/4-column grid (`grid-cols-2 sm:grid-cols-3 lg:grid-cols-4`); toggle button now explicitly sets `text-ink` and includes a chevron indicator that rotates when open; removed `document.mousedown` click-outside handler (inappropriate for inline sections); removed absolute positioning / `z-20` / `w-80` from panel; Apply/Reset actions moved to bottom-right of panel; added `text-ink` to combobox option items for dark mode readability.
+- **`frontend/dashboard/src/features/expenses/components/__tests__/ExpenseFilters.test.tsx`** — removed `closes filter panel when clicking outside` test (no longer applicable to inline panel); removed unused `fireEvent` import.
+
 ## [0.115.4] - 2026-06-14
 ### UX: Navigation & Information Architecture improvements (Section 1)
 

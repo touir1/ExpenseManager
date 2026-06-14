@@ -19,13 +19,13 @@ function ConfirmDeleteModal({
   const { t } = useTranslation()
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-sm mx-4 p-6">
-        <h2 className="text-base font-semibold text-slate-900 mb-2">{t('expenses.delete.confirmTitle')}</h2>
-        <p className="text-sm text-slate-500 mb-5">{t('expenses.delete.confirmBody')}</p>
+      <div className="bg-surface-card rounded-2xl shadow-xl border border-surface-border w-full max-w-sm mx-4 p-6">
+        <h2 className="text-base font-semibold text-ink mb-2">{t('expenses.delete.confirmTitle')}</h2>
+        <p className="text-sm text-ink-mute mb-5">{t('expenses.delete.confirmBody')}</p>
         <div className="flex gap-3 justify-end">
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-lg border border-surface-border text-ink hover:bg-surface-subtle transition-colors"
           >
             {t('expenses.delete.cancel')}
           </button>
@@ -53,7 +53,7 @@ function ExpenseRow({
     : `${expense.amount.toFixed(expense.currency?.decimals ?? 2)} ${expense.currency?.code ?? ''}`
 
   return (
-    <tr className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+    <tr className="border-b border-surface-border hover:bg-surface-subtle transition-colors">
       <td className="px-4 py-3 text-sm text-ink-body whitespace-nowrap">{expense.date}</td>
       <td className="px-4 py-3 text-sm font-medium text-ink whitespace-nowrap">{amount}</td>
       <td className="px-4 py-3 text-sm text-ink-mute">
@@ -64,7 +64,7 @@ function ExpenseRow({
       <td className="px-4 py-3 text-sm text-ink-mute">
         {expense.tags.length > 0
           ? expense.tags.map(tag => (
-              <span key={tag.id} className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 mr-1">
+              <span key={tag.id} className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-surface-subtle text-ink-body mr-1">
                 {tag.name}
               </span>
             ))
@@ -73,7 +73,7 @@ function ExpenseRow({
       <td className="px-4 py-3 text-sm text-ink-mute">
         {expense.families && expense.families.length > 0
           ? expense.families.map(f => (
-              <span key={f.id} className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-brand-100 text-brand-700 mr-1">
+              <span key={f.id} className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-brand-100 text-brand-700 dark:bg-brand-900 dark:text-brand-200 mr-1">
                 {f.name}
               </span>
             ))
@@ -109,7 +109,6 @@ export default function ExpensesPage() {
   const [filter, setFilter] = useState<ExpenseFilter>({ page: 1, pageSize: DEFAULT_PAGE_SIZE })
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
-  // Reset to page 1 when active family changes
   useEffect(() => {
     setFilter(f => ({ ...f, page: 1 }))
   }, [activeFamilyId])
@@ -138,13 +137,12 @@ export default function ExpensesPage() {
   return (
     <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-8">
       {/* Header */}
-      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+      <div className="mb-4 flex items-start justify-between gap-4 flex-wrap">
         <h1 className="text-2xl font-semibold text-ink tracking-tight">{t('expenses.pageTitle')}</h1>
         <div className="flex items-center gap-2">
-          <ExpenseFilters filter={filter} onApply={setFilter} />
           <Link
             to="/expenses/import"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-ink text-sm font-medium transition-colors duration-150"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-surface-border bg-surface-card hover:bg-surface-subtle text-ink text-sm font-medium transition-colors duration-150"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -162,6 +160,9 @@ export default function ExpensesPage() {
           </Link>
         </div>
       </div>
+
+      {/* Filters — inline collapsible section */}
+      <ExpenseFilters filter={filter} onApply={setFilter} />
 
       {/* Content */}
       {isLoading && (
@@ -202,7 +203,7 @@ export default function ExpensesPage() {
                     <th className="px-4 py-3 text-left text-xs font-semibold text-ink-mute uppercase tracking-wide">{t('expenses.table.actions')}</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white">
+                <tbody className="bg-surface-card">
                   {data.items.map(expense => (
                     <ExpenseRow key={expense.id} expense={expense} onDelete={setDeleteId} />
                   ))}

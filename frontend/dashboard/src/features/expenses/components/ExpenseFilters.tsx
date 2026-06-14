@@ -66,7 +66,7 @@ function FilterCombobox({ id, value, options, onChange }: FilterComboboxProps) {
           <li
             role="option"
             aria-selected={value === undefined}
-            className="px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-subtle text-text-muted"
+            className="px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-subtle text-ink-mute"
             onMouseDown={() => {
               onChange(undefined)
               setOpen(false)
@@ -80,7 +80,7 @@ function FilterCombobox({ id, value, options, onChange }: FilterComboboxProps) {
               key={o.value}
               role="option"
               aria-selected={o.value === value}
-              className={`px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-subtle ${o.value === value ? 'font-semibold' : ''}`}
+              className={`px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-subtle text-ink ${o.value === value ? 'font-semibold' : ''}`}
               onMouseDown={() => {
                 onChange(o.value)
                 setOpen(false)
@@ -91,7 +91,7 @@ function FilterCombobox({ id, value, options, onChange }: FilterComboboxProps) {
             </li>
           ))}
           {filtered.length === 0 && (
-            <li className="px-3 py-1.5 text-sm text-text-muted">—</li>
+            <li className="px-3 py-1.5 text-sm text-ink-mute">—</li>
           )}
         </ul>
       )}
@@ -163,7 +163,7 @@ function FilterTagCombobox({ id, value, options, onChange }: FilterTagComboboxPr
                 key={o.id}
                 role="option"
                 aria-selected={selected}
-                className={`px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-subtle flex items-center gap-2 ${selected ? 'font-semibold' : ''}`}
+                className={`px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-subtle text-ink flex items-center gap-2 ${selected ? 'font-semibold' : ''}`}
                 onMouseDown={() => toggle(o.id)}
               >
                 <span className={`h-3.5 w-3.5 rounded border flex-shrink-0 flex items-center justify-center ${selected ? 'bg-brand-600 border-brand-600' : 'border-surface-border'}`}>
@@ -178,7 +178,7 @@ function FilterTagCombobox({ id, value, options, onChange }: FilterTagComboboxPr
             )
           })}
           {filtered.length === 0 && (
-            <li className="px-3 py-1.5 text-sm text-text-muted">—</li>
+            <li className="px-3 py-1.5 text-sm text-ink-mute">—</li>
           )}
         </ul>
       )}
@@ -190,7 +190,6 @@ export default function ExpenseFilters({ filter, onApply }: ExpenseFiltersProps)
   const { t } = useTranslation()
   const { categories, currencies, tags = [] } = useExpensesData()
   const [open, setOpen] = useState(false)
-  const panelRef = useRef<HTMLDivElement>(null)
 
   const [local, setLocal] = useState<ExpenseFilter>(filter)
 
@@ -200,17 +199,6 @@ export default function ExpenseFilters({ filter, onApply }: ExpenseFiltersProps)
   const categoryOptions: ComboOption[] = categories.map(c => ({ value: c.id, label: c.name }))
   const subcategoryOptions: ComboOption[] = subcategories.map(s => ({ value: s.id, label: s.name }))
   const currencyOptions: ComboOption[] = currencies.map(c => ({ value: c.id, label: c.code }))
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
 
   const set = <K extends keyof ExpenseFilter>(key: K, value: ExpenseFilter[K]) => {
     setLocal(prev => ({ ...prev, [key]: value || undefined }))
@@ -233,18 +221,28 @@ export default function ExpenseFilters({ filter, onApply }: ExpenseFiltersProps)
   }
 
   return (
-    <div className="relative" ref={panelRef}>
+    <div className="mb-4">
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
         aria-expanded={open}
         aria-controls="filter-panel"
-        className="flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-lg border border-surface-border bg-surface-card hover:bg-surface-subtle transition-colors duration-150"
+        className="flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-lg border border-surface-border bg-surface-card hover:bg-surface-subtle text-ink transition-colors duration-150"
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
         </svg>
         {t('expenses.filters.toggle')}
+        <svg
+          className={`h-3.5 w-3.5 ml-0.5 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+          aria-hidden="true"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
       </button>
 
       {open && (
@@ -252,12 +250,11 @@ export default function ExpenseFilters({ filter, onApply }: ExpenseFiltersProps)
           id="filter-panel"
           role="region"
           aria-label={t('expenses.filters.title')}
-          className="absolute right-0 top-full mt-2 z-20 w-80 bg-surface-card border border-surface-border rounded-2xl p-5 space-y-4"
-          style={{ boxShadow: '0 8px 20px -10px rgba(30,20,10,0.3)' }}
+          className="mt-2 bg-surface-card border border-surface-border rounded-2xl p-5"
         >
-          {/* Date range */}
-          <div className="flex gap-3">
-            <div className="flex-1 min-w-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {/* Date range */}
+            <div>
               <label htmlFor="filter-dateFrom" className="field-label">
                 {t('expenses.filters.dateFrom')}
               </label>
@@ -269,7 +266,7 @@ export default function ExpenseFilters({ filter, onApply }: ExpenseFiltersProps)
                 onChange={e => set('dateFrom', e.target.value || undefined)}
               />
             </div>
-            <div className="flex-1 min-w-0">
+            <div>
               <label htmlFor="filter-dateTo" className="field-label">
                 {t('expenses.filters.dateTo')}
               </label>
@@ -281,66 +278,65 @@ export default function ExpenseFilters({ filter, onApply }: ExpenseFiltersProps)
                 onChange={e => set('dateTo', e.target.value || undefined)}
               />
             </div>
-          </div>
 
-          {/* Category + Subcategory */}
-          <div>
-            <label htmlFor="filter-category" className="field-label">
-              {t('expenses.fields.category')}
-            </label>
-            <FilterCombobox
-              id="filter-category"
-              value={local.categoryId}
-              options={categoryOptions}
-              onChange={handleCategoryChange}
-            />
-          </div>
-
-          {subcategories.length > 0 && (
+            {/* Category */}
             <div>
-              <label htmlFor="filter-subcategory" className="field-label">
-                {t('expenses.fields.subcategory')}
+              <label htmlFor="filter-category" className="field-label">
+                {t('expenses.fields.category')}
               </label>
               <FilterCombobox
-                id="filter-subcategory"
-                value={local.subcategoryId}
-                options={subcategoryOptions}
-                onChange={id => set('subcategoryId', id)}
+                id="filter-category"
+                value={local.categoryId}
+                options={categoryOptions}
+                onChange={handleCategoryChange}
               />
             </div>
-          )}
 
-          {/* Currency */}
-          <div>
-            <label htmlFor="filter-currency" className="field-label">
-              {t('expenses.fields.currency')}
-            </label>
-            <FilterCombobox
-              id="filter-currency"
-              value={local.currencyId}
-              options={currencyOptions}
-              onChange={id => set('currencyId', id)}
-            />
-          </div>
+            {/* Subcategory — only when category with subcategories is selected */}
+            {subcategories.length > 0 && (
+              <div>
+                <label htmlFor="filter-subcategory" className="field-label">
+                  {t('expenses.fields.subcategory')}
+                </label>
+                <FilterCombobox
+                  id="filter-subcategory"
+                  value={local.subcategoryId}
+                  options={subcategoryOptions}
+                  onChange={id => set('subcategoryId', id)}
+                />
+              </div>
+            )}
 
-          {/* Tags */}
-          {tags.length > 0 && (
+            {/* Currency */}
             <div>
-              <label htmlFor="filter-tags" className="field-label">
-                {t('expenses.filters.tags')}
+              <label htmlFor="filter-currency" className="field-label">
+                {t('expenses.fields.currency')}
               </label>
-              <FilterTagCombobox
-                id="filter-tags"
-                value={local.tagIds ?? []}
-                options={tags}
-                onChange={ids => setLocal(prev => ({ ...prev, tagIds: ids.length > 0 ? ids : undefined }))}
+              <FilterCombobox
+                id="filter-currency"
+                value={local.currencyId}
+                options={currencyOptions}
+                onChange={id => set('currencyId', id)}
               />
             </div>
-          )}
 
-          {/* Amount range */}
-          <div className="flex gap-3">
-            <div className="flex-1 min-w-0">
+            {/* Tags — only when tags exist */}
+            {tags.length > 0 && (
+              <div>
+                <label htmlFor="filter-tags" className="field-label">
+                  {t('expenses.filters.tags')}
+                </label>
+                <FilterTagCombobox
+                  id="filter-tags"
+                  value={local.tagIds ?? []}
+                  options={tags}
+                  onChange={ids => setLocal(prev => ({ ...prev, tagIds: ids.length > 0 ? ids : undefined }))}
+                />
+              </div>
+            )}
+
+            {/* Amount range */}
+            <div>
               <label htmlFor="filter-amountMin" className="field-label">
                 {t('expenses.filters.amountMin')}
               </label>
@@ -354,7 +350,7 @@ export default function ExpenseFilters({ filter, onApply }: ExpenseFiltersProps)
                 onChange={e => set('amountMin', e.target.value ? Number(e.target.value) : undefined)}
               />
             </div>
-            <div className="flex-1 min-w-0">
+            <div>
               <label htmlFor="filter-amountMax" className="field-label">
                 {t('expenses.filters.amountMax')}
               </label>
@@ -368,37 +364,37 @@ export default function ExpenseFilters({ filter, onApply }: ExpenseFiltersProps)
                 onChange={e => set('amountMax', e.target.value ? Number(e.target.value) : undefined)}
               />
             </div>
-          </div>
 
-          {/* Description */}
-          <div>
-            <label htmlFor="filter-description" className="field-label">
-              {t('expenses.fields.description')}
-            </label>
-            <input
-              id="filter-description"
-              type="text"
-              className="field-input"
-              value={local.description ?? ''}
-              onChange={e => set('description', e.target.value || undefined)}
-            />
+            {/* Description */}
+            <div className="col-span-2 sm:col-span-1">
+              <label htmlFor="filter-description" className="field-label">
+                {t('expenses.fields.description')}
+              </label>
+              <input
+                id="filter-description"
+                type="text"
+                className="field-input"
+                value={local.description ?? ''}
+                onChange={e => set('description', e.target.value || undefined)}
+              />
+            </div>
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-1">
-            <button
-              type="button"
-              onClick={handleApply}
-              className="btn-primary flex-1"
-            >
-              {t('expenses.filters.apply')}
-            </button>
+          <div className="flex gap-2 mt-4 justify-end">
             <button
               type="button"
               onClick={handleReset}
-              className="flex-1 text-sm font-semibold px-3 py-1.5 rounded-lg border border-surface-border hover:bg-surface-subtle transition-colors duration-150"
+              className="text-sm font-semibold px-4 py-2 rounded-lg border border-surface-border text-ink hover:bg-surface-subtle transition-colors duration-150"
             >
               {t('expenses.filters.reset')}
+            </button>
+            <button
+              type="button"
+              onClick={handleApply}
+              className="text-sm font-semibold px-4 py-2 rounded-lg bg-ink text-surface-page hover:opacity-90 transition-opacity duration-150"
+            >
+              {t('expenses.filters.apply')}
             </button>
           </div>
         </div>

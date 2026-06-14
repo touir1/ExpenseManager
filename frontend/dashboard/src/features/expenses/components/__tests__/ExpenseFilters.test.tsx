@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ExpenseFilters from '../ExpenseFilters'
 import type { ExpenseFilter } from '@/features/expenses/types/expenses.type'
@@ -80,14 +80,6 @@ describe('ExpenseFilters', () => {
       expect(screen.getByRole('button', { name: /filter/i })).toHaveAttribute('aria-expanded', 'true')
     })
 
-    it('closes filter panel when clicking outside', async () => {
-      const user = userEvent.setup()
-      renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
-      expect(screen.getByRole('region')).toBeInTheDocument()
-      fireEvent.mouseDown(document.body)
-      expect(screen.queryByRole('region')).not.toBeInTheDocument()
-    })
   })
 
   describe('apply', () => {
