@@ -1000,7 +1000,9 @@ ExpenseManager/
 │               │   ├── FamilyContext.tsx         — FamilyProvider / useFamilies() (adapted from dashboard)
 │               │   ├── services/familyApi.service.ts
 │               │   ├── types/family.type.ts
-│               │   └── pages/FamiliesPage.tsx    — IonList family cards; invite by email; member list; leave/archive
+│               │   └── pages/
+│               │       ├── FamiliesPage.tsx      — IonList family cards; invite by email; member list; leave/archive
+│               │       └── AcceptInvitePage.tsx  — IonPage with IonBackButton; reads ?token=; calls acceptInvite; shows loading/success/error
 │               ├── notifications/
 │               │   ├── NotificationContext.tsx   — SignalR + @capacitor/push-notifications registration; POST /push-token on login
 │               │   ├── services/

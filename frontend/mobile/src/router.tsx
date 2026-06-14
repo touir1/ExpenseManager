@@ -14,6 +14,7 @@ import LoginPage from '@/features/auth/pages/LoginPage'
 import DashboardPage from '@/features/dashboard/pages/DashboardPage'
 import ExpensesListPage from '@/features/expenses/pages/ExpensesListPage'
 import QuickAddModal from '@/features/expenses/pages/QuickAddModal'
+import AcceptInvitePage from '@/features/families/pages/AcceptInvitePage'
 import FamiliesPage from '@/features/families/pages/FamiliesPage'
 import SettingsPage from '@/features/settings/pages/SettingsPage'
 
@@ -73,6 +74,14 @@ export function AppRouter() {
     <>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/families/accept-invite"
+          element={
+            <AuthGuard>
+              <AcceptInvitePage />
+            </AuthGuard>
+          }
+        />
         <Route
           path="/*"
           element={

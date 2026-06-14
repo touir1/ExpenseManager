@@ -1,6 +1,15 @@
 
 # Changelog
 
+## [0.115.4] - 2026-06-14
+### UX: Navigation & Information Architecture improvements (Section 1)
+
+- **`frontend/dashboard/src/layouts/NavBar.tsx`** — mobile hamburger links now use `navLinkClass` (same `isActive`-based function as desktop) so active page is highlighted in the mobile menu; added `showContextSelectors` boolean (`/dashboard` or `/expenses` prefix only) so `FamilySelector` and `DisplayCurrencySelector` are hidden on Settings/Families/Admin pages; added `authLoading && !user` skeleton placeholder for the Admin link to prevent layout shift; added `title={t('nav.addExpenseTooltip')}` to the navbar Add Expense button.
+- **`frontend/dashboard/src/features/expenses/pages/ExpensesPage.tsx`** — in-page "Add Expense" button demoted to outline style (`border-brand-300 bg-brand-50 hover:bg-brand-100 text-brand-700`) so the navbar button is the clear primary CTA.
+- **`frontend/dashboard/src/i18n/locales/{en,fr,de,es}/translation.json`** — added `nav.addExpenseTooltip` key ("Quickly add an expense" / locale equivalents).
+- **`frontend/mobile/src/features/families/pages/AcceptInvitePage.tsx`** *(new)* — `IonPage` with `IonBackButton defaultHref="/families"` in the toolbar; accepts `?token=` query param, calls `acceptInvite`, renders loading/success/error states.
+- **`frontend/mobile/src/router.tsx`** — added `/families/accept-invite` route outside `TabsLayout`, wrapped in `AuthGuard`, so family invitation deep links have proper back navigation.
+
 ## [0.115.3] - 2026-06-14
 ### Rename theme light option and fix NavBar toggle overflow
 

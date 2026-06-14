@@ -31,6 +31,7 @@
         "notifications": "Notifications",
         "expenses": "Dépenses",
         "addExpense": "Ajouter une dépense",
+        "addExpenseTooltip": "Ajouter rapidement une dépense",
         "admin": "Admin"
     },
     "auth": {

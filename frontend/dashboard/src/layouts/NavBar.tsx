@@ -19,10 +19,14 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export default function NavBar() {
   const { t } = useTranslation()
-  const { isAuthenticated, logout, user } = useAuth()
+  const { isAuthenticated, isLoading: authLoading, logout, user } = useAuth()
   const isAdmin = user?.isAdmin === true
   const navigate = useNavigate()
   const { pathname } = useLocation()
+
+  // Pages that consume FamilySelector / DisplayCurrencySelector
+  const showContextSelectors =
+    pathname.startsWith('/dashboard') || pathname.startsWith('/expenses')
   const queryClient = useQueryClient()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -49,8 +53,6 @@ export default function NavBar() {
     }
   }, [isAuthenticated, navigate])
 
-  const expensesClass = pathname.startsWith('/expenses') ? activeNavClass : inactiveNavClass
-  const familiesClass = pathname === '/families' ? activeNavClass : inactiveNavClass
   const settingsClass =
     pathname === '/settings' || pathname === '/change-password' ? activeNavClass : inactiveNavClass
 
@@ -137,13 +139,15 @@ export default function NavBar() {
               <NavLink to="/dashboard" className={navLinkClass}>
                 {t('nav.dashboard')}
               </NavLink>
-              <NavLink to="/expenses" className={() => expensesClass}>
+              <NavLink to="/expenses" className={navLinkClass}>
                 {t('nav.expenses')}
               </NavLink>
-              <NavLink to="/families" className={() => familiesClass}>
+              <NavLink to="/families" className={navLinkClass}>
                 {t('nav.families')}
               </NavLink>
-              {isAdmin && (
+              {authLoading && !user ? (
+                <span className="h-6 w-14 rounded-md bg-surface-subtle animate-pulse inline-block" aria-hidden="true" />
+              ) : isAdmin && (
                 <NavLink to="/admin" className={navLinkClass}>
                   {t('nav.admin')}
                 </NavLink>
@@ -151,13 +155,14 @@ export default function NavBar() {
 
               {/* Right-side controls */}
               <div className="ml-auto flex items-center gap-2">
-                <FamilySelector />
-                <DisplayCurrencySelector />
+                {showContextSelectors && <FamilySelector />}
+                {showContextSelectors && <DisplayCurrencySelector />}
 
                 {/* Add expense */}
                 <button
                   onClick={() => setAddExpenseOpen(true)}
                   aria-label={t('nav.addExpense')}
+                  title={t('nav.addExpenseTooltip')}
                   className="h-8 w-8 rounded-lg bg-brand-500 hover:bg-brand-600 text-white flex items-center justify-center transition-colors duration-150"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
@@ -298,14 +303,14 @@ export default function NavBar() {
               </NavLink>
               <NavLink
                 to="/expenses"
-                className={() => expensesClass}
+                className={navLinkClass}
                 onClick={() => setMobileOpen(false)}
               >
                 {t('nav.expenses')}
               </NavLink>
               <NavLink
                 to="/families"
-                className={() => familiesClass}
+                className={navLinkClass}
                 onClick={() => setMobileOpen(false)}
               >
                 {t('nav.families')}

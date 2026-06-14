@@ -31,6 +31,7 @@
         "notifications": "Benachrichtigungen",
         "expenses": "Ausgaben",
         "addExpense": "Ausgabe hinzufügen",
+        "addExpenseTooltip": "Ausgabe schnell hinzufügen",
         "admin": "Admin"
     },
     "auth": {

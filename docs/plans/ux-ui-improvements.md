@@ -8,38 +8,43 @@
 
 ## 1. Navigation & Information Architecture
 
-### 🔴 Web: No active page indicator in mobile hamburger menu
+### ✅ 🔴 Web: No active page indicator in mobile hamburger menu
 
 **Problem:** Desktop navbar highlights the active route (brand background on active link). When the hamburger menu opens on small screens, the same links lose their active visual state — user has no "you are here" cue.  
-**Fix:** Apply the same active class logic to mobile menu items as desktop nav links.
+**Fix:** Apply the same active class logic to mobile menu items as desktop nav links.  
+**Done:** Mobile hamburger links now use `navLinkClass` (same `isActive`-based function as desktop) — `NavBar.tsx`.
 
 ---
 
-### 🔴 Web: FamilySelector and DisplayCurrencySelector are always visible but contextually confusing
+### ✅ 🔴 Web: FamilySelector and DisplayCurrencySelector are always visible but contextually confusing
 
 **Problem:** Both dropdowns appear in the navbar at all times, even on pages where they have no effect (Settings, Families). Users may change the family filter expecting something to happen on the Settings page.  
-**Fix:** Hide/disable navbar selectors on pages that don't consume them, or add a subtle tooltip explaining context ("Filters expenses only").
+**Fix:** Hide/disable navbar selectors on pages that don't consume them, or add a subtle tooltip explaining context ("Filters expenses only").  
+**Done:** Added `showContextSelectors` boolean (`/dashboard` or `/expenses` only); both selectors conditionally render — `NavBar.tsx`.
 
 ---
 
-### 🟡 Web: "Add Expense" button in navbar duplicates button on Expenses page
+### ✅ 🟡 Web: "Add Expense" button in navbar duplicates button on Expenses page
 
 **Problem:** Two entry points for the same action with no visual hierarchy difference. First-time users may not notice the one in the navbar.  
-**Fix:** Keep navbar button as the primary global CTA, make the in-page button secondary (outline style). Add tooltip "Quickly add an expense" to navbar button.
+**Fix:** Keep navbar button as the primary global CTA, make the in-page button secondary (outline style). Add tooltip "Quickly add an expense" to navbar button.  
+**Done:** In-page button demoted to outline style; navbar button has `title={t('nav.addExpenseTooltip')}` — `ExpensesPage.tsx`, `NavBar.tsx`, all 4 locale files.
 
 ---
 
-### 🟡 Mobile: No breadcrumb / back-navigation pattern for nested flows
+### ✅ 🟡 Mobile: No breadcrumb / back-navigation pattern for nested flows
 
 **Problem:** Entering a sub-flow (e.g. accepting a family invite via deep link) offers no consistent back path.  
-**Fix:** Ensure every IonPage that can be pushed onto the nav stack has an IonBackButton in the toolbar.
+**Fix:** Ensure every IonPage that can be pushed onto the nav stack has an IonBackButton in the toolbar.  
+**Done:** Created `AcceptInvitePage.tsx` (mobile) with `IonBackButton defaultHref="/families"`; route `/families/accept-invite` added outside TabsLayout in `router.tsx`.
 
 ---
 
-### 🟢 Web: Admin nav item is invisible until page load resolves `isAdmin`
+### ✅ 🟢 Web: Admin nav item is invisible until page load resolves `isAdmin`
 
 **Problem:** On first render, admin users see no Admin link (it flashes in after the session check). During this 200–500 ms window the layout shifts.  
-**Fix:** Reserve navbar space for admin link during auth loading (skeleton placeholder or keep the gap).
+**Fix:** Reserve navbar space for admin link during auth loading (skeleton placeholder or keep the gap).  
+**Done:** Skeleton `<span>` renders via `authLoading && !user` guard before admin `NavLink` — `NavBar.tsx`.
 
 ---
 
