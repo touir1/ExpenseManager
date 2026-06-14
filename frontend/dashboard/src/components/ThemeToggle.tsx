@@ -31,7 +31,7 @@ const options: { value: Theme; labelKey: string; icon: React.ReactNode }[] = [
   },
 ]
 
-export default function ThemeToggle() {
+export default function ThemeToggle({ showLabel = true }: { showLabel?: boolean }) {
   const { theme, setTheme } = useTheme()
   const { t } = useTranslation()
 
@@ -51,7 +51,7 @@ export default function ThemeToggle() {
             }`}
         >
           {opt.icon}
-          <span className="hidden sm:inline">{t(opt.labelKey)}</span>
+          {showLabel && <span className="hidden sm:inline">{t(opt.labelKey)}</span>}
         </button>
       ))}
     </div>

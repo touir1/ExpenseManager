@@ -1,6 +1,19 @@
 
 # Changelog
 
+## [0.115.3] - 2026-06-14
+### Rename theme light option and fix NavBar toggle overflow
+
+- **`frontend/dashboard/src/components/ThemeToggle.tsx`** — added `showLabel` prop (default `true`); when `false` the text label is hidden (icon-only), fixing the `overflow-hidden` clip that hid the Dark button in the NavBar dropdown.
+- **`frontend/dashboard/src/layouts/NavBar.tsx`** — pass `showLabel={false}` to `ThemeToggle` so all 3 buttons (Light / Default / Dark) are always visible in the compact dropdown.
+- **`frontend/dashboard/src/i18n/locales/en/translation.json`** — `settings.theme.light` renamed from `"Day"` → `"Light"`.
+- **`frontend/dashboard/src/i18n/locales/fr/translation.json`** — `settings.theme.light` renamed from `"Jour"` → `"Clair"`.
+- **`frontend/dashboard/src/i18n/locales/es/translation.json`** — `settings.theme.light` renamed from `"Día"` → `"Claro"`.
+- **`frontend/mobile/src/i18n/locales/en/translation.json`** — same `"Day"` → `"Light"` rename.
+- **`frontend/mobile/src/i18n/locales/fr/translation.json`** — same `"Jour"` → `"Clair"` rename.
+- **`frontend/mobile/src/i18n/locales/es/translation.json`** — same `"Día"` → `"Claro"` rename.
+- German locale (`"Hell"`) unchanged — already correct.
+
 ## [0.115.2] - 2026-06-14
 ### Fix dark mode color harmony — dashboard + mobile
 

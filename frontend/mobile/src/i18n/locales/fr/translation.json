@@ -184,7 +184,7 @@
             "title": "Apparence",
             "description": "Choisissez l'apparence de l'application. Par défaut, suit les paramètres système.",
             "label": "Thème",
-            "light": "Jour",
+            "light": "Clair",
             "dark": "Sombre",
             "system": "Défaut"
         }

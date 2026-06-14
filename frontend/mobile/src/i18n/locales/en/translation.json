@@ -184,7 +184,7 @@
             "title": "Appearance",
             "description": "Choose how the app looks. Default follows your system setting.",
             "label": "Theme",
-            "light": "Day",
+            "light": "Light",
             "dark": "Dark",
             "system": "Default"
         }

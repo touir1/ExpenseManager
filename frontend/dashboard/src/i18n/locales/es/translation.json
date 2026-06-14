@@ -183,7 +183,7 @@
             "title": "Apariencia",
             "description": "Elige cómo se ve la aplicación. Por defecto sigue la configuración del sistema.",
             "label": "Tema",
-            "light": "Día",
+            "light": "Claro",
             "dark": "Oscuro",
             "system": "Predeterminado"
         }

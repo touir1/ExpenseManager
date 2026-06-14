@@ -203,7 +203,7 @@ export default function NavBar() {
                     </div>
                     <div className="px-3 py-1.5 flex items-center gap-2">
                       <span className="text-sm font-semibold text-ink-mute shrink-0">{t('settings.theme.label')}</span>
-                      <ThemeToggle />
+                      <ThemeToggle showLabel={false} />
                     </div>
                     <div className="border-t border-surface-border my-1" />
                     <button
