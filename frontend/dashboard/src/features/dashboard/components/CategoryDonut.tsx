@@ -9,6 +9,7 @@ type Props = {
   data: CategoryBreakdownDto[]
   isLoading: boolean
   displayCurrency?: DisplayCurrency | null
+  onCategoryClick?: (categoryId: number | null) => void
 }
 
 function Skeleton() {
@@ -34,8 +35,9 @@ function Skeleton() {
   )
 }
 
-export function CategoryDonut({ data, isLoading, displayCurrency }: Props) {
+export function CategoryDonut({ data, isLoading, displayCurrency, onCategoryClick }: Props) {
   const { t } = useTranslation()
+  const clickable = !!onCategoryClick
 
   if (isLoading) return <Skeleton />
 
@@ -43,6 +45,11 @@ export function CategoryDonut({ data, isLoading, displayCurrency }: Props) {
     <div className="bg-surface-card rounded-2xl border border-surface-border shadow-card p-6">
       <p className="text-xs font-semibold uppercase tracking-widest text-ink-mute mb-4">
         {t('dashboard.charts.categories')}
+        {clickable && (
+          <span className="ml-2 font-normal normal-case tracking-normal text-ink-faint">
+            — {t('dashboard.charts.drillDown')}
+          </span>
+        )}
       </p>
 
       {data.length === 0 ? (
@@ -60,13 +67,15 @@ export function CategoryDonut({ data, isLoading, displayCurrency }: Props) {
                   innerRadius="55%"
                   outerRadius="80%"
                   paddingAngle={2}
+                  onClick={clickable ? (_, index) => onCategoryClick!(data[index]?.category?.id ?? null) : undefined}
+                  className={clickable ? 'cursor-pointer' : undefined}
                 >
                   {data.map((item, i) => (
                     <Cell key={i} fill={getCategoryColor(item.category?.id).text} />
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number) => [value.toFixed(2), '']}
+                  formatter={(value) => [(value as number).toFixed(2), '']}
                   contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 12 }}
                 />
               </PieChart>
@@ -75,7 +84,14 @@ export function CategoryDonut({ data, isLoading, displayCurrency }: Props) {
 
           <ul className="flex-1 space-y-1.5 min-w-0">
             {data.slice(0, 6).map((item, i) => (
-              <li key={i} className="flex items-center gap-2 min-w-0">
+              <li
+                key={i}
+                className={`flex items-center gap-2 min-w-0 rounded-lg transition-colors ${
+                  clickable ? 'cursor-pointer hover:bg-surface-subtle px-1.5 -mx-1.5 py-0.5' : ''
+                }`}
+                onClick={clickable ? () => onCategoryClick!(item.category?.id ?? null) : undefined}
+                title={clickable ? t('dashboard.charts.drillDown') : undefined}
+              >
                 <span
                   className="w-2 h-2 rounded-full shrink-0"
                   style={{ backgroundColor: getCategoryColor(item.category?.id).text }}

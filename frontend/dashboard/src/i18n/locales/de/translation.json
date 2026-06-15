@@ -136,22 +136,31 @@
             "title": "Ausgaben",
             "comingSoon": "Demnächst verfügbar…"
         },
+        "emptyState": {
+            "title": "Noch keine Ausgaben",
+            "subtitle": "Fügen Sie Ihre erste Ausgabe hinzu — Ihre Ausgabenanalysen erscheinen dann hier.",
+            "cta": "Erste Ausgabe hinzufügen"
+        },
         "filters": {
             "thisMonth": "Dieser Monat",
-            "thisYear": "Dieses Jahr"
+            "thisYear": "Dieses Jahr",
+            "dateRangeError": "Das Startdatum muss vor dem Enddatum liegen"
         },
         "summary": {
             "total": "Gesamtausgaben",
             "vs": "vs. vorh. Zeitr.",
             "expenses": "Ausgaben",
             "converted": "umgerechnet",
-            "topCategory": "Höchste Ausgabe:"
+            "topCategory": "Höchste Ausgabe:",
+            "comparedTo": "Verglichen mit {{period}}"
         },
         "charts": {
             "monthly": "Monatliche Ausgaben",
             "categories": "Nach Kategorie",
             "sameMonth": "{{month}} im Jahresvergleich",
-            "currencies": "Nach Währung"
+            "currencies": "Nach Währung",
+            "drillDown": "Klicken, um Ausgaben dieser Kategorie anzuzeigen",
+            "noExpenses": "Keine Ausgaben"
         },
         "recent": {
             "title": "Aktuelle Ausgaben",

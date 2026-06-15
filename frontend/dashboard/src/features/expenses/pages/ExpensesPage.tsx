@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate, useLocation, useMatch } from 'react-router-dom'
+import { Link, useNavigate, useLocation, useMatch, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -106,7 +106,14 @@ export default function ExpensesPage() {
   const editId = editMatch ? parseInt(editMatch.params.id ?? '') : null
   const isAddOpen = pathname === '/expenses/add'
   const { activeFamilyId } = useFamilies()
-  const [filter, setFilter] = useState<ExpenseFilter>({ page: 1, pageSize: DEFAULT_PAGE_SIZE })
+  const [initParams] = useSearchParams()
+  const [filter, setFilter] = useState<ExpenseFilter>(() => ({
+    page: 1,
+    pageSize: DEFAULT_PAGE_SIZE,
+    categoryId: initParams.get('categoryId') ? parseInt(initParams.get('categoryId')!) : undefined,
+    dateFrom: initParams.get('dateFrom') ?? undefined,
+    dateTo: initParams.get('dateTo') ?? undefined,
+  }))
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
   useEffect(() => {

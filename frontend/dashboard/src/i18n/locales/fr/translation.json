@@ -136,22 +136,31 @@
             "title": "Dépenses",
             "comingSoon": "Bientôt disponible…"
         },
+        "emptyState": {
+            "title": "Aucune dépense pour l'instant",
+            "subtitle": "Ajoutez votre première dépense — vos analyses apparaîtront ici.",
+            "cta": "Ajouter votre première dépense"
+        },
         "filters": {
             "thisMonth": "Ce mois",
-            "thisYear": "Cette année"
+            "thisYear": "Cette année",
+            "dateRangeError": "La date de début doit être antérieure à la date de fin"
         },
         "summary": {
             "total": "Total des dépenses",
             "vs": "vs période préc.",
             "expenses": "dépenses",
             "converted": "converti",
-            "topCategory": "Top dépense :"
+            "topCategory": "Top dépense :",
+            "comparedTo": "Comparé à {{period}}"
         },
         "charts": {
             "monthly": "Dépenses mensuelles",
             "categories": "Par catégorie",
             "sameMonth": "{{month}} sur plusieurs années",
-            "currencies": "Par devise"
+            "currencies": "Par devise",
+            "drillDown": "Cliquer pour voir les dépenses de cette catégorie",
+            "noExpenses": "Aucune dépense"
         },
         "recent": {
             "title": "Dépenses récentes",

@@ -40,52 +40,81 @@ export function DashboardFilters({ filter, onChange }: Props) {
   const isThisYear =
     filter.dateFrom === startOfYearStr() && filter.dateTo === todayStr()
 
+  const dateRangeInvalid = !!(
+    filter.dateFrom && filter.dateTo && filter.dateFrom > filter.dateTo
+  )
+
+  const handleFromChange = (value: string) => {
+    const newFrom = value || undefined
+    // clamp: if new from is after current to, reset to to newFrom
+    const newTo = newFrom && filter.dateTo && newFrom > filter.dateTo ? newFrom : filter.dateTo
+    onChange({ ...filter, dateFrom: newFrom, dateTo: newTo })
+  }
+
+  const handleToChange = (value: string) => {
+    const newTo = value || undefined
+    // clamp: if new to is before current from, reset from to newTo
+    const newFrom = newTo && filter.dateFrom && newTo < filter.dateFrom ? newTo : filter.dateFrom
+    onChange({ ...filter, dateFrom: newFrom, dateTo: newTo })
+  }
+
   return (
-    <div className="flex flex-wrap items-center gap-2 mb-6">
-      <button
-        type="button"
-        onClick={setThisMonth}
-        className={presetClass(isThisMonth)}
-        aria-pressed={isThisMonth}
-      >
-        {t('dashboard.filters.thisMonth')}
-      </button>
+    <div className="mb-6">
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={setThisMonth}
+          className={presetClass(isThisMonth)}
+          aria-pressed={isThisMonth}
+        >
+          {t('dashboard.filters.thisMonth')}
+        </button>
 
-      <button
-        type="button"
-        onClick={setThisYear}
-        className={presetClass(isThisYear)}
-        aria-pressed={isThisYear}
-      >
-        {t('dashboard.filters.thisYear')}
-      </button>
+        <button
+          type="button"
+          onClick={setThisYear}
+          className={presetClass(isThisYear)}
+          aria-pressed={isThisYear}
+        >
+          {t('dashboard.filters.thisYear')}
+        </button>
 
-      <div className="flex items-center gap-1 ml-auto">
-        <label className="text-xs text-ink-mute sr-only" htmlFor="dash-date-from">
-          {t('expenses.filters.dateFrom')}
-        </label>
-        <input
-          id="dash-date-from"
-          type="date"
-          value={filter.dateFrom ?? ''}
-          max={filter.dateTo ?? todayStr()}
-          onChange={e => onChange({ ...filter, dateFrom: e.target.value || undefined })}
-          className="text-xs border border-surface-border rounded-lg px-2 py-1.5 text-ink-body bg-surface-card focus:outline-none focus:ring-2 focus:ring-brand-300 cursor-pointer"
-        />
-        <span className="text-xs text-ink-faint">–</span>
-        <label className="text-xs text-ink-mute sr-only" htmlFor="dash-date-to">
-          {t('expenses.filters.dateTo')}
-        </label>
-        <input
-          id="dash-date-to"
-          type="date"
-          value={filter.dateTo ?? ''}
-          min={filter.dateFrom}
-          max={todayStr()}
-          onChange={e => onChange({ ...filter, dateTo: e.target.value || undefined })}
-          className="text-xs border border-surface-border rounded-lg px-2 py-1.5 text-ink-body bg-surface-card focus:outline-none focus:ring-2 focus:ring-brand-300 cursor-pointer"
-        />
+        <div className="flex items-center gap-1 ml-auto">
+          <label className="text-xs text-ink-mute sr-only" htmlFor="dash-date-from">
+            {t('expenses.filters.dateFrom')}
+          </label>
+          <input
+            id="dash-date-from"
+            type="date"
+            value={filter.dateFrom ?? ''}
+            max={todayStr()}
+            onChange={e => handleFromChange(e.target.value)}
+            className={`text-xs border rounded-lg px-2 py-1.5 text-ink-body bg-surface-card focus:outline-none focus:ring-2 focus:ring-brand-300 cursor-pointer transition-colors ${
+              dateRangeInvalid ? 'border-berry' : 'border-surface-border'
+            }`}
+          />
+          <span className="text-xs text-ink-faint">–</span>
+          <label className="text-xs text-ink-mute sr-only" htmlFor="dash-date-to">
+            {t('expenses.filters.dateTo')}
+          </label>
+          <input
+            id="dash-date-to"
+            type="date"
+            value={filter.dateTo ?? ''}
+            max={todayStr()}
+            onChange={e => handleToChange(e.target.value)}
+            className={`text-xs border rounded-lg px-2 py-1.5 text-ink-body bg-surface-card focus:outline-none focus:ring-2 focus:ring-brand-300 cursor-pointer transition-colors ${
+              dateRangeInvalid ? 'border-berry' : 'border-surface-border'
+            }`}
+          />
+        </div>
       </div>
+
+      {dateRangeInvalid && (
+        <p className="text-xs text-berry mt-1.5 text-right" role="alert">
+          {t('dashboard.filters.dateRangeError')}
+        </p>
+      )}
     </div>
   )
 }

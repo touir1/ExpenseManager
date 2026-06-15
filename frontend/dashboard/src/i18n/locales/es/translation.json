@@ -136,22 +136,31 @@
             "title": "Gastos",
             "comingSoon": "Próximamente…"
         },
+        "emptyState": {
+            "title": "Aún no hay gastos",
+            "subtitle": "Añade tu primer gasto — tus análisis de gastos aparecerán aquí.",
+            "cta": "Añadir primer gasto"
+        },
         "filters": {
             "thisMonth": "Este mes",
-            "thisYear": "Este año"
+            "thisYear": "Este año",
+            "dateRangeError": "La fecha de inicio debe ser anterior a la fecha de fin"
         },
         "summary": {
             "total": "Gasto total",
             "vs": "vs período ant.",
             "expenses": "gastos",
             "converted": "convertido",
-            "topCategory": "Mayor gasto:"
+            "topCategory": "Mayor gasto:",
+            "comparedTo": "Comparado con {{period}}"
         },
         "charts": {
             "monthly": "Gastos mensuales",
             "categories": "Por categoría",
             "sameMonth": "{{month}} en años anteriores",
-            "currencies": "Por divisa"
+            "currencies": "Por divisa",
+            "drillDown": "Clic para ver gastos de esta categoría",
+            "noExpenses": "Sin gastos"
         },
         "recent": {
             "title": "Gastos recientes",

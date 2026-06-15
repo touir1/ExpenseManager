@@ -4,6 +4,7 @@ import type { DashboardSummaryDto } from '@/features/dashboard/types/dashboard.t
 type Props = {
   data: DashboardSummaryDto | undefined
   isLoading: boolean
+  comparedToLabel?: string
 }
 
 function Skeleton() {
@@ -28,7 +29,7 @@ function formatAmount(amount: number, decimals = 2): string {
   return amount.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
 }
 
-export function MonthHero({ data, isLoading }: Props) {
+export function MonthHero({ data, isLoading, comparedToLabel }: Props) {
   const { t } = useTranslation()
 
   if (isLoading || !data) return <Skeleton />
@@ -71,7 +72,10 @@ export function MonthHero({ data, isLoading }: Props) {
 
       <div className="flex flex-wrap gap-2">
         {data.changePercent != null && (
-          <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${deltaClass}`}>
+          <span
+            className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${deltaClass}`}
+            title={comparedToLabel}
+          >
             {deltaSign}{data.changePercent.toFixed(1)}%
             <span className="font-normal text-[11px] opacity-75">{t('dashboard.summary.vs')}</span>
           </span>

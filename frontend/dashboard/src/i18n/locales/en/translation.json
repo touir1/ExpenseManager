@@ -136,22 +136,31 @@
                                        "title":  "Expenses",
                                        "comingSoon":  "Coming soon…"
                                    },
+                      "emptyState":  {
+                                         "title":  "No expenses yet",
+                                         "subtitle":  "Add your first expense — your spending insights will appear here.",
+                                         "cta":  "Add your first expense"
+                                     },
                       "filters":  {
                                       "thisMonth":  "This month",
-                                      "thisYear":  "This year"
+                                      "thisYear":  "This year",
+                                      "dateRangeError":  "Start date must be before end date"
                                   },
                       "summary":  {
                                       "total":  "Total spending",
                                       "vs":  "vs prev. period",
                                       "expenses":  "expenses",
                                       "converted":  "converted",
-                                      "topCategory":  "Top spending:"
+                                      "topCategory":  "Top spending:",
+                                      "comparedTo":  "Compared to {{period}}"
                                   },
                       "charts":  {
                                      "monthly":  "Monthly spending",
                                      "categories":  "By category",
                                      "sameMonth":  "{{month}} across years",
-                                     "currencies":  "By currency"
+                                     "currencies":  "By currency",
+                                     "drillDown":  "Click to view expenses in this category",
+                                     "noExpenses":  "No expenses"
                                  },
                       "recent":  {
                                      "title":  "Recent expenses",

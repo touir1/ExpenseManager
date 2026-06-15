@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/features/auth/AuthContext'
@@ -31,18 +32,34 @@ function startOfMonthStr(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`
 }
 
+function getPreviousPeriodLabel(dateFrom?: string, dateTo?: string): string {
+  if (!dateFrom) return ''
+  const from = new Date(dateFrom + 'T00:00:00')
+  const to = dateTo ? new Date(dateTo + 'T00:00:00') : new Date()
+  const rangeDays = Math.max(1, Math.round((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)))
+  const prevTo = new Date(from)
+  prevTo.setDate(prevTo.getDate() - 1)
+  const prevFrom = new Date(prevTo)
+  prevFrom.setDate(prevFrom.getDate() - rangeDays + 1)
+  const yearNeeded = prevFrom.getFullYear() !== new Date().getFullYear()
+  const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', ...(yearNeeded ? { year: 'numeric' } : {}) }
+  return `${prevFrom.toLocaleDateString(undefined, opts)} – ${prevTo.toLocaleDateString(undefined, opts)}`
+}
+
 export default function HomeDashboardPage() {
   const { t } = useTranslation()
   usePageTitle(t('dashboard.pageTitle'))
 
+  const navigate = useNavigate()
   const { user } = useAuth()
   const { activeFamilyId } = useFamilies()
   const { displayCurrencyId } = useDisplayCurrency()
 
-  const [dateFilter, setDateFilter] = useState<{ dateFrom?: string; dateTo?: string }>({
-    dateFrom: startOfMonthStr(),
-    dateTo: todayStr(),
-  })
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const dateFrom = searchParams.get('from') ?? startOfMonthStr()
+  const dateTo = searchParams.get('to') ?? todayStr()
+  const dateFilter = { dateFrom, dateTo }
 
   const filter: DashboardFilter = {
     ...(activeFamilyId != null ? { familyId: activeFamilyId } : {}),
@@ -93,8 +110,31 @@ export default function HomeDashboardPage() {
 
   const name = user?.firstName ?? user?.email ?? t('dashboard.defaultName')
 
+  const allLoaded = !summaryQ.isLoading && !categoriesQ.isLoading && !currenciesQ.isLoading
+  const isEmpty = allLoaded && (summary?.expenseCount ?? 0) === 0 && categories.length === 0
+
+  const previousPeriodLabel = getPreviousPeriodLabel(dateFrom, dateTo)
+  const comparedToLabel = previousPeriodLabel
+    ? t('dashboard.summary.comparedTo', { period: previousPeriodLabel })
+    : undefined
+
   const handleFilterChange = (f: DashboardFilter) => {
-    setDateFilter({ dateFrom: f.dateFrom, dateTo: f.dateTo })
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev)
+      if (f.dateFrom) next.set('from', f.dateFrom)
+      else next.delete('from')
+      if (f.dateTo) next.set('to', f.dateTo)
+      else next.delete('to')
+      return next
+    })
+  }
+
+  const handleCategoryClick = (categoryId: number | null) => {
+    const params = new URLSearchParams()
+    if (categoryId != null) params.set('categoryId', String(categoryId))
+    if (dateFrom) params.set('dateFrom', dateFrom)
+    if (dateTo) params.set('dateTo', dateTo)
+    navigate(`/expenses?${params.toString()}`)
   }
 
   return (
@@ -107,36 +147,64 @@ export default function HomeDashboardPage() {
 
       <DashboardFilters filter={{ ...dateFilter }} onChange={handleFilterChange} />
 
-      {/* Row 1: Hero + Spend Chart */}
-      <div className="grid gap-4 lg:grid-cols-3 mb-4">
-        <div className="lg:col-span-1">
-          <MonthHero data={summary} isLoading={summaryQ.isLoading} />
-        </div>
-        <div className="lg:col-span-2">
-          <SpendChart
-            data={monthly}
-            isLoading={monthlyQ.isLoading}
-            displayCurrency={displayCurrency}
-          />
-        </div>
-      </div>
+      {isEmpty ? (
+        <EmptyDashboard onAddExpense={() => navigate('/expenses/add')} />
+      ) : (
+        <>
+          {/* Row 1: Hero + Spend Chart */}
+          <div className="grid gap-4 lg:grid-cols-3 mb-4">
+            <div className="lg:col-span-1">
+              <MonthHero data={summary} isLoading={summaryQ.isLoading} comparedToLabel={comparedToLabel} />
+            </div>
+            <div className="lg:col-span-2">
+              <SpendChart
+                data={monthly}
+                isLoading={monthlyQ.isLoading}
+                displayCurrency={displayCurrency}
+              />
+            </div>
+          </div>
 
-      {/* Row 2: Category Donut + Recent Expenses */}
-      <div className="grid gap-4 lg:grid-cols-2 mb-4">
-        <CategoryDonut data={categories} isLoading={categoriesQ.isLoading} displayCurrency={displayCurrency} />
-        <RecentExpenses data={recentItems} isLoading={recentQ.isLoading} />
-      </div>
+          {/* Row 2: Category Donut + Recent Expenses */}
+          <div className="grid gap-4 lg:grid-cols-2 mb-4">
+            <CategoryDonut
+              data={categories}
+              isLoading={categoriesQ.isLoading}
+              displayCurrency={displayCurrency}
+              onCategoryClick={handleCategoryClick}
+            />
+            <RecentExpenses data={recentItems} isLoading={recentQ.isLoading} />
+          </div>
 
-      {/* Row 3: Same Month Chart + Currencies */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <SameMonthChart
-          data={sameMonth}
-          isLoading={sameMonthQ.isLoading}
-          selectedMonth={currentMonth}
-          displayCurrency={displayCurrency}
-        />
-        <CurrenciesPanel data={currencies} isLoading={currenciesQ.isLoading} displayCurrency={displayCurrency} />
-      </div>
+          {/* Row 3: Same Month Chart + Currencies */}
+          <div className="grid gap-4 lg:grid-cols-2">
+            <SameMonthChart
+              data={sameMonth}
+              isLoading={sameMonthQ.isLoading}
+              selectedMonth={currentMonth}
+              displayCurrency={displayCurrency}
+            />
+            <CurrenciesPanel data={currencies} isLoading={currenciesQ.isLoading} displayCurrency={displayCurrency} />
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+function EmptyDashboard({ onAddExpense }: Readonly<{ onAddExpense: () => void }>) {
+  const { t } = useTranslation()
+  return (
+    <div className="flex flex-col items-center justify-center py-20 text-center">
+      <div className="mb-6 text-6xl select-none" aria-hidden="true">💸</div>
+      <h2 className="text-xl font-semibold text-ink mb-2">{t('dashboard.emptyState.title')}</h2>
+      <p className="text-sm text-ink-mute mb-8 max-w-sm">{t('dashboard.emptyState.subtitle')}</p>
+      <button
+        onClick={onAddExpense}
+        className="btn-primary px-6 py-2.5 text-sm font-semibold rounded-xl"
+      >
+        {t('dashboard.emptyState.cta')}
+      </button>
     </div>
   )
 }

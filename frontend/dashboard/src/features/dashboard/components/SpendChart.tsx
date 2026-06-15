@@ -82,10 +82,13 @@ export function SpendChart({ data, isLoading, displayCurrency }: Props) {
               width={48}
             />
             <Tooltip
-              formatter={(value: number) => [`${currSymbol}${currSymbol ? ' ' : ''}${value.toFixed(2)}`, '']}
+              formatter={(value) => {
+                const n = value as number
+                return [n === 0 ? t('dashboard.charts.noExpenses') : `${currSymbol}${currSymbol ? ' ' : ''}${n.toFixed(2)}`, '']
+              }}
               contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 12 }}
             />
-            <Bar dataKey="amount" fill={BAR_COLOR} radius={[4, 4, 0, 0]} maxBarSize={32} />
+            <Bar dataKey="amount" fill={BAR_COLOR} radius={[4, 4, 0, 0]} maxBarSize={32} minPointSize={2} />
             <Line
               type="monotone"
               dataKey="avg"

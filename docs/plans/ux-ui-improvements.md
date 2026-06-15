@@ -50,38 +50,43 @@
 
 ## 2. Dashboard
 
-### 🔴 Web: Dashboard date filters reset to "month-to-date" on every page load
+### ✅ 🔴 Web: Dashboard date filters reset to "month-to-date" on every page load
 
 **Problem:** If a user sets a custom date range to investigate last quarter, refreshing the page resets it. No persistence.  
-**Fix:** Persist date range in URL query params (`?from=&to=`) so the URL is shareable and survives refresh.
+**Fix:** Persist date range in URL query params (`?from=&to=`) so the URL is shareable and survives refresh.  
+**Done:** `HomeDashboardPage` replaced `useState` with `useSearchParams`; date range reads/writes `?from=&to=` query params — `HomeDashboardPage.tsx`.
 
 ---
 
-### 🔴 Web: No empty-state on dashboard for new users
+### ✅ 🔴 Web: No empty-state on dashboard for new users
 
 **Problem:** A brand-new account with no expenses shows empty/zero charts with no explanation. SpendChart renders an empty line chart; CategoryDonut is a blank circle.  
-**Fix:** Add empty-state illustrations or callout cards ("No expenses yet — add your first one!") when all queries return zero data.
+**Fix:** Add empty-state illustrations or callout cards ("No expenses yet — add your first one!") when all queries return zero data.  
+**Done:** `EmptyDashboard` component renders when `expenseCount === 0` and all queries loaded; replaces the grid with a centered card + CTA — `HomeDashboardPage.tsx`.
 
 ---
 
-### 🟡 Web: Dashboard charts have no drill-down
+### ✅ 🟡 Web: Dashboard charts have no drill-down
 
 **Problem:** Clicking a category slice on CategoryDonut or a bar on SameMonthChart does nothing. Users cannot discover which expenses compose a data point.  
-**Fix:** Make chart elements clickable — navigate to `/expenses` pre-filtered by category and date range. This is a high-value feature with modest implementation cost using existing filter infrastructure.
+**Fix:** Make chart elements clickable — navigate to `/expenses` pre-filtered by category and date range. This is a high-value feature with modest implementation cost using existing filter infrastructure.  
+**Done:** `CategoryDonut` accepts `onCategoryClick` prop; pie slices and legend rows navigate to `/expenses?categoryId=X&dateFrom=Y&dateTo=Z`; `ExpensesPage` reads these URL params as initial filter state — `CategoryDonut.tsx`, `HomeDashboardPage.tsx`, `ExpensesPage.tsx`.
 
 ---
 
-### 🟡 Web: MonthHero percentage change has no context tooltip
+### ✅ 🟡 Web: MonthHero percentage change has no context tooltip
 
 **Problem:** The % change vs last month badge is shown without explaining the comparison period (last month? last year?).  
-**Fix:** Add a `title` attribute or `<Tooltip>` component that says "Compared to {previousMonthName}".
+**Fix:** Add a `title` attribute or `<Tooltip>` component that says "Compared to {previousMonthName}".  
+**Done:** Delta badge has `title={comparedToLabel}` where label is computed from active date range (e.g. "Compared to May 1 – May 31") — `MonthHero.tsx`, `HomeDashboardPage.tsx`.
 
 ---
 
-### 🟡 Web: DashboardFilters date range allows `from > to` without validation
+### ✅ 🟡 Web: DashboardFilters date range allows `from > to` without validation
 
 **Problem:** A user can set end date before start date, which sends an invalid query to the backend and silently returns empty data.  
-**Fix:** Clamp `to` min to `from` value, or show a validation error inline in the filter bar.
+**Fix:** Clamp `to` min to `from` value, or show a validation error inline in the filter bar.  
+**Done:** `onChange` handlers clamp automatically (moving `from` past `to` resets `to`; vice versa); inline `role="alert"` error shown with `border-berry` on both inputs when invalid — `DashboardFilters.tsx`.
 
 ---
 
@@ -92,17 +97,19 @@
 
 ---
 
-### 🟢 Web: Charts don't show tooltips for zero-value data points
+### ✅ 🟢 Web: Charts don't show tooltips for zero-value data points
 
 **Problem:** Hovering over a date where there are no expenses shows nothing. Users can't confirm "was I really at zero that day?".  
-**Fix:** Enable `Recharts` tooltips for zero values with explicit "No expenses" label.
+**Fix:** Enable `Recharts` tooltips for zero values with explicit "No expenses" label.  
+**Done:** `minPointSize={2}` on all Bar elements makes zero-height bars hoverable; Tooltip formatter returns `t('dashboard.charts.noExpenses')` when value is 0 — `SpendChart.tsx`, `SameMonthChart.tsx`.
 
 ---
 
-### 🟢 Web: CurrenciesPanel has no visual chart
+### ✅ 🟢 Web: CurrenciesPanel has no visual chart
 
 **Problem:** CurrenciesPanel shows a plain text/table breakdown while all sibling panels have charts.  
-**Fix:** Add a small horizontal bar chart per currency for visual consistency.
+**Fix:** Add a small horizontal bar chart per currency for visual consistency.  
+**Done:** Each currency row has a proportional `bg-brand-400` horizontal bar (width = `totalAmount / max * 100%`, min 3%) — `CurrenciesPanel.tsx`.
 
 ---
 
@@ -540,16 +547,16 @@
 | 2 | Add `cursor-pointer` or remove hover state from non-clickable rows | `ExpensesPage.tsx` | 5 min |
 | 3 | Add `aria-live="polite"` to Toast container | `Toast.tsx` | 10 min |
 | 4 | Dynamic `aria-label` on notification bell (include count) | `NotificationBell.tsx` | 10 min |
-| 5 | Clamp dashboard date range `to` min = `from` | `DashboardFilters` component | 15 min |
+| ~~5~~ | ~~Clamp dashboard date range `to` min = `from`~~ | ~~`DashboardFilters` component~~ | ✅ Done |
 | 6 | Add "Clear filters" button on ExpensesPage | `ExpensesPage.tsx` | 20 min |
 | 7 | Replace "Loading…" text with skeleton in ExpensesPage | `ExpensesPage.tsx` | 30 min |
-| 8 | Validate date range (from ≤ to) in DashboardFilters | `DashboardFilters` component | 20 min |
+| ~~8~~ | ~~Validate date range (from ≤ to) in DashboardFilters~~ | ~~`DashboardFilters` component~~ | ✅ Done |
 | 9 | Add archive confirmation modal | `FamiliesPage.tsx` | 30 min |
 | 10 | Show expense summary in delete confirmation modal | `ConfirmDeleteModal` | 20 min |
 | 11 | Hide subcategory field when category has no subcategories | `ExpenseForm.tsx` | 15 min |
 | 12 | Mobile: "Today" / "Yesterday" group headers in expense list | `ExpensesListPage.tsx` | 20 min |
 | 13 | Mobile: Offline banner on expense list | `ExpensesListPage.tsx` | 30 min |
-| 14 | Persist dashboard date range in URL query params | `HomeDashboardPage.tsx` | 45 min |
+| ~~14~~ | ~~Persist dashboard date range in URL query params~~ | ~~`HomeDashboardPage.tsx`~~ | ✅ Done |
 
 ---
 
@@ -558,7 +565,7 @@
 | Initiative | Impact | Complexity |
 |-----------|--------|------------|
 | Full-page Notifications inbox (`/notifications`) | High | Medium |
-| Chart drill-down → filtered expenses | High | Medium |
+| ~~Chart drill-down → filtered expenses~~ | ~~High~~ | ✅ Done (CategoryDonut → /expenses with params) |
 | CSV import column mapper | High | High |
 | Mobile expense search (IonSearchbar + backend filter) | High | Medium |
 | ARIA combobox keyboard support | High | Medium |

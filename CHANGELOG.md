@@ -1,6 +1,19 @@
 
 # Changelog
 
+## [0.116.0] - 2026-06-15
+### Feat: Dashboard UX improvements — Section 2 (all web items)
+
+- **`frontend/dashboard/src/features/dashboard/pages/HomeDashboardPage.tsx`** — replaced `useState` date filter with `useSearchParams`; date range now persisted in URL (`?from=&to=`) so it survives refresh and is shareable; added `EmptyDashboard` component rendered when `expenseCount === 0` after all queries load (replaces grid with centered card + CTA button); computes `previousPeriodLabel` from active date range and passes it as `comparedToLabel` to `MonthHero`; passes `onCategoryClick` to `CategoryDonut` — navigates to `/expenses?categoryId=X&dateFrom=Y&dateTo=Z` on click.
+- **`frontend/dashboard/src/features/dashboard/components/DashboardFilters.tsx`** — `handleFromChange`/`handleToChange` auto-clamp the opposite bound when they would cross; inline `role="alert"` error shown with `border-berry` highlight on both inputs when `dateFrom > dateTo`.
+- **`frontend/dashboard/src/features/dashboard/components/MonthHero.tsx`** — added optional `comparedToLabel` prop; delta badge gains `title={comparedToLabel}` so hovering shows "Compared to May 1 – May 31" (or equivalent computed period).
+- **`frontend/dashboard/src/features/dashboard/components/CategoryDonut.tsx`** — added optional `onCategoryClick` prop; when provided, pie slices and legend list rows become clickable (`cursor-pointer hover:bg-surface-subtle`) and show a hint in the panel header.
+- **`frontend/dashboard/src/features/dashboard/components/SpendChart.tsx`** — `Bar` gets `minPointSize={2}` so zero-height bars are hoverable; Tooltip formatter returns `t('dashboard.charts.noExpenses')` when value is 0.
+- **`frontend/dashboard/src/features/dashboard/components/SameMonthChart.tsx`** — same `minPointSize` and zero-value tooltip label as `SpendChart`.
+- **`frontend/dashboard/src/features/dashboard/components/CurrenciesPanel.tsx`** — each currency row now includes a proportional `bg-brand-400` horizontal bar (`width = totalAmount / max * 100%`, min 3%) for visual comparison.
+- **`frontend/dashboard/src/features/expenses/pages/ExpensesPage.tsx`** — initial `filter` state seeded from URL params (`categoryId`, `dateFrom`, `dateTo`) so drill-down navigation from `CategoryDonut` pre-filters the expense list.
+- **`frontend/dashboard/src/i18n/locales/{en,fr,de,es}/translation.json`** — added `dashboard.emptyState.{title,subtitle,cta}`, `dashboard.summary.comparedTo`, `dashboard.filters.dateRangeError`, `dashboard.charts.{drillDown,noExpenses}` in all four locales.
+
 ## [0.115.7] - 2026-06-14
 ### Fix dark mode: replace all hardcoded `slate-*`/`bg-white` with semantic tokens across all frontend pages and components
 

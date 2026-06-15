@@ -33,6 +33,8 @@ export function CurrenciesPanel({ data, isLoading, displayCurrency }: Props) {
 
   if (isLoading) return <Skeleton />
 
+  const maxAmount = data.length > 0 ? Math.max(...data.map(d => d.totalAmount)) : 0
+
   return (
     <div className="bg-surface-card rounded-2xl border border-surface-border shadow-card p-6">
       <p className="text-xs font-semibold uppercase tracking-widest text-ink-mute mb-2">
@@ -43,37 +45,50 @@ export function CurrenciesPanel({ data, isLoading, displayCurrency }: Props) {
         <p className="text-sm text-ink-faint italic py-4 text-center">{t('dashboard.noCurrencies')}</p>
       ) : (
         <ul>
-          {data.map(item => (
-            <li
-              key={item.currency.id}
-              className="flex items-center justify-between py-2.5 border-b border-surface-border last:border-0"
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-subtle text-xs font-bold text-ink-mute">
-                  {item.currency.symbol}
-                </span>
-                <div>
-                  <p className="text-sm font-semibold text-ink leading-none">{item.currency.code}</p>
-                  <p className="text-[11px] text-ink-faint mt-0.5">
-                    {item.expenseCount} {t('dashboard.summary.expenses')}
-                  </p>
-                </div>
-              </div>
+          {data.map(item => {
+            const pct = maxAmount > 0 ? Math.max((item.totalAmount / maxAmount) * 100, 3) : 3
+            return (
+              <li
+                key={item.currency.id}
+                className="py-2.5 border-b border-surface-border last:border-0"
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-subtle text-xs font-bold text-ink-mute">
+                      {item.currency.symbol}
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-ink leading-none">{item.currency.code}</p>
+                      <p className="text-[11px] text-ink-faint mt-0.5">
+                        {item.expenseCount} {t('dashboard.summary.expenses')}
+                      </p>
+                    </div>
+                  </div>
 
-              <div className="text-right">
-                <p className="text-sm font-semibold text-ink tabular-nums">
-                  {item.currency.symbol} {item.totalAmount.toFixed(item.currency.decimals)}
-                </p>
-                {item.convertedAmount != null && (
-                  <p className="text-[11px] text-ink-faint tabular-nums">
-                    {displayCurrency
-                      ? `≈ ${displayCurrency.symbol} ${item.convertedAmount.toFixed(displayCurrency.decimals)}`
-                      : `≈ ${item.convertedAmount.toFixed(2)}`}
-                  </p>
-                )}
-              </div>
-            </li>
-          ))}
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-ink tabular-nums">
+                      {item.currency.symbol} {item.totalAmount.toFixed(item.currency.decimals)}
+                    </p>
+                    {item.convertedAmount != null && (
+                      <p className="text-[11px] text-ink-faint tabular-nums">
+                        {displayCurrency
+                          ? `≈ ${displayCurrency.symbol} ${item.convertedAmount.toFixed(displayCurrency.decimals)}`
+                          : `≈ ${item.convertedAmount.toFixed(2)}`}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="ml-10 h-1.5 bg-surface-subtle rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-brand-400 rounded-full transition-all duration-500"
+                    style={{ width: `${pct}%` }}
+                    aria-hidden="true"
+                  />
+                </div>
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>

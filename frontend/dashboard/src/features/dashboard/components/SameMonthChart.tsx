@@ -65,10 +65,13 @@ export function SameMonthChart({ data, isLoading, selectedMonth, displayCurrency
               width={44}
             />
             <Tooltip
-              formatter={(value: number) => [`${currSymbol}${currSymbol ? ' ' : ''}${value.toFixed(2)}`, '']}
+              formatter={(value) => {
+                const n = value as number
+                return [n === 0 ? t('dashboard.charts.noExpenses') : `${currSymbol}${currSymbol ? ' ' : ''}${n.toFixed(2)}`, '']
+              }}
               contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 12 }}
             />
-            <Bar dataKey="amount" fill="#c8623e" radius={[4, 4, 0, 0]} maxBarSize={40} />
+            <Bar dataKey="amount" fill="#c8623e" radius={[4, 4, 0, 0]} maxBarSize={40} minPointSize={2} />
           </BarChart>
         </ResponsiveContainer>
       )}
