@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 export interface ComboOption {
   value: number
@@ -19,7 +20,10 @@ export interface FormComboboxProps {
 export function FormCombobox({ id, value, onChange, options, disabled, className = 'field-input', ...ariaProps }: FormComboboxProps) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
   const containerRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const dropdownRef = useRef<HTMLUListElement>(null)
 
   const selectedLabel = options.find(o => o.value === value)?.label ?? ''
   const filtered = query
@@ -28,19 +32,43 @@ export function FormCombobox({ id, value, onChange, options, disabled, className
 
   useEffect(() => {
     if (!open) return
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
-        setQuery('')
-      }
+    const onMouseDown = (e: MouseEvent) => {
+      if (
+        containerRef.current?.contains(e.target as Node) ||
+        dropdownRef.current?.contains(e.target as Node)
+      ) return
+      setOpen(false)
+      setQuery('')
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    const onScroll = () => { setOpen(false); setQuery('') }
+    document.addEventListener('mousedown', onMouseDown)
+    window.addEventListener('scroll', onScroll, true)
+    return () => {
+      document.removeEventListener('mousedown', onMouseDown)
+      window.removeEventListener('scroll', onScroll, true)
+    }
   }, [open])
+
+  function openDropdown() {
+    if (disabled) return
+    const rect = inputRef.current?.getBoundingClientRect()
+    if (rect) {
+      setDropdownStyle({
+        position: 'fixed',
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 9999,
+      })
+    }
+    setOpen(true)
+    setQuery('')
+  }
 
   return (
     <div ref={containerRef} className="relative">
       <input
+        ref={inputRef}
         id={id}
         type="text"
         autoComplete="off"
@@ -48,14 +76,16 @@ export function FormCombobox({ id, value, onChange, options, disabled, className
         disabled={disabled}
         value={open ? query : selectedLabel}
         placeholder="—"
-        onFocus={() => { if (!disabled) { setOpen(true); setQuery('') } }}
+        onFocus={openDropdown}
         onChange={e => setQuery(e.target.value)}
         {...ariaProps}
       />
-      {open && !disabled && (
+      {open && !disabled && createPortal(
         <ul
+          ref={dropdownRef}
           role="listbox"
-          className="absolute z-30 w-full mt-1 bg-surface-card border border-surface-border rounded-lg shadow-lg max-h-48 overflow-y-auto"
+          style={dropdownStyle}
+          className="bg-surface-card border border-surface-border rounded-lg shadow-lg max-h-48 overflow-y-auto text-ink"
         >
           <li
             role="option"
@@ -70,7 +100,7 @@ export function FormCombobox({ id, value, onChange, options, disabled, className
               key={o.value}
               role="option"
               aria-selected={o.value === value}
-              className={`px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-subtle ${o.value === value ? 'font-semibold' : ''}`}
+              className={`px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-subtle text-ink ${o.value === value ? 'font-semibold' : ''}`}
               onMouseDown={() => { onChange(o.value); setOpen(false); setQuery('') }}
             >
               {o.label}
@@ -79,7 +109,8 @@ export function FormCombobox({ id, value, onChange, options, disabled, className
           {filtered.length === 0 && (
             <li className="px-3 py-1.5 text-sm text-ink-mute">—</li>
           )}
-        </ul>
+        </ul>,
+        document.body
       )}
     </div>
   )

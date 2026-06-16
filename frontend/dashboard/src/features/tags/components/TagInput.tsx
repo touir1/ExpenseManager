@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { getTags, useTag as adoptTag } from '@/features/tags/services/tagsApi.service'
 import type { Tag, TagList } from '@/features/tags/types/tag.type'
@@ -13,25 +14,16 @@ export default function TagInput({ value, onChange }: TagInputProps) {
   const [tagList, setTagList] = useState<TagList>({ own: [], family: [] })
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     getTags().then(res => {
       if (res.ok && res.data) setTagList(res.data)
     })
   }, [])
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
 
   const selectedIds = new Set(value.map(t => t.id))
 
@@ -44,6 +36,40 @@ export default function TagInput({ value, onChange }: TagInputProps) {
   const allVisible = [...tagList.own, ...tagList.family]
   const exactMatch = allVisible.some(t => t.name === query)
   const showCreate = query.trim().length > 0 && !exactMatch
+
+  const hasDropdown = filteredOwn.length > 0 || filteredFamily.length > 0 || showCreate
+
+  useEffect(() => {
+    if (!open || !hasDropdown) return
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (rect) {
+      setDropdownStyle({
+        position: 'fixed',
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 9999,
+      })
+    }
+  }, [open, hasDropdown])
+
+  useEffect(() => {
+    if (!open) return
+    const onMouseDown = (e: MouseEvent) => {
+      if (
+        containerRef.current?.contains(e.target as Node) ||
+        dropdownRef.current?.contains(e.target as Node)
+      ) return
+      setOpen(false)
+    }
+    const onScroll = () => setOpen(false)
+    document.addEventListener('mousedown', onMouseDown)
+    window.addEventListener('scroll', onScroll, true)
+    return () => {
+      document.removeEventListener('mousedown', onMouseDown)
+      window.removeEventListener('scroll', onScroll, true)
+    }
+  }, [open])
 
   const select = (tag: Tag) => {
     onChange([...value, tag])
@@ -83,8 +109,6 @@ export default function TagInput({ value, onChange }: TagInputProps) {
       confirmEntry()
     }
   }
-
-  const hasDropdown = filteredOwn.length > 0 || filteredFamily.length > 0 || showCreate
 
   return (
     <div ref={containerRef} className="relative">
@@ -133,11 +157,13 @@ export default function TagInput({ value, onChange }: TagInputProps) {
         )}
       </div>
 
-      {open && hasDropdown && (
+      {open && hasDropdown && createPortal(
         <div
+          ref={dropdownRef}
           id="tag-input-menu"
           role="menu"
-          className="absolute z-50 left-0 right-0 top-full mt-1 bg-surface-card border border-surface-border rounded-xl shadow-lg py-1 max-h-60 overflow-y-auto"
+          style={dropdownStyle}
+          className="bg-surface-card border border-surface-border rounded-xl shadow-lg py-1 max-h-60 overflow-y-auto text-ink"
         >
           {filteredOwn.length > 0 && (
             <>
@@ -187,7 +213,8 @@ export default function TagInput({ value, onChange }: TagInputProps) {
               Create &ldquo;{query.trim()}&rdquo;
             </button>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

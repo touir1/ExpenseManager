@@ -220,7 +220,7 @@ export default function ExpenseForm({ initialValues, onSubmit, onSaveAndAddAnoth
         </label>
         <textarea
           id="description"
-          rows={3}
+          rows={2}
           className="field-input resize-none"
           maxLength={500}
           {...register('description')}

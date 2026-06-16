@@ -4,6 +4,7 @@
 
 /* ── Hearth design tokens — light mode ──────────────────────────── */
 :root {
+  color-scheme: light;
   --color-surface-page:   #FAF6EE;
   --color-surface-card:   #FFFCF6;
   --color-surface-subtle: #F3ECDD;
@@ -25,6 +26,7 @@
 /* Applied when .dark is on <html>; also respects system preference   */
 /* when neither .dark nor .light is set.                              */
 .dark {
+  color-scheme: dark;
   --color-surface-page:   #1C1610;
   --color-surface-card:   #251D16;
   --color-surface-subtle: #2E2318;
@@ -45,6 +47,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
+    color-scheme: dark;
     --color-surface-page:   #1C1610;
     --color-surface-card:   #251D16;
     --color-surface-subtle: #2E2318;

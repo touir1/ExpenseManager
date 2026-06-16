@@ -1,6 +1,17 @@
 
 # Changelog
 
+## [0.118.0] - 2026-06-16
+### Fix: Dark mode native select visibility + expense modal overflow
+
+- **`frontend/dashboard/src/styles/index.css`** — added `color-scheme: light` to `:root` and `color-scheme: dark` to `.dark` and `@media (prefers-color-scheme: dark) :root:not(.light)`; without this browsers render native form controls (including Ionic shadow-DOM selects) using the OS color scheme regardless of CSS `color`/`background` overrides, causing black text on dark backgrounds.
+- **`frontend/mobile/src/theme/variables.css`** — same `color-scheme` declarations added to `:root`, `.dark`, and the system-dark media query.
+- **`frontend/dashboard/src/components/FormCombobox.tsx`** — upgraded dropdown to `createPortal(…, document.body)` at `position: fixed` via `getBoundingClientRect()`; added `dropdownRef` so the `mousedown` outside-click handler doesn't fire prematurely on option selection; added `scroll` capture listener to auto-close when any ancestor scrolls.
+- **`frontend/dashboard/src/features/tags/components/TagInput.tsx`** — same portal upgrade; `dropdownRef` is critical here because menu items use `onClick` (not `onMouseDown`) — without it the `mousedown` close handler fires before the click lands; scroll-close listener added.
+- **`frontend/dashboard/src/features/expenses/components/AddExpenseModal.tsx`** — backdrop changed from `items-start overflow-y-auto py-8` → `items-center p-4` (modal is viewport-centered; backdrop no longer scrolls); card gets `flex flex-col max-h-[90dvh]`; header gets `flex-shrink-0`; content body gets `overflow-y-auto` (internal scroll only when viewport is too short).
+- **`frontend/dashboard/src/features/expenses/components/EditExpenseModal.tsx`** — identical layout fix as AddExpenseModal.
+- **`frontend/dashboard/src/features/expenses/components/ExpenseForm.tsx`** — description textarea rows `3` → `2` to reduce modal height.
+
 ## [0.117.0] - 2026-06-16
 ### Feat: Expense Management UX improvements — Section 3 (all web items)
 

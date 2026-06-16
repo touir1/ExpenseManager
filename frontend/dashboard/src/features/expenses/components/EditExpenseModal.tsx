@@ -43,10 +43,10 @@ export default function EditExpenseModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="edit-expense-title"
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 overflow-y-auto py-8"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
     >
-      <div className="bg-surface-card rounded-2xl shadow-xl border border-surface-border w-full max-w-lg mx-4">
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-surface-border">
+      <div className="bg-surface-card rounded-2xl shadow-xl border border-surface-border w-full max-w-lg flex flex-col max-h-[90dvh]">
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-surface-border flex-shrink-0">
           <h2 id="edit-expense-title" className="text-base font-semibold text-ink">
             {t('expenses.editTitle')}
           </h2>
@@ -61,7 +61,7 @@ export default function EditExpenseModal({
             </svg>
           </button>
         </div>
-        <div className="px-6 py-5">
+        <div className="px-6 py-5 overflow-y-auto">
           {isLoading && (
             <div className="flex justify-center py-8">
               <span className="text-ink-mute">{t('expenses.loading')}</span>

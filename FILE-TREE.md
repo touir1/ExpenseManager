@@ -662,7 +662,7 @@ ExpenseManager/
 │           ├── components/            — Shared UI primitives (generic, cross-feature)
 │           │   ├── BackLink.tsx        — Back-arrow link with chevron SVG
 │           │   ├── FieldError.tsx      — Per-field error paragraph with role="alert"
-│           │   ├── FormCombobox.tsx    — Searchable combobox (text input + listbox dropdown); optional className prop; used in ExpenseForm + admin pages
+│           │   ├── FormCombobox.tsx    — Searchable combobox (text input + listbox dropdown); portal-based dropdown via createPortal to document.body at position:fixed; optional className prop; used in ExpenseForm + admin pages
 │           │   ├── LanguageSwitcher.tsx — Language selector dropdown wired to i18n.changeLanguage
 │           │   ├── PasswordInput.tsx   — Password input with show/hide toggle
 │           │   ├── PasswordStrength.tsx — Live password strength indicator (5-segment bar + checklist)
@@ -786,8 +786,8 @@ ExpenseManager/
 │           │   │   │       ├── currenciesApi.service.test.ts
 │           │   │   │       └── expensesApi.service.test.ts
 │           │   │   ├── components/
-│           │   │   │   ├── AddExpenseModal.tsx  — Modal overlay with ExpenseForm; calls addExpense; onSuccess/onClose callbacks
-│           │   │   │   ├── EditExpenseModal.tsx — Modal overlay with pre-filled ExpenseForm; fetches expense by id via useQuery; onSuccess/onClose callbacks
+│           │   │   │   ├── AddExpenseModal.tsx  — Modal overlay with ExpenseForm; centered (items-center), max-h-[90dvh], header fixed + body overflow-y-auto; calls addExpense; onSuccess/onClose callbacks
+│           │   │   │   ├── EditExpenseModal.tsx — Modal overlay with pre-filled ExpenseForm; same layout as AddExpenseModal; fetches expense by id via useQuery; onSuccess/onClose callbacks
 │           │   │   │   ├── ExpenseForm.tsx     — RHF+Zod form: amount, currency (FormCombobox), date, category (FormCombobox), subcategory (FormCombobox, conditional), description, tags, families (default family hidden)
 │           │   │   │   ├── ExpenseFilters.tsx  — Collapsible filter panel; toggle with aria-expanded; resets page to 1 on apply; FilterCombobox for category/subcategory/currency (case-insensitive search)
 │           │   │   │   └── __tests__/

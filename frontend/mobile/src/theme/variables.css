@@ -1,5 +1,6 @@
 /* Hearth design system → Ionic CSS variables */
 :root {
+  color-scheme: light;
   --ion-font-family: Manrope, system-ui, -apple-system, sans-serif;
   --ion-background-color: #FAF6EE;
   --ion-background-color-rgb: 250, 246, 238;
@@ -86,6 +87,7 @@
 
 /* ── Dark mode — Hearth dark palette ──────────────────────────────── */
 .dark {
+  color-scheme: dark;
   --ion-background-color: #1C1610;
   --ion-background-color-rgb: 28, 22, 16;
   --ion-card-background: #251D16;
@@ -129,6 +131,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
+    color-scheme: dark;
     --ion-background-color: #1C1610;
     --ion-background-color-rgb: 28, 22, 16;
     --ion-card-background: #251D16;
