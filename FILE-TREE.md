@@ -786,9 +786,9 @@ ExpenseManager/
 │           │   │   │       ├── currenciesApi.service.test.ts
 │           │   │   │       └── expensesApi.service.test.ts
 │           │   │   ├── components/
-│           │   │   │   ├── AddExpenseModal.tsx  — Modal overlay with ExpenseForm; centered (items-center), max-h-[90dvh], header fixed + body overflow-y-auto; calls addExpense; onSuccess/onClose callbacks
-│           │   │   │   ├── EditExpenseModal.tsx — Modal overlay with pre-filled ExpenseForm; same layout as AddExpenseModal; fetches expense by id via useQuery; onSuccess/onClose callbacks
-│           │   │   │   ├── ExpenseForm.tsx     — RHF+Zod form: amount, currency (FormCombobox), date, category (FormCombobox), subcategory (FormCombobox, conditional), description, tags, families (default family hidden)
+│           │   │   │   ├── AddExpenseModal.tsx  — Modal overlay with ExpenseForm; max-w-2xl; centered (items-center), max-h-[90dvh], header fixed + body overflow-y-auto; calls addExpense; onSuccess/onClose callbacks
+│           │   │   │   ├── EditExpenseModal.tsx — Modal overlay with pre-filled ExpenseForm; max-w-2xl; same layout as AddExpenseModal; fetches expense by id via useQuery; onSuccess/onClose callbacks
+│           │   │   │   ├── ExpenseForm.tsx     — RHF+Zod form: 2-column grid (left: amount+currency, date, category, subcategory; right: description, tags, families); modifiedAt note + buttons below grid
 │           │   │   │   ├── ExpenseFilters.tsx  — Collapsible filter panel; toggle with aria-expanded; resets page to 1 on apply; FilterCombobox for category/subcategory/currency (case-insensitive search)
 │           │   │   │   └── __tests__/
 │           │   │   │       ├── AddExpenseModal.test.tsx

@@ -1,6 +1,13 @@
 
 # Changelog
 
+## [0.119.0] - 2026-06-16
+### Refactor: Expense form 2-column layout — eliminate modal scrollbar
+
+- **`frontend/dashboard/src/features/expenses/components/ExpenseForm.tsx`** — restructured from single-column `space-y-5` to `grid grid-cols-2 gap-x-5 gap-y-4`; left column: amount+currency row, date, category, subcategory (conditional); right column: description textarea (rows=3), tags, families checkboxes; modifiedAt note and buttons remain below the grid; description textarea rows restored to 3.
+- **`frontend/dashboard/src/features/expenses/components/AddExpenseModal.tsx`** — widened from `max-w-lg` (512px) to `max-w-2xl` (672px) to accommodate 2-column form.
+- **`frontend/dashboard/src/features/expenses/components/EditExpenseModal.tsx`** — same width change as AddExpenseModal.
+
 ## [0.118.0] - 2026-06-16
 ### Fix: Dark mode native select visibility + expense modal overflow
 

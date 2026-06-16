@@ -111,153 +111,160 @@ export default function ExpenseForm({ initialValues, onSubmit, onSaveAndAddAnoth
   const subcategoryOptions: ComboOption[] = subcategories.map(s => ({ value: s.id, label: s.name }))
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
-      {/* Amount + Currency row */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <label htmlFor="amount" className="field-label">
-            {t('expenses.fields.amount')}
-          </label>
-          <input
-            id="amount"
-            type="number"
-            step="0.01"
-            min="0.01"
-            className="field-input"
-            aria-describedby="amount-error"
-            aria-invalid={!!errors.amount}
-            {...register('amount', { valueAsNumber: true })}
-          />
-          <FieldError id="amount-error" message={errors.amount?.message} />
-        </div>
-
-        <div className="w-36">
-          <label htmlFor="currencyId" className="field-label">
-            {t('expenses.fields.currency')}
-          </label>
-          <Controller
-            name="currencyId"
-            control={control}
-            render={({ field }) => (
-              <FormCombobox
-                id="currencyId"
-                value={field.value as number | undefined}
-                onChange={v => field.onChange(v)}
-                options={currencyOptions}
-                aria-describedby="currencyId-error"
-                aria-invalid={!!errors.currencyId}
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+      <div className="grid grid-cols-2 gap-x-5 gap-y-4">
+        {/* Left column: financial fields */}
+        <div className="space-y-4">
+          {/* Amount + Currency */}
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label htmlFor="amount" className="field-label">
+                {t('expenses.fields.amount')}
+              </label>
+              <input
+                id="amount"
+                type="number"
+                step="0.01"
+                min="0.01"
+                className="field-input"
+                aria-describedby="amount-error"
+                aria-invalid={!!errors.amount}
+                {...register('amount', { valueAsNumber: true })}
               />
-            )}
-          />
-          <FieldError id="currencyId-error" message={errors.currencyId?.message} />
-        </div>
-      </div>
+              <FieldError id="amount-error" message={errors.amount?.message} />
+            </div>
 
-      {/* Date */}
-      <div>
-        <label htmlFor="date" className="field-label">
-          {t('expenses.fields.date')}
-        </label>
-        <input
-          id="date"
-          type="date"
-          className="field-input"
-          aria-describedby="date-error"
-          aria-invalid={!!errors.date}
-          {...register('date')}
-        />
-        <FieldError id="date-error" message={errors.date?.message} />
-      </div>
-
-      {/* Category + Subcategory row */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <label htmlFor="categoryId" className="field-label">
-            {t('expenses.fields.category')}
-          </label>
-          <Controller
-            name="categoryId"
-            control={control}
-            render={({ field }) => (
-              <FormCombobox
-                id="categoryId"
-                value={field.value as number | undefined}
-                onChange={v => field.onChange(v)}
-                options={categoryOptions}
+            <div className="w-28">
+              <label htmlFor="currencyId" className="field-label">
+                {t('expenses.fields.currency')}
+              </label>
+              <Controller
+                name="currencyId"
+                control={control}
+                render={({ field }) => (
+                  <FormCombobox
+                    id="currencyId"
+                    value={field.value as number | undefined}
+                    onChange={v => field.onChange(v)}
+                    options={currencyOptions}
+                    aria-describedby="currencyId-error"
+                    aria-invalid={!!errors.currencyId}
+                  />
+                )}
               />
-            )}
-          />
-        </div>
+              <FieldError id="currencyId-error" message={errors.currencyId?.message} />
+            </div>
+          </div>
 
-        {subcategories.length > 0 && (
-          <div className="flex-1">
-            <label htmlFor="subcategoryId" className="field-label">
-              {t('expenses.fields.subcategory')}
+          {/* Date */}
+          <div>
+            <label htmlFor="date" className="field-label">
+              {t('expenses.fields.date')}
+            </label>
+            <input
+              id="date"
+              type="date"
+              className="field-input"
+              aria-describedby="date-error"
+              aria-invalid={!!errors.date}
+              {...register('date')}
+            />
+            <FieldError id="date-error" message={errors.date?.message} />
+          </div>
+
+          {/* Category */}
+          <div>
+            <label htmlFor="categoryId" className="field-label">
+              {t('expenses.fields.category')}
             </label>
             <Controller
-              name="subcategoryId"
+              name="categoryId"
               control={control}
               render={({ field }) => (
                 <FormCombobox
-                  id="subcategoryId"
+                  id="categoryId"
                   value={field.value as number | undefined}
                   onChange={v => field.onChange(v)}
-                  options={subcategoryOptions}
-                  aria-describedby="subcategoryId-error"
-                  aria-invalid={!!errors.subcategoryId}
+                  options={categoryOptions}
                 />
               )}
             />
-            <FieldError id="subcategoryId-error" message={errors.subcategoryId?.message} />
           </div>
-        )}
-      </div>
 
-      {/* Description */}
-      <div>
-        <label htmlFor="description" className="field-label">
-          {t('expenses.fields.description')}
-        </label>
-        <textarea
-          id="description"
-          rows={2}
-          className="field-input resize-none"
-          maxLength={500}
-          {...register('description')}
-        />
-      </div>
-
-      {/* Tags */}
-      <div>
-        <label className="field-label">{t('expenses.fields.tags')}</label>
-        <Controller
-          name="tagIds"
-          control={control}
-          render={() => (
-            <TagInput value={selectedTags} onChange={setSelectedTags} />
-          )}
-        />
-      </div>
-
-      {/* Non-default families (default is always included silently) */}
-      {nonDefaultFamilies.length > 0 && (
-        <div>
-          <label className="field-label">{t('expenses.fields.families')}</label>
-          <div className="space-y-1.5">
-            {nonDefaultFamilies.map(f => (
-              <label key={f.id} className="flex items-center gap-2 text-sm text-ink-body cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={checkedFamilyIds.has(f.id)}
-                  onChange={() => handleFamilyToggle(f.id)}
-                  className="h-4 w-4 rounded border-surface-border accent-brand-500 cursor-pointer"
-                />
-                {f.name}
+          {/* Subcategory (conditional) */}
+          {subcategories.length > 0 && (
+            <div>
+              <label htmlFor="subcategoryId" className="field-label">
+                {t('expenses.fields.subcategory')}
               </label>
-            ))}
-          </div>
+              <Controller
+                name="subcategoryId"
+                control={control}
+                render={({ field }) => (
+                  <FormCombobox
+                    id="subcategoryId"
+                    value={field.value as number | undefined}
+                    onChange={v => field.onChange(v)}
+                    options={subcategoryOptions}
+                    aria-describedby="subcategoryId-error"
+                    aria-invalid={!!errors.subcategoryId}
+                  />
+                )}
+              />
+              <FieldError id="subcategoryId-error" message={errors.subcategoryId?.message} />
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Right column: details */}
+        <div className="space-y-4">
+          {/* Description */}
+          <div>
+            <label htmlFor="description" className="field-label">
+              {t('expenses.fields.description')}
+            </label>
+            <textarea
+              id="description"
+              rows={3}
+              className="field-input resize-none"
+              maxLength={500}
+              {...register('description')}
+            />
+          </div>
+
+          {/* Tags */}
+          <div>
+            <label className="field-label">{t('expenses.fields.tags')}</label>
+            <Controller
+              name="tagIds"
+              control={control}
+              render={() => (
+                <TagInput value={selectedTags} onChange={setSelectedTags} />
+              )}
+            />
+          </div>
+
+          {/* Non-default families */}
+          {nonDefaultFamilies.length > 0 && (
+            <div>
+              <label className="field-label">{t('expenses.fields.families')}</label>
+              <div className="space-y-1.5">
+                {nonDefaultFamilies.map(f => (
+                  <label key={f.id} className="flex items-center gap-2 text-sm text-ink-body cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={checkedFamilyIds.has(f.id)}
+                      onChange={() => handleFamilyToggle(f.id)}
+                      className="h-4 w-4 rounded border-surface-border accent-brand-500 cursor-pointer"
+                    />
+                    {f.name}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {initialValues?.modifiedAt && (
         <p className="text-xs text-ink-mute">

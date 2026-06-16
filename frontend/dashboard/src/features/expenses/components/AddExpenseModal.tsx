@@ -45,7 +45,7 @@ export default function AddExpenseModal({
       aria-labelledby="add-expense-title"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
     >
-      <div className="bg-surface-card rounded-2xl shadow-xl border border-surface-border w-full max-w-lg flex flex-col max-h-[90dvh]">
+      <div className="bg-surface-card rounded-2xl shadow-xl border border-surface-border w-full max-w-2xl flex flex-col max-h-[90dvh]">
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-surface-border flex-shrink-0">
           <h2 id="add-expense-title" className="text-base font-semibold text-ink">{t('expenses.addTitle')}</h2>
           <button
