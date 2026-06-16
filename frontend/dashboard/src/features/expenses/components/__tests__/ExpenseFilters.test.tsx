@@ -55,14 +55,14 @@ describe('ExpenseFilters', () => {
     it('opens filter panel on toggle button click', async () => {
       const user = userEvent.setup()
       renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       expect(screen.getByRole('region')).toBeInTheDocument()
     })
 
     it('closes filter panel on second toggle click', async () => {
       const user = userEvent.setup()
       renderFilters()
-      const btn = screen.getByRole('button', { name: /filter/i })
+      const btn = screen.getByRole('button', { name: /^filters$/i })
       await user.click(btn)
       await user.click(btn)
       expect(screen.queryByRole('region')).not.toBeInTheDocument()
@@ -70,14 +70,14 @@ describe('ExpenseFilters', () => {
 
     it('toggle button has aria-expanded=false when closed', () => {
       renderFilters()
-      expect(screen.getByRole('button', { name: /filter/i })).toHaveAttribute('aria-expanded', 'false')
+      expect(screen.getByRole('button', { name: /^filters$/i })).toHaveAttribute('aria-expanded', 'false')
     })
 
     it('toggle button has aria-expanded=true when open', async () => {
       const user = userEvent.setup()
       renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
-      expect(screen.getByRole('button', { name: /filter/i })).toHaveAttribute('aria-expanded', 'true')
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
+      expect(screen.getByRole('button', { name: /^filters$/i })).toHaveAttribute('aria-expanded', 'true')
     })
 
   })
@@ -86,7 +86,7 @@ describe('ExpenseFilters', () => {
     it('calls onApply with filter values on apply click', async () => {
       const user = userEvent.setup()
       const { onApply } = renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.type(screen.getByLabelText(/from/i), '2026-01-01')
       await user.click(screen.getByRole('button', { name: /apply/i }))
       expect(onApply).toHaveBeenCalledOnce()
@@ -96,7 +96,7 @@ describe('ExpenseFilters', () => {
     it('resets page to 1 on apply', async () => {
       const user = userEvent.setup()
       const { onApply } = renderFilters({ page: 5 })
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByRole('button', { name: /apply/i }))
       expect(onApply).toHaveBeenCalledWith(expect.objectContaining({ page: 1 }))
     })
@@ -104,7 +104,7 @@ describe('ExpenseFilters', () => {
     it('closes panel after apply', async () => {
       const user = userEvent.setup()
       renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByRole('button', { name: /apply/i }))
       expect(screen.queryByRole('region')).not.toBeInTheDocument()
     })
@@ -114,7 +114,7 @@ describe('ExpenseFilters', () => {
     it('calls onApply with empty filter on reset', async () => {
       const user = userEvent.setup()
       const { onApply } = renderFilters({ dateFrom: '2026-01-01' })
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByRole('button', { name: /reset/i }))
       expect(onApply).toHaveBeenCalledWith({})
     })
@@ -122,7 +122,7 @@ describe('ExpenseFilters', () => {
     it('closes panel after reset', async () => {
       const user = userEvent.setup()
       renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByRole('button', { name: /reset/i }))
       expect(screen.queryByRole('region')).not.toBeInTheDocument()
     })
@@ -132,14 +132,14 @@ describe('ExpenseFilters', () => {
     it('does not show subcategory select when no category selected', async () => {
       const user = userEvent.setup()
       renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       expect(screen.queryByLabelText(/subcategory/i)).not.toBeInTheDocument()
     })
 
     it('shows subcategory select when category with subcategories selected', async () => {
       const user = userEvent.setup()
       renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByLabelText(/^category$/i))
       await user.click(screen.getByRole('option', { name: 'Food' }))
       expect(screen.getByLabelText(/subcategory/i)).toBeInTheDocument()
@@ -150,7 +150,7 @@ describe('ExpenseFilters', () => {
     it('hides subcategory when category has no subcategories', async () => {
       const user = userEvent.setup()
       renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByLabelText(/^category$/i))
       await user.click(screen.getByRole('option', { name: 'Transport' }))
       expect(screen.queryByLabelText(/subcategory/i)).not.toBeInTheDocument()
@@ -161,35 +161,35 @@ describe('ExpenseFilters', () => {
     it('pre-fills dateFrom input from filter prop', async () => {
       const user = userEvent.setup()
       renderFilters({ dateFrom: '2026-03-01' })
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       expect(screen.getByLabelText(/from/i)).toHaveValue('2026-03-01')
     })
 
     it('pre-fills dateTo input from filter prop', async () => {
       const user = userEvent.setup()
       renderFilters({ dateTo: '2026-03-31' })
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       expect(screen.getByLabelText(/^to$/i)).toHaveValue('2026-03-31')
     })
 
     it('pre-filled categoryId shows category name in combobox', async () => {
       const user = userEvent.setup()
       renderFilters({ categoryId: 1 })
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       expect(screen.getByLabelText(/^category$/i)).toHaveValue('Food')
     })
 
     it('pre-filled currencyId shows currency code in combobox', async () => {
       const user = userEvent.setup()
       renderFilters({ currencyId: 1 })
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       expect(screen.getByLabelText(/currency/i)).toHaveValue('EUR')
     })
 
     it('renders currency options', async () => {
       const user = userEvent.setup()
       renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByLabelText(/currency/i))
       expect(screen.getByRole('option', { name: 'EUR' })).toBeInTheDocument()
     })
@@ -199,7 +199,7 @@ describe('ExpenseFilters', () => {
     it('filters category options case-insensitively as user types', async () => {
       const user = userEvent.setup()
       renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByLabelText(/^category$/i))
       await user.type(screen.getByLabelText(/^category$/i), 'foo')
       expect(screen.getByRole('option', { name: 'Food' })).toBeInTheDocument()
@@ -209,7 +209,7 @@ describe('ExpenseFilters', () => {
     it('filters case-insensitively on uppercase input', async () => {
       const user = userEvent.setup()
       renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByLabelText(/^category$/i))
       await user.type(screen.getByLabelText(/^category$/i), 'TRAN')
       expect(screen.getByRole('option', { name: 'Transport' })).toBeInTheDocument()
@@ -219,7 +219,7 @@ describe('ExpenseFilters', () => {
     it('shows only dash option when no options match query', async () => {
       const user = userEvent.setup()
       renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByLabelText(/^category$/i))
       await user.type(screen.getByLabelText(/^category$/i), 'zzz')
       expect(screen.queryByRole('option', { name: 'Food' })).not.toBeInTheDocument()
@@ -229,7 +229,7 @@ describe('ExpenseFilters', () => {
     it('closes dropdown after selecting an option', async () => {
       const user = userEvent.setup()
       renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByLabelText(/^category$/i))
       expect(screen.getByRole('listbox')).toBeInTheDocument()
       await user.click(screen.getByRole('option', { name: 'Food' }))
@@ -239,7 +239,7 @@ describe('ExpenseFilters', () => {
     it('shows selected name in input after selection', async () => {
       const user = userEvent.setup()
       renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByLabelText(/^category$/i))
       await user.click(screen.getByRole('option', { name: 'Food' }))
       expect(screen.getByLabelText(/^category$/i)).toHaveValue('Food')
@@ -250,7 +250,7 @@ describe('ExpenseFilters', () => {
     it('includes categoryId in applied filter', async () => {
       const user = userEvent.setup()
       const { onApply } = renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByLabelText(/^category$/i))
       await user.click(screen.getByRole('option', { name: 'Food' }))
       await user.click(screen.getByRole('button', { name: /apply/i }))
@@ -260,7 +260,7 @@ describe('ExpenseFilters', () => {
     it('includes currencyId in applied filter', async () => {
       const user = userEvent.setup()
       const { onApply } = renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByLabelText(/currency/i))
       await user.click(screen.getByRole('option', { name: 'EUR' }))
       await user.click(screen.getByRole('button', { name: /apply/i }))
@@ -270,7 +270,7 @@ describe('ExpenseFilters', () => {
     it('includes subcategoryId in applied filter', async () => {
       const user = userEvent.setup()
       const { onApply } = renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByLabelText(/^category$/i))
       await user.click(screen.getByRole('option', { name: 'Food' }))
       await user.click(screen.getByLabelText(/subcategory/i))
@@ -282,7 +282,7 @@ describe('ExpenseFilters', () => {
     it('clears subcategoryId when category changes', async () => {
       const user = userEvent.setup()
       const { onApply } = renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByLabelText(/^category$/i))
       await user.click(screen.getByRole('option', { name: 'Food' }))
       await user.click(screen.getByLabelText(/subcategory/i))
@@ -297,7 +297,7 @@ describe('ExpenseFilters', () => {
     it('clears categoryId when dash selected', async () => {
       const user = userEvent.setup()
       const { onApply } = renderFilters({ categoryId: 1 })
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByLabelText(/^category$/i))
       await user.click(screen.getAllByRole('option', { name: '—' })[0])
       await user.click(screen.getByRole('button', { name: /apply/i }))
@@ -309,7 +309,7 @@ describe('ExpenseFilters', () => {
     it('does not show tags filter when no tags exist', async () => {
       const user = userEvent.setup()
       renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       expect(screen.queryByLabelText(/^tags$/i)).not.toBeInTheDocument()
     })
 
@@ -323,7 +323,7 @@ describe('ExpenseFilters', () => {
       })
       const user = userEvent.setup()
       renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       expect(screen.getByLabelText(/^tags$/i)).toBeInTheDocument()
     })
 
@@ -337,7 +337,7 @@ describe('ExpenseFilters', () => {
       })
       const user = userEvent.setup()
       renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByLabelText(/^tags$/i))
       expect(screen.getByRole('option', { name: 'groceries' })).toBeInTheDocument()
       expect(screen.getByRole('option', { name: 'work' })).toBeInTheDocument()
@@ -353,7 +353,7 @@ describe('ExpenseFilters', () => {
       })
       const user = userEvent.setup()
       const { onApply } = renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByLabelText(/^tags$/i))
       await user.click(screen.getByRole('option', { name: 'groceries' }))
       await user.click(screen.getByRole('option', { name: 'work' }))
@@ -371,7 +371,7 @@ describe('ExpenseFilters', () => {
       })
       const user = userEvent.setup()
       const { onApply } = renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByLabelText(/^tags$/i))
       await user.click(screen.getByRole('option', { name: 'groceries' }))
       await user.click(screen.getByRole('option', { name: 'work' }))
@@ -390,7 +390,7 @@ describe('ExpenseFilters', () => {
       })
       const user = userEvent.setup()
       renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByLabelText(/^tags$/i))
       await user.type(screen.getByLabelText(/^tags$/i), 'GRO')
       expect(screen.getByRole('option', { name: 'groceries' })).toBeInTheDocument()
@@ -407,12 +407,36 @@ describe('ExpenseFilters', () => {
       })
       const user = userEvent.setup()
       const { onApply } = renderFilters()
-      await user.click(screen.getByRole('button', { name: /filter/i }))
+      await user.click(screen.getByRole('button', { name: /^filters$/i }))
       await user.click(screen.getByLabelText(/^tags$/i))
       await user.click(screen.getByRole('option', { name: 'groceries' }))
       await user.click(screen.getByRole('option', { name: 'groceries' }))
       await user.click(screen.getByRole('button', { name: /apply/i }))
       expect(onApply).toHaveBeenCalledWith(expect.not.objectContaining({ tagIds: expect.anything() }))
+    })
+  })
+
+  describe('clear filters shortcut', () => {
+    it('hides Clear filters button when no active filters', () => {
+      renderFilters({})
+      expect(screen.queryByRole('button', { name: /clear filters/i })).not.toBeInTheDocument()
+    })
+
+    it('shows Clear filters button once a filter is set', () => {
+      renderFilters({ description: 'lunch' })
+      expect(screen.getByRole('button', { name: /clear filters/i })).toBeInTheDocument()
+    })
+
+    it('does not count page/pageSize/familyId/displayCurrencyId as active filters', () => {
+      renderFilters({ page: 2, pageSize: 20, familyId: 1, displayCurrencyId: 1 })
+      expect(screen.queryByRole('button', { name: /clear filters/i })).not.toBeInTheDocument()
+    })
+
+    it('clicking Clear filters applies an empty filter', async () => {
+      const user = userEvent.setup()
+      const { onApply } = renderFilters({ description: 'lunch' })
+      await user.click(screen.getByRole('button', { name: /clear filters/i }))
+      expect(onApply).toHaveBeenCalledWith({})
     })
   })
 })

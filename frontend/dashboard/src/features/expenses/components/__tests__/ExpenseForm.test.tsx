@@ -72,10 +72,14 @@ describe('ExpenseForm', () => {
       expect(screen.getByLabelText(/^date$/i)).toBeInTheDocument()
     })
 
-    it('renders category and subcategory selects', () => {
+    it('renders category select', () => {
       renderForm()
       expect(screen.getByLabelText(/^category$/i)).toBeInTheDocument()
-      expect(screen.getByLabelText(/^subcategory$/i)).toBeInTheDocument()
+    })
+
+    it('does not render subcategory select until a category with subcategories is selected', () => {
+      renderForm()
+      expect(screen.queryByLabelText(/^subcategory$/i)).not.toBeInTheDocument()
     })
 
     it('renders description textarea', () => {
@@ -103,17 +107,17 @@ describe('ExpenseForm', () => {
   })
 
   describe('subcategory cascade', () => {
-    it('disables subcategory select when no category selected', () => {
+    it('does not render subcategory select when no category selected', () => {
       renderForm()
-      expect(screen.getByLabelText(/^subcategory$/i)).toBeDisabled()
+      expect(screen.queryByLabelText(/^subcategory$/i)).not.toBeInTheDocument()
     })
 
-    it('enables subcategory select when category with subcategories is selected', async () => {
+    it('renders subcategory select when category with subcategories is selected', async () => {
       renderForm()
       fireEvent.focus(screen.getByLabelText(/^category$/i))
       fireEvent.mouseDown(screen.getByRole('option', { name: 'Food' }))
       await waitFor(() => {
-        expect(screen.getByLabelText(/^subcategory$/i)).not.toBeDisabled()
+        expect(screen.getByLabelText(/^subcategory$/i)).toBeInTheDocument()
       })
     })
 
@@ -121,6 +125,7 @@ describe('ExpenseForm', () => {
       renderForm()
       fireEvent.focus(screen.getByLabelText(/^category$/i))
       fireEvent.mouseDown(screen.getByRole('option', { name: 'Food' }))
+      await waitFor(() => screen.getByLabelText(/^subcategory$/i))
       fireEvent.focus(screen.getByLabelText(/^subcategory$/i))
       await waitFor(() => {
         expect(screen.getByRole('option', { name: 'Groceries' })).toBeInTheDocument()
@@ -128,12 +133,12 @@ describe('ExpenseForm', () => {
       })
     })
 
-    it('keeps subcategory disabled when selected category has no subcategories', async () => {
+    it('does not render subcategory select when selected category has no subcategories', async () => {
       renderForm()
       fireEvent.focus(screen.getByLabelText(/^category$/i))
       fireEvent.mouseDown(screen.getByRole('option', { name: 'Transport' }))
       await waitFor(() => {
-        expect(screen.getByLabelText(/^subcategory$/i)).toBeDisabled()
+        expect(screen.queryByLabelText(/^subcategory$/i)).not.toBeInTheDocument()
       })
     })
   })

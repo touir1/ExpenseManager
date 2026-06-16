@@ -115,59 +115,67 @@
 
 ## 3. Expense Management (Web)
 
-### 🔴 Web: ExpensesPage shows table on mobile with no horizontal scroll affordance
+### ✅ 🔴 Web: ExpensesPage shows table on mobile with no horizontal scroll affordance
 
 **Problem:** The table has 8 columns. On screens < 768px the table overflows or squishes. No scroll hint visible.  
-**Fix:** On mobile breakpoints switch to a card list layout (same as mobile app) or add `overflow-x-auto` with a scroll indicator.
+**Fix:** On mobile breakpoints switch to a card list layout (same as mobile app) or add `overflow-x-auto` with a scroll indicator.  
+**Done:** Added `ExpenseCard` mobile card list (`md:hidden`) alongside the existing `<table>` (`hidden md:block`); both share the same `formatExpenseAmount` helper — `ExpensesPage.tsx`.
 
 ---
 
-### 🔴 Web: Pagination controls — no "go to page N" or total item count
+### ✅ 🔴 Web: Pagination controls — no "go to page N" or total item count
 
 **Problem:** Users see "Page 2 of 47" but can't jump to page 40. With large datasets this requires many clicks.  
-**Fix:** Add a "jump to page" input and display total expense count ("Showing 21–40 of 940 expenses").
+**Fix:** Add a "jump to page" input and display total expense count ("Showing 21–40 of 940 expenses").  
+**Done:** Footer shows "Showing X–Y of Z expenses" plus a jump-to-page number input clamped to `[1, totalPages]` — `ExpensesPage.tsx`, all 4 locale files.
 
 ---
 
-### 🔴 Web: Delete confirmation modal lacks expense details
+### ✅ 🔴 Web: Delete confirmation modal lacks expense details
 
 **Problem:** ConfirmDeleteModal says something like "Are you sure?" without showing which expense is being deleted (amount, date, description). Easy to delete the wrong item.  
-**Fix:** Show the expense summary (amount + date + description preview) in the confirmation modal body.
+**Fix:** Show the expense summary (amount + date + description preview) in the confirmation modal body.  
+**Done:** `ConfirmDeleteModal` now takes the full `ExpenseDto` and renders amount/date/description above the confirm text — `ExpensesPage.tsx`.
 
 ---
 
-### 🟡 Web: ExpenseForm subcategory field stays enabled with no options available
+### ✅ 🟡 Web: ExpenseForm subcategory field stays enabled with no options available
 
 **Problem:** If a category has no subcategories, the subcategory `FormCombobox` is enabled but empty — confusing to users who expect something to appear.  
-**Fix:** Also hide the subcategory field entirely when the selected category has no subcategories. Show it only when options exist.
+**Fix:** Also hide the subcategory field entirely when the selected category has no subcategories. Show it only when options exist.  
+**Done:** Subcategory field is conditionally unmounted (`{subcategories.length > 0 && (...)}`) instead of disabled — `ExpenseForm.tsx`.
 
 ---
 
-### 🟡 Web: Expense table "Edit" and "Delete" are small text links — low discoverability
+### ✅ 🟡 Web: Expense table "Edit" and "Delete" are small text links — low discoverability
 
 **Problem:** Actions are small blue/red text in the rightmost column. Invisible on first glance; easy to misclick on narrow rows.  
-**Fix:** Replace with icon buttons (pencil, trash) with `aria-label`. Larger tap/click target; consistent with most modern expense apps.
+**Fix:** Replace with icon buttons (pencil, trash) with `aria-label`. Larger tap/click target; consistent with most modern expense apps.  
+**Done:** Replaced with `aria-label`-only icon buttons (pencil/trash SVGs, `hover:text-brand-600`/`hover:text-berry`) in both table and mobile card — `ExpensesPage.tsx`.
 
 ---
 
-### 🟡 Web: ExpenseForm — no "save & add another" shortcut
+### ✅ 🟡 Web: ExpenseForm — no "save & add another" shortcut
 
 **Problem:** After adding an expense, the modal closes and the user must re-open it to add another. Tedious for bulk entry sessions.  
-**Fix:** Add a secondary "Save & Add Another" button that submits and resets the form without closing the modal.
+**Fix:** Add a secondary "Save & Add Another" button that submits and resets the form without closing the modal.  
+**Done:** Added optional `onSaveAndAddAnother` prop on `ExpenseForm`, wired from `AddExpenseModal`; resets form (incl. tags/families) and refreshes the list without closing the modal — `ExpenseForm.tsx`, `AddExpenseModal.tsx`.
 
 ---
 
-### 🟡 Web: Tag input — no visual affordance that Enter/comma creates a tag
+### ✅ 🟡 Web: Tag input — no visual affordance that Enter/comma creates a tag
 
 **Problem:** The TagInput component accepts text but doesn't indicate how to confirm a tag. First-time users type and see nothing happen until they press Enter.  
-**Fix:** Add a placeholder hint ("Type and press Enter to add") and a `+` icon button that creates the tag on click.
+**Fix:** Add a placeholder hint ("Type and press Enter to add") and a `+` icon button that creates the tag on click.  
+**Done:** Added placeholder hint (shown only when no tags selected), `,` now confirms an entry same as `Enter`, and a `+` button appears once the query is non-empty — `TagInput.tsx`.
 
 ---
 
-### 🟡 Web: Expense filters — no "clear all filters" shortcut
+### ✅ 🟡 Web: Expense filters — no "clear all filters" shortcut
 
 **Problem:** Multiple active filters (category + date range + family) must each be cleared individually.  
-**Fix:** Show "Clear filters" link/button when any non-default filter is active.
+**Fix:** Show "Clear filters" link/button when any non-default filter is active.  
+**Done:** "Clear filters" button shown next to the Filters toggle whenever any filter key besides `page`/`pageSize`/`familyId`/`displayCurrencyId` is set — `ExpenseFilters.tsx`.
 
 ---
 

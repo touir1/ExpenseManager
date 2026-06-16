@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -141,43 +141,44 @@ describe('ExpensesPage', () => {
   it('renders expense row with date and amount', async () => {
     renderPage()
     await waitFor(() => {
-      expect(screen.getByText('2026-05-01')).toBeInTheDocument()
-      expect(screen.getByText(/50.00 EUR/i)).toBeInTheDocument()
+      const table = within(screen.getByRole('table'))
+      expect(table.getByText('2026-05-01')).toBeInTheDocument()
+      expect(table.getByText(/50.00 EUR/i)).toBeInTheDocument()
     })
   })
 
   it('renders expense category', async () => {
     renderPage()
     await waitFor(() => {
-      expect(screen.getByText('Food')).toBeInTheDocument()
+      expect(within(screen.getByRole('table')).getByText('Food')).toBeInTheDocument()
     })
   })
 
   it('navigates to edit page on Edit click', async () => {
     const user = userEvent.setup()
     renderPage()
-    await waitFor(() => screen.getByRole('button', { name: /edit/i }))
-    await user.click(screen.getByRole('button', { name: /edit/i }))
+    await waitFor(() => screen.getByRole('table'))
+    const editButton = within(screen.getByRole('table')).getByRole('button', { name: /edit/i })
+    await user.click(editButton)
     expect(mockNavigate).toHaveBeenCalledWith('/expenses/1/edit')
   })
 
   it('shows confirm modal on Delete click', async () => {
     const user = userEvent.setup()
     renderPage()
-    await waitFor(() => screen.getByRole('button', { name: /delete/i }))
-    await user.click(screen.getByRole('button', { name: /delete/i }))
-    expect(screen.getByText(/delete expense/i)).toBeInTheDocument()
+    await waitFor(() => screen.getByRole('table'))
+    const deleteButton = within(screen.getByRole('table')).getByRole('button', { name: /delete/i })
+    await user.click(deleteButton)
+    expect(screen.getByText(/delete expense\?/i)).toBeInTheDocument()
   })
 
   it('calls deleteExpense and closes modal on confirm', async () => {
     const user = userEvent.setup()
     renderPage()
-    await waitFor(() => screen.getByRole('button', { name: /^delete$/i }))
-    // click row Delete to open modal
+    await waitFor(() => screen.getByRole('table'))
+    const deleteButton = within(screen.getByRole('table')).getByRole('button', { name: /delete/i })
+    await user.click(deleteButton)
     await user.click(screen.getByRole('button', { name: /^delete$/i }))
-    // modal now open — two Delete buttons exist; the modal's is the last
-    const deleteButtons = screen.getAllByRole('button', { name: /^delete$/i })
-    await user.click(deleteButtons[deleteButtons.length - 1])
     await waitFor(() => {
       expect(mockDeleteExpense).toHaveBeenCalledWith(1)
     })
@@ -186,10 +187,11 @@ describe('ExpensesPage', () => {
   it('closes modal on cancel', async () => {
     const user = userEvent.setup()
     renderPage()
-    await waitFor(() => screen.getByRole('button', { name: /^delete$/i }))
-    await user.click(screen.getByRole('button', { name: /^delete$/i }))
+    await waitFor(() => screen.getByRole('table'))
+    const deleteButton = within(screen.getByRole('table')).getByRole('button', { name: /delete/i })
+    await user.click(deleteButton)
     await user.click(screen.getByRole('button', { name: /^cancel$/i }))
-    expect(screen.queryByText(/delete expense/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/delete expense\?/i)).not.toBeInTheDocument()
   })
 
   it('shows pagination when totalPages > 1', async () => {
@@ -205,8 +207,8 @@ describe('ExpensesPage', () => {
 
   it('hides pagination when only 1 page', async () => {
     renderPage()
-    await waitFor(() => screen.getByText('2026-05-01'))
-    expect(screen.queryByText(/page/i)).not.toBeInTheDocument()
+    await waitFor(() => screen.getByRole('table'))
+    expect(screen.queryByText(/page \d+ of \d+/i)).not.toBeInTheDocument()
   })
 
   describe('add expense modal', () => {

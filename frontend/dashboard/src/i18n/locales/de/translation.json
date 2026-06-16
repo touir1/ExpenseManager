@@ -367,6 +367,7 @@
             "noCategorySelected": "Zuerst eine Kategorie wählen",
             "description": "Beschreibung",
             "tags": "Schlagwörter",
+            "tagsPlaceholder": "Eingeben und Enter drücken, um hinzuzufügen",
             "families": "Familien"
         },
         "filters": {
@@ -378,7 +379,8 @@
             "amountMax": "Höchstbetrag",
             "apply": "Anwenden",
             "reset": "Zurücksetzen",
-            "tags": "Etiketten"
+            "tags": "Etiketten",
+            "clearAll": "Filter löschen"
         },
         "table": {
             "date": "Datum",
@@ -393,6 +395,7 @@
             "delete": "Löschen",
             "save": "Speichern",
             "saving": "Speichern…",
+            "saveAndAddAnother": "Speichern & weitere hinzufügen",
             "cancel": "Abbrechen"
         },
         "delete": {
@@ -414,7 +417,9 @@
         "pagination": {
             "prev": "← Zurück",
             "next": "Weiter →",
-            "pageOf": "Seite {{page}} von {{total}}"
+            "pageOf": "Seite {{page}} von {{total}}",
+            "showing": "{{from}}–{{to}} von {{totalCount}} Ausgaben",
+            "goToPage": "Gehe zu:"
         },
         "importCsv": "CSV importieren",
         "import": {

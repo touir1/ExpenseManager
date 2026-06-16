@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getTags, useTag as adoptTag } from '@/features/tags/services/tagsApi.service'
 import type { Tag, TagList } from '@/features/tags/types/tag.type'
 
@@ -8,6 +9,7 @@ interface TagInputProps {
 }
 
 export default function TagInput({ value, onChange }: TagInputProps) {
+  const { t } = useTranslation()
   const [tagList, setTagList] = useState<TagList>({ own: [], family: [] })
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
@@ -62,19 +64,23 @@ export default function TagInput({ value, onChange }: TagInputProps) {
     onChange(next)
   }
 
+  const confirmEntry = () => {
+    const first = filteredOwn[0] ?? filteredFamily[0]
+    if (first) {
+      select(first)
+    } else if (showCreate) {
+      handleCreate()
+    }
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
       setOpen(false)
     } else if (e.key === 'Backspace' && query === '' && value.length > 0) {
       removeAt(value.length - 1)
-    } else if (e.key === 'Enter') {
+    } else if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault()
-      const first = filteredOwn[0] ?? filteredFamily[0]
-      if (first) {
-        select(first)
-      } else if (showCreate) {
-        handleCreate()
-      }
+      confirmEntry()
     }
   }
 
@@ -103,6 +109,7 @@ export default function TagInput({ value, onChange }: TagInputProps) {
           ref={inputRef}
           type="text"
           value={query}
+          placeholder={value.length === 0 ? t('expenses.fields.tagsPlaceholder') : undefined}
           onChange={e => { setQuery(e.target.value); setOpen(true) }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
@@ -114,6 +121,16 @@ export default function TagInput({ value, onChange }: TagInputProps) {
           role="combobox"
           aria-autocomplete="list"
         />
+        {query.trim().length > 0 && (
+          <button
+            type="button"
+            aria-label="Add tag"
+            onClick={() => confirmEntry()}
+            className="text-brand-600 hover:text-brand-700 font-semibold px-1 leading-none cursor-pointer"
+          >
+            +
+          </button>
+        )}
       </div>
 
       {open && hasDropdown && (

@@ -367,6 +367,7 @@
             "noCategorySelected": "Sélectionnez d'abord une catégorie",
             "description": "Description",
             "tags": "Étiquettes",
+            "tagsPlaceholder": "Saisissez et appuyez sur Entrée pour ajouter",
             "families": "Familles"
         },
         "filters": {
@@ -378,7 +379,8 @@
             "amountMax": "Montant max",
             "apply": "Appliquer",
             "reset": "Réinitialiser",
-            "tags": "Étiquettes"
+            "tags": "Étiquettes",
+            "clearAll": "Effacer les filtres"
         },
         "table": {
             "date": "Date",
@@ -393,6 +395,7 @@
             "delete": "Supprimer",
             "save": "Enregistrer",
             "saving": "Enregistrement…",
+            "saveAndAddAnother": "Enregistrer et ajouter une autre",
             "cancel": "Annuler"
         },
         "delete": {
@@ -414,7 +417,9 @@
         "pagination": {
             "prev": "← Précédent",
             "next": "Suivant →",
-            "pageOf": "Page {{page}} sur {{total}}"
+            "pageOf": "Page {{page}} sur {{total}}",
+            "showing": "Affichage de {{from}} à {{to}} sur {{totalCount}} dépenses",
+            "goToPage": "Aller à :"
         },
         "importCsv": "Importer CSV",
         "import": {

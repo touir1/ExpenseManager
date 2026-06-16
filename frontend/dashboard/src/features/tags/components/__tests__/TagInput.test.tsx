@@ -203,4 +203,61 @@ describe('TagInput', () => {
     fireEvent.mouseDown(document.body)
     await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
   })
+
+  it('shows placeholder hint when no tags selected', () => {
+    setupGetTags()
+    render(<TagInput value={[]} onChange={vi.fn()} />)
+    expect(screen.getByRole('combobox')).toHaveAttribute('placeholder', expect.stringMatching(/enter/i))
+  })
+
+  it('hides placeholder once a tag chip exists', () => {
+    setupGetTags()
+    render(<TagInput value={[ownTag]} onChange={vi.fn()} />)
+    expect(screen.getByRole('combobox')).not.toHaveAttribute('placeholder')
+  })
+
+  it('does not show + button when input is empty', () => {
+    setupGetTags()
+    render(<TagInput value={[]} onChange={vi.fn()} />)
+    expect(screen.queryByRole('button', { name: 'Add tag' })).not.toBeInTheDocument()
+  })
+
+  it('pressing comma selects first result same as Enter', async () => {
+    setupGetTags(makeList({ own: [ownTag] }))
+    const onChange = vi.fn()
+    const user = userEvent.setup()
+    render(<TagInput value={[]} onChange={onChange} />)
+    await user.click(screen.getByRole('combobox'))
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'food' })).toBeInTheDocument())
+    await user.keyboard(',')
+    expect(onChange).toHaveBeenCalledWith([ownTag])
+  })
+
+  it('pressing comma triggers create when no results match', async () => {
+    setupGetTags(emptyList)
+    const newTag: Tag = { id: 3, name: 'xyz' }
+    mockUseTag.mockResolvedValue({ ok: true, data: newTag })
+    const onChange = vi.fn()
+    const user = userEvent.setup()
+    render(<TagInput value={[]} onChange={onChange} />)
+    await user.type(screen.getByRole('combobox'), 'xyz')
+    await waitFor(() => expect(screen.getByText(/Create/)).toBeInTheDocument())
+    await user.keyboard(',')
+    await waitFor(() => expect(mockUseTag).toHaveBeenCalledWith('xyz'))
+    expect(onChange).toHaveBeenCalledWith([newTag])
+  })
+
+  it('clicking + button creates tag from current query', async () => {
+    setupGetTags(emptyList)
+    const newTag: Tag = { id: 3, name: 'new' }
+    mockUseTag.mockResolvedValue({ ok: true, data: newTag })
+    const onChange = vi.fn()
+    const user = userEvent.setup()
+    render(<TagInput value={[]} onChange={onChange} />)
+    await user.type(screen.getByRole('combobox'), 'new')
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Add tag' })).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: 'Add tag' }))
+    await waitFor(() => expect(mockUseTag).toHaveBeenCalledWith('new'))
+    expect(onChange).toHaveBeenCalledWith([newTag])
+  })
 })

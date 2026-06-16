@@ -220,30 +220,46 @@ export default function ExpenseFilters({ filter, onApply }: ExpenseFiltersProps)
     setLocal(prev => ({ ...prev, categoryId: id, subcategoryId: undefined }))
   }
 
+  const hasActiveFilters = Object.entries(filter).some(([key, value]) => {
+    if (key === 'page' || key === 'pageSize' || key === 'familyId' || key === 'displayCurrencyId') return false
+    return Array.isArray(value) ? value.length > 0 : value !== undefined && value !== ''
+  })
+
   return (
     <div className="mb-4">
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        aria-expanded={open}
-        aria-controls="filter-panel"
-        className="flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-lg border border-surface-border bg-surface-card hover:bg-surface-subtle text-ink transition-colors duration-150"
-      >
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
-        </svg>
-        {t('expenses.filters.toggle')}
-        <svg
-          className={`h-3.5 w-3.5 ml-0.5 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2.5}
-          aria-hidden="true"
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          aria-expanded={open}
+          aria-controls="filter-panel"
+          className="flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-lg border border-surface-border bg-surface-card hover:bg-surface-subtle text-ink transition-colors duration-150"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+          </svg>
+          {t('expenses.filters.toggle')}
+          <svg
+            className={`h-3.5 w-3.5 ml-0.5 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={handleReset}
+            className="text-sm font-medium text-brand-600 hover:text-brand-700 transition-colors"
+          >
+            {t('expenses.filters.clearAll')}
+          </button>
+        )}
+      </div>
 
       {open && (
         <div

@@ -367,6 +367,7 @@
                                     "noCategorySelected":  "Select a category first",
                                     "description":  "Description",
                                     "tags":  "Tags",
+                                    "tagsPlaceholder":  "Type and press Enter to add",
                                     "families":  "Families"
                                 },
                      "filters":  {
@@ -378,7 +379,8 @@
                                      "amountMax":  "Max amount",
                                      "apply":  "Apply",
                                      "reset":  "Reset",
-                                     "tags":  "Tags"
+                                     "tags":  "Tags",
+                                     "clearAll":  "Clear filters"
                                  },
                      "table":  {
                                    "date":  "Date",
@@ -393,6 +395,7 @@
                                      "delete":  "Delete",
                                      "save":  "Save",
                                      "saving":  "Saving…",
+                                     "saveAndAddAnother":  "Save & Add Another",
                                      "cancel":  "Cancel"
                                  },
                      "delete":  {
@@ -414,7 +417,9 @@
                      "pagination":  {
                                         "prev":  "← Previous",
                                         "next":  "Next →",
-                                        "pageOf":  "Page {{page}} of {{total}}"
+                                        "pageOf":  "Page {{page}} of {{total}}",
+                                        "showing":  "Showing {{from}}–{{to}} of {{totalCount}} expenses",
+                                        "goToPage":  "Go to:"
                                     },
                      "importCsv":  "Import CSV",
                      "import":  {

@@ -16,6 +16,7 @@ import type { ExpenseDto } from '@/features/expenses/types/expenses.type'
 interface ExpenseFormProps {
   readonly initialValues?: ExpenseDto
   readonly onSubmit: (data: ExpenseFormData) => Promise<void>
+  readonly onSaveAndAddAnother?: (data: ExpenseFormData) => Promise<void>
   readonly isSubmitting: boolean
   readonly onCancel: () => void
 }
@@ -24,7 +25,7 @@ function today(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
-export default function ExpenseForm({ initialValues, onSubmit, isSubmitting, onCancel }: ExpenseFormProps) {
+export default function ExpenseForm({ initialValues, onSubmit, onSaveAndAddAnother, isSubmitting, onCancel }: ExpenseFormProps) {
   const { t } = useTranslation()
   const { categories, currencies } = useExpensesData()
   const { families } = useFamilies()
@@ -36,6 +37,7 @@ export default function ExpenseForm({ initialValues, onSubmit, isSubmitting, onC
     control,
     watch,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<ExpenseFormData>({
     resolver: zodResolver(schema),
@@ -94,6 +96,14 @@ export default function ExpenseForm({ initialValues, onSubmit, isSubmitting, onC
       else next.add(id)
       return next
     })
+  }
+
+  const handleSaveAndAddAnother = async (data: ExpenseFormData) => {
+    if (!onSaveAndAddAnother) return
+    await onSaveAndAddAnother(data)
+    reset({ date: today(), description: '', tagIds: [], familyIds: defaultFamily ? [defaultFamily.id] : [] })
+    setSelectedTags([])
+    setCheckedFamilyIds(defaultFamily ? new Set([defaultFamily.id]) : new Set())
   }
 
   const currencyOptions: ComboOption[] = currencies.map(c => ({ value: c.id, label: c.code }))
@@ -179,27 +189,28 @@ export default function ExpenseForm({ initialValues, onSubmit, isSubmitting, onC
           />
         </div>
 
-        <div className="flex-1">
-          <label htmlFor="subcategoryId" className="field-label">
-            {t('expenses.fields.subcategory')}
-          </label>
-          <Controller
-            name="subcategoryId"
-            control={control}
-            render={({ field }) => (
-              <FormCombobox
-                id="subcategoryId"
-                value={field.value as number | undefined}
-                onChange={v => field.onChange(v)}
-                options={subcategoryOptions}
-                disabled={!selectedCategoryId || subcategories.length === 0}
-                aria-describedby="subcategoryId-error"
-                aria-invalid={!!errors.subcategoryId}
-              />
-            )}
-          />
-          <FieldError id="subcategoryId-error" message={errors.subcategoryId?.message} />
-        </div>
+        {subcategories.length > 0 && (
+          <div className="flex-1">
+            <label htmlFor="subcategoryId" className="field-label">
+              {t('expenses.fields.subcategory')}
+            </label>
+            <Controller
+              name="subcategoryId"
+              control={control}
+              render={({ field }) => (
+                <FormCombobox
+                  id="subcategoryId"
+                  value={field.value as number | undefined}
+                  onChange={v => field.onChange(v)}
+                  options={subcategoryOptions}
+                  aria-describedby="subcategoryId-error"
+                  aria-invalid={!!errors.subcategoryId}
+                />
+              )}
+            />
+            <FieldError id="subcategoryId-error" message={errors.subcategoryId?.message} />
+          </div>
+        )}
       </div>
 
       {/* Description */}
@@ -263,6 +274,16 @@ export default function ExpenseForm({ initialValues, onSubmit, isSubmitting, onC
           label={t('expenses.actions.save')}
           loadingLabel={t('expenses.actions.saving')}
         />
+        {onSaveAndAddAnother && (
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={handleSubmit(handleSaveAndAddAnother)}
+            className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {t('expenses.actions.saveAndAddAnother')}
+          </button>
+        )}
         <button
           type="button"
           onClick={onCancel}

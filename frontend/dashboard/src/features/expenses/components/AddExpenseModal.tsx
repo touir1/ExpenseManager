@@ -6,14 +6,14 @@ import type { ExpenseFormData } from '@/features/expenses/expense.schemas'
 
 export default function AddExpenseModal({
   onSuccess,
+  onAdded,
   onClose,
-}: Readonly<{ onSuccess: () => void; onClose: () => void }>) {
+}: Readonly<{ onSuccess: () => void; onAdded?: () => void; onClose: () => void }>) {
   const { t } = useTranslation()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = async (data: ExpenseFormData) => {
-    setIsSubmitting(true)
-    const res = await addExpense({
+  const submitExpense = (data: ExpenseFormData) =>
+    addExpense({
       amount: data.amount,
       currencyId: data.currencyId,
       date: data.date,
@@ -23,8 +23,19 @@ export default function AddExpenseModal({
       familyIds: data.familyIds,
       tagIds: data.tagIds,
     })
+
+  const handleSubmit = async (data: ExpenseFormData) => {
+    setIsSubmitting(true)
+    const res = await submitExpense(data)
     setIsSubmitting(false)
     if (res.ok) onSuccess()
+  }
+
+  const handleSaveAndAddAnother = async (data: ExpenseFormData) => {
+    setIsSubmitting(true)
+    const res = await submitExpense(data)
+    setIsSubmitting(false)
+    if (res.ok) onAdded?.()
   }
 
   return (
@@ -49,7 +60,12 @@ export default function AddExpenseModal({
           </button>
         </div>
         <div className="px-6 py-5">
-          <ExpenseForm isSubmitting={isSubmitting} onSubmit={handleSubmit} onCancel={onClose} />
+          <ExpenseForm
+            isSubmitting={isSubmitting}
+            onSubmit={handleSubmit}
+            onSaveAndAddAnother={handleSaveAndAddAnother}
+            onCancel={onClose}
+          />
         </div>
       </div>
     </div>

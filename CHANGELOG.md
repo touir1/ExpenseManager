@@ -1,6 +1,16 @@
 
 # Changelog
 
+## [0.117.0] - 2026-06-16
+### Feat: Expense Management UX improvements — Section 3 (all web items)
+
+- **`frontend/dashboard/src/features/expenses/pages/ExpensesPage.tsx`** — added mobile card layout (`md:hidden`) alongside the existing desktop `<table>` (`hidden md:block`), both rendering the same `ExpenseDto[]` via a shared `formatExpenseAmount` helper; `ConfirmDeleteModal` now takes the full `ExpenseDto` (state renamed `deleteTarget`, was `deleteId`) and shows amount/date/description above the confirm text; Edit/Delete text links replaced with `aria-label`-only icon buttons (pencil/trash SVGs, `hover:text-brand-600`/`hover:text-berry`); pagination footer now shows "Showing X–Y of Z expenses" plus a jump-to-page number input (`goToPage`, clamped to `[1, totalPages]`).
+- **`frontend/dashboard/src/features/expenses/components/ExpenseForm.tsx`** — subcategory field is now conditionally unmounted (`{subcategories.length > 0 && (...)}`) instead of disabled when the selected category has none; added optional `onSaveAndAddAnother` prop with a secondary "Save & Add Another" button that resets the form (tags/families included) without closing the parent modal.
+- **`frontend/dashboard/src/features/expenses/components/AddExpenseModal.tsx`** — added `onAdded` prop and a `handleSaveAndAddAnother` handler wired to `ExpenseForm`'s new prop, calling `addExpense` then refreshing the list instead of closing the modal.
+- **`frontend/dashboard/src/features/expenses/components/ExpenseFilters.tsx`** — added a "Clear filters" shortcut next to the Filters toggle, visible whenever any filter key besides `page`/`pageSize`/`familyId`/`displayCurrencyId` is set; click resets and re-applies an empty filter.
+- **`frontend/dashboard/src/features/tags/components/TagInput.tsx`** — added placeholder hint ("Type and press Enter to add") shown only when no tags are selected; `,` key now confirms an entry the same as `Enter`; added a `+` icon button (visible once the query is non-empty) that triggers the same select/create logic.
+- **`frontend/dashboard/src/i18n/locales/{en,fr,es,de}/translation.json`** — added `expenses.fields.tagsPlaceholder`, `expenses.actions.saveAndAddAnother`, `expenses.filters.clearAll`, `expenses.pagination.{showing,goToPage}` in all four locales.
+
 ## [0.116.0] - 2026-06-15
 ### Feat: Dashboard UX improvements — Section 2 (all web items)
 
