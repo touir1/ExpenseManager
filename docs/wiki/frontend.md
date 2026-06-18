@@ -128,7 +128,7 @@ frontend/dashboard/src/
 │   │
 │   ├── tags/
 │   │   ├── components/
-│   │   │   └── TagInput.tsx           ← Combobox: "My tags"/"Family tags" dropdown, chips, keyboard nav
+│   │   │   └── TagInput.tsx           ← Combobox: "My tags"/"Family tags" dropdown, chips, keyboard nav; portal-based; comma key confirms; + button on non-empty query
 │   │   ├── services/
 │   │   │   └── tagsApi.service.ts     ← getTags, useTag, removeTag
 │   │   └── types/
@@ -358,11 +358,11 @@ Auto-dismisses after a configurable duration. Positioned fixed at top-right.
 
 ### ThemeToggle
 
-Segmented 3-button control for Day / Default (system) / Dark theme. Reads/writes via `useTheme()`. Active button = `bg-brand-500 text-white`. Used in the NavBar avatar dropdown and in `SettingsPage`.
+Segmented 3-button control for Light / Default (system) / Dark theme. Reads/writes via `useTheme()`. Active button = `bg-brand-500 text-white`. Accepts `showLabel` prop (default `true`); pass `showLabel={false}` for icon-only compact display (used in NavBar dropdown to prevent overflow). Used in the NavBar avatar dropdown and in `SettingsPage`.
 
 ### FormCombobox
 
-Searchable combobox (text `<input>` + listbox dropdown). Used in `ExpenseForm` for currency, category, and subcategory fields, and in admin pages. Renders via `createPortal` at `position: fixed` to escape `overflow: hidden` containers.
+Searchable combobox (text `<input>` + listbox dropdown). Used in `ExpenseForm` for currency, category, and subcategory fields, and in admin pages. Renders via `createPortal(…, document.body)` at `position: fixed` (via `getBoundingClientRect()`) to escape `overflow: hidden` containers. Uses `dropdownRef` so the `mousedown` outside-click handler does not fire prematurely on option selection. Adds a `scroll` capture listener to auto-close when any ancestor scrolls.
 
 ### LanguageSwitcher
 
@@ -397,7 +397,9 @@ Tailwind CSS v3 with a custom design system in `tailwind.config.ts` and `src/sty
 **Brand color:** Terracotta/clay — `brand-600` (Hearth design system)  
 **Font:** Inter (Google Fonts, loaded in `index.html`)
 
-**Dark mode:** `darkMode: 'class'` in `tailwind.config.ts`. `surface.*` and `ink.*` palette values are CSS variable references (`var(--color-surface-*)`, `var(--color-ink-*)`). CSS variables are defined in `index.css` for `:root` (light) and `.dark` (dark), plus `@media (prefers-color-scheme: dark) { :root:not(.light) }` for the system mode. Toggled by `ThemeProvider` which adds/removes `.dark`/`.light` classes on `<html>`.
+**Dark mode:** `darkMode: 'class'` in `tailwind.config.ts`. `surface.*` and `ink.*` palette values are CSS variable references (`var(--color-surface-*)`, `var(--color-ink-*)`). CSS variables are defined in `index.css` for `:root` (light) and `.dark` (dark), plus `@media (prefers-color-scheme: dark) { :root:not(.light) }` for the system mode. Toggled by `ThemeProvider` which adds/removes `.dark`/`.light` classes on `<html>`. Both `index.css` and `frontend/mobile/src/theme/variables.css` set `color-scheme: light/dark` so native form controls (including Ionic shadow-DOM selects) render correctly instead of inheriting the OS scheme.
+
+**Portal-based dropdowns:** All dropdown overlays (`FormCombobox`, `TagInput`, `StringCombobox`, `TagChips`, `FamilyMultiSelect`) render via `createPortal(…, document.body)` at `position: fixed` (coordinates from `getBoundingClientRect()`). This is required because `AddExpenseModal`/`EditExpenseModal` use `overflow-y-auto` on the card body, which would clip absolute-positioned children. Each portal dropdown registers a `scroll` capture listener on `window` to auto-close when any ancestor scrolls.
 
 **Component classes (`@layer components`):**
 
@@ -466,13 +468,15 @@ npm test
 
 | Component | Description |
 |---|---|
-| `ExpensesPage` | Paginated list with filters. Add/edit actions open `ExpenseForm` as a modal (triggered by navigating to `/expenses/add` or `/expenses/:id/edit` — routes all render `ExpensesPage`). Delete triggers refetch. |
+| `ExpensesPage` | Paginated list with filters. Desktop: `<table>` layout; mobile: card layout (`md:hidden` / `hidden md:block`), both sharing a `formatExpenseAmount` helper. Add/edit actions open `ExpenseForm` as a modal (triggered by navigating to `/expenses/add` or `/expenses/:id/edit`). Edit/Delete use aria-label-only icon buttons (pencil/trash SVGs). `ConfirmDeleteModal` shows the full expense (amount/date/description) above the confirm text. Pagination footer shows "Showing X–Y of Z expenses" and a jump-to-page input (clamped to `[1, totalPages]`). Initial filter state is seeded from URL params (`categoryId`, `dateFrom`, `dateTo`) so drill-down from the dashboard pre-filters the list. |
 
 ### Components
 
-**`ExpenseForm`** — shared add/edit form driven by `expense.schemas.ts` (Zod) + React Hook Form. Fields: amount, currency, date, category, subcategory, description, tags, family attribution. Disabled selects use `.catch(undefined)` in the Zod schema to coerce NaN from `valueAsNumber` on unset `<select>`.
+**`ExpenseForm`** — shared add/edit form driven by `expense.schemas.ts` (Zod) + React Hook Form. Fields laid out as a 2-column grid (`grid grid-cols-2 gap-x-5 gap-y-4`): left column holds amount+currency row, date, category, subcategory; right column holds description textarea (rows=3), tags, families. Subcategory field is conditionally unmounted (not just disabled) when the selected category has no children. Accepts optional `onSaveAndAddAnother` prop — when provided, a secondary "Save & Add Another" button resets the form (including tags and families) without closing the modal. Disabled selects use `.catch(undefined)` in the Zod schema to coerce NaN from `valueAsNumber` on unset `<select>`.
 
-**`ExpenseFilters`** — collapsible filter panel. Supported filters: `dateFrom`, `dateTo`, `categoryId`, `subcategoryId`, `currencyId`, `amountMin`, `amountMax`, `description`, `tagIds`, `displayCurrencyId`.
+**`AddExpenseModal`** / **`EditExpenseModal`** — widened from `max-w-lg` (512 px) to `max-w-2xl` (672 px) to accommodate the 2-column form. Backdrop is viewport-centered (`items-center p-4`); the card gets `flex flex-col max-h-[90dvh]` with an internal `overflow-y-auto` body so the modal never forces the backdrop to scroll. `AddExpenseModal` exposes an `onAdded` prop and a `handleSaveAndAddAnother` callback wired to `ExpenseForm`.
+
+**`ExpenseFilters`** — inline collapsible section (not a floating dropdown). Panel renders in page flow with a responsive grid (`grid-cols-2 sm:grid-cols-3 lg:grid-cols-4`). Toggle button includes a rotating chevron. Apply/Reset actions appear bottom-right of the panel. A "Clear filters" shortcut is shown next to the toggle whenever any filter (excluding page/pageSize/familyId/displayCurrencyId) is active. Supported filters: `dateFrom`, `dateTo`, `categoryId`, `subcategoryId`, `currencyId`, `amountMin`, `amountMax`, `description`, `tagIds`, `displayCurrencyId`.
 
 ### Service — `expensesApi.service.ts`
 
@@ -500,19 +504,19 @@ Currency, Subcategory, Category, TagDto  // shared DTO shapes
 
 ### HomeDashboardPage
 
-Composes all dashboard sub-components. Fetches data in parallel on mount (and on filter change) from the dashboard API. Each section shows a loading skeleton or error state independently.
+Composes all dashboard sub-components. Fetches data in parallel on mount (and on filter change) from the dashboard API. Each section shows a loading skeleton or error state independently. Date filter (`dateFrom`/`dateTo`) is persisted in URL search params (`useSearchParams`) so it survives refresh and is shareable. When `expenseCount === 0` after all queries load, an `EmptyDashboard` component replaces the grid with a centered card and CTA button. Passes `onCategoryClick` to `CategoryDonut` — clicking a slice navigates to `/expenses?categoryId=X&dateFrom=Y&dateTo=Z`.
 
 ### Components
 
-| Component | Chart type | Data source |
-|---|---|---|
-| `MonthHero` | Stat card | `GET /dashboard/summary` — total, delta %, top category |
-| `SpendChart` | ComposedChart (Recharts) | `GET /dashboard/monthly` — monthly totals over date range |
-| `CategoryDonut` | PieChart (Recharts) | `GET /dashboard/categories` — breakdown by top-level category |
-| `SameMonthChart` | BarChart (Recharts) | `GET /dashboard/same-month-across-years` — current month across all years |
-| `CurrenciesPanel` | Stat list | `GET /dashboard/by-currency` — per-currency totals |
-| `RecentExpenses` | Mini-list | `GET /dashboard/recent` — 10 most recent expenses |
-| `DashboardFilters` | Filter bar | Controls `familyId`, `dateFrom`, `dateTo`, `displayCurrencyId` |
+| Component | Chart type | Data source | Notes |
+|---|---|---|---|
+| `MonthHero` | Stat card | `GET /dashboard/summary` — total, delta %, top category | `comparedToLabel` prop — period label shown as delta badge `title` on hover |
+| `SpendChart` | ComposedChart (Recharts) | `GET /dashboard/monthly` — monthly totals over date range | `minPointSize={2}` so zero bars are hoverable; tooltip shows "No expenses" when value is 0 |
+| `CategoryDonut` | PieChart (Recharts) | `GET /dashboard/categories` — breakdown by top-level category | `onCategoryClick` prop makes slices and legend rows clickable for drill-down to expenses |
+| `SameMonthChart` | BarChart (Recharts) | `GET /dashboard/same-month-across-years` — current month across all years | Same `minPointSize` and zero-value tooltip as `SpendChart` |
+| `CurrenciesPanel` | Stat list | `GET /dashboard/by-currency` — per-currency totals | Each row includes a proportional `bg-brand-400` horizontal bar (min 3% width) |
+| `RecentExpenses` | Mini-list | `GET /dashboard/recent` — 10 most recent expenses | |
+| `DashboardFilters` | Filter bar | Controls `familyId`, `dateFrom`, `dateTo`, `displayCurrencyId` | Auto-clamps the opposite bound when dates would cross; shows inline `role="alert"` error with `border-berry` highlight when `dateFrom > dateTo` |
 
 ### Service — `dashboardApi.service.ts`
 
@@ -570,11 +574,14 @@ Located at `src/features/admin/`. All routes guarded by `AdminRoute` (checks `us
 **Unauthenticated:** marketing anchor links (How it Works, For Families, Pricing, Help), Language Switcher, Sign In, Get Started button.
 
 **Authenticated (desktop):**
-- Nav links: Dashboard, Expenses, Families
-- Right-side controls: `FamilySelector` dropdown, `DisplayCurrencySelector` dropdown, notifications placeholder, user avatar with dropdown (Settings, Language Switcher, Sign Out)
-- When `user.isAdmin` is true: Admin Panel link appears in the nav (routes to `/admin/users`)
+- Nav links: Dashboard, Expenses, Families (all use `navLinkClass` with `isActive`-based highlighting)
+- Right-side controls: `FamilySelector` dropdown, `DisplayCurrencySelector` dropdown, notifications bell, user avatar with dropdown (Settings, Language Switcher, ThemeToggle with `showLabel={false}`, Sign Out)
+- `FamilySelector` and `DisplayCurrencySelector` are hidden on non-dashboard/non-expenses pages (`showContextSelectors` = true only when path is `/dashboard` or starts with `/expenses`)
+- When `user.isAdmin` is true: Admin Panel link appears in the nav (routes to `/admin/users`); shows auth-loading skeleton placeholder while `authLoading && !user` to prevent layout shift
 
-**Authenticated (mobile):** hamburger menu with focus trap — Dashboard, Expenses, Families, Settings, Sign Out, Language Switcher.
+**Authenticated (mobile):** hamburger menu with focus trap — Dashboard, Expenses, Families, Settings, Sign Out, Language Switcher. Mobile links use the same `navLinkClass` active-state function as desktop.
+
+**Add Expense button:** navbar button has `title={t('nav.addExpenseTooltip')}` tooltip. The in-page "Add Expense" button on ExpensesPage is demoted to outline style so the navbar button is the clear primary CTA.
 
 **Active link detection:**
 - `/expenses/*` → Expenses link active (`pathname.startsWith('/expenses')`)
