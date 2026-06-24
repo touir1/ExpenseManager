@@ -195,38 +195,43 @@
 
 ## 4. CSV Import (Web)
 
-### 🔴 Web: Import progress — no feedback while uploading large files
+### ✅ 🔴 Web: Import progress — no feedback while uploading large files
 
 **Problem:** After clicking "Upload", the UI shows nothing until the server responds. For 500-row files this can take 3–5 s. Users may double-click.  
-**Fix:** Show an indeterminate progress bar / spinner immediately after file selection, disable the upload zone.
+**Fix:** Show an indeterminate progress bar / spinner immediately after file selection, disable the upload zone.  
+**Done:** Dropzone disables with `pointer-events-none opacity-75 cursor-default` while `loadingPreview` is true; spinner SVG + "Uploading file…" text replace the drop icon — `CsvImportPage.tsx`.
 
 ---
 
-### 🔴 Web: No way to re-download the original uploaded file
+### ✅ 🔴 Web: No way to re-download the original uploaded file
 
 **Problem:** If the user closes the import page mid-flow and returns, the file is gone. They cannot retrieve it.  
-**Fix:** Not fixable at browser level without server storage, but: add a warning when navigating away from an active import session ("Unsaved import — leave?").
+**Fix:** Not fixable at browser level without server storage, but: add a warning when navigating away from an active import session ("Unsaved import — leave?").  
+**Done:** `useBlocker` (react-router-dom) intercepts in-app navigation while `preview !== null`; `beforeunload` listener handles tab close/refresh; modal with "Leave anyway" / "Stay on page" buttons — `CsvImportPage.tsx`, all 4 locale files.
 
 ---
 
-### 🟡 Web: Import table — edited rows are not visually distinct from valid rows
+### ✅ 🟡 Web: Import table — edited rows are not visually distinct from valid rows
 
 **Problem:** After editing a row and saving it, the amber "editing" badge disappears and the row looks identical to rows that were never edited. No audit trail of what was changed.  
-**Fix:** Show a subtle "Edited" badge or dot indicator on rows that were modified by the user.
+**Fix:** Show a subtle "Edited" badge or dot indicator on rows that were modified by the user.  
+**Done:** `userEditedRows` state (Set\<number\>) tracks rows saved+validated; amber "Edited" badge appears on row-number cell; cleared on Cancel and on new file upload — `CsvImportPage.tsx`, all 4 locale files.
 
 ---
 
-### 🟡 Web: No column sorting on import preview table
+### ✅ 🟡 Web: No column sorting on import preview table
 
 **Problem:** With 100+ rows, finding all error rows requires scrolling. Status column is not sortable.  
-**Fix:** Add one-click sort by Status (errors first) — the most requested feature in bulk-import tools.
+**Fix:** Add one-click sort by Status (errors first) — the most requested feature in bulk-import tools.  
+**Done:** `sortErrors` state; `displayRows` computed with `.sort((a,b) => Number(a.isValid) - Number(b.isValid))` when active; toggle button in summary bar switches "Errors first" ↔ "Row order"; resets on Cancel/new upload — `CsvImportPage.tsx`, all 4 locale files.
 
 ---
 
-### 🟡 Web: Template download is a link, not clearly labelled
+### ✅ 🟡 Web: Template download is a link, not clearly labelled
 
 **Problem:** "Download template" link is easy to overlook on the upload zone.  
-**Fix:** Style as a secondary button with a download icon. Add a short sentence explaining what columns are expected.
+**Fix:** Style as a secondary button with a download icon. Add a short sentence explaining what columns are expected.  
+**Done:** Restyled as `inline-flex` button with download SVG icon; descriptive text explaining expected columns added beside it — `CsvImportPage.tsx`, all 4 locale files.
 
 ---
 
@@ -429,10 +434,11 @@
 
 ---
 
-### 🟡 Web: Color is the only differentiator for valid/invalid import rows
+### ✅ 🟡 Web: Color is the only differentiator for valid/invalid import rows
 
 **Problem:** Valid rows are white, invalid rows are red-background. For color-blind users (protanopia/deuteranopia), red may be indistinguishable from white.  
-**Fix:** Add a status icon column (✓ / ✕) in addition to color. Error count badge text is sufficient for badge-only indicators.
+**Fix:** Add a status icon column (✓ / ✕) in addition to color. Error count badge text is sufficient for badge-only indicators.  
+**Done:** Status cell now shows checkmark-circle SVG (valid, emerald) or X-circle SVG (invalid, red) alongside text — `CsvImportPage.tsx`.
 
 ---
 
@@ -556,7 +562,7 @@
 | 3 | Add `aria-live="polite"` to Toast container | `Toast.tsx` | 10 min |
 | 4 | Dynamic `aria-label` on notification bell (include count) | `NotificationBell.tsx` | 10 min |
 | ~~5~~ | ~~Clamp dashboard date range `to` min = `from`~~ | ~~`DashboardFilters` component~~ | ✅ Done |
-| 6 | Add "Clear filters" button on ExpensesPage | `ExpensesPage.tsx` | 20 min |
+| ~~6~~ | ~~Add "Clear filters" button on ExpensesPage~~ | ~~`ExpenseFilters.tsx`~~ | ✅ Done |
 | 7 | Replace "Loading…" text with skeleton in ExpensesPage | `ExpensesPage.tsx` | 30 min |
 | ~~8~~ | ~~Validate date range (from ≤ to) in DashboardFilters~~ | ~~`DashboardFilters` component~~ | ✅ Done |
 | 9 | Add archive confirmation modal | `FamiliesPage.tsx` | 30 min |

@@ -435,13 +435,22 @@
             "editRow": "Editar fila",
             "saveRow": "Guardar fila",
             "cancelRow": "Cancelar edición",
+            "uploading": "Subiendo archivo…",
+            "leaveTitle": "¿Salir del import?",
+            "leaveWarning": "Tienes una sesión de importación activa. Tu progreso se perderá si sales.",
+            "leaveConfirm": "Salir de todas formas",
+            "stayHere": "Quedarse en la página",
+            "sortErrors": "Errores primero",
+            "sortNatural": "Orden de filas",
+            "templateDescription": "Columnas esperadas: date (AAAA-MM-DD), amount, currency_code — opcionales: category, subcategory, description, tags (separados por punto y coma), families (separados por punto y coma)",
             "success": "{{count}} gastos importados correctamente",
             "columns": {
                 "row": "Fila",
                 "status": "Estado",
                 "valid": "Válido",
                 "error": "Error",
-                "editing": "Editando"
+                "editing": "Editando",
+                "edited": "Editado"
             },
             "errors": {
                 "DATE_INVALID": "Fecha inválida (usar AAAA-MM-DD)",

@@ -1,6 +1,19 @@
 
 # Changelog
 
+## [0.120.0] - 2026-06-24
+### Feat: CSV Import UX improvements — Phase 4
+
+- **`frontend/dashboard/src/features/expenses/pages/CsvImportPage.tsx`**
+  - **Upload spinner**: dropzone disables with `pointer-events-none opacity-75 cursor-default` while `loadingPreview` is true; spinner SVG + `t('expenses.import.uploading')` text replace the drop icon.
+  - **Navigation guard**: `useBlocker` (react-router-dom) + `beforeunload` event listener prevent accidental navigation away while an import session is active (`preview !== null`); modal with "Leave" / "Stay" buttons handles the router-blocker case.
+  - **Edited badge**: `userEditedRows` set tracks row numbers that have been saved+validated; after a successful per-row revalidation, the row number is added to the set; a small amber "Edited" badge appears on the row-number cell for those rows.
+  - **Errors-first sort toggle**: `sortErrors` state; `displayRows` computed via `[...preview.rows].sort((a,b) => Number(a.isValid) - Number(b.isValid))` when active; toggle button in the summary bar switches between "Errors first" and "Row order" labels; sort and `userEditedRows` both reset when Cancel is clicked or a new file is uploaded.
+  - **Template description**: small explanatory text added beside the download template link describing the expected CSV columns.
+  - **Status icons**: each row's status cell now shows a checkmark SVG (valid) or X-circle SVG (invalid) alongside the color text for screen-reader-accessible status.
+- **`frontend/dashboard/src/i18n/locales/{en,fr,es,de}/translation.json`** — added `expenses.import.{uploading,leaveTitle,leaveWarning,leaveConfirm,stayHere,sortErrors,sortNatural,templateDescription}` and `expenses.import.columns.edited` in all four locales.
+- **`frontend/dashboard/src/features/expenses/pages/__tests__/CsvImportPage.test.tsx`** — 17 new tests covering all Phase 4 items; `vi.mock('react-router-dom', …)` updated to expose `useBlocker` mock.
+
 ## [0.119.0] - 2026-06-16
 ### Refactor: Expense form 2-column layout — eliminate modal scrollbar
 

@@ -7,9 +7,13 @@ import type { CsvImportPreviewDto } from '@/features/expenses/types/expenses.typ
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
 const mockNavigate = vi.fn()
+let mockBlocker: { state: string; proceed?: () => void; reset?: () => void } = { state: 'idle' }
+const mockProceed = vi.fn()
+const mockReset = vi.fn()
+
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
-  return { ...actual, useNavigate: () => mockNavigate }
+  return { ...actual, useNavigate: () => mockNavigate, useBlocker: () => mockBlocker }
 })
 
 const mockPreviewCsvImport = vi.fn()
@@ -146,6 +150,7 @@ async function uploadFile(file = makeFile()) {
 describe('CsvImportPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockBlocker = { state: 'idle' }
     mockGetImportTemplateUrl.mockReturnValue('/api/expenses/import/template')
   })
 
@@ -517,5 +522,232 @@ describe('CsvImportPage', () => {
 
     await waitFor(() => { expect(screen.getByText(/only csv files are accepted/i)).toBeInTheDocument() })
     expect(mockPreviewCsvImport).not.toHaveBeenCalled()
+  })
+
+  // ── Item 1: Upload Spinner ────────────────────────────────────────────────────
+
+  it('shows spinner and "Uploading file…" text while file is processing', async () => {
+    let resolveUpload!: (v: unknown) => void
+    mockPreviewCsvImport.mockReturnValue(new Promise(r => { resolveUpload = r }))
+    renderPage()
+    uploadFile()
+
+    await waitFor(() => {
+      expect(screen.getByText(/uploading file/i)).toBeInTheDocument()
+    })
+
+    resolveUpload({ ok: true, data: previewAllValid })
+  })
+
+  it('dropzone has pointer-events-none class while uploading', async () => {
+    let resolveUpload!: (v: unknown) => void
+    mockPreviewCsvImport.mockReturnValue(new Promise(r => { resolveUpload = r }))
+    renderPage()
+    uploadFile()
+
+    await waitFor(() => screen.getByText(/uploading file/i))
+    const dropzone = screen.getByRole('button', { name: /drag.*drop|csv/i })
+    expect(dropzone).toHaveClass('pointer-events-none')
+
+    resolveUpload({ ok: true, data: previewAllValid })
+  })
+
+  it('hides spinner and shows preview table after upload resolves', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewAllValid })
+    renderPage()
+    uploadFile()
+
+    await waitFor(() => {
+      expect(screen.queryByText(/uploading file/i)).not.toBeInTheDocument()
+      expect(screen.getByText('2025-01-15')).toBeInTheDocument()
+    })
+  })
+
+  // ── Item 2: Navigation Warning ────────────────────────────────────────────────
+
+  it('shows leave confirmation modal when blocker is triggered', async () => {
+    mockBlocker = { state: 'blocked', proceed: mockProceed, reset: mockReset }
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewAllValid })
+    renderPage()
+
+    await waitFor(() => {
+      expect(screen.getByText(/leave import\?/i)).toBeInTheDocument()
+      expect(screen.getByText(/progress will be lost/i)).toBeInTheDocument()
+    })
+  })
+
+  it('leave modal has "Leave anyway" and "Stay on page" buttons', async () => {
+    mockBlocker = { state: 'blocked', proceed: mockProceed, reset: mockReset }
+    renderPage()
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /leave anyway/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /stay on page/i })).toBeInTheDocument()
+    })
+  })
+
+  it('"Leave anyway" calls blocker.proceed()', async () => {
+    mockBlocker = { state: 'blocked', proceed: mockProceed, reset: mockReset }
+    renderPage()
+
+    await waitFor(() => screen.getByRole('button', { name: /leave anyway/i }))
+    fireEvent.click(screen.getByRole('button', { name: /leave anyway/i }))
+
+    expect(mockProceed).toHaveBeenCalledOnce()
+  })
+
+  it('"Stay on page" calls blocker.reset()', async () => {
+    mockBlocker = { state: 'blocked', proceed: mockProceed, reset: mockReset }
+    renderPage()
+
+    await waitFor(() => screen.getByRole('button', { name: /stay on page/i }))
+    fireEvent.click(screen.getByRole('button', { name: /stay on page/i }))
+
+    expect(mockReset).toHaveBeenCalledOnce()
+  })
+
+  it('leave modal does not show when blocker is idle', () => {
+    renderPage()
+
+    expect(screen.queryByText(/leave import\?/i)).not.toBeInTheDocument()
+  })
+
+  // ── Item 3: Edited Badge ──────────────────────────────────────────────────────
+
+  it('shows "Edited" badge on row after save+validate succeeds', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    mockValidateCsvRows.mockResolvedValue(makeValidateResponse(validatedRow2))
+    renderPage()
+    uploadFile()
+    await waitFor(() => screen.getByRole('button', { name: /edit row 2/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /edit row 2/i }))
+    await waitFor(() => screen.getByLabelText(/row 2 amount/i))
+    fireEvent.change(screen.getByLabelText(/row 2 amount/i), { target: { value: '25.00' } })
+    fireEvent.click(screen.getByRole('button', { name: /save row 2/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/edited/i)).toBeInTheDocument()
+    })
+  })
+
+  it('does not show "Edited" badge on row that was never edited', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    mockValidateCsvRows.mockResolvedValue(makeValidateResponse(validatedRow2))
+    renderPage()
+    uploadFile()
+    await waitFor(() => screen.getByRole('button', { name: /edit row 2/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /edit row 2/i }))
+    await waitFor(() => screen.getByLabelText(/row 2 amount/i))
+    fireEvent.click(screen.getByRole('button', { name: /save row 2/i }))
+
+    await waitFor(() => screen.getByText(/edited/i))
+
+    expect(screen.getAllByText(/edited/i)).toHaveLength(1)
+  })
+
+  it('"Edited" badge clears when the row is removed', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    mockValidateCsvRows.mockResolvedValue(makeValidateResponse(validatedRow2))
+    renderPage()
+    uploadFile()
+    await waitFor(() => screen.getByRole('button', { name: /edit row 2/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /edit row 2/i }))
+    await waitFor(() => screen.getByLabelText(/row 2 amount/i))
+    fireEvent.change(screen.getByLabelText(/row 2 amount/i), { target: { value: '25.00' } })
+    fireEvent.click(screen.getByRole('button', { name: /save row 2/i }))
+    await waitFor(() => screen.getByText(/edited/i))
+
+    fireEvent.click(screen.getByRole('button', { name: /remove row 2/i }))
+
+    await waitFor(() => {
+      expect(screen.queryByText(/edited/i)).not.toBeInTheDocument()
+    })
+  })
+
+  it('"Edited" badge does not appear while row is still in editing state', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    renderPage()
+    uploadFile()
+    await waitFor(() => screen.getByRole('button', { name: /edit row 2/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /edit row 2/i }))
+    await waitFor(() => screen.getByLabelText(/row 2 amount/i))
+
+    expect(screen.queryByText(/edited/i)).not.toBeInTheDocument()
+  })
+
+  // ── Item 4: Sort Toggle ───────────────────────────────────────────────────────
+
+  it('shows sort toggle button in preview header area', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    renderPage()
+    uploadFile()
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /errors first/i })).toBeInTheDocument()
+    })
+  })
+
+  it('clicking "Errors first" puts error rows before valid rows in DOM', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    renderPage()
+    uploadFile()
+    await waitFor(() => screen.getByRole('button', { name: /errors first/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /errors first/i }))
+
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row')
+      expect(rows[1]).toHaveTextContent('2')
+      expect(rows[2]).toHaveTextContent('1')
+    })
+  })
+
+  it('clicking "Row order" after sort restores original order', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    renderPage()
+    uploadFile()
+    await waitFor(() => screen.getByRole('button', { name: /errors first/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /errors first/i }))
+    await waitFor(() => screen.getByRole('button', { name: /row order/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /row order/i }))
+
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row')
+      expect(rows[1]).toHaveTextContent('1')
+      expect(rows[2]).toHaveTextContent('2')
+    })
+  })
+
+  it('sort resets to row order when a new file is uploaded', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    renderPage()
+    uploadFile()
+    await waitFor(() => screen.getByRole('button', { name: /errors first/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /errors first/i }))
+    await waitFor(() => screen.getByRole('button', { name: /row order/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    await waitFor(() => expect(document.querySelector('input[type="file"]')).toBeInTheDocument())
+
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewAllValid })
+    uploadFile()
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /errors first/i })).toBeInTheDocument()
+    })
+  })
+
+  // ── Item 5: Template Description ─────────────────────────────────────────────
+
+  it('shows template column description text alongside download link', () => {
+    renderPage()
+    expect(screen.getByText(/expected columns/i)).toBeInTheDocument()
   })
 })

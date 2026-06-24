@@ -435,13 +435,22 @@
             "editRow": "Modifier la ligne",
             "saveRow": "Enregistrer la ligne",
             "cancelRow": "Annuler la modification",
+            "uploading": "Téléversement en cours…",
+            "leaveTitle": "Quitter l'import ?",
+            "leaveWarning": "Vous avez une session d'import active. Votre progression sera perdue si vous quittez.",
+            "leaveConfirm": "Quitter quand même",
+            "stayHere": "Rester sur la page",
+            "sortErrors": "Erreurs en premier",
+            "sortNatural": "Ordre des lignes",
+            "templateDescription": "Colonnes attendues : date (AAAA-MM-JJ), amount, currency_code — optionnel : category, subcategory, description, tags (séparés par des points-virgules), families (séparés par des points-virgules)",
             "success": "{{count}} dépenses importées avec succès",
             "columns": {
                 "row": "Ligne",
                 "status": "Statut",
                 "valid": "Valide",
                 "error": "Erreur",
-                "editing": "En cours"
+                "editing": "En cours",
+                "edited": "Modifié"
             },
             "errors": {
                 "DATE_INVALID": "Date invalide (format AAAA-MM-JJ)",

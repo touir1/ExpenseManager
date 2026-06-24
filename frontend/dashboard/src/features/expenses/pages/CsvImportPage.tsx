@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom'
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useBlocker } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useExpensesData } from '@/features/expenses/ExpensesDataContext'
@@ -382,6 +382,7 @@ function ImportRow({
   onCancel,
   onRemove,
   onPendingChange,
+  wasEdited,
 }: {
   row: CsvImportRowPreview
   editing: boolean
@@ -398,6 +399,7 @@ function ImportRow({
   onCancel: () => void
   onRemove: () => void
   onPendingChange: (field: keyof EditedFields, value: string | string[]) => void
+  wasEdited: boolean
 }) {
   const { t } = useTranslation()
   const inputClass = 'w-full px-2 py-1 text-xs border border-surface-border rounded-lg bg-surface-card text-ink focus:outline-none focus:ring-1 focus:ring-brand-400'
@@ -406,7 +408,14 @@ function ImportRow({
 
   return (
     <tr className={rowClass}>
-      <td className="px-2 py-2 text-ink-mute text-xs">{row.rowNumber}</td>
+      <td className="px-2 py-2 text-ink-mute text-xs">
+        <span>{row.rowNumber}</span>
+        {wasEdited && !editing && (
+          <span className="ml-1 px-1 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 rounded">
+            {t('expenses.import.columns.edited')}
+          </span>
+        )}
+      </td>
 
       {editing ? (
         <>
@@ -497,13 +506,32 @@ function ImportRow({
 
       <td className="px-2 py-2 min-w-[7rem]">
         {isValidating ? (
-          <span className="text-ink-faint text-xs">{t('expenses.loading', 'Loading…')}</span>
+          <span className="flex items-center gap-1 text-ink-faint text-xs">
+            <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+            </svg>
+            {t('expenses.loading', 'Loading…')}
+          </span>
         ) : row.isValid && !editing ? (
-          <span className="text-emerald-600 text-xs font-medium">{t('expenses.import.columns.valid')}</span>
+          <span className="flex items-center gap-1 text-emerald-600 text-xs font-medium">
+            <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {t('expenses.import.columns.valid')}
+          </span>
         ) : editing ? (
-          <span className="text-amber-600 text-xs font-medium">{t('expenses.import.columns.editing')}</span>
+          <span className="flex items-center gap-1 text-amber-600 text-xs font-medium">
+            <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6.5-6.5 3.5 3.5L13 16.5H9V13z" />
+            </svg>
+            {t('expenses.import.columns.editing')}
+          </span>
         ) : (
-          <span className="text-red-600 text-xs">
+          <span className="flex items-start gap-1 text-red-600 text-xs">
+            <svg className="h-3.5 w-3.5 shrink-0 mt-px" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
             {row.errors.map(e => t(`expenses.import.errors.${e}`, e)).join(', ')}
           </span>
         )}
@@ -586,6 +614,20 @@ export default function CsvImportPage() {
   const [loadingPreview, setLoadingPreview] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [userEditedRows, setUserEditedRows] = useState<Set<number>>(new Set())
+  const [sortErrors, setSortErrors] = useState(false)
+
+  const blocker = useBlocker(preview !== null)
+
+  useEffect(() => {
+    if (!preview) return
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [preview])
 
   // ── Combobox options ────────────────────────────────────────────────────────
 
@@ -643,6 +685,7 @@ export default function CsvImportPage() {
         return { ...prev, rows, validCount: rows.filter(r => r.isValid).length, errorCount: rows.filter(r => !r.isValid).length }
       })
       setEditedRows(prev => { const { [rowNumber]: _, ...rest } = prev; return rest })
+      setUserEditedRows(prev => new Set([...prev, rowNumber]))
     } else {
       setError(res.error ?? t('expenses.errors.loadFailed'))
     }
@@ -658,6 +701,7 @@ export default function CsvImportPage() {
     setPendingEdits(prev => { const { [rowNumber]: _, ...rest } = prev; return rest })
     setEditingRows(prev => { const s = new Set(prev); s.delete(rowNumber); return s })
     setValidatingRows(prev => { const s = new Set(prev); s.delete(rowNumber); return s })
+    setUserEditedRows(prev => { const s = new Set(prev); s.delete(rowNumber); return s })
   }
 
   function cancelEdit(rowNumber: number) {
@@ -694,6 +738,8 @@ export default function CsvImportPage() {
       setEditedRows({})
       setPendingEdits({})
       setEditingRows(new Set())
+      setSortErrors(false)
+      setUserEditedRows(new Set())
     } else {
       setError(res.error ?? t('expenses.errors.loadFailed'))
     }
@@ -739,6 +785,10 @@ export default function CsvImportPage() {
 
   const hasEdits = editingRows.size > 0 || validatingRows.size > 0
 
+  const displayRows = preview
+    ? (sortErrors ? [...preview.rows].sort((a, b) => Number(a.isValid) - Number(b.isValid)) : preview.rows)
+    : []
+
   return (
     <div className="max-w-full mx-auto px-4 sm:px-6 py-8">
       <div className="mb-6 flex items-center gap-3">
@@ -761,16 +811,38 @@ export default function CsvImportPage() {
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
             onKeyDown={e => e.key === 'Enter' && fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${dragging ? 'border-brand-600 bg-brand-50' : 'border-surface-border hover:border-brand-400'}`}
+            className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors ${loadingPreview ? 'pointer-events-none opacity-75 cursor-default' : 'cursor-pointer'} ${dragging ? 'border-brand-600 bg-brand-50' : 'border-surface-border hover:border-brand-400'}`}
           >
-            <svg className="mx-auto h-10 w-10 text-ink-faint mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-            <p className="text-sm text-ink-mute">{loadingPreview ? t('expenses.loading', 'Loading…') : t('expenses.import.dropzone')}</p>
+            {loadingPreview ? (
+              <div className="flex flex-col items-center gap-3">
+                <svg className="animate-spin h-8 w-8 text-brand-500" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                <p className="text-sm text-ink-mute">{t('expenses.import.uploading')}</p>
+              </div>
+            ) : (
+              <>
+                <svg className="mx-auto h-10 w-10 text-ink-faint mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                <p className="text-sm text-ink-mute">{t('expenses.import.dropzone')}</p>
+              </>
+            )}
             <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleFileInputChange} aria-label={t('expenses.import.dropzone')} />
           </div>
-          <div className="mt-4 text-center">
-            <a href={getImportTemplateUrl()} download="expenses-import-template.csv" className="text-sm text-brand-600 hover:text-brand-700 font-medium transition-colors">
+          <div className="mt-6 border-t border-surface-border pt-5 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <p className="text-xs text-ink-mute flex-1">
+              {t('expenses.import.templateDescription')}
+            </p>
+            <a
+              href={getImportTemplateUrl()}
+              download="expenses-import-template.csv"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl border border-surface-border bg-surface-card text-ink hover:bg-surface-subtle transition-colors shrink-0"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
               {t('expenses.import.templateLink')}
             </a>
           </div>
@@ -787,6 +859,15 @@ export default function CsvImportPage() {
               </span>
             )}
             <span className="text-xs text-ink-mute ml-1">{t('expenses.import.editHint')}</span>
+            <button
+              onClick={() => setSortErrors(s => !s)}
+              className="ml-auto flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-surface-border text-ink-mute hover:text-ink hover:bg-surface-subtle transition-colors"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+              </svg>
+              {sortErrors ? t('expenses.import.sortNatural') : t('expenses.import.sortErrors')}
+            </button>
           </div>
 
           <div className="overflow-x-auto rounded-2xl border border-surface-border shadow-card mb-5">
@@ -807,7 +888,7 @@ export default function CsvImportPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-border">
-                {preview.rows.map(row => {
+                {displayRows.map(row => {
                   const isEditing = editingRows.has(row.rowNumber)
                   const pending = pendingEdits[row.rowNumber] ?? getDisplayFields(row.rowNumber)
                   const displayFields = getDisplayFields(row.rowNumber)
@@ -825,6 +906,7 @@ export default function CsvImportPage() {
                       subcategoryOptions={subOptions}
                       availableTags={availableTags}
                       userFamilies={userFamilies}
+                      wasEdited={userEditedRows.has(row.rowNumber)}
                       onEdit={() => startEdit(row.rowNumber)}
                       onSave={() => saveAndValidateRow(row.rowNumber)}
                       onCancel={() => cancelEdit(row.rowNumber)}
@@ -839,7 +921,7 @@ export default function CsvImportPage() {
 
           <div className="flex gap-3 justify-end flex-wrap">
             <button
-              onClick={() => { setPreview(null); setEditedRows({}); setPendingEdits({}); setEditingRows(new Set()); setError(null) }}
+              onClick={() => { setPreview(null); setEditedRows({}); setPendingEdits({}); setEditingRows(new Set()); setError(null); setUserEditedRows(new Set()); setSortErrors(false) }}
               className="px-4 py-2 text-sm font-medium rounded-xl border border-surface-border text-ink hover:bg-surface-subtle transition-colors"
             >
               {t('expenses.import.cancel')}
@@ -851,6 +933,33 @@ export default function CsvImportPage() {
             >
               {confirming ? t('expenses.actions.saving') : t('expenses.import.confirmButton', { count: preview.validCount })}
             </button>
+          </div>
+        </div>
+      )}
+
+      {blocker.state === 'blocked' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-surface-card rounded-2xl shadow-card border border-surface-border w-full max-w-sm mx-4 p-6">
+            <h2 className="text-base font-semibold text-ink mb-2">
+              {t('expenses.import.leaveTitle')}
+            </h2>
+            <p className="text-sm text-ink-mute mb-5">
+              {t('expenses.import.leaveWarning')}
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => blocker.reset?.()}
+                className="px-4 py-2 text-sm font-medium rounded-xl border border-surface-border text-ink hover:bg-surface-subtle transition-colors"
+              >
+                {t('expenses.import.stayHere')}
+              </button>
+              <button
+                onClick={() => blocker.proceed?.()}
+                className="px-4 py-2 text-sm font-medium rounded-xl bg-red-600 text-white hover:bg-red-700 transition-colors"
+              >
+                {t('expenses.import.leaveConfirm')}
+              </button>
+            </div>
           </div>
         </div>
       )}

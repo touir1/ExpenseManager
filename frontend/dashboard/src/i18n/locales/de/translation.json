@@ -435,13 +435,22 @@
             "editRow": "Zeile bearbeiten",
             "saveRow": "Zeile speichern",
             "cancelRow": "Bearbeitung abbrechen",
+            "uploading": "Datei wird hochgeladen…",
+            "leaveTitle": "Import verlassen?",
+            "leaveWarning": "Sie haben eine aktive Importsitzung. Ihr Fortschritt geht verloren, wenn Sie die Seite verlassen.",
+            "leaveConfirm": "Trotzdem verlassen",
+            "stayHere": "Auf der Seite bleiben",
+            "sortErrors": "Fehler zuerst",
+            "sortNatural": "Zeilenreihenfolge",
+            "templateDescription": "Erwartete Spalten: date (JJJJ-MM-TT), amount, currency_code — optional: category, subcategory, description, tags (durch Semikolon getrennt), families (durch Semikolon getrennt)",
             "success": "{{count}} Ausgaben erfolgreich importiert",
             "columns": {
                 "row": "Zeile",
                 "status": "Status",
                 "valid": "Gültig",
                 "error": "Fehler",
-                "editing": "Wird bearbeitet"
+                "editing": "Wird bearbeitet",
+                "edited": "Bearbeitet"
             },
             "errors": {
                 "DATE_INVALID": "Ungültiges Datum (JJJJ-MM-TT)",
