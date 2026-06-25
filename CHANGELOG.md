@@ -1,6 +1,17 @@
 
 # Changelog
 
+## [0.120.1] - 2026-06-25
+### Fix: Migrate to data router to unblock `useBlocker` in CsvImportPage
+
+- **`frontend/dashboard/src/App.tsx`** — simplified to just `<RouterProvider router={router} />`; all layout/provider logic moved to `RootLayout`.
+- **`frontend/dashboard/src/router.tsx`** — migrated from `<BrowserRouter>`+`<Routes>` to `createBrowserRouter`+`RouterProvider` (data router); future flags (`v7_startTransition`, `v7_relativeSplatPath`) moved to `createBrowserRouter` options; all routes preserved as object config with `RootLayout` as pathless parent.
+- **`frontend/dashboard/src/layouts/RootLayout.tsx`** _(new)_ — extracts `ToastProvider`, `ErrorBinder`, `AppProviders`, `NavBar`, and `<main>` shell from `App.tsx`; renders `<Outlet />` for child routes.
+- **`frontend/dashboard/src/__tests__/router.test.tsx`** _(rewritten)_ — 26 tests using `createMemoryRouter` + `RouterProvider`; verifies all routes (public/protected/admin/fallback) and route-guard wrappers; exports `routes` from `router.tsx` enables `createMemoryRouter` in tests.
+- **`frontend/dashboard/src/layouts/__tests__/RootLayout.test.tsx`** _(new)_ — 4 tests: NavBar rendered, AppProviders rendered, Outlet inside `<main>`, flex classes on main.
+
+Root cause: `useBlocker` (used in `CsvImportPage` for navigation guard) requires a data router context; the previous `<BrowserRouter>` is a non-data router and throws an invariant error on `useBlocker` call.
+
 ## [0.120.0] - 2026-06-24
 ### Feat: CSV Import UX improvements — Phase 4
 

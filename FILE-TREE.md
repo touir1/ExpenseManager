@@ -655,8 +655,10 @@ ExpenseManager/
 │       └── vitest.config.ts           — Vitest test runner config
 │       └── src/
 │           ├── main.tsx               — React app mount point
-│           ├── App.tsx                — Root component: providers composition
-│           ├── router.tsx             — All <Routes> definitions
+│           ├── App.tsx                — Root component: mounts <RouterProvider router={router} />
+│           ├── router.tsx             — createBrowserRouter data router; pathless RootLayout parent wrapping all routes
+│           ├── __tests__/
+│           │   └── router.test.tsx    — 26 tests: createMemoryRouter per route; verifies public/protected/admin/fallback routes and guard wrappers
 │           ├── env.d.ts               — Vite env type declarations
 │           ├── vitest.d.ts            — Vitest type declarations
 │           ├── components/            — Shared UI primitives (generic, cross-feature)
@@ -904,8 +906,10 @@ ExpenseManager/
 │           │       └── usePageTitle.test.ts
 │           ├── layouts/               — App-wide layout components
 │           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive; "Admin" link shown only when isAdmin=true; right-side controls: FamilySelector → DisplayCurrencySelector → Add Expense `+` button → notification bell → user avatar dropdown (includes ThemeToggle row)
+│           │   ├── RootLayout.tsx      — Pathless data-router layout: ToastProvider + ErrorBinder + AppProviders + NavBar + <main><Outlet /></main>; required for useBlocker data-router context
 │           │   └── __tests__/
-│           │       └── NavBar.test.tsx
+│           │       ├── NavBar.test.tsx
+│           │       └── RootLayout.test.tsx — 4 tests: renders NavBar/AppProviders/Outlet in main/flex classes
 │           ├── services/              — Shared base services
 │           │   ├── api.service.ts     — Base fetch wrapper with cookie auth, transparent refresh-and-retry on 401, and skipUnauthorized option
 │           │   └── __tests__/
