@@ -39,6 +39,8 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 | `POST` | `/families/{id}/unarchive` | Unarchive family (head only) → 204 or 403/404 |
 | `POST` | `/families/{id}/invite` | Invite user by email (head only) → `{ token }` (200) or 403/404/409 |
 | `POST` | `/families/accept-invite` | Accept invitation by token → 204 or 400/403/409 |
+| `GET` | `/families/{id}/invitations` | List pending (not accepted, not expired) invitations (head only) → `FamilyPendingInvitationDto[]` (200) or 401/403 |
+| `DELETE` | `/families/{id}/invitations/{token}` | Revoke a pending invitation (head only) → 204 or 400/401/403 |
 | `DELETE` | `/families/{id}/members/{userId}` | Remove member (head only, not self) → 204 or 403/404 |
 | `PUT` | `/families/{id}/members/{userId}/role` | Change member role (head only) → 204 or 403/404 |
 | `GET` | `/tags` | Tags visible to user → `TagListDto { own, family }` |

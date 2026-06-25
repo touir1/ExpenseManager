@@ -710,6 +710,15 @@ describe('FamiliesPage', () => {
       expect(mockShow).toHaveBeenCalledWith('families.inviteSuccess', 'success')
     })
 
+    it('reloads pending invitations after successful invite', async () => {
+      vi.mocked(familyApi.inviteMember).mockResolvedValue({ ok: true, status: 200 })
+      const user = await renderExpanded()
+      await user.click(screen.getByRole('button', { name: /inviteAction/i }))
+      await user.type(screen.getByRole('textbox', { name: /auth\.email\.label/i }), 'new@example.com')
+      await user.click(screen.getByRole('button', { name: /families\.inviteSubmit/i }))
+      await waitFor(() => expect(familyApi.getPendingInvitations).toHaveBeenCalledTimes(2))
+    })
+
     it('shows validation error when invite email is empty', async () => {
       const user = await renderExpanded()
       await user.click(screen.getByRole('button', { name: /inviteAction/i }))

@@ -76,6 +76,7 @@ ExpenseManager/
 │           ├── nexus-proxy-integration.md  — Completed plan: Nexus Repository Manager integration
 │           ├── phase-13-notifications.md   — Completed plan: notifications microservice (SignalR, RabbitMQ, email, v0.112.x)
 │           ├── phase-14-mobile-app.md      — Completed plan: Ionic + Capacitor mobile app (v0.113.0–v0.114.0)
+│           ├── plan-05-families-management-web.md — Completed plan: archive confirmation modal, expand/collapse animation, invite revocation (v0.121.0)
 │           └── upload_protection.md    — Completed plan: CSV upload security hardening (10 fixes, v0.110.8)
 │
 ├── backend/
@@ -243,6 +244,7 @@ ExpenseManager/
 │   │   │   │   │   ├── TagDto.cs            — Id, Name
 │   │   │   │   │   ├── TagListDto.cs        — Own: IEnumerable<TagDto>, Family: IEnumerable<TagDto>
 │   │   │   │   │   ├── FamilyDto.cs         — Family response shape: Id, Name, IsDefault, IsDeleted, Members: FamilyMemberDto[]
+│   │   │   │   │   ├── FamilyPendingInvitationDto.cs — Pending invitation: Token, InviteeEmail, InvitedAt, ExpiresAt
 │   │   │   │   │   ├── CsvImportPreviewDto.cs — TotalRows, ValidCount, ErrorCount, Rows: IEnumerable<CsvImportRowPreviewDto> (display values incl. FamiliesDisplay + resolved IDs + errors per row)
 │   │   │   │   │   └── CsvImportResultDto.cs  — Imported, Skipped
 │   │   │   │   ├── Requests/

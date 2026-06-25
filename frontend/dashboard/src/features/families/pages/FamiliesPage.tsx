@@ -279,9 +279,11 @@ function RenameFamilyModal({
 function InviteMemberModal({
   family,
   onClose,
+  onSuccess,
 }: Readonly<{
   family: Family
   onClose: () => void
+  onSuccess?: () => void
 }>) {
   const { t } = useTranslation()
   const { show } = useToast()
@@ -296,6 +298,7 @@ function InviteMemberModal({
       show(t('families.inviteSuccess'), 'success')
       reset()
       onClose()
+      onSuccess?.()
     }
   }
 
@@ -502,6 +505,7 @@ function FamilyDetailPanel({
         <InviteMemberModal
           family={family}
           onClose={() => setShowInvite(false)}
+          onSuccess={loadInvitations}
         />
       )}
 

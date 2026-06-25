@@ -16,6 +16,7 @@
 - **`frontend/dashboard/src/features/families/pages/FamiliesPage.tsx`** — archive button now opens `ConfirmArchiveModal` before calling `archiveFamily`; expand/collapse uses `maxHeight` CSS transition (250ms, DOM stays mounted); `FamilyDetailPanel` loads pending invitations for Heads of non-default families with `ConfirmRevokeModal` for revoke flow.
 - **`frontend/dashboard/src/i18n/locales/{en,fr,es,de}/translation.json`** — added `archiveConfirm*`, `pendingInvitations*`, `revokeAction`, `revokeSuccess`, `revokeConfirm*`, `invitedAt`, `expiresAt` keys in all four locales.
 - **`frontend/dashboard/src/features/families/pages/__tests__/FamiliesPage.test.tsx`** — updated archive tests for modal flow, updated collapse test for animation, added pending invitations + revoke tests.
+- **Fix**: `InviteMemberModal` now calls `onSuccess?.()` after closing → `FamilyDetailPanel` reloads pending invitations immediately after a successful invite (previously required page refresh).
 
 ## [0.120.1] - 2026-06-25
 ### Fix: Migrate to data router to unblock `useBlocker` in CsvImportPage
