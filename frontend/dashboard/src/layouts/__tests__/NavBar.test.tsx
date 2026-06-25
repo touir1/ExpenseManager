@@ -55,6 +55,18 @@ vi.mock('@/features/settings/ThemeContext', () => ({
   useTheme: () => ({ theme: 'system', setTheme: mockSetTheme }),
 }))
 
+function mockMatchMedia(prefersDark = false) {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: prefersDark,
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })),
+  })
+}
+
 function makeQc() {
   return new QueryClient({ defaultOptions: { queries: { retry: false } } })
 }
@@ -79,6 +91,7 @@ describe('NavBar', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockSetTheme.mockReset()
+    mockMatchMedia(false) // default: system resolves to light
     mockUseFamilies.mockReturnValue({
       families: [],
       activeFamilyId: null,
@@ -621,9 +634,10 @@ describe('NavBar', () => {
       })
     })
 
-    it('renders when authenticated (system theme → "Switch to light mode")', () => {
+    it('renders when authenticated (system+light OS → "Switch to dark mode")', () => {
       renderNavBar('/dashboard')
-      expect(screen.getByRole('button', { name: /switch to light mode/i })).toBeInTheDocument()
+      // system theme + OS light → resolved=light → next action = dark
+      expect(screen.getByRole('button', { name: /switch to dark mode/i })).toBeInTheDocument()
     })
 
     it('does not render when unauthenticated', () => {
@@ -631,7 +645,6 @@ describe('NavBar', () => {
       renderNavBar('/')
       expect(screen.queryByRole('button', { name: /switch to light mode/i })).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: /switch to dark mode/i })).not.toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: /back to system default/i })).not.toBeInTheDocument()
     })
 
     it('theme toggle is not inside the user dropdown (no 3-segment ThemeToggle group)', () => {
@@ -640,11 +653,11 @@ describe('NavBar', () => {
       expect(screen.queryByRole('group', { name: /appearance/i })).not.toBeInTheDocument()
     })
 
-    it('calls setTheme when clicked', async () => {
+    it('calls setTheme("dark") when clicked in light OS + system theme', async () => {
       const user = userEvent.setup()
       renderNavBar('/dashboard')
-      await user.click(screen.getByRole('button', { name: /switch to light mode/i }))
-      expect(mockSetTheme).toHaveBeenCalledWith('light')
+      await user.click(screen.getByRole('button', { name: /switch to dark mode/i }))
+      expect(mockSetTheme).toHaveBeenCalledWith('dark')
     })
   })
 })

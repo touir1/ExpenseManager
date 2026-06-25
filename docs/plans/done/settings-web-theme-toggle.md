@@ -27,13 +27,16 @@ Duplication creates confusion about which is canonical. The dropdown slot is was
 
 ### NavBarThemeButton behavior
 
-| Current theme | Icon shown | `title` tooltip | Click → next theme |
-|---|---|---|---|
-| `'system'` | monitor SVG | "Switch to light mode" | `'light'` |
-| `'light'` | sun SVG | "Switch to dark mode" | `'dark'` |
-| `'dark'` | moon SVG | "Back to system default" | `'system'` |
+| Stored theme | OS prefers dark | Icon shown | `title` tooltip | Click → sets theme |
+|---|---|---|---|---|
+| `'light'` | any | sun SVG | "Switch to dark mode" | `'dark'` |
+| `'dark'` | any | moon SVG | "Switch to light mode" | `'light'` |
+| `'system'` | false | sun SVG | "Switch to dark mode" | `'dark'` |
+| `'system'` | true | moon SVG | "Switch to light mode" | `'light'` |
 
-Cycle: `system → light → dark → system`
+Toggle: `light ↔ dark` only. `'system'` never set from navbar. `'system'` stays available in SettingsPage only.
+
+> Updated v0.122.1: original 3-state cycle replaced with 2-state toggle; system resolves via `window.matchMedia`.
 
 Button styling: `h-8 w-8 rounded-lg text-ink-mute hover:text-ink hover:bg-surface-subtle transition-colors duration-150` — matches other utility icon buttons (no brand background). Meets 32×32px visual size; expand hit area via padding if needed.
 

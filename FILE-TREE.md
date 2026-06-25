@@ -669,7 +669,7 @@ ExpenseManager/
 │           │   ├── FieldError.tsx      — Per-field error paragraph with role="alert"
 │           │   ├── FormCombobox.tsx    — Searchable combobox (text input + listbox dropdown); portal-based dropdown via createPortal to document.body at position:fixed; optional className prop; used in ExpenseForm + admin pages
 │           │   ├── LanguageSwitcher.tsx — Language selector dropdown wired to i18n.changeLanguage
-│           │   ├── NavBarThemeButton.tsx — Icon-only theme cycle button (system→light→dark→system); monitor/sun/moon SVG; aria-label+title per state; h-8 w-8 utility style; placed in NavBar right-side controls
+│           │   ├── NavBarThemeButton.tsx — Icon-only theme toggle (light↔dark only); resolves system theme via OS matchMedia; sun/moon SVG; aria-label+title; h-8 w-8 utility style; placed in NavBar right-side controls
 │           │   ├── PasswordInput.tsx   — Password input with show/hide toggle
 │           │   ├── PasswordStrength.tsx — Live password strength indicator (5-segment bar + checklist)
 │           │   ├── SubmitButton.tsx    — Submit button with spinner SVG and configurable labels

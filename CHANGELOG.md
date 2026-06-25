@@ -1,6 +1,13 @@
 
 # Changelog
 
+## [0.122.1] - 2026-06-25
+### Fix: NavBar theme button — show light/dark only, resolve system from OS preference
+
+- **`frontend/dashboard/src/components/NavBarThemeButton.tsx`** — removed 3-state cycle (`system→light→dark→system`); resolves `'system'` theme to effective OS preference via `window.matchMedia('(prefers-color-scheme: dark)')`; toggles only `light ↔ dark` (navbar never sets `'system'`); `useEffect` re-evaluates OS preference on system→non-system change; removed monitor SVG.
+- **`frontend/dashboard/src/components/__tests__/NavBarThemeButton.test.tsx`** — 10 tests: 4 icon-resolution (explicit + system×OS), 4 click cases (never `setTheme('system')`), 2 a11y; added `mockMatchMedia` helper.
+- **`frontend/dashboard/src/layouts/__tests__/NavBar.test.tsx`** — `mockMatchMedia(false)` in `beforeEach`; updated button label expectation (`system`+light OS → "Switch to dark mode").
+
 ## [0.122.0] - 2026-06-25
 ### Feat: NavBar theme toggle — remove dropdown duplication, add inline icon button
 
