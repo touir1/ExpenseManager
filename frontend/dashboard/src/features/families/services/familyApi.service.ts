@@ -1,6 +1,6 @@
 import { get, post, put, del } from '@/services/api.service'
 import type { ApiResponse } from '@/types/api.type'
-import type { Family, FamilyDetail } from '@/features/families/types/family.type'
+import type { Family, FamilyDetail, FamilyPendingInvitation } from '@/features/families/types/family.type'
 
 const BASE = '/api/expenses/families'
 
@@ -46,4 +46,12 @@ export function changeMemberRole(familyId: number, targetUserId: number, role: s
 
 export function leaveFamily(familyId: number): Promise<ApiResponse<void>> {
   return del<void>(`${BASE}/${familyId}/leave`)
+}
+
+export function getPendingInvitations(familyId: number): Promise<ApiResponse<FamilyPendingInvitation[]>> {
+  return get<FamilyPendingInvitation[]>(`${BASE}/${familyId}/invitations`)
+}
+
+export function revokeInvitation(familyId: number, token: string): Promise<ApiResponse<void>> {
+  return del<void>(`${BASE}/${familyId}/invitations/${encodeURIComponent(token)}`)
 }

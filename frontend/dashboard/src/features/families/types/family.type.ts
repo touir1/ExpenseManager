@@ -21,3 +21,10 @@ export type Family = {
 export type FamilyDetail = Family & {
   members: FamilyMember[]
 }
+
+export type FamilyPendingInvitation = {
+  token: string
+  inviteeEmail: string
+  invitedAt: string
+  expiresAt: string
+}

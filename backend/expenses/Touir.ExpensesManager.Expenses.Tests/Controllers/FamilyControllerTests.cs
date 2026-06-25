@@ -638,5 +638,106 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
             var result = await CreateController(service.Object).ChangeMemberRoleAsync(1, 99, new ChangeMemberRoleRequest { Role = "Member" });
             Assert.IsType<BadRequestObjectResult>(result);
         }
+
+        // ── GetPendingInvitationsAsync ────────────────────────────────────────
+
+        [Fact]
+        public async Task GetPendingInvitations_Returns401_WhenNoCookie()
+        {
+            var result = await CreateController(jwtCookie: null).GetPendingInvitationsAsync(1);
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetPendingInvitations_Returns200_WithList()
+        {
+            var dto = new FamilyPendingInvitationDto
+            {
+                Token = "tok",
+                InviteeEmail = "x@y.com",
+                InvitedAt = DateTime.UtcNow.AddDays(-1),
+                ExpiresAt = DateTime.UtcNow.AddDays(6)
+            };
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.GetPendingInvitationsAsync(1, 42))
+                .ReturnsAsync([dto]);
+
+            var result = await CreateController(service.Object).GetPendingInvitationsAsync(1);
+
+            var ok = Assert.IsType<OkObjectResult>(result);
+            var list = Assert.IsAssignableFrom<IEnumerable<FamilyPendingInvitationDto>>(ok.Value);
+            Assert.Single(list);
+        }
+
+        [Fact]
+        public async Task GetPendingInvitations_Returns403_WhenForbidden()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.GetPendingInvitationsAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ThrowsAsync(new FamilyForbiddenException());
+            var result = await CreateController(service.Object).GetPendingInvitationsAsync(1);
+            Assert.Equal(403, ((ObjectResult)result).StatusCode);
+        }
+
+        [Fact]
+        public async Task GetPendingInvitations_ServiceThrows_ReturnsBadRequest()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.GetPendingInvitationsAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ThrowsAsync(new Exception("db"));
+            var result = await CreateController(service.Object).GetPendingInvitationsAsync(1);
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        // ── RevokeInvitationAsync ─────────────────────────────────────────────
+
+        [Fact]
+        public async Task RevokeInvitation_Returns401_WhenNoCookie()
+        {
+            var result = await CreateController(jwtCookie: null).RevokeInvitationAsync(1, "tok");
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task RevokeInvitation_Returns204_OnSuccess()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.RevokeInvitationAsync(1, "tok", 42))
+                .Returns(Task.CompletedTask);
+
+            var result = await CreateController(service.Object).RevokeInvitationAsync(1, "tok");
+
+            Assert.IsType<NoContentResult>(result);
+        }
+
+        [Fact]
+        public async Task RevokeInvitation_Returns403_WhenForbidden()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.RevokeInvitationAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ThrowsAsync(new FamilyForbiddenException());
+            var result = await CreateController(service.Object).RevokeInvitationAsync(1, "tok");
+            Assert.Equal(403, ((ObjectResult)result).StatusCode);
+        }
+
+        [Fact]
+        public async Task RevokeInvitation_Returns400_WhenInvalidInvitation()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.RevokeInvitationAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ThrowsAsync(new FamilyInvitationException("FAMILY_INVITATION_INVALID"));
+            var result = await CreateController(service.Object).RevokeInvitationAsync(1, "bad-tok");
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task RevokeInvitation_ServiceThrows_ReturnsBadRequest()
+        {
+            var service = new Mock<IFamilyService>();
+            service.Setup(s => s.RevokeInvitationAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ThrowsAsync(new Exception("db"));
+            var result = await CreateController(service.Object).RevokeInvitationAsync(1, "tok");
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
     }
 }

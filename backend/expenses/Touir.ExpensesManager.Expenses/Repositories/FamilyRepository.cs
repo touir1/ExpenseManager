@@ -116,6 +116,20 @@ namespace Touir.ExpensesManager.Expenses.Repositories
             await _db.SaveChangesAsync();
         }
 
+        public async Task<IEnumerable<FamilyInvitation>> GetPendingInvitationsByFamilyAsync(int familyId)
+            => await _db.FamilyInvitations
+                .Where(i => i.FamilyId == familyId
+                         && i.AcceptedAt == null
+                         && i.ExpiresAt > DateTime.UtcNow)
+                .AsNoTracking()
+                .ToListAsync();
+
+        public async Task DeleteInvitationAsync(FamilyInvitation invitation)
+        {
+            _db.FamilyInvitations.Remove(invitation);
+            await _db.SaveChangesAsync();
+        }
+
         public async Task AddInvitationAsync(FamilyInvitation invitation)
         {
             _db.FamilyInvitations.Add(invitation);

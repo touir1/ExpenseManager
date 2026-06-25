@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import FamiliesPage from '../FamiliesPage'
-import type { Family, FamilyDetail } from '../../types/family.type'
+import type { Family, FamilyDetail, FamilyPendingInvitation } from '../../types/family.type'
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -46,6 +46,8 @@ vi.mock('@/features/families/services/familyApi.service', () => ({
   changeMemberRole: vi.fn(),
   getFamilyById: vi.fn(),
   leaveFamily: vi.fn(),
+  getPendingInvitations: vi.fn().mockResolvedValue({ ok: true, data: [] }),
+  revokeInvitation: vi.fn(),
 }))
 
 import * as familyApi from '@/features/families/services/familyApi.service'
@@ -290,7 +292,10 @@ describe('FamiliesPage', () => {
       await user.click(expandBtn)
       await waitFor(() => expect(expandBtn).toHaveAttribute('aria-expanded', 'true'))
       await user.click(screen.getByRole('button', { name: /families\.collapse/i }))
-      expect(screen.queryByText('families.members')).not.toBeInTheDocument()
+      await waitFor(() => expect(screen.getByRole('button', { name: /families\.expand/i })).toHaveAttribute('aria-expanded', 'false'))
+      // Content stays in DOM after first load (animation), but wrapper has maxHeight: 0px
+      const animWrapper = document.querySelector('[style*="max-height"]') as HTMLElement
+      expect(animWrapper?.style.maxHeight).toBe('0px')
     })
 
     it('shows no detail panel when getFamilyById fails', async () => {
@@ -327,22 +332,43 @@ describe('FamiliesPage', () => {
       expect(screen.queryByRole('button', { name: /families\.archiveAction/i })).not.toBeInTheDocument()
     })
 
-    it('calls archiveFamily when archive button clicked', async () => {
+    it('archive button shows confirmation modal without calling archiveFamily', async () => {
+      makeCtx({ families: [mockFamily2] })
+      const user = userEvent.setup()
+      render(<FamiliesPage />)
+      await user.click(screen.getByRole('button', { name: /families\.archiveAction/i }))
+      expect(screen.getByText('families.archiveConfirmTitle')).toBeInTheDocument()
+      expect(familyApi.archiveFamily).not.toHaveBeenCalled()
+    })
+
+    it('calls archiveFamily after confirming archive modal', async () => {
       makeCtx({ families: [mockFamily2] })
       vi.mocked(familyApi.archiveFamily).mockResolvedValue({ ok: true, status: 200 })
       const user = userEvent.setup()
       render(<FamiliesPage />)
       await user.click(screen.getByRole('button', { name: /families\.archiveAction/i }))
-      expect(familyApi.archiveFamily).toHaveBeenCalledWith(2)
+      await user.click(screen.getByRole('button', { name: /families\.archiveConfirmSubmit/i }))
+      await waitFor(() => expect(familyApi.archiveFamily).toHaveBeenCalledWith(2))
     })
 
-    it('shows toast and calls refresh after archive', async () => {
+    it('cancelling archive modal does not call archiveFamily', async () => {
+      makeCtx({ families: [mockFamily2] })
+      const user = userEvent.setup()
+      render(<FamiliesPage />)
+      await user.click(screen.getByRole('button', { name: /families\.archiveAction/i }))
+      await user.click(screen.getByRole('button', { name: /families\.archiveConfirmCancel/i }))
+      expect(familyApi.archiveFamily).not.toHaveBeenCalled()
+      expect(screen.queryByText('families.archiveConfirmTitle')).not.toBeInTheDocument()
+    })
+
+    it('shows toast and calls refresh after archive confirmed', async () => {
       const refresh = vi.fn()
       makeCtx({ families: [mockFamily2], refresh })
       vi.mocked(familyApi.archiveFamily).mockResolvedValue({ ok: true, status: 200 })
       const user = userEvent.setup()
       render(<FamiliesPage />)
       await user.click(screen.getByRole('button', { name: /families\.archiveAction/i }))
+      await user.click(screen.getByRole('button', { name: /families\.archiveConfirmSubmit/i }))
       await waitFor(() => expect(mockShow).toHaveBeenCalledWith('families.archiveSuccess', 'success'))
       expect(refresh).toHaveBeenCalledTimes(2) // once on mount, once after archive
     })
@@ -354,6 +380,7 @@ describe('FamiliesPage', () => {
       const user = userEvent.setup()
       render(<FamiliesPage />)
       await user.click(screen.getByRole('button', { name: /families\.archiveAction/i }))
+      await user.click(screen.getByRole('button', { name: /families\.archiveConfirmSubmit/i }))
       await waitFor(() => expect(familyApi.archiveFamily).toHaveBeenCalledWith(2))
       expect(mockShow).not.toHaveBeenCalled()
       expect(refresh).toHaveBeenCalledTimes(1) // mount only
@@ -753,6 +780,68 @@ describe('FamiliesPage', () => {
       await user.click(screen.getByRole('button', { name: /families\.leaveAction/i }))
       await waitFor(() => expect(familyApi.leaveFamily).toHaveBeenCalled())
       expect(mockShow).not.toHaveBeenCalled()
+    })
+
+    // ── Pending invitations ───────────────────────────────────────────────────
+
+    const mockInvitation: FamilyPendingInvitation = {
+      token: 'token-123',
+      inviteeEmail: 'invite@example.com',
+      invitedAt: '2024-01-01T00:00:00Z',
+      expiresAt: '2024-01-08T00:00:00Z',
+    }
+
+    it('shows pending invitations empty state for Head of non-default family', async () => {
+      await renderExpanded()
+      await waitFor(() => expect(screen.getByText('families.pendingInvitationsEmpty')).toBeInTheDocument())
+    })
+
+    it('shows pending invitation email when there is one', async () => {
+      vi.mocked(familyApi.getPendingInvitations).mockResolvedValue({ ok: true, data: [mockInvitation] })
+      await renderExpanded()
+      await waitFor(() => expect(screen.getByText('invite@example.com')).toBeInTheDocument())
+    })
+
+    it('does not show pending invitations section for Member', async () => {
+      const memberFamily: Family = { ...mockFamily2, userRole: 'Member' }
+      await renderExpanded({ family: memberFamily, detail: { ...mockDetail, userRole: 'Member' } })
+      expect(screen.queryByText('families.pendingInvitationsEmpty')).not.toBeInTheDocument()
+    })
+
+    it('does not show pending invitations section for default family', () => {
+      makeCtx({ families: [mockFamily] })
+      render(<FamiliesPage />)
+      expect(screen.queryByText('families.pendingInvitationsEmpty')).not.toBeInTheDocument()
+    })
+
+    it('revoke button shows confirm modal without calling revokeInvitation', async () => {
+      vi.mocked(familyApi.getPendingInvitations).mockResolvedValue({ ok: true, data: [mockInvitation] })
+      const user = await renderExpanded()
+      await waitFor(() => expect(screen.getByRole('button', { name: /families\.revokeAction/i })).toBeInTheDocument())
+      await user.click(screen.getByRole('button', { name: /families\.revokeAction/i }))
+      expect(screen.getByText('families.revokeConfirmTitle')).toBeInTheDocument()
+      expect(familyApi.revokeInvitation).not.toHaveBeenCalled()
+    })
+
+    it('confirming revoke calls revokeInvitation and shows toast', async () => {
+      vi.mocked(familyApi.getPendingInvitations).mockResolvedValue({ ok: true, data: [mockInvitation] })
+      vi.mocked(familyApi.revokeInvitation).mockResolvedValue({ ok: true })
+      const user = await renderExpanded()
+      await waitFor(() => expect(screen.getByRole('button', { name: /families\.revokeAction/i })).toBeInTheDocument())
+      await user.click(screen.getByRole('button', { name: /families\.revokeAction/i }))
+      await user.click(screen.getByRole('button', { name: /families\.revokeConfirmSubmit/i }))
+      await waitFor(() => expect(familyApi.revokeInvitation).toHaveBeenCalledWith(2, 'token-123'))
+      expect(mockShow).toHaveBeenCalledWith('families.revokeSuccess', 'success')
+    })
+
+    it('cancelling revoke does not call revokeInvitation', async () => {
+      vi.mocked(familyApi.getPendingInvitations).mockResolvedValue({ ok: true, data: [mockInvitation] })
+      const user = await renderExpanded()
+      await waitFor(() => expect(screen.getByRole('button', { name: /families\.revokeAction/i })).toBeInTheDocument())
+      await user.click(screen.getByRole('button', { name: /families\.revokeAction/i }))
+      await user.click(screen.getByRole('button', { name: /families\.archiveConfirmCancel/i }))
+      expect(familyApi.revokeInvitation).not.toHaveBeenCalled()
+      expect(screen.queryByText('families.revokeConfirmTitle')).not.toBeInTheDocument()
     })
   })
 

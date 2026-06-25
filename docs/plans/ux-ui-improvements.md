@@ -244,31 +244,35 @@
 
 ## 5. Families Management (Web)
 
-### 🟡 Web: FamilyCard expand/collapse animation is instant — no transition
+### ✅ 🟡 Web: FamilyCard expand/collapse animation is instant — no transition
 
 **Problem:** When clicking the chevron, the member list appears/disappears with no animation. Jarring.  
-**Fix:** Add a CSS height transition (e.g. `max-height` transition from 0 to auto, or use Headless UI Disclosure).
+**Fix:** Add a CSS height transition (e.g. `max-height` transition from 0 to auto, or use Headless UI Disclosure).  
+**Done:** `maxHeight` CSS transition (0 → 600px, 250ms ease-in-out) on expand/collapse wrapper; DOM stays mounted so content doesn't flash — `FamiliesPage.tsx`.
 
 ---
 
-### 🟡 Web: Invite flow — no way to cancel a pending invitation
+### ✅ 🟡 Web: Invite flow — no way to cancel a pending invitation
 
 **Problem:** Once an invitation email is sent, there is no UI to revoke it before it's accepted.  
-**Fix:** Show pending invitations in the family member list with a "Revoke" button (requires a new API endpoint: `DELETE /families/{id}/invitations/{token}`).
+**Fix:** Show pending invitations in the family member list with a "Revoke" button (requires a new API endpoint: `DELETE /families/{id}/invitations/{token}`).  
+**Done:** Added `GET /families/{id}/invitations` + `DELETE /families/{id}/invitations/{token}` (Head-only); `FamilyDetailPanel` shows pending invitations with revoke confirmation modal — backend `FamilyController/FamilyService/FamilyRepository`, frontend `FamiliesPage.tsx`, `familyApi.service.ts`, all 4 locale files.
 
 ---
 
-### 🟡 Web: Archive confirmation is missing
+### ✅ 🟡 Web: Archive confirmation is missing
 
 **Problem:** Clicking the archive icon immediately archives the family without confirmation. Archiving hides all attributions — hard to undo.  
-**Fix:** Show a confirmation modal: "Archive {familyName}? Expenses attributed to this family will remain but the family will be hidden."
+**Fix:** Show a confirmation modal: "Archive {familyName}? Expenses attributed to this family will remain but the family will be hidden."  
+**Done:** `ConfirmArchiveModal` renders on archive button click; calls `archiveFamily` only after confirm — `FamiliesPage.tsx`, all 4 locale files.
 
 ---
 
-### 🟢 Web: Family tab badge counts don't update live
+### ✅ 🟢 Web: Family tab badge counts don't update live
 
 **Problem:** Active (3) / Archived (1) tab counts are loaded once and don't update after create/archive actions without a page refresh.  
-**Fix:** Derive counts from the `families` array in context which already updates on mutation. Tab badges should be computed values, not server-fetched separate counters.
+**Fix:** Derive counts from the `families` array in context which already updates on mutation. Tab badges should be computed values, not server-fetched separate counters.  
+**Done:** Tab counts computed from `families.filter(…).length` (already implemented in earlier plan).
 
 ---
 

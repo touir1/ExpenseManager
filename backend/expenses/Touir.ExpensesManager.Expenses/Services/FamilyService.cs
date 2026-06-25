@@ -444,6 +444,46 @@ namespace Touir.ExpensesManager.Expenses.Services
             await _familyRepo.RemoveMemberAttributionsAsync(familyId, userId);
         }
 
+        public async Task<IEnumerable<FamilyPendingInvitationDto>> GetPendingInvitationsAsync(int familyId, int userId)
+        {
+            var membership = await _familyRepo.GetMembershipAsync(familyId, userId)
+                ?? throw new FamilyForbiddenException();
+
+            var headId = await _lookupCache.GetIdAsync<FamilyRole>(RoleHead);
+            if (membership.RoleId != headId)
+                throw new FamilyForbiddenException();
+
+            var invitations = await _familyRepo.GetPendingInvitationsByFamilyAsync(familyId);
+            return invitations.Select(i => new FamilyPendingInvitationDto
+            {
+                Token = i.Token,
+                InviteeEmail = i.InviteeEmail,
+                InvitedAt = i.InvitedAt,
+                ExpiresAt = i.ExpiresAt
+            });
+        }
+
+        public async Task RevokeInvitationAsync(int familyId, string token, int userId)
+        {
+            var membership = await _familyRepo.GetMembershipAsync(familyId, userId)
+                ?? throw new FamilyForbiddenException();
+
+            var headId = await _lookupCache.GetIdAsync<FamilyRole>(RoleHead);
+            if (membership.RoleId != headId)
+                throw new FamilyForbiddenException();
+
+            var invitation = await _familyRepo.GetInvitationByTokenAsync(token)
+                ?? throw new FamilyInvitationException(ServiceErrors.FamilyInvitationInvalid);
+
+            if (invitation.FamilyId != familyId)
+                throw new FamilyForbiddenException();
+
+            if (invitation.AcceptedAt.HasValue)
+                throw new FamilyInvitationException(ServiceErrors.FamilyInvitationAlreadyAccepted);
+
+            await _familyRepo.DeleteInvitationAsync(invitation);
+        }
+
         private static FamilyDto MapToDto(Family family, string roleName) => new()
         {
             Id = family.Id,

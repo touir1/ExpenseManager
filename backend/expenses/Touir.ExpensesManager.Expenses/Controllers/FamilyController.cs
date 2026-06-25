@@ -332,6 +332,63 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             }
         }
 
+        /// <summary>List pending (not accepted, not expired) invitations for a family. Head only.</summary>
+        [HttpGet("{id:int}/invitations")]
+        [ProducesResponseType(typeof(IEnumerable<FamilyPendingInvitationDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> GetPendingInvitationsAsync(int id)
+        {
+            try
+            {
+                var userId = JwtCookieReader.GetUserId(Request);
+                if (userId is null)
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingUser });
+
+                var invitations = await _familyService.GetPendingInvitationsAsync(id, userId.Value);
+                return Ok(invitations);
+            }
+            catch (FamilyForbiddenException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponse { Message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
+            }
+        }
+
+        /// <summary>Revoke a pending invitation. Head only. Deletes the invitation record.</summary>
+        [HttpDelete("{id:int}/invitations/{token}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> RevokeInvitationAsync(int id, string token)
+        {
+            try
+            {
+                var userId = JwtCookieReader.GetUserId(Request);
+                if (userId is null)
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingUser });
+
+                await _familyService.RevokeInvitationAsync(id, token, userId.Value);
+                return NoContent();
+            }
+            catch (FamilyInvitationException ex)
+            {
+                return BadRequest(new ErrorResponse { Message = ex.Message });
+            }
+            catch (FamilyForbiddenException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponse { Message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
+            }
+        }
+
         /// <summary>Change a member's role. Head only.</summary>
         [HttpPut("{id:int}/members/{targetUserId:int}/role")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

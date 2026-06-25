@@ -16,5 +16,7 @@ namespace Touir.ExpensesManager.Expenses.Services.Contracts
         Task ArchiveAsync(int familyId, int userId);
         Task UnarchiveAsync(int familyId, int userId);
         Task LeaveAsync(int familyId, int userId);
+        Task<IEnumerable<FamilyPendingInvitationDto>> GetPendingInvitationsAsync(int familyId, int userId);
+        Task RevokeInvitationAsync(int familyId, string token, int userId);
     }
 }

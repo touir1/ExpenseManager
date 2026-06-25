@@ -21,6 +21,8 @@ namespace Touir.ExpensesManager.Expenses.Repositories.Contracts
         Task AddInvitationAsync(FamilyInvitation invitation);
         Task<FamilyInvitation?> GetInvitationByTokenAsync(string token);
         Task UpdateInvitationAsync(FamilyInvitation invitation);
+        Task<IEnumerable<FamilyInvitation>> GetPendingInvitationsByFamilyAsync(int familyId);
+        Task DeleteInvitationAsync(FamilyInvitation invitation);
         Task AddAttributionsAsync(IEnumerable<ExpenseFamilyAttribution> attributions);
         Task ClearAttributionsAsync(long expenseId);
         Task<int> CountMemberAttributionsAsync(int familyId, int userId);

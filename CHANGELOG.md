@@ -1,6 +1,22 @@
 
 # Changelog
 
+## [0.121.0] - 2026-06-25
+### Feat: Families management web — archive confirmation, expand/collapse animation, invite revocation
+
+- **`backend/expenses/.../Controllers/DTO/FamilyPendingInvitationDto.cs`** _(new)_ — DTO with `Token`, `InviteeEmail`, `InvitedAt`, `ExpiresAt`.
+- **`backend/expenses/.../Repositories/Contracts/IFamilyRepository.cs`** — added `GetPendingInvitationsByFamilyAsync` + `DeleteInvitationAsync`.
+- **`backend/expenses/.../Repositories/FamilyRepository.cs`** — implemented both; `GetPendingInvitationsByFamilyAsync` filters `AcceptedAt == null && ExpiresAt > UtcNow`.
+- **`backend/expenses/.../Services/Contracts/IFamilyService.cs`** — added `GetPendingInvitationsAsync` + `RevokeInvitationAsync`.
+- **`backend/expenses/.../Services/FamilyService.cs`** — implemented both; both require Head role; `RevokeInvitationAsync` hard-deletes the invitation row.
+- **`backend/expenses/.../Controllers/FamilyController.cs`** — new `GET /{id}/invitations` (200/401/403) + `DELETE /{id}/invitations/{token}` (204/400/401/403).
+- **`backend/expenses/.../Tests/Controllers/FamilyControllerTests.cs`** — 8 new tests for both endpoints.
+- **`frontend/dashboard/src/features/families/types/family.type.ts`** — added `FamilyPendingInvitation` type.
+- **`frontend/dashboard/src/features/families/services/familyApi.service.ts`** — added `getPendingInvitations` + `revokeInvitation`.
+- **`frontend/dashboard/src/features/families/pages/FamiliesPage.tsx`** — archive button now opens `ConfirmArchiveModal` before calling `archiveFamily`; expand/collapse uses `maxHeight` CSS transition (250ms, DOM stays mounted); `FamilyDetailPanel` loads pending invitations for Heads of non-default families with `ConfirmRevokeModal` for revoke flow.
+- **`frontend/dashboard/src/i18n/locales/{en,fr,es,de}/translation.json`** — added `archiveConfirm*`, `pendingInvitations*`, `revokeAction`, `revokeSuccess`, `revokeConfirm*`, `invitedAt`, `expiresAt` keys in all four locales.
+- **`frontend/dashboard/src/features/families/pages/__tests__/FamiliesPage.test.tsx`** — updated archive tests for modal flow, updated collapse test for animation, added pending invitations + revoke tests.
+
 ## [0.120.1] - 2026-06-25
 ### Fix: Migrate to data router to unblock `useBlocker` in CsvImportPage
 

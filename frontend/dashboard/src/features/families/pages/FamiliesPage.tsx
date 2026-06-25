@@ -14,6 +14,8 @@ import {
   changeMemberRole,
   leaveFamily,
   getFamilyById,
+  getPendingInvitations,
+  revokeInvitation,
 } from '@/features/families/services/familyApi.service'
 import {
   makeCreateFamilySchema,
@@ -22,7 +24,7 @@ import {
   type CreateFamilyData,
   type InviteMemberData,
 } from '@/features/families/family.schemas'
-import type { Family, FamilyDetail, FamilyMember } from '@/features/families/types/family.type'
+import type { Family, FamilyDetail, FamilyMember, FamilyPendingInvitation } from '@/features/families/types/family.type'
 import { useToast } from '@/components/Toast'
 import FieldError from '@/components/FieldError'
 import SubmitButton from '@/components/SubmitButton'
@@ -92,6 +94,85 @@ function Modal({
         {children}
       </div>
     </div>
+  )
+}
+
+// ── Confirm Archive Modal ──────────────────────────────────────────────────
+
+function ConfirmArchiveModal({
+  family,
+  onClose,
+  onConfirm,
+}: Readonly<{ family: Family; onClose: () => void; onConfirm: () => Promise<void> }>) {
+  const { t } = useTranslation()
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleConfirm = async () => {
+    setSubmitting(true)
+    await onConfirm()
+    setSubmitting(false)
+    onClose()
+  }
+
+  return (
+    <Modal title={t('families.archiveConfirmTitle', { name: family.name })} onClose={onClose}>
+      <p className="text-sm text-ink-mute mb-5">{t('families.archiveConfirmMessage')}</p>
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={onClose}
+          className="px-3.5 py-2 rounded-xl border border-surface-border text-sm font-medium text-ink-body hover:bg-surface-subtle transition-colors cursor-pointer"
+        >
+          {t('families.archiveConfirmCancel')}
+        </button>
+        <button
+          onClick={handleConfirm}
+          disabled={submitting}
+          className="btn-primary mt-0"
+        >
+          {submitting ? t('families.archiveConfirmSubmitting') : t('families.archiveConfirmSubmit')}
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
+// ── Confirm Revoke Modal ───────────────────────────────────────────────────
+
+function ConfirmRevokeModal({
+  invitation,
+  onClose,
+  onConfirm,
+}: Readonly<{ invitation: FamilyPendingInvitation; onClose: () => void; onConfirm: () => Promise<void> }>) {
+  const { t } = useTranslation()
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleConfirm = async () => {
+    setSubmitting(true)
+    await onConfirm()
+    setSubmitting(false)
+  }
+
+  return (
+    <Modal title={t('families.revokeConfirmTitle')} onClose={onClose}>
+      <p className="text-sm text-ink-mute mb-5">
+        {t('families.revokeConfirmMessage', { email: invitation.inviteeEmail })}
+      </p>
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={onClose}
+          className="px-3.5 py-2 rounded-xl border border-surface-border text-sm font-medium text-ink-body hover:bg-surface-subtle transition-colors cursor-pointer"
+        >
+          {t('families.archiveConfirmCancel')}
+        </button>
+        <button
+          onClick={handleConfirm}
+          disabled={submitting}
+          className="btn-primary mt-0"
+        >
+          {submitting ? t('families.revokeConfirmSubmitting') : t('families.revokeConfirmSubmit')}
+        </button>
+      </div>
+    </Modal>
   )
 }
 
@@ -260,9 +341,23 @@ function FamilyDetailPanel({
   const { show } = useToast()
   const { user } = useAuth()
   const [showInvite, setShowInvite] = useState(false)
+  const [pendingInvitations, setPendingInvitations] = useState<FamilyPendingInvitation[]>([])
+  const [loadingInvitations, setLoadingInvitations] = useState(false)
+  const [revokeTarget, setRevokeTarget] = useState<FamilyPendingInvitation | null>(null)
   const isHead = family.userRole === 'Head'
   const headCount = detail.members.filter(m => m.role === 'Head').length
   const canLeave = !family.isDefault && !family.isArchived && (!isHead || headCount > 1)
+
+  const loadInvitations = useCallback(async () => {
+    setLoadingInvitations(true)
+    const res = await getPendingInvitations(family.id)
+    if (res.ok && res.data) setPendingInvitations(res.data)
+    setLoadingInvitations(false)
+  }, [family.id])
+
+  useEffect(() => {
+    if (isHead && !family.isDefault) loadInvitations()
+  }, [isHead, family.isDefault, loadInvitations])
 
   const handleLeave = async () => {
     const res = await leaveFamily(family.id)
@@ -286,6 +381,16 @@ function FamilyDetailPanel({
     if (res.ok) {
       show(t('families.roleChanged'), 'success')
       onRefresh()
+    }
+  }
+
+  const handleRevoke = async () => {
+    if (!revokeTarget) return
+    const res = await revokeInvitation(family.id, revokeTarget.token)
+    if (res.ok) {
+      show(t('families.revokeSuccess'), 'success')
+      setRevokeTarget(null)
+      loadInvitations()
     }
   }
 
@@ -348,6 +453,40 @@ function FamilyDetailPanel({
         })}
       </ul>
 
+      {isHead && !family.isDefault && (
+        <div className="mt-3 pt-3 border-t border-surface-border">
+          <span className="text-xs font-semibold text-ink-mute uppercase tracking-wide">
+            {t('families.pendingInvitations', { count: pendingInvitations.length })}
+          </span>
+          {loadingInvitations ? (
+            <div className="mt-2 animate-pulse space-y-1.5">
+              {[0, 1].map(i => <div key={i} className="h-3 bg-surface-subtle rounded w-48" />)}
+            </div>
+          ) : pendingInvitations.length === 0 ? (
+            <p className="text-xs text-ink-faint mt-1">{t('families.pendingInvitationsEmpty')}</p>
+          ) : (
+            <ul className="mt-2 space-y-1.5">
+              {pendingInvitations.map(inv => (
+                <li key={inv.token} className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm text-ink truncate">{inv.inviteeEmail}</p>
+                    <p className="text-xs text-ink-faint">
+                      {t('families.expiresAt', { date: new Date(inv.expiresAt).toLocaleDateString() })}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setRevokeTarget(inv)}
+                    className="text-xs font-medium text-red-500 hover:text-red-700 transition-colors cursor-pointer shrink-0"
+                  >
+                    {t('families.revokeAction')}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       {canLeave && (
         <div className="mt-3 pt-3 border-t border-surface-border flex justify-end">
           <button
@@ -363,6 +502,14 @@ function FamilyDetailPanel({
         <InviteMemberModal
           family={family}
           onClose={() => setShowInvite(false)}
+        />
+      )}
+
+      {revokeTarget && (
+        <ConfirmRevokeModal
+          invitation={revokeTarget}
+          onClose={() => setRevokeTarget(null)}
+          onConfirm={handleRevoke}
         />
       )}
     </div>
@@ -384,6 +531,7 @@ function FamilyCard({
   const [detail, setDetail] = useState<FamilyDetail | null>(null)
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [showRename, setShowRename] = useState(false)
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
   const isHead = family.userRole === 'Head'
 
   const loadDetail = useCallback(async () => {
@@ -484,7 +632,7 @@ function FamilyCard({
               </button>
             ) : (
               <button
-                onClick={handleArchive}
+                onClick={() => setShowArchiveConfirm(true)}
                 className="p-1.5 rounded-lg text-ink-faint hover:text-amber-600 hover:bg-amber-50 dark:hover:text-amber-400 dark:hover:bg-amber-900/20 transition-colors cursor-pointer"
                 title={t('families.archiveAction')}
               >
@@ -513,13 +661,31 @@ function FamilyCard({
         </div>
       </div>
 
-      {expanded && expandedContent}
+      {(expanded || detail !== null || loadingDetail) && (
+        <div
+          style={{
+            maxHeight: expanded ? '600px' : '0px',
+            overflow: 'hidden',
+            transition: 'max-height 0.25s ease-in-out',
+          }}
+        >
+          {expandedContent}
+        </div>
+      )}
 
       {showRename && (
         <RenameFamilyModal
           family={family}
           onClose={() => setShowRename(false)}
           onRenamed={onRefresh}
+        />
+      )}
+
+      {showArchiveConfirm && (
+        <ConfirmArchiveModal
+          family={family}
+          onClose={() => setShowArchiveConfirm(false)}
+          onConfirm={handleArchive}
         />
       )}
     </div>
