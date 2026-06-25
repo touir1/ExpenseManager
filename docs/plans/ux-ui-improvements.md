@@ -291,10 +291,11 @@
 
 ---
 
-### 🟡 Web: Theme toggle is in NavBar user dropdown AND SettingsPage — duplication
+### ✅ 🟡 Web: Theme toggle is in NavBar user dropdown AND SettingsPage — duplication
 
 **Problem:** Two places to change the theme creates confusion about which is canonical.  
-**Fix:** Keep it in Settings only. In the NavBar dropdown, show a quick-access link to Settings instead.
+**Fix:** Keep it in Settings only. In the NavBar dropdown, show a quick-access link to Settings instead.  
+**Done:** Removed `ThemeToggle` from user dropdown; added `NavBarThemeButton` (icon-only, 3-state cycle, tooltip) directly in right-side NavBar controls after notification bell — `NavBar.tsx`, `NavBarThemeButton.tsx`, all 4 locale files.
 
 ---
 

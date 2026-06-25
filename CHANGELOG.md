@@ -1,6 +1,17 @@
 
 # Changelog
 
+## [0.122.0] - 2026-06-25
+### Feat: NavBar theme toggle — remove dropdown duplication, add inline icon button
+
+- **`frontend/dashboard/src/components/NavBarThemeButton.tsx`** _(new)_ — icon-only theme cycle button (`system → light → dark → system`); monitor/sun/moon SVG; `aria-label` + `title` tooltip shows next action; Hearth utility button style (`h-8 w-8 text-ink-mute hover:bg-surface-subtle`); no brand background (secondary utility, not primary action).
+- **`frontend/dashboard/src/layouts/NavBar.tsx`** — replaced `ThemeToggle` import with `NavBarThemeButton`; added `<NavBarThemeButton />` to right-side controls after `<NotificationBell />`; removed `ThemeToggle` row and its separator from the user dropdown (eliminates duplication with SettingsPage).
+- **`frontend/dashboard/src/i18n/locales/{en,fr,es,de}/translation.json`** — added `nav.toggleThemeLight`, `nav.toggleThemeDark`, `nav.toggleThemeSystem` keys in all four locales.
+- **`frontend/dashboard/src/components/__tests__/NavBarThemeButton.test.tsx`** _(new)_ — 8 tests: icon per state, cycle per state, `aria-label`/`title` parity, `aria-hidden` on SVG.
+- **`frontend/dashboard/src/layouts/__tests__/NavBar.test.tsx`** — added `theme toggle button` describe block (4 tests: renders when auth'd, absent when unauth'd, no 3-segment group in dropdown, calls `setTheme` on click).
+- **`docs/plans/settings-web-theme-toggle.md`** → moved to `docs/plans/done/`.
+- **`docs/plans/ux-ui-improvements.md` §6** — theme duplication item marked ✅ Done.
+
 ## [0.121.0] - 2026-06-25
 ### Feat: Families management web — archive confirmation, expand/collapse animation, invite revocation
 

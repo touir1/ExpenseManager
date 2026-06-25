@@ -32,7 +32,10 @@
         "expenses": "Ausgaben",
         "addExpense": "Ausgabe hinzufügen",
         "addExpenseTooltip": "Ausgabe schnell hinzufügen",
-        "admin": "Admin"
+        "admin": "Admin",
+        "toggleThemeLight": "Zum hellen Modus wechseln",
+        "toggleThemeDark": "Zum dunklen Modus wechseln",
+        "toggleThemeSystem": "Zur Systemvorgabe zurück"
     },
     "auth": {
         "login": {

@@ -32,7 +32,10 @@
         "expenses": "Gastos",
         "addExpense": "Añadir gasto",
         "addExpenseTooltip": "Añadir un gasto rápidamente",
-        "admin": "Admin"
+        "admin": "Admin",
+        "toggleThemeLight": "Cambiar a modo claro",
+        "toggleThemeDark": "Cambiar a modo oscuro",
+        "toggleThemeSystem": "Volver al tema del sistema"
     },
     "auth": {
         "login": {

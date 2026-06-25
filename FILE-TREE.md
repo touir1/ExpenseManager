@@ -77,6 +77,7 @@ ExpenseManager/
 │           ├── phase-13-notifications.md   — Completed plan: notifications microservice (SignalR, RabbitMQ, email, v0.112.x)
 │           ├── phase-14-mobile-app.md      — Completed plan: Ionic + Capacitor mobile app (v0.113.0–v0.114.0)
 │           ├── plan-05-families-management-web.md — Completed plan: archive confirmation modal, expand/collapse animation, invite revocation (v0.121.0)
+│           ├── settings-web-theme-toggle.md — Completed plan: NavBar theme toggle refactor — NavBarThemeButton, remove dropdown ThemeToggle (v0.122.0)
 │           └── upload_protection.md    — Completed plan: CSV upload security hardening (10 fixes, v0.110.8)
 │
 ├── backend/
@@ -668,6 +669,7 @@ ExpenseManager/
 │           │   ├── FieldError.tsx      — Per-field error paragraph with role="alert"
 │           │   ├── FormCombobox.tsx    — Searchable combobox (text input + listbox dropdown); portal-based dropdown via createPortal to document.body at position:fixed; optional className prop; used in ExpenseForm + admin pages
 │           │   ├── LanguageSwitcher.tsx — Language selector dropdown wired to i18n.changeLanguage
+│           │   ├── NavBarThemeButton.tsx — Icon-only theme cycle button (system→light→dark→system); monitor/sun/moon SVG; aria-label+title per state; h-8 w-8 utility style; placed in NavBar right-side controls
 │           │   ├── PasswordInput.tsx   — Password input with show/hide toggle
 │           │   ├── PasswordStrength.tsx — Live password strength indicator (5-segment bar + checklist)
 │           │   ├── SubmitButton.tsx    — Submit button with spinner SVG and configurable labels
@@ -678,6 +680,7 @@ ExpenseManager/
 │           │       ├── FieldError.test.tsx
 │           │       ├── FormCombobox.test.tsx
 │           │       ├── LanguageSwitcher.test.tsx
+│           │       ├── NavBarThemeButton.test.tsx
 │           │       ├── PasswordInput.test.tsx
 │           │       ├── PasswordStrength.test.tsx
 │           │       ├── SubmitButton.test.tsx
@@ -907,7 +910,7 @@ ExpenseManager/
 │           │   └── __tests__/
 │           │       └── usePageTitle.test.ts
 │           ├── layouts/               — App-wide layout components
-│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive; "Admin" link shown only when isAdmin=true; right-side controls: FamilySelector → DisplayCurrencySelector → Add Expense `+` button → notification bell → user avatar dropdown (includes ThemeToggle row)
+│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive; "Admin" link shown only when isAdmin=true; right-side controls: FamilySelector → DisplayCurrencySelector → Add Expense `+` button → notification bell → NavBarThemeButton → user avatar dropdown
 │           │   ├── RootLayout.tsx      — Pathless data-router layout: ToastProvider + ErrorBinder + AppProviders + NavBar + <main><Outlet /></main>; required for useBlocker data-router context
 │           │   └── __tests__/
 │           │       ├── NavBar.test.tsx

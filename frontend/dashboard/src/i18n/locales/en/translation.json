@@ -32,7 +32,10 @@
                 "expenses":  "Expenses",
                 "addExpense":  "Add expense",
                 "addExpenseTooltip":  "Quickly add an expense",
-                "admin":  "Admin"
+                "admin":  "Admin",
+                "toggleThemeLight":  "Switch to light mode",
+                "toggleThemeDark":  "Switch to dark mode",
+                "toggleThemeSystem":  "Back to system default"
             },
     "auth":  {
                  "login":  {

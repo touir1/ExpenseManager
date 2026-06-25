@@ -49,8 +49,10 @@ vi.mock('@/features/notifications/NotificationContext', () => ({
   }),
 }))
 
+const mockSetTheme = vi.fn()
+
 vi.mock('@/features/settings/ThemeContext', () => ({
-  useTheme: () => ({ theme: 'system', setTheme: vi.fn() }),
+  useTheme: () => ({ theme: 'system', setTheme: mockSetTheme }),
 }))
 
 function makeQc() {
@@ -76,6 +78,7 @@ function renderNavBar(path = '/') {
 describe('NavBar', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockSetTheme.mockReset()
     mockUseFamilies.mockReturnValue({
       families: [],
       activeFamilyId: null,
@@ -604,6 +607,44 @@ describe('NavBar', () => {
       fireEvent.keyDown(mobileNav, { key: 'Tab', shiftKey: false })
 
       expect(document.activeElement).toBe(focusables[1])
+    })
+  })
+
+  // ── Theme toggle button ──────────────────────────────────────────────────
+
+  describe('theme toggle button', () => {
+    beforeEach(() => {
+      mockUseAuth.mockReturnValue({
+        isAuthenticated: true,
+        logout: vi.fn(),
+        user: { firstName: 'John', lastName: 'Doe' },
+      })
+    })
+
+    it('renders when authenticated (system theme → "Switch to light mode")', () => {
+      renderNavBar('/dashboard')
+      expect(screen.getByRole('button', { name: /switch to light mode/i })).toBeInTheDocument()
+    })
+
+    it('does not render when unauthenticated', () => {
+      mockUseAuth.mockReturnValue({ isAuthenticated: false, logout: vi.fn() })
+      renderNavBar('/')
+      expect(screen.queryByRole('button', { name: /switch to light mode/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /switch to dark mode/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /back to system default/i })).not.toBeInTheDocument()
+    })
+
+    it('theme toggle is not inside the user dropdown (no 3-segment ThemeToggle group)', () => {
+      renderNavBar('/dashboard')
+      expect(screen.queryByRole('group', { name: /theme/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('group', { name: /appearance/i })).not.toBeInTheDocument()
+    })
+
+    it('calls setTheme when clicked', async () => {
+      const user = userEvent.setup()
+      renderNavBar('/dashboard')
+      await user.click(screen.getByRole('button', { name: /switch to light mode/i }))
+      expect(mockSetTheme).toHaveBeenCalledWith('light')
     })
   })
 })
