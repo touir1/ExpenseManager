@@ -50,7 +50,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers
             if (userId is null)
                 return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingUser });
 
-            var dto = await _userConfigService.UpdateAsync(userId.Value, request.DefaultCurrencyId);
+            var dto = await _userConfigService.UpdateAsync(userId.Value, request.DefaultCurrencyId, request.DefaultCategoryId);
             if (dto is null)
                 return BadRequest(new ErrorResponse { Message = "USER_CONFIG_INVALID_CURRENCY" });
 

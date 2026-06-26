@@ -8,11 +8,13 @@ namespace Touir.ExpensesManager.Expenses.Services
     {
         private readonly IUserConfigRepository _configRepo;
         private readonly ICurrencyRepository _currencyRepo;
+        private readonly ICategoryRepository _categoryRepo;
 
-        public UserConfigService(IUserConfigRepository configRepo, ICurrencyRepository currencyRepo)
+        public UserConfigService(IUserConfigRepository configRepo, ICurrencyRepository currencyRepo, ICategoryRepository categoryRepo)
         {
             _configRepo = configRepo;
             _currencyRepo = currencyRepo;
+            _categoryRepo = categoryRepo;
         }
 
         public async Task<UserConfigDto> GetAsync(int userId)
@@ -21,7 +23,7 @@ namespace Touir.ExpensesManager.Expenses.Services
             return MapToDto(config);
         }
 
-        public async Task<UserConfigDto?> UpdateAsync(int userId, int? currencyId)
+        public async Task<UserConfigDto?> UpdateAsync(int userId, int? currencyId, int? categoryId)
         {
             if (currencyId.HasValue)
             {
@@ -30,7 +32,14 @@ namespace Touir.ExpensesManager.Expenses.Services
                     return null;
             }
 
-            var config = await _configRepo.UpsertAsync(userId, currencyId);
+            if (categoryId.HasValue)
+            {
+                var category = await _categoryRepo.GetByIdAsync(categoryId.Value);
+                if (category is null)
+                    return null;
+            }
+
+            var config = await _configRepo.UpsertAsync(userId, currencyId, categoryId);
             return MapToDto(config);
         }
 
@@ -49,7 +58,8 @@ namespace Touir.ExpensesManager.Expenses.Services
                     Name = config.DefaultCurrency.Name,
                     Symbol = config.DefaultCurrency.Symbol,
                     Decimals = config.DefaultCurrency.Decimals,
-                }
+                },
+                DefaultCategoryId = config.DefaultCategoryId,
             };
         }
     }

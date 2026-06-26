@@ -463,6 +463,10 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
                       .WithMany()
                       .HasForeignKey(e => e.DefaultCurrencyId)
                       .OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(e => e.DefaultCategory)
+                      .WithMany()
+                      .HasForeignKey(e => e.DefaultCategoryId)
+                      .OnDelete(DeleteBehavior.SetNull);
             });
 
             // ── Inbox ─────────────────────────────────────────────────────────

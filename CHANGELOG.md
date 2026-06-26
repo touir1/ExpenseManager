@@ -1,6 +1,40 @@
 
 # Changelog
 
+## [0.123.0] - 2026-06-26
+### Feat: SettingsPage expansion — sections, new cards, backend endpoints
+
+**Backend — expenses:**
+- **`Models/UserConfig.cs`** — added `DefaultCategoryId int?` + `Category? DefaultCategory` navigation property.
+- **`Infrastructure/ExpensesDbContext.cs`** — FK config for `DefaultCategory` (SetNull on delete).
+- **`Migrations/20260626203657_AddDefaultCategoryToUserConfig`** — adds `DefaultCategoryId` column + index + FK.
+- **`Controllers/DTO/UserConfigDto.cs`** — added `DefaultCategoryId`.
+- **`Controllers/Requests/UpdateUserConfigRequest.cs`** — added `DefaultCategoryId`.
+- **`Validators/UpdateUserConfigRequestValidator.cs`** — validates `DefaultCategoryId > 0` when provided.
+- **`Services/Contracts/IUserConfigService.cs`** / **`Services/UserConfigService.cs`** — `UpdateAsync` now accepts `categoryId`; validates category exists.
+- **`Repositories/Contracts/IUserConfigRepository.cs`** / **`Repositories/UserConfigRepository.cs`** — `UpsertAsync` persists `DefaultCategoryId`.
+- **`Services/Contracts/IExpenseExportService.cs`** / **`Services/ExpenseExportService.cs`** _(new)_ — exports all user expenses as CSV (`date,amount,currency,category,subcategory,description,tags,families`).
+- **`Controllers/ExpenseExportController.cs`** _(new)_ — `GET /export` → streams CSV; rate limited `expenses_global`; 401 if unauthenticated.
+
+**Backend — users:**
+- **`Models/NotificationPreference.cs`** _(new)_ — `UserId int`, `EventType string`, `EmailEnabled bool`.
+- **`Infrastructure/UsersAppDbContext.cs`** — added `DbSet<NotificationPreference>` + entity config (`NTF_NotificationPreferences`, unique index on `(UserId, EventType)`).
+- **`Migrations/AddNotificationPreferences`** — creates `NTF_NotificationPreferences` table.
+- **`Repositories/Contracts/INotificationPreferencesRepository.cs`** / **`Repositories/NotificationPreferencesRepository.cs`** _(new)_ — `GetByUserIdAsync` + `UpsertAsync`.
+- **`Services/Contracts/INotificationPreferencesService.cs`** / **`Services/NotificationPreferencesService.cs`** _(new)_ — `GetAsync` + `UpdateAsync`.
+- **`Controllers/DTO/NotificationPreferenceDto.cs`** _(new)_ — `EventType`, `EmailEnabled`.
+- **`Controllers/Requests/UpdateNotificationPreferencesRequest.cs`** _(new)_.
+- **`Controllers/NotificationPreferencesController.cs`** _(new)_ — `GET /config/notifications` + `PUT /config/notifications`; JWT cookie auth; PUT rate-limited `change_password`.
+- **`Controllers/UserSelfController.cs`** _(new)_ — `DELETE /me` — soft-deletes user, revokes refresh tokens, publishes `user.deleted` outbox event, clears cookies.
+
+**Frontend — dashboard:**
+- **`src/features/settings/types/userConfig.type.ts`** — added `defaultCategoryId`, updated `UpdateUserConfigRequest`, added `NotificationPreferenceDto`.
+- **`src/features/settings/services/notificationPreferencesApi.service.ts`** _(new)_ — `getNotificationPreferences` + `updateNotificationPreferences`.
+- **`src/features/auth/services/authApi.service.ts`** — added `deleteAccountRequest`.
+- **`src/features/dashboard/pages/SettingsPage.tsx`** — full restructure: 3 sections (Account, Preferences, Danger Zone); new cards: `DefaultCategoryCard`, `DefaultExpenseDateCard`, `NotificationPreferencesCard`, `DataExportCard`, `AccountDeletionCard`; inline save confirmation on currency + category cards.
+- **`src/features/dashboard/pages/__tests__/SettingsPage.test.tsx`** — updated mocks + added new test cases for sections and cards.
+- **`src/i18n/locales/{en,fr,es,de}/translation.json`** — added all new `settings.*` keys (sections, savedConfirm, defaultCategory, expenseDate, notifications, export, deleteAccount).
+
 ## [0.122.1] - 2026-06-25
 ### Fix: NavBar theme button — show light/dark only, resolve system from OS preference
 

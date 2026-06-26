@@ -1,4 +1,4 @@
-import { get, post } from '@/services/api.service'
+import { get, post, del } from '@/services/api.service'
 import type { ApiResponse } from '@/types/api.type'
 import type { User } from '@/features/auth/types/auth.type'
 
@@ -86,4 +86,8 @@ export function requestPasswordResetRequest(email: string, applicationCode: stri
 
 export function resendVerificationRequest(email: string, applicationCode: string): Promise<ApiResponse<{ message: string }>> {
   return post<{ message: string }>(`${AUTH_BASE}/resend-verification`, { email, applicationCode }, { skipUnauthorized: true, silent: true })
+}
+
+export function deleteAccountRequest(): Promise<ApiResponse<void>> {
+  return del<void>('/api/users/me')
 }

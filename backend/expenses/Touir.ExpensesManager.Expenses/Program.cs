@@ -155,6 +155,7 @@ builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<ICurrencyRateService, CurrencyRateService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IUserConfigService, UserConfigService>();
+builder.Services.AddScoped<IExpenseExportService, ExpenseExportService>();
 builder.Services.AddScoped<ICsvImportService, CsvImportService>();
 builder.Services.AddScoped<IFamilyEventPublisher, FamilyEventPublisher>();
 #endregion

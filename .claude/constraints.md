@@ -4,7 +4,15 @@
 
 **nginx auth:** subrequest `/internal/auth/check` → `users-service:9100/auth/check` before every request; only `/api/users/auth/` is public.
 
-**nginx expenses routing:** `location /api/expenses` + `rewrite ^/api/expenses/?(.*)$ /$1 break` + `proxy_pass http://expenses-service:9200` strips prefix; `ExpenseController`: `[Route("")]`; all others keep prefixes; `UserConfigController`: `[Route("config")]`; admin: `[Route("admin/...")]`; `ExpenseImportController`: `[Route("import")]`.
+**nginx expenses routing:** `location /api/expenses` + `rewrite ^/api/expenses/?(.*)$ /$1 break` + `proxy_pass http://expenses-service:9200` strips prefix; `ExpenseController`: `[Route("")]`; all others keep prefixes; `UserConfigController`: `[Route("config")]`; admin: `[Route("admin/...")]`; `ExpenseImportController`: `[Route("import")]`; `ExpenseExportController`: `[Route("export")]`.
+
+**UserConfig (expenses):** `UserConfigs` table; `DefaultCurrencyId int?` + `DefaultCategoryId int?`; `IUserConfigRepository.UpsertAsync(userId, currencyId, categoryId)`; `UserConfigService.UpdateAsync` validates both IDs exist before upsert; `UserConfigDto` carries `defaultCurrencyId`, `defaultCurrency`, `defaultCategoryId`.
+
+**data export (expenses):** `GET /export` → `ExpenseExportService.ExportCsvAsync` → streams CSV (`date,amount,currency,category,subcategory,description,tags,families`); tags/families semicolon-separated; `CsvEscape` wraps fields with comma/quote/newline; rate-limited `expenses_global`.
+
+**notification preferences (users):** `NTF_NotificationPreferences(Id,UserId,EventType varchar(100),EmailEnabled bool)`; unique index `(UserId,EventType)`; `GET /config/notifications` returns list; `PUT /config/notifications` body `{preferences:[{eventType,emailEnabled}]}` → upsert; rate-limited `change_password`; no FK validation on EventType (string-based).
+
+**account deletion (users):** `DELETE /me` in `UserSelfController` — extracts userId from `auth_token` cookie (base64url); calls `DeleteUserAsync` (soft-delete), `RevokeAllByUserIdAsync`, enqueues `user.deleted` outbox event, clears `auth_token`+`refresh_token` cookies; rate-limited `change_password`; publishes via existing outbox pattern.
 
 **admin role guard (expenses):** `AppAdminAttribute` → `JwtCookieReader.GetIsAdmin(Request)` decodes `isAdmin` JWT from `auth_token` cookie or `Authorization: Bearer`; 403 if false/missing. `JwtCookieReader`: `GetUserId`+`GetIsAdmin`, both call `ExtractToken` (cookie→header fallback).
 

@@ -175,6 +175,12 @@
         "pageTitle": "Configuración",
         "title": "Configuración",
         "subtitle": "Administra la configuración de tu cuenta.",
+        "savedConfirm": "Guardado ✓",
+        "sections": {
+            "account": "Cuenta",
+            "preferences": "Preferencias",
+            "dangerZone": "Zona de peligro"
+        },
         "password": {
             "title": "Contraseña",
             "description": "Actualiza la contraseña usada para iniciar sesión.",
@@ -187,6 +193,51 @@
             "saving": "Guardando…",
             "success": "Moneda predeterminada actualizada.",
             "error": "Error al actualizar la moneda predeterminada."
+        },
+        "defaultCategory": {
+            "title": "Categoría predeterminada",
+            "description": "Preseleccionar una categoría al agregar un gasto.",
+            "none": "Sin predeterminada",
+            "save": "Guardar",
+            "saving": "Guardando…",
+            "error": "Error al actualizar la categoría predeterminada."
+        },
+        "expenseDate": {
+            "title": "Fecha de gasto predeterminada",
+            "description": "Rellenar la fecha automáticamente al agregar un gasto.",
+            "today": "Hoy",
+            "lastUsed": "Última fecha usada"
+        },
+        "notifications": {
+            "title": "Preferencias de notificación",
+            "description": "Elige qué eventos te envían un correo.",
+            "familyInvitation": "Invitación familiar recibida",
+            "familyMemberJoined": "Un miembro se unió a tu familia",
+            "familyMemberRemoved": "Eliminado de una familia",
+            "familyExpenseAdded": "Gasto añadido en familia compartida",
+            "familyExpenseDeleted": "Gasto eliminado en familia compartida",
+            "csvImportCompleted": "Importación CSV completada",
+            "rateConflict": "Conflicto de tipo de cambio",
+            "saving": "Guardando…",
+            "error": "Error al actualizar las preferencias de notificación."
+        },
+        "export": {
+            "title": "Exportar datos",
+            "description": "Descarga todos tus gastos en un archivo CSV.",
+            "button": "Descargar CSV",
+            "exporting": "Preparando…",
+            "error": "Error al exportar los datos."
+        },
+        "deleteAccount": {
+            "title": "Eliminar cuenta",
+            "description": "Elimina permanentemente tu cuenta y todos los datos asociados. Esta acción no se puede deshacer.",
+            "button": "Eliminar cuenta",
+            "confirmTitle": "¿Eliminar tu cuenta?",
+            "confirmBody": "Todos tus gastos, familias y configuraciones se eliminarán permanentemente. Esta acción no se puede deshacer.",
+            "confirmButton": "Sí, eliminar mi cuenta",
+            "cancelButton": "Cancelar",
+            "deleting": "Eliminando…",
+            "error": "Error al eliminar la cuenta."
         },
         "language": {
             "title": "Idioma",

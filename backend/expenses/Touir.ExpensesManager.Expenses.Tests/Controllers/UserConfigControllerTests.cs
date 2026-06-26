@@ -102,7 +102,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         public async Task UpdateAsync_Returns200_WithUpdatedDto_WhenValid()
         {
             var service = new Mock<IUserConfigService>();
-            service.Setup(s => s.UpdateAsync(42, 3)).ReturnsAsync(new UserConfigDto
+            service.Setup(s => s.UpdateAsync(42, 3, null)).ReturnsAsync(new UserConfigDto
             {
                 DefaultCurrencyId = 3,
                 DefaultCurrency = new CurrencyDto { Id = 3, Code = "USD", Name = "US Dollar", Symbol = "$", Decimals = 2 }
@@ -120,7 +120,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         public async Task UpdateAsync_Returns400_WhenServiceReturnsNull()
         {
             var service = new Mock<IUserConfigService>();
-            service.Setup(s => s.UpdateAsync(42, 999)).ReturnsAsync((UserConfigDto?)null);
+            service.Setup(s => s.UpdateAsync(42, 999, null)).ReturnsAsync((UserConfigDto?)null);
 
             var result = await CreateController(service.Object)
                 .UpdateAsync(new UpdateUserConfigRequest { DefaultCurrencyId = 999 });
@@ -134,7 +134,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         public async Task UpdateAsync_Returns200_WhenClearingCurrencyWithNull()
         {
             var service = new Mock<IUserConfigService>();
-            service.Setup(s => s.UpdateAsync(42, null)).ReturnsAsync(MakeDto());
+            service.Setup(s => s.UpdateAsync(42, null, null)).ReturnsAsync(MakeDto());
 
             var result = await CreateController(service.Object)
                 .UpdateAsync(new UpdateUserConfigRequest { DefaultCurrencyId = null });
@@ -146,12 +146,12 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         public async Task UpdateAsync_CallsServiceWithCorrectArgs()
         {
             var service = new Mock<IUserConfigService>();
-            service.Setup(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<int?>())).ReturnsAsync(MakeDto());
+            service.Setup(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<int?>())).ReturnsAsync(MakeDto());
 
             await CreateController(service.Object)
                 .UpdateAsync(new UpdateUserConfigRequest { DefaultCurrencyId = 7 });
 
-            service.Verify(s => s.UpdateAsync(42, 7), Times.Once);
+            service.Verify(s => s.UpdateAsync(42, 7, null), Times.Once);
         }
     }
 }

@@ -18,6 +18,7 @@ namespace Touir.ExpensesManager.Users.Infrastructure
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<OutboxEvent> OutboxEvents { get; set; }
+        public DbSet<NotificationPreference> NotificationPreferences { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -211,6 +212,19 @@ namespace Touir.ExpensesManager.Users.Infrastructure
                     .WithMany(a => a.AllowedOrigins)
                     .HasForeignKey(x => x.ApplicationId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<NotificationPreference>(entity =>
+            {
+                entity.ToTable("NTF_NotificationPreferences");
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Id).HasColumnName("NTF_Id").UseIdentityAlwaysColumn();
+                entity.Property(x => x.UserId).HasColumnName("NTF_UserId");
+                entity.Property(x => x.EventType).HasColumnName("NTF_EventType").IsRequired().HasMaxLength(100);
+                entity.Property(x => x.EmailEnabled).HasColumnName("NTF_EmailEnabled").HasDefaultValue(true);
+
+                entity.HasIndex(x => new { x.UserId, x.EventType }).IsUnique();
             });
 
             modelBuilder.Entity<OutboxEvent>(entity =>

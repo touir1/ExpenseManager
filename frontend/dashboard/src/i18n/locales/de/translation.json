@@ -175,6 +175,12 @@
         "pageTitle": "Einstellungen",
         "title": "Einstellungen",
         "subtitle": "Verwalte deine Kontoeinstellungen.",
+        "savedConfirm": "Gespeichert ✓",
+        "sections": {
+            "account": "Konto",
+            "preferences": "Einstellungen",
+            "dangerZone": "Gefahrenzone"
+        },
         "password": {
             "title": "Passwort",
             "description": "Aktualisiere das Passwort für die Anmeldung an deinem Konto.",
@@ -187,6 +193,51 @@
             "saving": "Wird gespeichert…",
             "success": "Standardwährung aktualisiert.",
             "error": "Standardwährung konnte nicht aktualisiert werden."
+        },
+        "defaultCategory": {
+            "title": "Standardkategorie",
+            "description": "Kategorie beim Hinzufügen einer Ausgabe vorauswählen.",
+            "none": "Kein Standard",
+            "save": "Speichern",
+            "saving": "Wird gespeichert…",
+            "error": "Standardkategorie konnte nicht aktualisiert werden."
+        },
+        "expenseDate": {
+            "title": "Standarddatum für Ausgaben",
+            "description": "Datum beim Hinzufügen einer Ausgabe vorausfüllen.",
+            "today": "Heute",
+            "lastUsed": "Zuletzt verwendetes Datum"
+        },
+        "notifications": {
+            "title": "Benachrichtigungseinstellungen",
+            "description": "Wähle, welche Ereignisse dir eine E-Mail senden.",
+            "familyInvitation": "Familieneinladung erhalten",
+            "familyMemberJoined": "Mitglied ist deiner Familie beigetreten",
+            "familyMemberRemoved": "Aus einer Familie entfernt",
+            "familyExpenseAdded": "Ausgabe in geteilter Familie hinzugefügt",
+            "familyExpenseDeleted": "Ausgabe in geteilter Familie gelöscht",
+            "csvImportCompleted": "CSV-Import abgeschlossen",
+            "rateConflict": "Wechselkurskonflikt",
+            "saving": "Wird gespeichert…",
+            "error": "Benachrichtigungseinstellungen konnten nicht aktualisiert werden."
+        },
+        "export": {
+            "title": "Daten exportieren",
+            "description": "Lade alle deine Ausgaben als CSV-Datei herunter.",
+            "button": "CSV herunterladen",
+            "exporting": "Wird vorbereitet…",
+            "error": "Datenexport fehlgeschlagen."
+        },
+        "deleteAccount": {
+            "title": "Konto löschen",
+            "description": "Lösche dein Konto und alle zugehörigen Daten dauerhaft. Diese Aktion kann nicht rückgängig gemacht werden.",
+            "button": "Konto löschen",
+            "confirmTitle": "Konto löschen?",
+            "confirmBody": "Alle deine Ausgaben, Familien und Einstellungen werden dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
+            "confirmButton": "Ja, mein Konto löschen",
+            "cancelButton": "Abbrechen",
+            "deleting": "Wird gelöscht…",
+            "error": "Konto konnte nicht gelöscht werden."
         },
         "language": {
             "title": "Sprache",

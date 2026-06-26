@@ -278,7 +278,7 @@
 
 ## 6. Settings (Web)
 
-### 🟡 Web: SettingsPage is sparse — only 3 settings
+### ✅ 🟡 Web: SettingsPage is sparse — only 3 settings
 
 **Problem:** The 2–3 column grid of settings cards looks empty. Users expect more customization options.  
 **Suggestions for additional settings:**

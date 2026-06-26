@@ -175,6 +175,12 @@
                      "pageTitle":  "Settings",
                      "title":  "Settings",
                      "subtitle":  "Manage your account settings.",
+                     "savedConfirm":  "Saved ✓",
+                     "sections":  {
+                                      "account":  "Account",
+                                      "preferences":  "Preferences",
+                                      "dangerZone":  "Danger Zone"
+                                  },
                      "password":  {
                                       "title":  "Password",
                                       "description":  "Update the password used to sign in to your account.",
@@ -188,6 +194,51 @@
                                       "success":  "Default currency updated.",
                                       "error":  "Failed to update default currency."
                                   },
+                     "defaultCategory":  {
+                                             "title":  "Default Category",
+                                             "description":  "Pre-select a category when opening the add expense form.",
+                                             "none":  "No default",
+                                             "save":  "Save",
+                                             "saving":  "Saving…",
+                                             "error":  "Failed to update default category."
+                                         },
+                     "expenseDate":  {
+                                         "title":  "Default Expense Date",
+                                         "description":  "Pre-fill the date when adding a new expense.",
+                                         "today":  "Today",
+                                         "lastUsed":  "Last used date"
+                                     },
+                     "notifications":  {
+                                           "title":  "Notification Preferences",
+                                           "description":  "Choose which events send you an email.",
+                                           "familyInvitation":  "Family invitation received",
+                                           "familyMemberJoined":  "Member joined your family",
+                                           "familyMemberRemoved":  "Removed from a family",
+                                           "familyExpenseAdded":  "Expense added in shared family",
+                                           "familyExpenseDeleted":  "Expense deleted in shared family",
+                                           "csvImportCompleted":  "CSV import completed",
+                                           "rateConflict":  "Currency rate conflict",
+                                           "saving":  "Saving…",
+                                           "error":  "Failed to update notification preferences."
+                                       },
+                     "export":  {
+                                    "title":  "Export Data",
+                                    "description":  "Download all your expenses as a CSV file.",
+                                    "button":  "Download CSV",
+                                    "exporting":  "Preparing…",
+                                    "error":  "Failed to export data."
+                                },
+                     "deleteAccount":  {
+                                           "title":  "Delete Account",
+                                           "description":  "Permanently delete your account and all associated data. This cannot be undone.",
+                                           "button":  "Delete Account",
+                                           "confirmTitle":  "Delete your account?",
+                                           "confirmBody":  "All your expenses, families, and settings will be permanently deleted. This action cannot be undone.",
+                                           "confirmButton":  "Yes, delete my account",
+                                           "cancelButton":  "Cancel",
+                                           "deleting":  "Deleting…",
+                                           "error":  "Failed to delete account."
+                                       },
                      "language":  {
                                       "title":  "Language",
                                       "description":  "Choose your preferred display language."

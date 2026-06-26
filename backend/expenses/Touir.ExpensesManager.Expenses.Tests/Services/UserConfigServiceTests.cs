@@ -9,11 +9,13 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
     {
         private static UserConfigService CreateService(
             IUserConfigRepository? configRepo = null,
-            ICurrencyRepository? currencyRepo = null)
+            ICurrencyRepository? currencyRepo = null,
+            ICategoryRepository? categoryRepo = null)
         {
             return new UserConfigService(
                 configRepo ?? Mock.Of<IUserConfigRepository>(),
-                currencyRepo ?? Mock.Of<ICurrencyRepository>());
+                currencyRepo ?? Mock.Of<ICurrencyRepository>(),
+                categoryRepo ?? Mock.Of<ICategoryRepository>());
         }
 
         // ── GetAsync ──────────────────────────────────────────────────────────────
@@ -64,7 +66,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             var currencyRepo = new Mock<ICurrencyRepository>();
             currencyRepo.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Currency?)null);
 
-            var result = await CreateService(currencyRepo: currencyRepo.Object).UpdateAsync(1, 999);
+            var result = await CreateService(currencyRepo: currencyRepo.Object).UpdateAsync(1, 999, null);
 
             Assert.Null(result);
         }
@@ -77,9 +79,9 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             var currencyRepo = new Mock<ICurrencyRepository>();
             var configRepo = new Mock<IUserConfigRepository>();
             currencyRepo.Setup(r => r.GetByIdAsync(3)).ReturnsAsync(currency);
-            configRepo.Setup(r => r.UpsertAsync(1, 3)).ReturnsAsync(config);
+            configRepo.Setup(r => r.UpsertAsync(1, 3, null)).ReturnsAsync(config);
 
-            var result = await CreateService(configRepo.Object, currencyRepo.Object).UpdateAsync(1, 3);
+            var result = await CreateService(configRepo.Object, currencyRepo.Object).UpdateAsync(1, 3, null);
 
             Assert.NotNull(result);
             Assert.Equal(3, result.DefaultCurrencyId);
@@ -90,9 +92,9 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
         {
             var config = new UserConfig { Id = 1, UserId = 1, DefaultCurrencyId = null };
             var configRepo = new Mock<IUserConfigRepository>();
-            configRepo.Setup(r => r.UpsertAsync(1, null)).ReturnsAsync(config);
+            configRepo.Setup(r => r.UpsertAsync(1, null, null)).ReturnsAsync(config);
 
-            var result = await CreateService(configRepo.Object).UpdateAsync(1, null);
+            var result = await CreateService(configRepo.Object).UpdateAsync(1, null, null);
 
             Assert.NotNull(result);
             Assert.Null(result.DefaultCurrencyId);
@@ -104,9 +106,9 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             var config = new UserConfig { Id = 1, UserId = 1, DefaultCurrencyId = null };
             var currencyRepo = new Mock<ICurrencyRepository>();
             var configRepo = new Mock<IUserConfigRepository>();
-            configRepo.Setup(r => r.UpsertAsync(1, null)).ReturnsAsync(config);
+            configRepo.Setup(r => r.UpsertAsync(1, null, null)).ReturnsAsync(config);
 
-            await CreateService(configRepo.Object, currencyRepo.Object).UpdateAsync(1, null);
+            await CreateService(configRepo.Object, currencyRepo.Object).UpdateAsync(1, null, null);
 
             currencyRepo.Verify(r => r.GetByIdAsync(It.IsAny<int>()), Times.Never);
         }
@@ -119,11 +121,27 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             var currencyRepo = new Mock<ICurrencyRepository>();
             var configRepo = new Mock<IUserConfigRepository>();
             currencyRepo.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(currency);
-            configRepo.Setup(r => r.UpsertAsync(1, 5)).ReturnsAsync(config);
+            configRepo.Setup(r => r.UpsertAsync(1, 5, null)).ReturnsAsync(config);
 
-            await CreateService(configRepo.Object, currencyRepo.Object).UpdateAsync(1, 5);
+            await CreateService(configRepo.Object, currencyRepo.Object).UpdateAsync(1, 5, null);
 
-            configRepo.Verify(r => r.UpsertAsync(1, 5), Times.Once);
+            configRepo.Verify(r => r.UpsertAsync(1, 5, null), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_WithDefaultCategoryId_PersistsValue()
+        {
+            var category = new Category { Id = 7, Name = "Food" };
+            var config = new UserConfig { Id = 1, UserId = 1, DefaultCategoryId = 7 };
+            var categoryRepo = new Mock<ICategoryRepository>();
+            var configRepo = new Mock<IUserConfigRepository>();
+            categoryRepo.Setup(r => r.GetByIdAsync(7)).ReturnsAsync(category);
+            configRepo.Setup(r => r.UpsertAsync(1, null, 7)).ReturnsAsync(config);
+
+            var result = await CreateService(configRepo.Object, categoryRepo: categoryRepo.Object).UpdateAsync(1, null, 7);
+
+            Assert.NotNull(result);
+            Assert.Equal(7, result.DefaultCategoryId);
         }
     }
 }

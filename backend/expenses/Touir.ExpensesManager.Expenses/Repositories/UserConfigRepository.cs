@@ -20,19 +20,25 @@ namespace Touir.ExpensesManager.Expenses.Repositories
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
-        public async Task<UserConfig> UpsertAsync(int userId, int? defaultCurrencyId)
+        public async Task<UserConfig> UpsertAsync(int userId, int? defaultCurrencyId, int? defaultCategoryId)
         {
             var existing = await _dbContext.UserConfigs
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (existing is null)
             {
-                existing = new UserConfig { UserId = userId, DefaultCurrencyId = defaultCurrencyId };
+                existing = new UserConfig
+                {
+                    UserId = userId,
+                    DefaultCurrencyId = defaultCurrencyId,
+                    DefaultCategoryId = defaultCategoryId,
+                };
                 _dbContext.UserConfigs.Add(existing);
             }
             else
             {
                 existing.DefaultCurrencyId = defaultCurrencyId;
+                existing.DefaultCategoryId = defaultCategoryId;
             }
 
             await _dbContext.SaveChangesAsync();

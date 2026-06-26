@@ -72,7 +72,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
         [Fact]
         public async Task UpsertAsync_InsertsNewRow_WhenNoExistingConfig()
         {
-            var result = await _sut.UpsertAsync(20, null);
+            var result = await _sut.UpsertAsync(20, null, null);
 
             Assert.NotNull(result);
             Assert.Equal(20, result.UserId);
@@ -87,7 +87,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
         {
             var currency = _wrapper.Context.Currencies.First();
 
-            var result = await _sut.UpsertAsync(21, currency.Id);
+            var result = await _sut.UpsertAsync(21, currency.Id, null);
 
             Assert.Equal(currency.Id, result.DefaultCurrencyId);
         }
@@ -99,7 +99,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
             await _wrapper.Context.SaveChangesAsync();
 
             var currency = _wrapper.Context.Currencies.First();
-            var result = await _sut.UpsertAsync(30, currency.Id);
+            var result = await _sut.UpsertAsync(30, currency.Id, null);
 
             Assert.Equal(currency.Id, result.DefaultCurrencyId);
         }
@@ -111,7 +111,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
             _wrapper.Context.UserConfigs.Add(new UserConfig { UserId = 31, DefaultCurrencyId = currency.Id });
             await _wrapper.Context.SaveChangesAsync();
 
-            var result = await _sut.UpsertAsync(31, null);
+            var result = await _sut.UpsertAsync(31, null, null);
 
             Assert.Null(result.DefaultCurrencyId);
         }
@@ -119,8 +119,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
         [Fact]
         public async Task UpsertAsync_DoesNotCreateDuplicateRow_WhenCalledTwice()
         {
-            await _sut.UpsertAsync(40, null);
-            await _sut.UpsertAsync(40, null);
+            await _sut.UpsertAsync(40, null, null);
+            await _sut.UpsertAsync(40, null, null);
 
             var count = _wrapper.Context.UserConfigs.Count(c => c.UserId == 40);
             Assert.Equal(1, count);
@@ -131,7 +131,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
         {
             var currency = _wrapper.Context.Currencies.First();
 
-            var result = await _sut.UpsertAsync(50, currency.Id);
+            var result = await _sut.UpsertAsync(50, currency.Id, null);
 
             Assert.NotNull(result.DefaultCurrency);
             Assert.Equal(currency.Id, result.DefaultCurrency.Id);

@@ -14,6 +14,12 @@ namespace Touir.ExpensesManager.Expenses.Validators
                 RuleFor(x => x.DefaultCurrencyId!.Value)
                     .GreaterThan(0).WithMessage("USER_CONFIG_INVALID_CURRENCY");
             });
+
+            When(x => x.DefaultCategoryId.HasValue, () =>
+            {
+                RuleFor(x => x.DefaultCategoryId!.Value)
+                    .GreaterThan(0).WithMessage("USER_CONFIG_INVALID_CATEGORY");
+            });
         }
     }
 }

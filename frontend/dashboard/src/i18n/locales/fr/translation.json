@@ -175,6 +175,12 @@
         "pageTitle": "Paramètres",
         "title": "Paramètres",
         "subtitle": "Gérez vos paramètres de compte.",
+        "savedConfirm": "Enregistré ✓",
+        "sections": {
+            "account": "Compte",
+            "preferences": "Préférences",
+            "dangerZone": "Zone dangereuse"
+        },
         "password": {
             "title": "Mot de passe",
             "description": "Mettez à jour le mot de passe utilisé pour vous connecter.",
@@ -187,6 +193,51 @@
             "saving": "Enregistrement…",
             "success": "Devise par défaut mise à jour.",
             "error": "Échec de la mise à jour de la devise par défaut."
+        },
+        "defaultCategory": {
+            "title": "Catégorie par défaut",
+            "description": "Présélectionner une catégorie lors de l'ajout d'une dépense.",
+            "none": "Aucune par défaut",
+            "save": "Enregistrer",
+            "saving": "Enregistrement…",
+            "error": "Échec de la mise à jour de la catégorie par défaut."
+        },
+        "expenseDate": {
+            "title": "Date de dépense par défaut",
+            "description": "Pré-remplir la date lors de l'ajout d'une dépense.",
+            "today": "Aujourd'hui",
+            "lastUsed": "Dernière date utilisée"
+        },
+        "notifications": {
+            "title": "Préférences de notification",
+            "description": "Choisissez les événements qui vous envoient un e-mail.",
+            "familyInvitation": "Invitation de famille reçue",
+            "familyMemberJoined": "Un membre a rejoint votre famille",
+            "familyMemberRemoved": "Retiré d'une famille",
+            "familyExpenseAdded": "Dépense ajoutée dans une famille partagée",
+            "familyExpenseDeleted": "Dépense supprimée dans une famille partagée",
+            "csvImportCompleted": "Import CSV terminé",
+            "rateConflict": "Conflit de taux de change",
+            "saving": "Enregistrement…",
+            "error": "Échec de la mise à jour des préférences de notification."
+        },
+        "export": {
+            "title": "Exporter les données",
+            "description": "Téléchargez toutes vos dépenses en fichier CSV.",
+            "button": "Télécharger CSV",
+            "exporting": "Préparation…",
+            "error": "Échec de l'export."
+        },
+        "deleteAccount": {
+            "title": "Supprimer le compte",
+            "description": "Supprimez définitivement votre compte et toutes les données associées. Cette action est irréversible.",
+            "button": "Supprimer le compte",
+            "confirmTitle": "Supprimer votre compte ?",
+            "confirmBody": "Toutes vos dépenses, familles et paramètres seront définitivement supprimés. Cette action est irréversible.",
+            "confirmButton": "Oui, supprimer mon compte",
+            "cancelButton": "Annuler",
+            "deleting": "Suppression…",
+            "error": "Échec de la suppression du compte."
         },
         "language": {
             "title": "Langue",
