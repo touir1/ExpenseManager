@@ -1,6 +1,14 @@
 
 # Changelog
 
+## [0.123.1] - 2026-06-30
+### Fix: Visual save confirmation on Settings default currency/category cards
+
+- **`SettingsPage.tsx`** — `DefaultCurrencyCard` and `DefaultCategoryCard` save buttons now show a checkmark SVG + "Saved" text with sage background on successful save, reverting after 2 s. Adds `aria-live="polite"` hidden span for screen-reader announcement. Fixes UX issue: no visual feedback after saving default currency/category.
+- **`SettingsPage.test.tsx`** — 4 new tests: checkmark icon appears after currency save, aria-live region announces saved state, error toast on failure, checkmark appears after category save.
+
+---
+
 ## [0.123.0] - 2026-06-26
 ### Feat: SettingsPage expansion — sections, new cards, backend endpoints
 

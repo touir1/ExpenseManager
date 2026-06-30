@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import SettingsPage from '@/features/dashboard/pages/SettingsPage'
 
-const { mockUseExpensesData, mockGetConfig, mockShow, mockGetNotificationPreferences, mockUseAuth } = vi.hoisted(() => ({
+const { mockUseExpensesData, mockGetConfig, mockUpdateConfig, mockShow, mockGetNotificationPreferences, mockUseAuth } = vi.hoisted(() => ({
   mockUseExpensesData: vi.fn(),
   mockGetConfig: vi.fn(),
+  mockUpdateConfig: vi.fn(),
   mockShow: vi.fn(),
   mockGetNotificationPreferences: vi.fn(),
   mockUseAuth: vi.fn(),
@@ -18,7 +19,7 @@ vi.mock('@/features/expenses/ExpensesDataContext', () => ({
 
 vi.mock('@/features/settings/services/userConfigApi.service', () => ({
   getConfig: () => mockGetConfig(),
-  updateConfig: vi.fn(),
+  updateConfig: (...args: unknown[]) => mockUpdateConfig(...args),
 }))
 
 vi.mock('@/features/settings/services/notificationPreferencesApi.service', () => ({
@@ -78,6 +79,10 @@ describe('Settings page', () => {
     mockGetConfig.mockResolvedValue({ ok: false, data: null })
     mockGetNotificationPreferences.mockResolvedValue({ ok: true, data: [] })
     mockUseAuth.mockReturnValue({ logout: vi.fn(), isAuthenticated: true })
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('renders Settings heading', () => {
@@ -145,5 +150,44 @@ describe('Settings page', () => {
     renderSettings()
     const checkboxes = await screen.findAllByRole('checkbox')
     expect(checkboxes.length).toBe(7)
+  })
+
+  it('shows checkmark icon and saved text after successful currency save', async () => {
+    mockUpdateConfig.mockResolvedValue({ ok: true })
+    renderSettings()
+    const saveBtn = screen.getAllByRole('button', { name: /save/i })[0]
+    fireEvent.click(saveBtn)
+    await waitFor(() => {
+      expect(saveBtn.querySelector('svg')).toBeInTheDocument()
+      expect(saveBtn).toHaveTextContent(/saved/i)
+    })
+  })
+
+  it('aria-live region announces saved state for currency card', async () => {
+    mockUpdateConfig.mockResolvedValue({ ok: true })
+    renderSettings()
+    fireEvent.click(screen.getAllByRole('button', { name: /save/i })[0])
+    await waitFor(() => {
+      const live = document.querySelector('[aria-live="polite"]')
+      expect(live).toHaveTextContent(/saved/i)
+    })
+  })
+
+  it('shows error toast when currency save fails', async () => {
+    mockUpdateConfig.mockResolvedValue({ ok: false })
+    renderSettings()
+    fireEvent.click(screen.getAllByRole('button', { name: /save/i })[0])
+    await waitFor(() => expect(mockShow).toHaveBeenCalledWith(expect.any(String), 'error'))
+  })
+
+  it('shows checkmark and saved text after successful category save', async () => {
+    mockUpdateConfig.mockResolvedValue({ ok: true })
+    renderSettings()
+    const saveBtns = screen.getAllByRole('button', { name: /save/i })
+    fireEvent.click(saveBtns[1])
+    await waitFor(() => {
+      expect(saveBtns[1].querySelector('svg')).toBeInTheDocument()
+      expect(saveBtns[1]).toHaveTextContent(/saved/i)
+    })
   })
 })

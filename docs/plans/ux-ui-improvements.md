@@ -299,10 +299,11 @@
 
 ---
 
-### 🟢 Web: Default currency change has no visual confirmation after save
+### ✅ 🟢 Web: Default currency change has no visual confirmation after save
 
 **Problem:** After clicking "Save", the field looks the same. No toast confirmation, no "saved" indicator. (If there is a toast, its timing may be too short to notice.)  
-**Fix:** Show a brief inline "Saved ✓" state on the save button that reverts after 2 s (same pattern as most modern web apps).
+**Fix:** Show a brief inline "Saved ✓" state on the save button that reverts after 2 s (same pattern as most modern web apps).  
+**Done:** Save button in `DefaultCurrencyCard` and `DefaultCategoryCard` switches to sage background + checkmark SVG + "Saved" text on success; `aria-live="polite"` sibling span announces the state for screen readers; reverts after 2 s — `SettingsPage.tsx`. 5 unit tests added — `SettingsPage.test.tsx`.
 
 ---
 

@@ -96,8 +96,16 @@ function DefaultCurrencyCard() {
         disabled={saving}
         className={`inline-flex items-center gap-1.5 text-sm font-medium text-white px-4 py-2 rounded-lg transition-colors duration-150 disabled:opacity-60 ${saved ? 'bg-sage hover:bg-sage/90' : 'bg-brand-600 hover:bg-brand-700'}`}
       >
-        {saved ? t('settings.savedConfirm') : saving ? t('settings.currency.saving') : t('settings.currency.save')}
+        {saved ? (
+          <>
+            <svg className="h-4 w-4 shrink-0 transition-transform duration-200 scale-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            {t('settings.savedConfirm')}
+          </>
+        ) : saving ? t('settings.currency.saving') : t('settings.currency.save')}
       </button>
+      <span aria-live="polite" className="sr-only">{saved ? t('settings.savedConfirm') : ''}</span>
     </div>
   )
 }
@@ -166,8 +174,16 @@ function DefaultCategoryCard() {
         disabled={saving}
         className={`inline-flex items-center gap-1.5 text-sm font-medium text-white px-4 py-2 rounded-lg transition-colors duration-150 disabled:opacity-60 ${saved ? 'bg-sage hover:bg-sage/90' : 'bg-brand-600 hover:bg-brand-700'}`}
       >
-        {saved ? t('settings.savedConfirm') : saving ? t('settings.defaultCategory.saving') : t('settings.defaultCategory.save')}
+        {saved ? (
+          <>
+            <svg className="h-4 w-4 shrink-0 transition-transform duration-200 scale-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            {t('settings.savedConfirm')}
+          </>
+        ) : saving ? t('settings.defaultCategory.saving') : t('settings.defaultCategory.save')}
       </button>
+      <span aria-live="polite" className="sr-only">{saved ? t('settings.savedConfirm') : ''}</span>
     </div>
   )
 }
