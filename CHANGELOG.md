@@ -1,6 +1,14 @@
 
 # Changelog
 
+## [0.124.1] - 2026-07-01
+### Fix: CSV column mapping form field silently dropped by model binding
+
+- **`ExpenseImportController.cs`** — `PreviewAsync(IFormFile? file, string? columnMapping)` had no binding-source attribute on `columnMapping`. With `[ApiController]` inference, a bare `string` parameter next to an `IFormFile` defaults to **query string**, not the multipart form — so a client-supplied `columnMapping` form field was always deserialized as `null` server-side, silently falling back to the exact-header check (`MISSING_HEADERS:<field>`) even when the client had already mapped it. Fixed by adding `[FromForm]`.
+- **`ExpenseImportControllerTests.cs`** — new reflection-based regression test asserting `columnMapping` carries `[FromFormAttribute]`; existing controller tests call the action method directly and can't catch parameter-binding-source bugs since they bypass MVC's model binding entirely.
+
+---
+
 ## [0.124.0] - 2026-07-01
 ### Feat: CSV import column mapping step + per-user default mapping
 

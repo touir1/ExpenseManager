@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -165,6 +166,22 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
             var bad = Assert.IsType<BadRequestObjectResult>(result);
             var err = Assert.IsType<ErrorResponse>(bad.Value);
             Assert.Equal("INVALID_COLUMN_MAPPING", err.Message);
+        }
+
+        [Fact]
+        public void PreviewAsync_ColumnMappingParameter_IsBoundFromForm()
+        {
+            // Regression guard: without [FromForm], ASP.NET Core's [ApiController] inference binds a bare
+            // string parameter from the query string, not the multipart form — so a client-supplied
+            // columnMapping form field is silently dropped (deserialized as null) even though model
+            // binding itself succeeds. Unit tests that call the action method directly (like the ones
+            // above) can't catch this because they bypass MVC's parameter binding entirely.
+            var parameter = typeof(ExpenseImportController)
+                .GetMethod(nameof(ExpenseImportController.PreviewAsync))!
+                .GetParameters()
+                .Single(p => p.Name == "columnMapping");
+
+            Assert.NotNull(parameter.GetCustomAttribute<FromFormAttribute>());
         }
 
         // ── DetectHeadersAsync ───────────────────────────────────────────────────

@@ -41,7 +41,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers
         [ProducesResponseType(typeof(CsvImportPreviewDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> PreviewAsync(IFormFile? file, string? columnMapping = null)
+        public async Task<IActionResult> PreviewAsync(IFormFile? file, [FromForm] string? columnMapping = null)
         {
             var userId = JwtCookieReader.GetUserId(Request);
             if (userId is null)
