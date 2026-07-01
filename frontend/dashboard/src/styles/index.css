@@ -20,6 +20,7 @@
   --color-sage-soft:    #DCE7CF;
   --color-mustard-soft: #F4E1B5;
   --color-sky-soft:     #CFE0E6;
+  --color-brand-soft:   #FDF4EF;
 }
 
 /* ── Dark mode overrides ─────────────────────────────────────────── */
@@ -43,6 +44,7 @@
   --color-sage-soft:    #192E16;
   --color-mustard-soft: #2E2510;
   --color-sky-soft:     #162430;
+  --color-brand-soft:   #3A2A1E;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -62,6 +64,7 @@
     --color-sage-soft:    #192E16;
     --color-mustard-soft: #2E2510;
     --color-sky-soft:     #162430;
+    --color-brand-soft:   #3A2A1E;
   }
 }
 

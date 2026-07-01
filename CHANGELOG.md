@@ -1,6 +1,15 @@
 
 # Changelog
 
+## [0.124.3] - 2026-07-01
+### Fix: unread notifications unreadable in dark mode
+
+- **`styles/index.css`** — unread notification row used static `bg-brand-50` (`#FDF4EF`) with no dark-mode override, while `text-ink` flips to a near-white CSS var in dark mode — light bg + light text collapsed contrast. Added `--color-brand-soft` var (light `#FDF4EF` / dark `#3A2A1E`), following the existing berry/sage/mustard/sky "soft surface" pattern.
+- **`tailwind.config.ts`** — added `brand.soft` mapped to the new CSS var.
+- **`NotificationBell.tsx`** — unread row background swapped `bg-brand-50` → `bg-brand-soft`.
+
+---
+
 ## [0.124.2] - 2026-07-01
 ### Fix: leave-import confirmation shown after successful CSV import
 

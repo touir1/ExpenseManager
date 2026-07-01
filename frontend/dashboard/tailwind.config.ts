@@ -46,6 +46,7 @@ const config: Config = {
           800: '#5E2817',
           900: '#3E1A0F',
           950: '#1E0C06',
+          soft: 'var(--color-brand-soft)',
         },
         // Warm cream surfaces — CSS-variable-driven so dark mode auto-adapts
         surface: {

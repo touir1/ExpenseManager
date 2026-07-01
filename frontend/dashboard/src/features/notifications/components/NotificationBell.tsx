@@ -135,7 +135,7 @@ export default function NotificationBell() {
                 <button
                   key={n.id}
                   onClick={() => { markRead(n.id); setOpen(false) }}
-                  className={`w-full text-left px-3 py-2.5 border-b border-surface-border last:border-b-0 hover:bg-surface-subtle transition-colors duration-100 cursor-pointer ${!n.isRead ? 'bg-brand-50' : ''}`}
+                  className={`w-full text-left px-3 py-2.5 border-b border-surface-border last:border-b-0 hover:bg-surface-subtle transition-colors duration-100 cursor-pointer ${!n.isRead ? 'bg-brand-soft' : ''}`}
                 >
                   <p className={`text-sm ${!n.isRead ? 'font-semibold text-ink' : 'text-ink-body'}`}>
                     {getNotificationText(n, t)}
