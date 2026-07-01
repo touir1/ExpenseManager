@@ -34,48 +34,122 @@ namespace Touir.ExpensesManager.Expenses.Controllers
 
         /// <summary>
         /// Parse and validate a CSV file, returning a per-row preview with errors.
+        /// Optionally accepts a JSON-encoded rawHeader -> canonicalField columnMapping form field,
+        /// used when the file's headers don't match the expected names verbatim.
         /// </summary>
         [HttpPost("preview")]
         [ProducesResponseType(typeof(CsvImportPreviewDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> PreviewAsync(IFormFile? file)
+        public async Task<IActionResult> PreviewAsync(IFormFile? file, string? columnMapping = null)
         {
             var userId = JwtCookieReader.GetUserId(Request);
             if (userId is null)
                 return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingUser });
 
-            if (file is null || file.Length == 0)
-                return BadRequest(new ErrorResponse { Message = ControllerErrors.ImportNoFile });
+            var fileError = ValidateUploadedFile(file);
+            if (fileError is not null)
+                return BadRequest(new ErrorResponse { Message = fileError });
 
-            if (file.Length > MaxFileSizeBytes)
-                return BadRequest(new ErrorResponse { Message = ControllerErrors.ImportFileTooLarge });
-
-            var extension = Path.GetExtension(file.FileName);
-            if (!extension.Equals(".csv", StringComparison.OrdinalIgnoreCase))
-                return BadRequest(new ErrorResponse { Message = ControllerErrors.InvalidFileType });
-
-            if (!AllowedContentTypes.Contains(file.ContentType))
-                return BadRequest(new ErrorResponse { Message = ControllerErrors.InvalidFileType });
+            Dictionary<string, string>? parsedMapping = null;
+            if (!string.IsNullOrEmpty(columnMapping))
+            {
+                try
+                {
+                    parsedMapping = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(columnMapping);
+                }
+                catch (System.Text.Json.JsonException)
+                {
+                    return BadRequest(new ErrorResponse { Message = "INVALID_COLUMN_MAPPING" });
+                }
+            }
 
             using var ms = new MemoryStream();
-            await file.CopyToAsync(ms);
+            await file!.CopyToAsync(ms);
             ms.Position = 0;
 
             using var cts = new CancellationTokenSource(ParseTimeout);
             try
             {
-                var preview = await _csvImportService.ParseAndValidateAsync(ms, userId.Value, cts.Token);
+                var preview = await _csvImportService.ParseAndValidateAsync(ms, userId.Value, parsedMapping, cts.Token);
                 return Ok(preview);
             }
             catch (OperationCanceledException)
             {
                 return BadRequest(new ErrorResponse { Message = ControllerErrors.ImportTimeout });
             }
+            catch (InvalidOperationException ex) when (
+                ex.Message.StartsWith("MISSING_HEADERS", StringComparison.Ordinal) ||
+                ex.Message is "INVALID_COLUMN_MAPPING" or "TOO_MANY_COLUMNS" or "INVALID_FILE_CONTENT")
+            {
+                return BadRequest(new ErrorResponse { Message = ex.Message });
+            }
             catch (Exception)
             {
                 return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
+        }
+
+        /// <summary>
+        /// Reads only the header row of a CSV file and returns the raw headers plus an
+        /// auto-detected suggested mapping (alias table merged with the user's saved default), without
+        /// throwing on unrecognized headers.
+        /// </summary>
+        [HttpPost("detect-headers")]
+        [ProducesResponseType(typeof(CsvHeaderDetectionDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> DetectHeadersAsync(IFormFile? file)
+        {
+            var userId = JwtCookieReader.GetUserId(Request);
+            if (userId is null)
+                return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingUser });
+
+            var fileError = ValidateUploadedFile(file);
+            if (fileError is not null)
+                return BadRequest(new ErrorResponse { Message = fileError });
+
+            using var ms = new MemoryStream();
+            await file!.CopyToAsync(ms);
+            ms.Position = 0;
+
+            using var cts = new CancellationTokenSource(ParseTimeout);
+            try
+            {
+                var detection = await _csvImportService.DetectHeadersAsync(ms, userId.Value, cts.Token);
+                return Ok(detection);
+            }
+            catch (OperationCanceledException)
+            {
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ImportTimeout });
+            }
+            catch (InvalidOperationException ex) when (
+                ex.Message is "TOO_MANY_COLUMNS" or "INVALID_FILE_CONTENT")
+            {
+                return BadRequest(new ErrorResponse { Message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
+            }
+        }
+
+        private static string? ValidateUploadedFile(IFormFile? file)
+        {
+            if (file is null || file.Length == 0)
+                return ControllerErrors.ImportNoFile;
+
+            if (file.Length > MaxFileSizeBytes)
+                return ControllerErrors.ImportFileTooLarge;
+
+            var extension = Path.GetExtension(file.FileName);
+            if (!extension.Equals(".csv", StringComparison.OrdinalIgnoreCase))
+                return ControllerErrors.InvalidFileType;
+
+            if (!AllowedContentTypes.Contains(file.ContentType))
+                return ControllerErrors.InvalidFileType;
+
+            return null;
         }
 
         /// <summary>

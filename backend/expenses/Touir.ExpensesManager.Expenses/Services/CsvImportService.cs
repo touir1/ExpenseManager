@@ -15,11 +15,11 @@ namespace Touir.ExpensesManager.Expenses.Services
     {
         private const int SourceBulkWeb = 3;
         private const int MaxRows = 500;
-        private const int MaxColumns = 20;
+        private const int MaxColumns = CsvHeaderAliasResolver.MaxColumns;
         private const int MaxTagsPerRow = 20;
         private const int MaxTagNameLength = 100;
 
-        private static readonly string[] RequiredHeaders = ["date", "amount", "currency_code"];
+        private static readonly string[] RequiredHeaders = CsvHeaderAliasResolver.RequiredCanonicalFields;
 
         private readonly ICurrencyRepository _currencyRepository;
         private readonly ICategoryRepository _categoryRepository;
@@ -27,6 +27,7 @@ namespace Touir.ExpensesManager.Expenses.Services
         private readonly ITagService _tagService;
         private readonly IExpenseService _expenseService;
         private readonly IExpensesOutboxRepository _outboxRepo;
+        private readonly IUserConfigRepository _userConfigRepository;
 
         public CsvImportService(
             ICurrencyRepository currencyRepository,
@@ -34,7 +35,8 @@ namespace Touir.ExpensesManager.Expenses.Services
             IFamilyRepository familyRepository,
             ITagService tagService,
             IExpenseService expenseService,
-            IExpensesOutboxRepository outboxRepo)
+            IExpensesOutboxRepository outboxRepo,
+            IUserConfigRepository userConfigRepository)
         {
             _currencyRepository = currencyRepository;
             _categoryRepository = categoryRepository;
@@ -42,9 +44,125 @@ namespace Touir.ExpensesManager.Expenses.Services
             _tagService = tagService;
             _expenseService = expenseService;
             _outboxRepo = outboxRepo;
+            _userConfigRepository = userConfigRepository;
         }
 
-        public async Task<CsvImportPreviewDto> ParseAndValidateAsync(Stream csvStream, int userId, CancellationToken cancellationToken = default)
+        public async Task<CsvImportPreviewDto> ParseAndValidateAsync(
+            Stream csvStream,
+            int userId,
+            Dictionary<string, string>? columnMapping = null,
+            CancellationToken cancellationToken = default)
+        {
+            using var csv = await OpenReaderAsync(csvStream, cancellationToken);
+            var rawHeaders = csv.HeaderRecord!;
+
+            var effectiveMapping = columnMapping;
+            if (effectiveMapping is null or { Count: 0 } && !CsvHeaderAliasResolver.IsExactHeaderMatch(rawHeaders))
+            {
+                var savedMapping = await _userConfigRepository.GetDefaultCsvColumnMappingAsync(userId);
+                if (savedMapping is not null &&
+                    savedMapping.Keys.All(h => rawHeaders.Contains(h, StringComparer.OrdinalIgnoreCase)) &&
+                    CsvHeaderAliasResolver.RequiredCanonicalFields.All(f => savedMapping.ContainsValue(f)))
+                {
+                    effectiveMapping = savedMapping;
+                }
+            }
+
+            Dictionary<string, string>? rawHeaderByCanonical = null;
+            if (effectiveMapping is { Count: > 0 })
+            {
+                rawHeaderByCanonical = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var (raw, canonical) in effectiveMapping)
+                {
+                    if (!rawHeaders.Contains(raw, StringComparer.OrdinalIgnoreCase))
+                        throw new InvalidOperationException("INVALID_COLUMN_MAPPING");
+                    rawHeaderByCanonical[canonical] = raw;
+                }
+
+                var missingRequired = CsvHeaderAliasResolver.RequiredCanonicalFields
+                    .Where(f => !rawHeaderByCanonical.ContainsKey(f))
+                    .ToList();
+                if (missingRequired.Count > 0)
+                    throw new InvalidOperationException($"MISSING_HEADERS:{string.Join(',', missingRequired)}");
+            }
+            else
+            {
+                // No mapping — validate required headers exist verbatim (original behavior)
+                var missing = RequiredHeaders
+                    .Where(h => !rawHeaders.Contains(h, StringComparer.OrdinalIgnoreCase))
+                    .ToList();
+                if (missing.Count > 0)
+                    throw new InvalidOperationException($"MISSING_HEADERS:{string.Join(',', missing)}");
+            }
+
+            string? Field(string canonicalName)
+            {
+                string rawName;
+                if (rawHeaderByCanonical is not null)
+                {
+                    if (!rawHeaderByCanonical.TryGetValue(canonicalName, out rawName!))
+                        return null; // user chose "Ignore" for this canonical field
+                }
+                else
+                {
+                    rawName = canonicalName;
+                }
+
+                return csv.TryGetField<string>(rawName, out var v) ? v?.Trim() : null;
+            }
+
+            var rawRows = new List<RawCsvRowDto>();
+            int rowNumber = 0;
+            while (await csv.ReadAsync())
+            {
+                rowNumber++;
+                if (rowNumber > MaxRows)
+                    break;
+
+                rawRows.Add(new RawCsvRowDto
+                {
+                    RowNumber = rowNumber,
+                    Date = Field("date"),
+                    Amount = Field("amount"),
+                    CurrencyCode = Field("currency_code"),
+                    Category = Field("category"),
+                    Subcategory = Field("subcategory"),
+                    Description = Field("description"),
+                    Tags = Field("tags"),
+                    Families = Field("families"),
+                });
+            }
+
+            return await ValidateRowsAsync(rawRows, userId, cancellationToken);
+        }
+
+        public async Task<CsvHeaderDetectionDto> DetectHeadersAsync(Stream csvStream, int userId, CancellationToken cancellationToken = default)
+        {
+            using var csv = await OpenReaderAsync(csvStream, cancellationToken);
+            var rawHeaders = csv.HeaderRecord!;
+
+            var suggestions = CsvHeaderAliasResolver.SuggestMapping(rawHeaders);
+
+            var savedMapping = await _userConfigRepository.GetDefaultCsvColumnMappingAsync(userId);
+            if (savedMapping is not null)
+            {
+                foreach (var (raw, canonical) in savedMapping)
+                {
+                    var matchingHeader = rawHeaders.FirstOrDefault(h => string.Equals(h, raw, StringComparison.OrdinalIgnoreCase));
+                    if (matchingHeader is not null)
+                        suggestions[matchingHeader] = canonical; // saved default takes priority over generic aliases
+                }
+            }
+
+            return new CsvHeaderDetectionDto
+            {
+                RawHeaders = rawHeaders,
+                SuggestedMapping = suggestions,
+                HeadersMatchExactly = CsvHeaderAliasResolver.IsExactHeaderMatch(rawHeaders),
+            };
+        }
+
+        private static async Task<CsvReader> OpenReaderAsync(Stream csvStream, CancellationToken cancellationToken)
         {
             // Magic bytes check — binary files always contain null bytes
             var probe = new byte[512];
@@ -60,46 +178,16 @@ namespace Touir.ExpensesManager.Expenses.Services
                 MissingFieldFound = null,
             };
 
-            var rawRows = new List<RawCsvRowDto>();
-            using var reader = new StreamReader(csvStream);
-            using var csv = new CsvReader(reader, config);
+            var reader = new StreamReader(csvStream);
+            var csv = new CsvReader(reader, config);
 
             await csv.ReadAsync();
             csv.ReadHeader();
 
-            // Validate required headers exist
-            var missing = RequiredHeaders
-                .Where(h => !csv.HeaderRecord!.Contains(h, StringComparer.OrdinalIgnoreCase))
-                .ToList();
-            if (missing.Count > 0)
-                throw new InvalidOperationException($"MISSING_HEADERS:{string.Join(',', missing)}");
-
-            // Guard against pathologically wide files
             if (csv.HeaderRecord!.Length > MaxColumns)
                 throw new InvalidOperationException("TOO_MANY_COLUMNS");
 
-            int rowNumber = 0;
-            while (await csv.ReadAsync())
-            {
-                rowNumber++;
-                if (rowNumber > MaxRows)
-                    break;
-
-                rawRows.Add(new RawCsvRowDto
-                {
-                    RowNumber = rowNumber,
-                    Date = csv.TryGetField<string>("date", out var d) ? d?.Trim() : null,
-                    Amount = csv.TryGetField<string>("amount", out var a) ? a?.Trim() : null,
-                    CurrencyCode = csv.TryGetField<string>("currency_code", out var cc) ? cc?.Trim() : null,
-                    Category = csv.TryGetField<string>("category", out var cat) ? cat?.Trim() : null,
-                    Subcategory = csv.TryGetField<string>("subcategory", out var sub) ? sub?.Trim() : null,
-                    Description = csv.TryGetField<string>("description", out var desc) ? desc?.Trim() : null,
-                    Tags = csv.TryGetField<string>("tags", out var tags) ? tags?.Trim() : null,
-                    Families = csv.TryGetField<string>("families", out var fam) ? fam?.Trim() : null,
-                });
-            }
-
-            return await ValidateRowsAsync(rawRows, userId, cancellationToken);
+            return csv;
         }
 
         public async Task<CsvImportPreviewDto> ValidateRowsAsync(IEnumerable<RawCsvRowDto> rawRows, int userId, CancellationToken cancellationToken = default)

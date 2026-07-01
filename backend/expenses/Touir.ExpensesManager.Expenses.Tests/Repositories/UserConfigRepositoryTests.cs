@@ -136,5 +136,73 @@ namespace Touir.ExpensesManager.Expenses.Tests.Repositories
             Assert.NotNull(result.DefaultCurrency);
             Assert.Equal(currency.Id, result.DefaultCurrency.Id);
         }
+
+        // ── GetDefaultCsvColumnMappingAsync / UpsertCsvColumnMappingAsync ────────
+
+        [Fact]
+        public async Task GetDefaultCsvColumnMappingAsync_ReturnsNull_WhenNoRowExists()
+        {
+            var result = await _sut.GetDefaultCsvColumnMappingAsync(999);
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task GetDefaultCsvColumnMappingAsync_ReturnsNull_WhenRowExistsButNoMappingSaved()
+        {
+            _wrapper.Context.UserConfigs.Add(new UserConfig { UserId = 60 });
+            await _wrapper.Context.SaveChangesAsync();
+
+            var result = await _sut.GetDefaultCsvColumnMappingAsync(60);
+
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task UpsertCsvColumnMappingAsync_RoundTripsDictionaryThroughJsonColumn()
+        {
+            var mapping = new Dictionary<string, string> { ["sum"] = "amount", ["cur"] = "currency_code" };
+
+            await _sut.UpsertCsvColumnMappingAsync(70, mapping);
+            var result = await _sut.GetDefaultCsvColumnMappingAsync(70);
+
+            Assert.NotNull(result);
+            Assert.Equal("amount", result["sum"]);
+            Assert.Equal("currency_code", result["cur"]);
+        }
+
+        [Fact]
+        public async Task UpsertCsvColumnMappingAsync_InsertsNewRow_WhenNoExistingConfig()
+        {
+            var mapping = new Dictionary<string, string> { ["sum"] = "amount" };
+
+            var result = await _sut.UpsertCsvColumnMappingAsync(80, mapping);
+
+            Assert.Equal(80, result.UserId);
+            Assert.NotNull(result.DefaultCsvColumnMappingJson);
+        }
+
+        [Fact]
+        public async Task UpsertCsvColumnMappingAsync_NullMapping_ClearsExistingValue()
+        {
+            var mapping = new Dictionary<string, string> { ["sum"] = "amount" };
+            await _sut.UpsertCsvColumnMappingAsync(90, mapping);
+
+            await _sut.UpsertCsvColumnMappingAsync(90, null);
+            var result = await _sut.GetDefaultCsvColumnMappingAsync(90);
+
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task UpsertCsvColumnMappingAsync_DoesNotAffectDefaultCurrencyId()
+        {
+            var currency = _wrapper.Context.Currencies.First();
+            _wrapper.Context.UserConfigs.Add(new UserConfig { UserId = 100, DefaultCurrencyId = currency.Id });
+            await _wrapper.Context.SaveChangesAsync();
+
+            var result = await _sut.UpsertCsvColumnMappingAsync(100, new Dictionary<string, string> { ["sum"] = "amount" });
+
+            Assert.Equal(currency.Id, result.DefaultCurrencyId);
+        }
     }
 }

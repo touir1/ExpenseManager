@@ -1,6 +1,31 @@
 
 # Changelog
 
+## [0.124.0] - 2026-07-01
+### Feat: CSV import column mapping step + per-user default mapping
+
+**Backend — expenses:**
+- **`Services/CsvHeaderAliasResolver.cs`** _(new)_ — static alias table (`CanonicalFields`, `RequiredCanonicalFields`, `MaxColumns=20`); `SuggestMapping(rawHeaders)` (first-match-wins per canonical field); `IsExactHeaderMatch`.
+- **`Services/CsvImportService.cs`** — `ParseAndValidateAsync` gains optional `columnMapping` param; when omitted and headers don't match verbatim, falls back to the user's saved default mapping if it fully covers the file (silent auto-apply, no `MISSING_HEADERS`); explicit mapping always takes precedence; new `INVALID_COLUMN_MAPPING` error for mappings referencing nonexistent headers; new `DetectHeadersAsync` (header-only probe, merges alias suggestions with the saved mapping) → `CsvHeaderDetectionDto`.
+- **`Controllers/DTO/CsvHeaderMappingDto.cs`** _(new)_ — `CsvHeaderDetectionDto { RawHeaders, SuggestedMapping, HeadersMatchExactly }`.
+- **`Controllers/ExpenseImportController.cs`** — new `POST /import/detect-headers`; `POST /import/preview` accepts optional `columnMapping` form field; fixes a bug where `MISSING_HEADERS`/`INVALID_COLUMN_MAPPING`/`TOO_MANY_COLUMNS`/`INVALID_FILE_CONTENT` were swallowed into a generic `SERVER_ERROR` by the catch-all exception handler.
+- **`Models/UserConfig.cs`** — added `DefaultCsvColumnMappingJson string?` (JSON-serialized rawHeader→canonicalField dictionary).
+- **`Migrations/20260701173143_AddDefaultCsvColumnMappingToUserConfig`** — adds the nullable column.
+- **`Repositories/UserConfigRepository.cs`** / **`IUserConfigRepository.cs`** — `GetDefaultCsvColumnMappingAsync`, `UpsertCsvColumnMappingAsync`.
+- **`Services/UserConfigService.cs`** / **`IUserConfigService.cs`** — `UpdateCsvColumnMappingAsync` validates values against `CsvHeaderAliasResolver.CanonicalFields`, rejects blank keys and >`MaxColumns` entries.
+- **`Controllers/UserConfigController.cs`** — new `PUT`/`DELETE /config/csv-column-mapping`; `UserConfigDto` gains `DefaultCsvColumnMapping`.
+
+**Frontend:**
+- **`CsvImportPage.tsx`** — new inline column-mapping step, shown only when `previewCsvImport` fails with a `MISSING_HEADERS` `rawCode` (skipped entirely for well-formed CSVs); per-column select (canonical field or "Ignore", uniqueness enforced across rows); "Remember this mapping" checkbox (default on) saves the confirmed mapping via `updateDefaultCsvColumnMapping` on success, non-blocking on failure.
+- **`SettingsPage.tsx`** — new `DefaultCsvColumnMappingCard`: view/edit/add/remove saved mapping rows, Save with "Saved ✓" confirmation, "Clear default mapping".
+- **`expensesApi.service.ts`** — `previewCsvImport` gains optional `columnMapping` param; new `detectCsvHeaders`.
+- **`userConfigApi.service.ts`** — new `updateDefaultCsvColumnMapping`, `clearDefaultCsvColumnMapping`.
+- **`api.service.ts`/`api.type.ts`** — `ApiResponse` gains `rawCode` (untranslated backend error code) so callers can branch on specific codes like `MISSING_HEADERS:...` without parsing the translated message.
+- i18n: `expenses.import.mapping.*`, `expenses.import.errors.INVALID_COLUMN_MAPPING`, `settings.csvColumnMapping.*` in all 4 locales.
+- Tests: 11 new backend cases (`CsvImportServiceTests`, new `CsvHeaderAliasResolverTests`), 10 new `UserConfig*Tests` cases, 6 new `ExpenseImportControllerTests` cases; 6 new `CsvImportPage.test.tsx` cases, 6 new `SettingsPage.test.tsx` cases.
+
+---
+
 ## [0.123.2] - 2026-07-01
 ### Fix: NavBar theme toggle icon size mismatch
 

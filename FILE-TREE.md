@@ -222,15 +222,15 @@ ExpenseManager/
 │   │   │   │   ├── CurrencyController.cs    — GET /currencies → IEnumerable<CurrencyDto>
 │   │   │   │   ├── DashboardController.cs   — 6 GET /dashboard/* endpoints: summary, monthly, categories, same-month-across-years, by-currency, recent; default date ranges computed in controller; FamilyForbiddenException → 403
 │   │   │   │   ├── ExpenseController.cs     — POST/PUT/DELETE/GET/GET(paged) /expenses; GetByIdAsync accepts ?displayCurrencyId; FamilyForbiddenException → 403 on create/update
-│   │   │   │   ├── ExpenseImportController.cs — POST /import/preview (IFormFile → CsvImportPreviewDto; validates ext+MIME+size; copies to MemoryStream; 30s timeout), POST /import/validate-rows (RawCsvRowDto[] → CsvImportPreviewDto; 30s timeout; validated by ValidateRowsRequestValidator), POST /import/confirm (bulk insert), GET /import/template (CSV download)
+│   │   │   │   ├── ExpenseImportController.cs — POST /import/preview (IFormFile + optional columnMapping JSON form field → CsvImportPreviewDto; validates ext+MIME+size; copies to MemoryStream; 30s timeout; catches MISSING_HEADERS/INVALID_COLUMN_MAPPING/TOO_MANY_COLUMNS/INVALID_FILE_CONTENT before generic catch so the specific code reaches the client), POST /import/detect-headers (IFormFile → CsvHeaderDetectionDto; header-only probe, never throws MISSING_HEADERS), POST /import/validate-rows (RawCsvRowDto[] → CsvImportPreviewDto; 30s timeout; validated by ValidateRowsRequestValidator), POST /import/confirm (bulk insert), GET /import/template (CSV download); shared ValidateUploadedFile(file) helper for preview+detect-headers
 │   │   │   │   ├── FamilyController.cs      — 10 endpoints: list, detail, create, rename, archive, unarchive, invite, accept-invite, remove-member, change-role
 │   │   │   │   ├── TagController.cs         — GET /tags → TagListDto; POST /tags → TagDto (idempotent); DELETE /tags/{id} → 204 or 404
-│   │   │   │   ├── UserConfigController.cs  — GET /config → UserConfigDto (null fields if no row); PUT /config → UserConfigDto (upsert; 400 on invalid currencyId)
+│   │   │   │   ├── UserConfigController.cs  — GET /config → UserConfigDto (null fields if no row); PUT /config → UserConfigDto (upsert; 400 on invalid currencyId); PUT /config/csv-column-mapping → UserConfigDto (400 INVALID_COLUMN_MAPPING if value not a canonical field); DELETE /config/csv-column-mapping → clears saved default mapping
 │   │   │   │   ├── DTO/
 │   │   │   │   │   ├── AdminCategoryDto.cs  — Id, Name, Description?, IsArchived, Subcategories: IEnumerable<AdminCategoryDto>
 │   │   │   │   │   ├── CategoryDto.cs       — Id, Name, Description?, Subcategories: IEnumerable<SubcategoryDto>
 │   │   │   │   │   ├── SubcategoryDto.cs    — Id, Name, Description?, Icon? (reused for category + subcategory slots in ExpenseDto)
-│   │   │   │   │   ├── UserConfigDto.cs     — DefaultCurrencyId?, DefaultCurrency?: CurrencyDto
+│   │   │   │   │   ├── UserConfigDto.cs     — DefaultCurrencyId?, DefaultCurrency?: CurrencyDto, DefaultCategoryId?, DefaultCsvColumnMapping?: Dictionary<string,string> (rawHeader→canonicalField)
 │   │   │   │   │   ├── CurrencyDto.cs       — Id, Code, Name, Symbol, Decimals
 │   │   │   │   │   ├── ExpenseDto.cs        — Id, Amount, Currency: CurrencyDto?, Date, Category: SubcategoryDto?, Subcategory: SubcategoryDto?, Description?, CreatedAt, ModifiedAt?, ModifiedFrom?, Tags: TagDto[], ConvertedAmount?: decimal, DisplayCurrency?: CurrencyDto, Families: FamilyNameDto[]
 │   │   │   │   │   ├── CategoryAmountDto.cs — Category: SubcategoryDto?, Amount, ConvertedAmount?; used inside MonthlyBreakdownDto and CategoryBreakdownDto
@@ -247,7 +247,8 @@ ExpenseManager/
 │   │   │   │   │   ├── FamilyDto.cs         — Family response shape: Id, Name, IsDefault, IsDeleted, Members: FamilyMemberDto[]
 │   │   │   │   │   ├── FamilyPendingInvitationDto.cs — Pending invitation: Token, InviteeEmail, InvitedAt, ExpiresAt
 │   │   │   │   │   ├── CsvImportPreviewDto.cs — TotalRows, ValidCount, ErrorCount, Rows: IEnumerable<CsvImportRowPreviewDto> (display values incl. FamiliesDisplay + resolved IDs + errors per row)
-│   │   │   │   │   └── CsvImportResultDto.cs  — Imported, Skipped
+│   │   │   │   │   ├── CsvImportResultDto.cs  — Imported, Skipped
+│   │   │   │   │   └── CsvHeaderMappingDto.cs _(new)_ — CsvHeaderDetectionDto: RawHeaders[], SuggestedMapping: Dictionary<string,string>, HeadersMatchExactly
 │   │   │   │   ├── Requests/
 │   │   │   │   │   ├── AdminAddCurrencyRequest.cs — Code (3 chars), Name (max 50), Symbol (max 10), Decimals; validated by AdminAddCurrencyRequestValidator
 │   │   │   │   │   ├── AdminCategoryRequest.cs — Name (required, max 100), Description?; validated by AdminCategoryRequestValidator
@@ -260,7 +261,7 @@ ExpenseManager/
 │   │   │   │   │   ├── SetDefaultRateRequest.cs — SourceCurrencyId, DestinationCurrencyId, Rate
 │   │   │   │   │   ├── ResolveConflictRequest.cs — Resolution (string: AcceptAuto/KeepManual/Custom), CustomRate?
 │   │   │   │   │   ├── RefreshRatesRequest.cs    — From: DateOnly (required); SourceCurrencyId?: int; DestinationCurrencyId?: int
-│   │   │   │   │   ├── UpdateUserConfigRequest.cs — DefaultCurrencyId?: int
+│   │   │   │   │   ├── UpdateUserConfigRequest.cs — DefaultCurrencyId?: int, DefaultCategoryId?: int; also declares UpdateCsvColumnMappingRequest _(new)_ — Mapping?: Dictionary<string,string>
 │   │   │   │   │   ├── CsvImportConfirmRequest.cs — Rows: IEnumerable<CsvImportConfirmRowDto>; CsvImportConfirmRowDto: Amount, CurrencyId, Date, CategoryId?, SubcategoryId?, Description?, TagNames?, FamilyIds?
 │   │   │   │   │   └── ValidateRowsRequest.cs    — Rows: IEnumerable<RawCsvRowDto>; RawCsvRowDto: RowNumber + raw string fields (Date, Amount, CurrencyCode, Category, Subcategory, Description, Tags, Families)
 │   │   │   │   └── Responses/
@@ -269,7 +270,7 @@ ExpenseManager/
 │   │   │   ├── Models/
 │   │   │   │   ├── OutboxEvent.cs           — Id (bigserial), MessageId, EventType, Payload, CreatedAt, PublishedAt?, RetryCount, LastError?
 │   │   │   │   ├── Category.cs              — IsDeleted + DeletedAt (soft-delete); ParentCategoryId, Children; Icon? (emoji, max 50 chars)
-│   │   │   │   ├── UserConfig.cs            — UserId (unique FK), DefaultCurrencyId? (FK Currencies), nav DefaultCurrency?
+│   │   │   │   ├── UserConfig.cs            — UserId (unique FK), DefaultCurrencyId? (FK Currencies), DefaultCategoryId? (FK Categories), DefaultCsvColumnMappingJson? (JSON-serialized rawHeader→canonicalField dict), nav DefaultCurrency?/DefaultCategory?
 │   │   │   │   ├── Currency.cs
 │   │   │   │   ├── Expense.cs               — IsDeleted + DeletedAt (soft-delete); owner, amount, date, category, audit fields; FK int columns; ICollection<ExpenseTag> ExpenseTags
 │   │   │   │   ├── Family.cs                — IsDeleted + DeletedAt (soft-delete)
@@ -312,7 +313,7 @@ ExpenseManager/
 │   │   │   │   └── ValidateRowsRequestValidator.cs  — Rows NotNull + ≤500; per-row field MaximumLength guards (Date≤10, Amount≤30, CurrencyCode≤10, Category/Subcategory≤200, Description≤500, Tags≤1000, Families≤500)
 │   │   │   ├── Repositories/
 │   │   │   │   ├── CategoryRepository.cs    — GetAllActiveAsync(): top-level non-archived categories with Include(Children), AsNoTracking
-│   │   │   │   ├── UserConfigRepository.cs  — GetByUserIdAsync(userId): includes DefaultCurrency nav; UpsertAsync(userId, currencyId?): insert or update then LoadAsync nav
+│   │   │   │   ├── UserConfigRepository.cs  — GetByUserIdAsync(userId): includes DefaultCurrency nav; UpsertAsync(userId, currencyId?, categoryId?): insert or update then LoadAsync nav; GetDefaultCsvColumnMappingAsync(userId) → Dictionary<string,string>? (deserializes JSON column, lightweight projection); UpsertCsvColumnMappingAsync(userId, mapping?): insert/update/clear (null) the JSON column
 │   │   │   │   ├── DashboardRepository.cs   — Implements IDashboardRepository; hybrid SQL/C# (WHERE in EF Core, GroupBy/Sum in C#); BaseQuery uses correlated EXISTS on ExpenseFamilyAttributions for family scoping
 │   │   │   │   ├── CurrencyRepository.cs    — GetAllAsync(): all currencies, AsNoTracking
 │   │   │   │   ├── ExpenseRepository.cs     — AddAsync, UpdateAsync, SoftDeleteAsync, GetByIdAsync (ownership + !IsDeleted + ExpenseTags include), GetPagedAsync (filtered + paginated, desc by date; TagIds OR filter); ClearExpenseTagsAsync, AddExpenseTagsAsync
@@ -323,7 +324,7 @@ ExpenseManager/
 │   │   │   │   ├── CurrencyRateRepository.cs — GetExactAsync, GetMostRecentBeforeAsync, GetDefaultAsync, GetHistoryAsync, AddRateAsync, UpdateRateAsync, ManualRateExistsAsync, AddConflictAsync, GetPendingConflictsAsync, GetConflictByIdAsync, UpdateConflictAsync, SetDefaultAsync (upsert)
 │   │   │   │   ├── Contracts/
 │   │   │   │   │   ├── ICategoryRepository.cs
-│   │   │   │   │   ├── IUserConfigRepository.cs — GetByUserIdAsync(userId) → UserConfig?; UpsertAsync(userId, currencyId?) → UserConfig
+│   │   │   │   │   ├── IUserConfigRepository.cs — GetByUserIdAsync(userId) → UserConfig?; UpsertAsync(userId, currencyId?, categoryId?) → UserConfig; GetDefaultCsvColumnMappingAsync(userId) → Dictionary<string,string>?; UpsertCsvColumnMappingAsync(userId, mapping?) → UserConfig
 │   │   │   │   │   ├── IDashboardRepository.cs — 5 query methods + 5 record types (CurrencyTotalRow, CategoryTotalRow, MonthlyTotalRow, MonthlyCategoryTotalRow, YearlyTotalRow)
 │   │   │   │   │   ├── ICurrencyRepository.cs
 │   │   │   │   │   ├── IExpenseRepository.cs — AddAsync, UpdateAsync, SoftDeleteAsync, GetByIdAsync, GetPagedAsync, ClearExpenseTagsAsync, AddExpenseTagsAsync
@@ -345,10 +346,11 @@ ExpenseManager/
 │   │   │   │   ├── RabbitMQService.cs       — RabbitMQ connection and messaging
 │   │   │   │   ├── LookupCacheService.cs    — IMemoryCache-backed lookup; NeverRemove priority; loads entire table on first access
 │   │   │   │   ├── CategoryService.cs       — Injects ICategoryRepository; projects Category → CategoryDto (filters archived children); maps Icon field
-│   │   │   │   ├── UserConfigService.cs     — GetAsync(userId) → UserConfigDto; UpdateAsync(userId, currencyId?) → UserConfigDto? (null = invalid currency)
+│   │   │   │   ├── UserConfigService.cs     — GetAsync(userId) → UserConfigDto; UpdateAsync(userId, currencyId?, categoryId?) → UserConfigDto? (null = invalid currency/category); UpdateCsvColumnMappingAsync(userId, mapping?) → UserConfigDto? (null if a value isn't a CsvHeaderAliasResolver canonical field, key blank, or >MaxColumns entries)
 │   │   │   │   ├── CurrencyService.cs       — Injects ICurrencyRepository; projects Currency → CurrencyDto
 │   │   │   │   ├── ExpenseService.cs        — Orchestrates IExpenseRepository + IExpenseAuditService + ITagRepository + ICurrencyRateService; validates tag visibility (→403), auto-adopts tags; resolves ConvertedAmount/DisplayCurrency when displayCurrencyId provided; maps Expense → ExpenseDto
-│   │   │   │   ├── CsvImportService.cs      — Implements ICsvImportService; ParseAndValidateAsync probes 512 bytes for null bytes (INVALID_FILE_CONTENT), validates required headers (date/amount/currency_code) and ≤20 columns, then parses CSV → RawCsvRowDto[] → ValidateRowsAsync; ValidateRowsAsync accepts pre-parsed rows (re-validate flow) — pre-loads currency/category/family dicts then calls static ValidateRow() per row; ValidateRow validates tags (≤20 per row, ≤100 chars each: TOO_MANY_TAGS/TAG_NAME_TOO_LONG); both async methods accept CancellationToken; ConfirmImportAsync calls ITagService.UseTagAsync per tag name then IExpenseService.AddAsync with sourceId=3 (BulkWeb)
+│   │   │   │   ├── CsvImportService.cs      — Implements ICsvImportService; shared OpenReaderAsync probes 512 bytes for null bytes (INVALID_FILE_CONTENT) and guards ≤20 columns (TOO_MANY_COLUMNS); ParseAndValidateAsync(stream, userId, columnMapping?, ct?): if no explicit mapping and headers don't match verbatim, tries the user's saved default mapping (IUserConfigRepository.GetDefaultCsvColumnMappingAsync) — auto-applies silently when it covers all required fields and every referenced raw header exists in the file; explicit mapping always takes precedence; unmapped/"Ignore" raw headers → null field, same as absent optional column; throws MISSING_HEADERS:<fields> if required fields unresolved, INVALID_COLUMN_MAPPING if a mapped raw header doesn't exist in the file; DetectHeadersAsync(stream, userId, ct?) → CsvHeaderDetectionDto: header-only read, merges CsvHeaderAliasResolver.SuggestMapping with the user's saved mapping (saved takes priority), never throws MISSING_HEADERS; ValidateRowsAsync accepts pre-parsed rows (re-validate flow) — pre-loads currency/category/family dicts then calls static ValidateRow() per row; ValidateRow validates tags (≤20 per row, ≤100 chars each: TOO_MANY_TAGS/TAG_NAME_TOO_LONG); ConfirmImportAsync calls ITagService.UseTagAsync per tag name then IExpenseService.AddAsync with sourceId=3 (BulkWeb)
+│   │   │   │   ├── CsvHeaderAliasResolver.cs _(new)_ — Static helper; CanonicalFields[8] (date/amount/currency_code/category/subcategory/description/tags/families) + RequiredCanonicalFields[3] + MaxColumns=20; alias table (e.g. amount←[amt,sum,value,price], currency_code←[currency,cur,ccy]); SuggestMapping(rawHeaders) → Dictionary<string,string> (first-match-wins per canonical field); IsExactHeaderMatch(rawHeaders) → bool
 │   │   │   │   ├── TagService.cs            — GetVisibleAsync calls repo in parallel; UseTagAsync is idempotent find-or-create + adopt; RemoveTagAsync removes UserTag only
 │   │   │   │   ├── ExpenseAuditService.cs   — Writes ExpenseAuditLog + ExpenseAuditSnapshot(s): add→1 after, update→before+after, delete→1 before; snapshots store comma-sep tag IDs
 │   │   │   │   ├── CurrencyRateService.cs   — ResolveRateAsync; AddManualRateAsync (conflict if auto exists); RunDailyUpdateAsync; RefreshRatesFromAsync (backfill range); ResolveConflictAsync
@@ -358,7 +360,7 @@ ExpenseManager/
 │   │   │   │       ├── IRabbitMQService.cs
 │   │   │   │       ├── ILookupCacheService.cs — GetIdAsync<T>(name) / GetNameAsync<T>(id)
 │   │   │   │       ├── ICategoryService.cs  — GetAllAsync() → active category tree
-│   │   │   │       ├── IUserConfigService.cs — GetAsync(userId) → UserConfigDto; UpdateAsync(userId, currencyId?) → UserConfigDto?
+│   │   │   │       ├── IUserConfigService.cs — GetAsync(userId) → UserConfigDto; UpdateAsync(userId, currencyId?, categoryId?) → UserConfigDto?; UpdateCsvColumnMappingAsync(userId, mapping?) → UserConfigDto?
 │   │   │   │       ├── ICurrencyService.cs  — GetAllAsync() → all currencies
 │   │   │   │       ├── IExpenseService.cs   — AddAsync, UpdateAsync, DeleteAsync, GetByIdAsync(id, userId, displayCurrencyId?), GetPagedAsync
 │   │   │   │       ├── IExpenseAuditService.cs — WriteAddAuditAsync, WriteUpdateAuditAsync, WriteDeleteAuditAsync (all accept string tags for snapshot)
@@ -366,7 +368,7 @@ ExpenseManager/
 │   │   │   │       ├── ITagService.cs       — GetVisibleAsync(userId) → TagListDto; UseTagAsync(name, userId) → TagDto; RemoveTagAsync(tagId, userId) → bool
 │   │   │   │       ├── IDashboardService.cs — GetSummaryAsync, GetMonthlyAsync, GetCategoriesAsync, GetSameMonthAcrossYearsAsync, GetByCurrencyAsync, GetRecentAsync
 │   │   │   │       ├── ICurrencyRateService.cs — ResolveRateAsync, GetRateHistoryAsync, AddManualRateAsync, BulkAddManualRatesAsync, SetDefaultFallbackAsync, ResolveConflictAsync, GetPendingConflictsAsync, RunDailyUpdateAsync, RefreshRatesFromAsync
-│   │   │   │       └── ICsvImportService.cs  — ParseAndValidateAsync(stream, userId, ct?) → CsvImportPreviewDto; ValidateRowsAsync(rows, userId, ct?) → CsvImportPreviewDto; ConfirmImportAsync(rows, userId) → CsvImportResultDto
+│   │   │   │       └── ICsvImportService.cs  — ParseAndValidateAsync(stream, userId, columnMapping?, ct?) → CsvImportPreviewDto; DetectHeadersAsync(stream, userId, ct?) → CsvHeaderDetectionDto; ValidateRowsAsync(rows, userId, ct?) → CsvImportPreviewDto; ConfirmImportAsync(rows, userId) → CsvImportResultDto
 │   │   │   └── Migrations/
 │   │   │       ├── 20260217225816_InitialCreate.cs
 │   │   │       ├── 20260217225816_InitialCreate.Designer.cs
@@ -388,6 +390,12 @@ ExpenseManager/
 │   │   │       ├── 20260511130345_Phase4_FamilyInvitation.Designer.cs
 │   │   │       ├── 20260516192901_AddUserTagsRefactorTags.cs — Phase 5: drops Tags.UserId FK+column; adds unique index on Tags.Name; creates UserTags (UserId+TagId PK, Cascade on user, Restrict on tag)
 │   │   │       ├── 20260516192901_AddUserTagsRefactorTags.Designer.cs
+│   │   │       ├── 20260525125157_AddCategoryIcon.cs
+│   │   │       ├── 20260525125210_AddUserConfig.cs
+│   │   │       ├── 20260604190600_AddExpensesOutbox.cs
+│   │   │       ├── 20260605000001_AddUserIsAdmin.cs
+│   │   │       ├── 20260626203657_AddDefaultCategoryToUserConfig.cs
+│   │   │       ├── 20260701173143_AddDefaultCsvColumnMappingToUserConfig.cs _(new)_ — adds nullable UserConfigs.DefaultCsvColumnMappingJson (text) column
 │   │   │       └── ExpensesDbContextModelSnapshot.cs
 │   │   └── Touir.ExpensesManager.Expenses.Tests/
 │   │       ├── Touir.ExpensesManager.Expenses.Tests.csproj
@@ -401,9 +409,9 @@ ExpenseManager/
 │   │       │   ├── CategoryControllerTests.cs
 │   │       │   ├── CurrencyControllerTests.cs
 │   │       │   ├── DashboardControllerTests.cs      — 14 tests: 401 no-cookie, 200 default/explicit date range, 403 FamilyForbidden, 400 generic exception, 400 invalid month (0 and 13), 200 success per endpoint
-│   │       │   ├── UserConfigControllerTests.cs     — 6 tests: GET 200 null/populated, GET 401, PUT 200 valid/null, PUT 400 invalid currency, PUT 401
+│   │       │   ├── UserConfigControllerTests.cs     — 10 tests: GET 200 null/populated, GET 401, PUT 200 valid/null, PUT 400 invalid currency, PUT 401; PUT/DELETE csv-column-mapping ×4 (401, 200 valid, 400 invalid, 200 clear)
 │   │       │   ├── ExpenseControllerTests.cs        — 16 tests: 401 no-cookie × 5 endpoints, 201/400/403 create, 404/200/403 update, 404/204 delete, 404/200 getById, 200 getPaged
-│   │       │   └── ExpenseImportControllerTests.cs  — 18 tests: preview 401/400 no-file/400 empty/400 wrong-ext/400 wrong-mime/400 too-large/200/400 exception/400 timeout; confirm 401/200/400 exception; template 401/200 csv/header; validate-rows 401/200/400 exception/400 timeout
+│   │       │   └── ExpenseImportControllerTests.cs  — 24 tests: preview 401/400 no-file/400 empty/400 wrong-ext/400 wrong-mime/400 too-large/200/400 exception/400 timeout/400 MISSING_HEADERS surfaced (not generic SERVER_ERROR)/400 malformed columnMapping JSON; detect-headers 401/400 no-file/400 wrong-ext/200; confirm 401/200/400 exception; template 401/200 csv/header; validate-rows 401/200/400 exception/400 timeout
 │   │       │   ├── FamilyControllerTests.cs         — 34+ tests: 401 no-cookie paths, all 10 family endpoints (200/201/204/403/404/409 per action) incl. LeaveAsync 401/204/403/404
 │   │       │   └── TagControllerTests.cs            — 13 tests: 401 no-cookie × 3 endpoints, GetTags 200 (list/empty/family), UseTag 200 (new/existing), RemoveTag 204/404
 │   │       ├── Filters/
@@ -425,7 +433,7 @@ ExpenseManager/
 │   │       │   ├── InboxRepositoryTests.cs          — 7 tests: ExistsAsync×3, AddAsync×4
 │   │       │   ├── TagRepositoryTests.cs            — 16 integration tests: GetOwnAsync×3, GetFamilyAsync×4, EnsureUserTagAsync×3, RemoveUserTagAsync×2, IsVisibleAsync×4
 │   │       │   ├── CurrencyRateRepositoryTests.cs   — 25 integration tests: GetExact×2, GetMostRecentBefore×2, GetDefault×2, AddRate, ManualRateExists×2, AddConflict, GetPendingConflicts, SetDefault×2, GetHistory×2, UpdateRate, GetConflictById×2, UpdateConflict, CurrencyRateConflict.Resolution setter, GetExistingOnDate×3, GetExistingInRange×2, GetExistingForPairs×2, AddRatesBatch×2, AddConflictsBatch, IsUsedInRates×3
-│   │       │   └── UserConfigRepositoryTests.cs     — 7 tests: GetByUserIdAsync null/found/loads-nav/wrong-user, UpsertAsync insert/update/clear/no-duplicate/loads-nav
+│   │       │   └── UserConfigRepositoryTests.cs     — 13 tests: GetByUserIdAsync null/found/loads-nav/wrong-user, UpsertAsync insert/update/clear/no-duplicate/loads-nav; GetDefaultCsvColumnMappingAsync null/no-mapping, UpsertCsvColumnMappingAsync round-trip/insert/clear/leaves-currency-untouched
 │   │       ├── Infrastructure/
 │   │       │   ├── ExpensesDbContextSchemaTests.cs  — 23 tests: all Phase 1 entities, composite PKs, unique constraints, cascades
 │   │       │   └── JwtCookieReaderIsAdminTests.cs   — GetIsAdmin: true from cookie, false from cookie, missing cookie → false, Bearer header fallback
@@ -440,7 +448,7 @@ ExpenseManager/
 │   │           ├── RabbitMQServiceTests.cs
 │   │           ├── LookupCacheServiceTests.cs       — 7 tests: GetId/Name, KeyNotFoundException, cache hit, all 8 types
 │   │           ├── CategoryServiceTests.cs          — 11 tests: Mock<ICategoryRepository>; top-level, subcategories, archived exclusion, field mapping, call count; icon mapping (category icon, null icon, subcategory icon)
-│   │           ├── UserConfigServiceTests.cs        — 6 tests: GetAsync no-row/row, UpdateAsync invalid/valid/null currency, Upsert called, currency check skipped for null
+│   │           ├── UserConfigServiceTests.cs        — 10 tests: GetAsync no-row/row, UpdateAsync invalid/valid/null currency, Upsert called, currency check skipped for null; UpdateCsvColumnMappingAsync valid/unknown-canonical-value(null)/too-many-entries(null)/null-clears
 │   │           ├── CurrencyServiceTests.cs          — 5 tests: Mock<ICurrencyRepository>; all currencies, field mapping, empty set, ID mapping, call count
 │   │           ├── ExpenseServiceTests.cs           — 20 tests: AddAsync (repo called, audit written, DTO amount/currency, enqueues outbox for non-default families with co-members, skips outbox for default-only), UpdateAsync (null when not found, repo called, audit written, fields updated), DeleteAsync (false/true/soft-delete/audit), GetByIdAsync (null/mapped), GetPagedAsync (result, total pages); updated for ICurrencyRateService dependency
 │   │           ├── ExpenseServiceConversionTests.cs — 5 tests: GetByIdAsync with displayCurrencyId set/same currency/no rate/not set; GetPagedAsync with conversion
@@ -448,7 +456,8 @@ ExpenseManager/
 │   │           ├── CurrencyRateServiceTests.cs      — 28 tests: ResolveRateAsync×5, AddManualRateAsync×2, BulkAdd×1, SetDefault×1, ResolveConflict×4, GetRateHistory×1, GetPendingConflicts×1, RunDailyUpdate×5, RefreshRatesFrom×7 (all/manualConflict/providerThrows/skipDest/sourceFilter/destFilter/unknownSource)
 │   │           ├── TagServiceTests.cs               — 10 unit tests (Moq): GetVisibleAsync×4, UseTagAsync×4, RemoveTagAsync×2
 │   │           ├── DashboardServiceTests.cs         — 20 unit tests: GetSummaryAsync×9 (empty, single-currency, conversion, null rate, +delta, -delta, null delta, top category, FamilyForbidden), GetMonthlyAsync×3 (grouping, category breakdown, rate date), GetCategoriesAsync×3 (subcategory grouping, uncategorised, percentages), GetSameMonthAcrossYearsAsync×2, GetByCurrencyAsync×1, GetRecentAsync×2
-│   │           ├── CsvImportServiceTests.cs         — 28 tests: ParseAndValidateAsync×16 (incl. MissingRequiredHeaders, TooManyColumns, BinaryContent), ConfirmImportAsync×5, ValidateRowsAsync×7 (incl. TooManyTags, TagNameTooLong, ValidTagsWithinLimits)
+│   │           ├── CsvImportServiceTests.cs         — 39 tests: ParseAndValidateAsync×22 (incl. MissingRequiredHeaders, TooManyColumns, BinaryContent, column-mapping ×5 incl. saved-default auto-apply/precedence), DetectHeadersAsync×4 (exact match, aliased suggestions, saved-mapping priority, ignores malformed rows), ConfirmImportAsync×5, ValidateRowsAsync×7 (incl. TooManyTags, TagNameTooLong, ValidTagsWithinLimits)
+│   │           ├── CsvHeaderAliasResolverTests.cs _(new)_ — 7 tests: SuggestMapping (identity, known aliases, unknown excluded, ambiguous first-match-wins, case-insensitive), IsExactHeaderMatch (true/false)
 │   │           └── FamilyServiceTests.cs            — 36 tests: CreateDefault, Create, GetByUser, GetById, Rename, Invite (incl. email send + failure non-propagation), AcceptInvite, RemoveMember, ChangeRole, Archive, Unarchive, Leave
 │   │
 │   └── users/
@@ -787,7 +796,7 @@ ExpenseManager/
 │           │   │   ├── services/
 │           │   │   │   ├── categoriesApi.service.ts — getCategories() → GET /api/expenses/categories
 │           │   │   │   ├── currenciesApi.service.ts — getCurrencies() → GET /api/expenses/currencies
-│           │   │   │   ├── expensesApi.service.ts  — getExpenses, getExpenseById, addExpense, updateExpense, deleteExpense, previewCsvImport(file), confirmCsvImport(rows), validateCsvRows(rows), getImportTemplateUrl()
+│           │   │   │   ├── expensesApi.service.ts  — getExpenses, getExpenseById, addExpense, updateExpense, deleteExpense, previewCsvImport(file, columnMapping?), detectCsvHeaders(file), confirmCsvImport(rows), validateCsvRows(rows), getImportTemplateUrl()
 │           │   │   │   └── __tests__/
 │           │   │   │       ├── categoriesApi.service.test.ts
 │           │   │   │       ├── currenciesApi.service.test.ts
@@ -804,10 +813,10 @@ ExpenseManager/
 │           │   │   │       └── ExpenseFilters.test.tsx
 │           │   │   ├── pages/
 │           │   │   │   ├── ExpensesPage.tsx    — Paginated expense table with Families column; delete confirm modal; filter panel; empty state; AddExpenseModal (/expenses/add) + EditExpenseModal (/expenses/:id/edit) route-based overlays; "Import CSV" button → /expenses/import
-│           │   │   │   ├── CsvImportPage.tsx   — Two-step upload→preview flow; all 8 columns; Edit/Save/Cancel per row; currency/category/subcategory = StringCombobox; tags = TagChips (chips + autocomplete from useExpensesData, adds new on confirm); families = FamilyMultiSelect (names shown, IDs stored, from useFamilies); all 3 dropdowns portal-rendered to document.body (position:fixed via getBoundingClientRect) to escape overflow-x-auto clipping; 3-state edit model; Re-validate auto-saves and calls POST /import/validate-rows
+│           │   │   │   ├── CsvImportPage.tsx   — Upload→[column mapping]→preview flow; all 8 columns; Edit/Save/Cancel per row; currency/category/subcategory = StringCombobox; tags = TagChips (chips + autocomplete from useExpensesData, adds new on confirm); families = FamilyMultiSelect (names shown, IDs stored, from useFamilies); all 3 dropdowns portal-rendered to document.body (position:fixed via getBoundingClientRect) to escape overflow-x-auto clipping; 3-state edit model; Re-validate auto-saves and calls POST /import/validate-rows; column-mapping step (skippable — only shown when previewCsvImport fails with a MISSING_HEADERS rawCode) calls detectCsvHeaders, lets the user assign each raw header to a canonical field or "Ignore" (uniqueness enforced by filtering used fields from other rows' options), "Remember this mapping" checkbox (default on) calls updateDefaultCsvColumnMapping on successful Continue, non-blocking on failure
 │           │   │   │   └── __tests__/
 │           │   │   │       ├── ExpensesPage.test.tsx
-│           │   │   │       └── CsvImportPage.test.tsx — 26 tests: dropzone/template, preview, all 8 columns header, tags-as-chips display, families-as-"default" display, badge counts, error codes, edit button per row, inputs after edit click (incl. tags/families inputs), save/cancel, cancel discards, re-validate visibility, re-validate auto-saves pending edits, tags serialised as semicolon string, preview updates, confirm/navigate/error, cancel to upload, file too large shows error, wrong extension shows error
+│           │   │   │       └── CsvImportPage.test.tsx — 32 tests: dropzone/template, preview, all 8 columns header, tags-as-chips display, families-as-"default" display, badge counts, error codes, edit button per row, inputs after edit click (incl. tags/families inputs), save/cancel, cancel discards, re-validate visibility, re-validate auto-saves pending edits, tags serialised as semicolon string, preview updates, confirm/navigate/error, cancel to upload, file too large shows error, wrong extension shows error; column mapping step ×6 (shows on MISSING_HEADERS, skipped on exact-header upload, disables Continue when required field unmapped, resubmits with confirmed mapping + saves default, remember-checkbox opt-out, Cancel resets state)
 │           │   │   ├── expense.schemas.ts  — makeExpenseSchema(t): Zod v4 schema; categoryId/subcategoryId use .catch(undefined) to coerce NaN
 │           │   │   ├── ExpensesDataContext.tsx  — ExpensesDataProvider / useExpensesData(); fetches categories + currencies on mount
 │           │   │   └── __tests__/
@@ -842,7 +851,7 @@ ExpenseManager/
 │           │   │   │       └── DashboardFilters.test.tsx
 │           │   │   └── pages/
 │           │   │       ├── HomeDashboardPage.tsx — Hearth layout; 6 useQuery calls; DashboardFilters + MonthHero + SpendChart + CategoryDonut + SameMonthChart + CurrenciesPanel + RecentExpenses
-│           │   │       ├── SettingsPage.tsx       — Settings hub; password card (link to /change-password); default-currency card; theme card (ThemeToggle)
+│           │   │       ├── SettingsPage.tsx       — Settings hub; password card (link to /change-password); default-currency card; theme card (ThemeToggle); default-category card; default-expense-date card; notification-preferences card; data-export card; account-deletion card; DefaultCsvColumnMappingCard — editable rawHeader/canonicalField row list (add/remove/edit), Save/Saved✓ + Clear default mapping, backed by GET/PUT/DELETE /config/csv-column-mapping
 │           │   │       └── __tests__/
 │           │   │           ├── HomeDashboardPage.test.tsx
 │           │   │           └── SettingsPage.test.tsx
@@ -890,8 +899,15 @@ ExpenseManager/
 │           │   │   ├── NotificationContext.tsx   — NotificationProvider / useNotifications(); loads on auth; SignalR connection via dynamic import; markRead/markAllRead/refresh; setupPushNotifications() registers Capacitor PushNotifications + calls POST /api/notifications/push-token
 │           │   │   └── __tests__/
 │           │   │       └── NotificationContext.test.tsx
-│           │   ├── settings/          — Settings feature (theme)
-│           │   │   └── ThemeContext.tsx — ThemeProvider / useTheme(); three modes: light/dark/system; applies .dark/.light class to <html>; persists to localStorage
+│           │   ├── settings/          — Settings feature (theme + user config)
+│           │   │   ├── ThemeContext.tsx — ThemeProvider / useTheme(); three modes: light/dark/system; applies .dark/.light class to <html>; persists to localStorage
+│           │   │   ├── types/
+│           │   │   │   └── userConfig.type.ts — UserConfigDto (defaultCurrencyId/defaultCurrency/defaultCategoryId/defaultCsvColumnMapping), UpdateUserConfigRequest, UpdateCsvColumnMappingRequest, NotificationPreferenceDto
+│           │   │   └── services/
+│           │   │       ├── userConfigApi.service.ts — getConfig, updateConfig, updateDefaultCsvColumnMapping(mapping), clearDefaultCsvColumnMapping()
+│           │   │       ├── notificationPreferencesApi.service.ts — getNotificationPreferences, updateNotificationPreferences
+│           │   │       └── __tests__/
+│           │   │           └── userConfigApi.service.test.ts
 │           │   └── public/            — Public (unauthenticated) pages
 │           │       └── pages/
 │           │           ├── HomePublicPage.tsx    — Public landing page
@@ -924,7 +940,7 @@ ExpenseManager/
 │           ├── styles/
 │           │   └── index.css          — Tailwind directives + @layer components; CSS variable light/dark palette definitions; @media prefers-color-scheme dark for system mode
 │           └── types/                 — Shared TypeScript type definitions
-│               └── api.type.ts         — ApiResponse<T>
+│               └── api.type.ts         — ApiResponse<T> (ok, data?, status, error?, rawCode? — rawCode passes through the raw backend error code, e.g. "MISSING_HEADERS:date,amount", for callers that need to branch on it instead of the translated message)
 │
 │   └── mobile/                        — Ionic + Capacitor native mobile app (Phase 14)
 │       ├── .env.local                 — Local env vars (gitignored; set VITE_API_BASE_URL=https://localhost)

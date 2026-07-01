@@ -4,13 +4,18 @@ import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import SettingsPage from '@/features/dashboard/pages/SettingsPage'
 
-const { mockUseExpensesData, mockGetConfig, mockUpdateConfig, mockShow, mockGetNotificationPreferences, mockUseAuth } = vi.hoisted(() => ({
+const {
+  mockUseExpensesData, mockGetConfig, mockUpdateConfig, mockShow, mockGetNotificationPreferences, mockUseAuth,
+  mockUpdateDefaultCsvColumnMapping, mockClearDefaultCsvColumnMapping,
+} = vi.hoisted(() => ({
   mockUseExpensesData: vi.fn(),
   mockGetConfig: vi.fn(),
   mockUpdateConfig: vi.fn(),
   mockShow: vi.fn(),
   mockGetNotificationPreferences: vi.fn(),
   mockUseAuth: vi.fn(),
+  mockUpdateDefaultCsvColumnMapping: vi.fn(),
+  mockClearDefaultCsvColumnMapping: vi.fn(),
 }))
 
 vi.mock('@/features/expenses/ExpensesDataContext', () => ({
@@ -20,6 +25,8 @@ vi.mock('@/features/expenses/ExpensesDataContext', () => ({
 vi.mock('@/features/settings/services/userConfigApi.service', () => ({
   getConfig: () => mockGetConfig(),
   updateConfig: (...args: unknown[]) => mockUpdateConfig(...args),
+  updateDefaultCsvColumnMapping: (...args: unknown[]) => mockUpdateDefaultCsvColumnMapping(...args),
+  clearDefaultCsvColumnMapping: (...args: unknown[]) => mockClearDefaultCsvColumnMapping(...args),
 }))
 
 vi.mock('@/features/settings/services/notificationPreferencesApi.service', () => ({
@@ -188,6 +195,72 @@ describe('Settings page', () => {
     await waitFor(() => {
       expect(saveBtns[1].querySelector('svg')).toBeInTheDocument()
       expect(saveBtns[1]).toHaveTextContent(/saved/i)
+    })
+  })
+
+  // ── Default CSV Columns card ─────────────────────────────────────────────────
+
+  it('renders empty state when defaultCsvColumnMapping is null', async () => {
+    mockGetConfig.mockResolvedValue({ ok: true, data: { defaultCurrencyId: null, defaultCurrency: null, defaultCategoryId: null, defaultCsvColumnMapping: null } })
+    renderSettings()
+    await waitFor(() => {
+      expect(screen.getByText(/no default column mapping saved yet/i)).toBeInTheDocument()
+    })
+  })
+
+  it('renders existing mapping rows when set', async () => {
+    mockGetConfig.mockResolvedValue({
+      ok: true,
+      data: { defaultCurrencyId: null, defaultCurrency: null, defaultCategoryId: null, defaultCsvColumnMapping: { sum: 'amount', cur: 'currency_code' } },
+    })
+    renderSettings()
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('sum')).toBeInTheDocument()
+      expect(screen.getByDisplayValue('cur')).toBeInTheDocument()
+    })
+  })
+
+  it('"Add column" appends an editable row', async () => {
+    mockGetConfig.mockResolvedValue({ ok: true, data: { defaultCurrencyId: null, defaultCurrency: null, defaultCategoryId: null, defaultCsvColumnMapping: null } })
+    renderSettings()
+    await waitFor(() => screen.getByText(/no default column mapping saved yet/i))
+
+    fireEvent.click(screen.getByRole('button', { name: /add column/i }))
+
+    expect(screen.getByPlaceholderText('CSV column')).toBeInTheDocument()
+  })
+
+  it('Save persists the edited mapping and shows saved confirmation', async () => {
+    mockGetConfig.mockResolvedValue({ ok: true, data: { defaultCurrencyId: null, defaultCurrency: null, defaultCategoryId: null, defaultCsvColumnMapping: null } })
+    mockUpdateDefaultCsvColumnMapping.mockResolvedValue({ ok: true })
+    renderSettings()
+    await waitFor(() => screen.getByText(/no default column mapping saved yet/i))
+
+    fireEvent.click(screen.getByRole('button', { name: /add column/i }))
+    fireEvent.change(screen.getByPlaceholderText('CSV column'), { target: { value: 'sum' } })
+
+    const saveBtns = screen.getAllByRole('button', { name: /save/i })
+    fireEvent.click(saveBtns[saveBtns.length - 1])
+
+    await waitFor(() => {
+      expect(mockUpdateDefaultCsvColumnMapping).toHaveBeenCalledWith({ sum: 'date' })
+    })
+  })
+
+  it('"Clear default mapping" calls clearDefaultCsvColumnMapping and reverts to empty state', async () => {
+    mockGetConfig.mockResolvedValue({
+      ok: true,
+      data: { defaultCurrencyId: null, defaultCurrency: null, defaultCategoryId: null, defaultCsvColumnMapping: { sum: 'amount' } },
+    })
+    mockClearDefaultCsvColumnMapping.mockResolvedValue({ ok: true })
+    renderSettings()
+    await waitFor(() => screen.getByDisplayValue('sum'))
+
+    fireEvent.click(screen.getByRole('button', { name: /clear default mapping/i }))
+
+    await waitFor(() => {
+      expect(mockClearDefaultCsvColumnMapping).toHaveBeenCalled()
+      expect(screen.getByText(/no default column mapping saved yet/i)).toBeInTheDocument()
     })
   })
 })

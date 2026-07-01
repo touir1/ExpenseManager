@@ -202,6 +202,18 @@
             "saving": "Enregistrement…",
             "error": "Échec de la mise à jour de la catégorie par défaut."
         },
+        "csvColumnMapping": {
+            "title": "Colonnes CSV par défaut",
+            "description": "Enregistrée quand vous confirmez une correspondance de colonnes lors d'un import CSV — utilisée pour sauter cette étape la prochaine fois.",
+            "empty": "Aucune correspondance de colonnes par défaut enregistrée pour l'instant — elle sera créée automatiquement la prochaine fois que vous confirmerez une correspondance lors d'un import CSV.",
+            "rawColumn": "Colonne CSV",
+            "mapsTo": "Correspond à",
+            "addColumn": "Ajouter une colonne",
+            "save": "Enregistrer",
+            "saving": "Enregistrement…",
+            "clear": "Effacer la correspondance par défaut",
+            "error": "Échec de la mise à jour de la correspondance de colonnes par défaut."
+        },
         "expenseDate": {
             "title": "Date de dépense par défaut",
             "description": "Pré-remplir la date lors de l'ajout d'une dépense.",
@@ -521,6 +533,19 @@
                 "editing": "En cours",
                 "edited": "Modifié"
             },
+            "mapping": {
+                "title": "Faites correspondre vos colonnes CSV",
+                "description": "Certaines colonnes obligatoires n'ont pas été trouvées automatiquement. Associez chaque colonne de votre fichier au bon champ ci-dessous.",
+                "rawColumn": "Colonne CSV",
+                "mapsTo": "Correspond à",
+                "ignore": "Ignorer",
+                "suggested": "Suggéré",
+                "missingRequired": "Veuillez associer les champs obligatoires suivants : {{fields}}",
+                "continue": "Continuer",
+                "remember": "Se souvenir de cette correspondance pour les prochains imports",
+                "rememberHint": "Nous sauterons cette étape la prochaine fois que vous importerez un fichier avec les mêmes noms de colonnes.",
+                "mapColumnLabel": "Associer la colonne \"{{header}}\""
+            },
             "errors": {
                 "DATE_INVALID": "Date invalide (format AAAA-MM-JJ)",
                 "DATE_IN_FUTURE": "La date est dans le futur",
@@ -540,7 +565,8 @@
                 "TOO_MANY_TAGS": "Trop de tags (max 20 par ligne)",
                 "TAG_NAME_TOO_LONG": "Nom de tag trop long (max 100 caractères)",
                 "MISSING_HEADERS": "Le CSV manque des colonnes obligatoires",
-                "TOO_MANY_COLUMNS": "Le CSV a trop de colonnes (max 20)"
+                "TOO_MANY_COLUMNS": "Le CSV a trop de colonnes (max 20)",
+                "INVALID_COLUMN_MAPPING": "La correspondance des colonnes est invalide"
             }
         }
     },

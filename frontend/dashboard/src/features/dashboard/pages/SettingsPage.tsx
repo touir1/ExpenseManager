@@ -5,12 +5,18 @@ import { useQuery } from '@tanstack/react-query'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useExpensesData } from '@/features/expenses/ExpensesDataContext'
 import { useAuth } from '@/features/auth/AuthContext'
-import { getConfig, updateConfig } from '@/features/settings/services/userConfigApi.service'
+import {
+  getConfig,
+  updateConfig,
+  updateDefaultCsvColumnMapping,
+  clearDefaultCsvColumnMapping,
+} from '@/features/settings/services/userConfigApi.service'
 import { getNotificationPreferences, updateNotificationPreferences } from '@/features/settings/services/notificationPreferencesApi.service'
 import { deleteAccountRequest } from '@/features/auth/services/authApi.service'
 import { useToast } from '@/components/Toast'
 import ThemeToggle from '@/components/ThemeToggle'
 import type { NotificationPreferenceDto } from '@/features/settings/types/userConfig.type'
+import { CSV_CANONICAL_FIELDS } from '@/features/expenses/types/expenses.type'
 
 const NOTIFICATION_EVENT_TYPES = [
   'familyInvitation',
@@ -183,6 +189,158 @@ function DefaultCategoryCard() {
           </>
         ) : saving ? t('settings.defaultCategory.saving') : t('settings.defaultCategory.save')}
       </button>
+      <span aria-live="polite" className="sr-only">{saved ? t('settings.savedConfirm') : ''}</span>
+    </div>
+  )
+}
+
+function DefaultCsvColumnMappingCard() {
+  const { t } = useTranslation()
+  const { show } = useToast()
+  const [rows, setRows] = useState<{ raw: string; canonical: string }[]>([])
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const seededRef = useRef(false)
+
+  const { data: configData } = useQuery({
+    queryKey: ['userConfig'],
+    queryFn: async () => {
+      const res = await getConfig()
+      return res.ok ? res.data ?? null : null
+    },
+  })
+
+  useEffect(() => {
+    if (!configData || seededRef.current) return
+    seededRef.current = true
+    const mapping = configData.defaultCsvColumnMapping
+    setRows(mapping ? Object.entries(mapping).map(([raw, canonical]) => ({ raw, canonical })) : [])
+  }, [configData])
+
+  function updateRow(index: number, field: 'raw' | 'canonical', value: string) {
+    setRows(prev => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)))
+  }
+
+  function removeRow(index: number) {
+    setRows(prev => prev.filter((_, i) => i !== index))
+  }
+
+  function addRow() {
+    seededRef.current = true // once the user starts editing, the query-seeded snapshot must not overwrite it
+    setRows(prev => [...prev, { raw: '', canonical: CSV_CANONICAL_FIELDS[0] }])
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    try {
+      const mapping = Object.fromEntries(
+        rows.filter(r => r.raw.trim().length > 0).map(r => [r.raw.trim(), r.canonical]),
+      )
+      const res = await updateDefaultCsvColumnMapping(mapping)
+      if (res.ok) {
+        setSaved(true)
+        setTimeout(() => setSaved(false), 2000)
+      } else {
+        show(t('settings.csvColumnMapping.error'), 'error')
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleClear() {
+    const res = await clearDefaultCsvColumnMapping()
+    if (res.ok) {
+      setRows([])
+    } else {
+      show(t('settings.csvColumnMapping.error'), 'error')
+    }
+  }
+
+  return (
+    <div className="bg-surface-card rounded-2xl border border-surface-border shadow-card p-6 sm:col-span-2 lg:col-span-1">
+      <div className="flex items-center gap-3 mb-4">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100">
+          <svg className="h-4.5 w-4.5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m6 10V7M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z" />
+          </svg>
+        </span>
+        <h3 className="text-sm font-semibold text-ink">{t('settings.csvColumnMapping.title')}</h3>
+      </div>
+      <p className="text-xs text-ink-mute mb-4">{t('settings.csvColumnMapping.description')}</p>
+
+      {rows.length === 0 ? (
+        <p className="text-xs text-ink-mute mb-4">{t('settings.csvColumnMapping.empty')}</p>
+      ) : (
+        <div className="flex flex-col gap-2 mb-4">
+          {rows.map((row, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input
+                type="text"
+                value={row.raw}
+                onChange={e => updateRow(i, 'raw', e.target.value)}
+                aria-label={t('settings.csvColumnMapping.rawColumn')}
+                placeholder={t('settings.csvColumnMapping.rawColumn')}
+                className="flex-1 min-w-0 text-xs border border-surface-border rounded-lg px-2 py-1.5 bg-surface-card text-ink focus:outline-none focus:ring-1 focus:ring-brand-400"
+              />
+              <select
+                value={row.canonical}
+                onChange={e => updateRow(i, 'canonical', e.target.value)}
+                aria-label={t('settings.csvColumnMapping.mapsTo')}
+                className="flex-1 min-w-0 text-xs border border-surface-border rounded-lg px-2 py-1.5 bg-surface-card text-ink focus:outline-none focus:ring-1 focus:ring-brand-400"
+              >
+                {CSV_CANONICAL_FIELDS.map(f => (
+                  <option key={f} value={f}>{t(`expenses.table.${f}`, t(`expenses.fields.${f}`, f))}</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => removeRow(i)}
+                aria-label={`Remove ${row.raw || 'row'}`}
+                className="p-1 rounded-lg text-ink-mute hover:text-berry hover:bg-berry-soft transition-colors shrink-0"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={addRow}
+        className="mb-4 text-xs font-medium text-brand-600 hover:text-brand-700 transition-colors"
+      >
+        + {t('settings.csvColumnMapping.addColumn')}
+      </button>
+
+      <div className="flex items-center gap-3 flex-wrap">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className={`inline-flex items-center gap-1.5 text-sm font-medium text-white px-4 py-2 rounded-lg transition-colors duration-150 disabled:opacity-60 ${saved ? 'bg-sage hover:bg-sage/90' : 'bg-brand-600 hover:bg-brand-700'}`}
+        >
+          {saved ? (
+            <>
+              <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              {t('settings.savedConfirm')}
+            </>
+          ) : saving ? t('settings.csvColumnMapping.saving') : t('settings.csvColumnMapping.save')}
+        </button>
+        {rows.length > 0 && (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="text-xs font-medium text-berry hover:text-berry/80 transition-colors"
+          >
+            {t('settings.csvColumnMapping.clear')}
+          </button>
+        )}
+      </div>
       <span aria-live="polite" className="sr-only">{saved ? t('settings.savedConfirm') : ''}</span>
     </div>
   )
@@ -519,6 +677,7 @@ export default function SettingsPage() {
           </div>
           <DefaultExpenseDateCard />
           <DefaultCategoryCard />
+          <DefaultCsvColumnMappingCard />
         </SettingsSection>
 
         <SettingsSection title={t('settings.sections.dangerZone')} danger>

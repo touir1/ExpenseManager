@@ -20,6 +20,7 @@ const mockPreviewCsvImport = vi.fn()
 const mockConfirmCsvImport = vi.fn()
 const mockValidateCsvRows = vi.fn()
 const mockGetImportTemplateUrl = vi.fn().mockReturnValue('/api/expenses/import/template')
+const mockDetectCsvHeaders = vi.fn()
 const mockRefresh = vi.fn()
 
 vi.mock('@/features/expenses/services/expensesApi.service', () => ({
@@ -27,6 +28,16 @@ vi.mock('@/features/expenses/services/expensesApi.service', () => ({
   confirmCsvImport: (...args: unknown[]) => mockConfirmCsvImport(...args),
   validateCsvRows: (...args: unknown[]) => mockValidateCsvRows(...args),
   getImportTemplateUrl: () => mockGetImportTemplateUrl(),
+  detectCsvHeaders: (...args: unknown[]) => mockDetectCsvHeaders(...args),
+}))
+
+const mockUpdateDefaultCsvColumnMapping = vi.fn()
+
+vi.mock('@/features/settings/services/userConfigApi.service', () => ({
+  updateDefaultCsvColumnMapping: (...args: unknown[]) => mockUpdateDefaultCsvColumnMapping(...args),
+  clearDefaultCsvColumnMapping: vi.fn(),
+  getConfig: vi.fn(),
+  updateConfig: vi.fn(),
 }))
 
 vi.mock('@/features/expenses/ExpensesDataContext', () => ({
@@ -152,6 +163,7 @@ describe('CsvImportPage', () => {
     vi.clearAllMocks()
     mockBlocker = { state: 'idle' }
     mockGetImportTemplateUrl.mockReturnValue('/api/expenses/import/template')
+    mockUpdateDefaultCsvColumnMapping.mockResolvedValue({ ok: true, status: 200, data: {} })
   })
 
   it('renders upload dropzone and template link', () => {
@@ -749,5 +761,106 @@ describe('CsvImportPage', () => {
   it('shows template column description text alongside download link', () => {
     renderPage()
     expect(screen.getByText(/expected columns/i)).toBeInTheDocument()
+  })
+
+  // ── Column mapping step ──────────────────────────────────────────────────────
+
+  describe('column mapping step', () => {
+    it('shows column mapping step when preview fails with MISSING_HEADERS and detect-headers succeeds', async () => {
+      mockPreviewCsvImport.mockResolvedValueOnce({ ok: false, status: 400, error: 'CSV is missing required columns', rawCode: 'MISSING_HEADERS:date,amount,currency_code' })
+      mockDetectCsvHeaders.mockResolvedValue({
+        ok: true, status: 200,
+        data: { rawHeaders: ['sum', 'cur', 'tx_date'], suggestedMapping: { sum: 'amount', cur: 'currency_code', tx_date: 'date' }, headersMatchExactly: false },
+      })
+      renderPage()
+      uploadFile()
+
+      await waitFor(() => {
+        expect(screen.getByText(/match your csv columns/i)).toBeInTheDocument()
+      })
+      expect(screen.getByText('sum')).toBeInTheDocument()
+      expect(screen.getByText('cur')).toBeInTheDocument()
+      expect(screen.getByText('tx_date')).toBeInTheDocument()
+    })
+
+    it('does not show mapping step when headers match (normal upload flow unaffected)', async () => {
+      mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewAllValid })
+      renderPage()
+      uploadFile()
+
+      await waitFor(() => { expect(screen.getByText('2025-01-15')).toBeInTheDocument() })
+      expect(mockDetectCsvHeaders).not.toHaveBeenCalled()
+    })
+
+    it('disables Continue button when a required canonical field is unmapped', async () => {
+      mockPreviewCsvImport.mockResolvedValueOnce({ ok: false, status: 400, error: 'CSV is missing required columns', rawCode: 'MISSING_HEADERS:date,amount,currency_code' })
+      mockDetectCsvHeaders.mockResolvedValue({
+        ok: true, status: 200,
+        data: { rawHeaders: ['sum', 'cur'], suggestedMapping: { sum: 'amount', cur: 'currency_code' }, headersMatchExactly: false },
+      })
+      renderPage()
+      uploadFile()
+
+      await waitFor(() => screen.getByRole('button', { name: /continue/i }))
+      expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled()
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+    })
+
+    it('clicking Continue resubmits file with confirmed columnMapping and shows preview table on success', async () => {
+      mockPreviewCsvImport.mockResolvedValueOnce({ ok: false, status: 400, error: 'CSV is missing required columns', rawCode: 'MISSING_HEADERS:date,amount,currency_code' })
+      mockDetectCsvHeaders.mockResolvedValue({
+        ok: true, status: 200,
+        data: { rawHeaders: ['sum', 'cur', 'tx_date'], suggestedMapping: { sum: 'amount', cur: 'currency_code', tx_date: 'date' }, headersMatchExactly: false },
+      })
+      mockPreviewCsvImport.mockResolvedValueOnce({ ok: true, data: previewAllValid })
+      renderPage()
+      uploadFile()
+
+      await waitFor(() => screen.getByRole('button', { name: /continue/i }))
+      fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+
+      await waitFor(() => {
+        expect(mockPreviewCsvImport).toHaveBeenCalledTimes(2)
+        expect(mockPreviewCsvImport.mock.calls[1][1]).toEqual({ sum: 'amount', cur: 'currency_code', tx_date: 'date' })
+      })
+      await waitFor(() => { expect(screen.getByText('2025-01-15')).toBeInTheDocument() })
+      expect(mockUpdateDefaultCsvColumnMapping).toHaveBeenCalledWith({ sum: 'amount', cur: 'currency_code', tx_date: 'date' })
+    })
+
+    it('unchecking "Remember this mapping" does not save a default mapping on Continue', async () => {
+      mockPreviewCsvImport.mockResolvedValueOnce({ ok: false, status: 400, error: 'CSV is missing required columns', rawCode: 'MISSING_HEADERS:date,amount,currency_code' })
+      mockDetectCsvHeaders.mockResolvedValue({
+        ok: true, status: 200,
+        data: { rawHeaders: ['sum', 'cur', 'tx_date'], suggestedMapping: { sum: 'amount', cur: 'currency_code', tx_date: 'date' }, headersMatchExactly: false },
+      })
+      mockPreviewCsvImport.mockResolvedValueOnce({ ok: true, data: previewAllValid })
+      renderPage()
+      uploadFile()
+
+      await waitFor(() => screen.getByRole('checkbox', { name: /remember this mapping/i }))
+      fireEvent.click(screen.getByRole('checkbox', { name: /remember this mapping/i }))
+      fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+
+      await waitFor(() => { expect(screen.getByText('2025-01-15')).toBeInTheDocument() })
+      expect(mockUpdateDefaultCsvColumnMapping).not.toHaveBeenCalled()
+    })
+
+    it('Cancel on mapping step returns to the dropzone and clears mapping state', async () => {
+      mockPreviewCsvImport.mockResolvedValueOnce({ ok: false, status: 400, error: 'CSV is missing required columns', rawCode: 'MISSING_HEADERS:date,amount,currency_code' })
+      mockDetectCsvHeaders.mockResolvedValue({
+        ok: true, status: 200,
+        data: { rawHeaders: ['sum', 'cur'], suggestedMapping: { sum: 'amount', cur: 'currency_code' }, headersMatchExactly: false },
+      })
+      renderPage()
+      uploadFile()
+
+      await waitFor(() => screen.getByText(/match your csv columns/i))
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+      await waitFor(() => {
+        expect(document.querySelector('input[type="file"]')).toBeInTheDocument()
+        expect(screen.queryByText(/match your csv columns/i)).not.toBeInTheDocument()
+      })
+    })
   })
 })

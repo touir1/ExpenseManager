@@ -153,5 +153,69 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
 
             service.Verify(s => s.UpdateAsync(42, 7, null), Times.Once);
         }
+
+        // ── UpdateCsvColumnMappingAsync ───────────────────────────────────────────
+
+        [Fact]
+        public async Task UpdateCsvColumnMappingAsync_Returns401_WhenNoCookie()
+        {
+            var controller = CreateController(jwtCookie: null);
+            var result = await controller.UpdateCsvColumnMappingAsync(new UpdateCsvColumnMappingRequest());
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task UpdateCsvColumnMappingAsync_Returns200_WhenValid()
+        {
+            var mapping = new Dictionary<string, string> { ["sum"] = "amount" };
+            var service = new Mock<IUserConfigService>();
+            service.Setup(s => s.UpdateCsvColumnMappingAsync(42, mapping))
+                   .ReturnsAsync(new UserConfigDto { DefaultCsvColumnMapping = mapping });
+
+            var result = await CreateController(service.Object)
+                .UpdateCsvColumnMappingAsync(new UpdateCsvColumnMappingRequest { Mapping = mapping });
+
+            var ok = Assert.IsType<OkObjectResult>(result);
+            var dto = Assert.IsType<UserConfigDto>(ok.Value);
+            Assert.Equal("amount", dto.DefaultCsvColumnMapping!["sum"]);
+        }
+
+        [Fact]
+        public async Task UpdateCsvColumnMappingAsync_Returns400_WhenServiceReturnsNull()
+        {
+            var service = new Mock<IUserConfigService>();
+            service.Setup(s => s.UpdateCsvColumnMappingAsync(42, It.IsAny<Dictionary<string, string>?>()))
+                   .ReturnsAsync((UserConfigDto?)null);
+
+            var result = await CreateController(service.Object)
+                .UpdateCsvColumnMappingAsync(new UpdateCsvColumnMappingRequest { Mapping = new() { ["x"] = "bad" } });
+
+            var bad = Assert.IsType<BadRequestObjectResult>(result);
+            var err = Assert.IsType<ErrorResponse>(bad.Value);
+            Assert.Equal("INVALID_COLUMN_MAPPING", err.Message);
+        }
+
+        // ── ClearCsvColumnMappingAsync ────────────────────────────────────────────
+
+        [Fact]
+        public async Task ClearCsvColumnMappingAsync_Returns401_WhenNoCookie()
+        {
+            var controller = CreateController(jwtCookie: null);
+            var result = await controller.ClearCsvColumnMappingAsync();
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task ClearCsvColumnMappingAsync_Returns200_AndClearsMapping()
+        {
+            var service = new Mock<IUserConfigService>();
+            service.Setup(s => s.UpdateCsvColumnMappingAsync(42, null))
+                   .ReturnsAsync(new UserConfigDto { DefaultCsvColumnMapping = null });
+
+            var result = await CreateController(service.Object).ClearCsvColumnMappingAsync();
+
+            Assert.IsType<OkObjectResult>(result);
+            service.Verify(s => s.UpdateCsvColumnMappingAsync(42, null), Times.Once);
+        }
     }
 }

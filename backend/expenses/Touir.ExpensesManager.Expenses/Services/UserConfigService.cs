@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Touir.ExpensesManager.Expenses.Controllers.DTO;
 using Touir.ExpensesManager.Expenses.Repositories.Contracts;
 using Touir.ExpensesManager.Expenses.Services.Contracts;
@@ -43,6 +44,26 @@ namespace Touir.ExpensesManager.Expenses.Services
             return MapToDto(config);
         }
 
+        public async Task<UserConfigDto?> UpdateCsvColumnMappingAsync(int userId, Dictionary<string, string>? mapping)
+        {
+            if (mapping is not null)
+            {
+                if (mapping.Count > CsvHeaderAliasResolver.MaxColumns)
+                    return null;
+
+                foreach (var (rawHeader, canonicalField) in mapping)
+                {
+                    if (string.IsNullOrWhiteSpace(rawHeader))
+                        return null;
+                    if (!CsvHeaderAliasResolver.CanonicalFields.Contains(canonicalField))
+                        return null;
+                }
+            }
+
+            var config = await _configRepo.UpsertCsvColumnMappingAsync(userId, mapping);
+            return MapToDto(config);
+        }
+
         private static UserConfigDto MapToDto(Models.UserConfig? config)
         {
             if (config is null)
@@ -60,6 +81,9 @@ namespace Touir.ExpensesManager.Expenses.Services
                     Decimals = config.DefaultCurrency.Decimals,
                 },
                 DefaultCategoryId = config.DefaultCategoryId,
+                DefaultCsvColumnMapping = config.DefaultCsvColumnMappingJson is null
+                    ? null
+                    : JsonSerializer.Deserialize<Dictionary<string, string>>(config.DefaultCsvColumnMappingJson),
             };
         }
     }

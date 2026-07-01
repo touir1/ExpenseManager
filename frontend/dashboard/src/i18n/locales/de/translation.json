@@ -202,6 +202,18 @@
             "saving": "Wird gespeichert…",
             "error": "Standardkategorie konnte nicht aktualisiert werden."
         },
+        "csvColumnMapping": {
+            "title": "Standard-CSV-Spalten",
+            "description": "Wird gespeichert, wenn du beim CSV-Import eine Spaltenzuordnung bestätigst — dient dazu, diesen Schritt beim nächsten Mal zu überspringen.",
+            "empty": "Noch keine Standard-Spaltenzuordnung gespeichert — sie wird automatisch erstellt, sobald du beim nächsten CSV-Import eine Zuordnung bestätigst.",
+            "rawColumn": "CSV-Spalte",
+            "mapsTo": "Zugeordnet zu",
+            "addColumn": "Spalte hinzufügen",
+            "save": "Speichern",
+            "saving": "Wird gespeichert…",
+            "clear": "Standardzuordnung löschen",
+            "error": "Standard-Spaltenzuordnung konnte nicht aktualisiert werden."
+        },
         "expenseDate": {
             "title": "Standarddatum für Ausgaben",
             "description": "Datum beim Hinzufügen einer Ausgabe vorausfüllen.",
@@ -521,6 +533,19 @@
                 "editing": "Wird bearbeitet",
                 "edited": "Bearbeitet"
             },
+            "mapping": {
+                "title": "Ordne deine CSV-Spalten zu",
+                "description": "Einige Pflichtspalten konnten nicht automatisch erkannt werden. Ordne jede Spalte deiner Datei unten dem richtigen Feld zu.",
+                "rawColumn": "CSV-Spalte",
+                "mapsTo": "Zugeordnet zu",
+                "ignore": "Ignorieren",
+                "suggested": "Vorgeschlagen",
+                "missingRequired": "Bitte ordne folgende Pflichtfelder zu: {{fields}}",
+                "continue": "Weiter",
+                "remember": "Diese Zuordnung für zukünftige Importe merken",
+                "rememberHint": "Wir überspringen diesen Schritt beim nächsten Import einer Datei mit denselben Spaltennamen.",
+                "mapColumnLabel": "Spalte \"{{header}}\" zuordnen"
+            },
             "errors": {
                 "DATE_INVALID": "Ungültiges Datum (JJJJ-MM-TT)",
                 "DATE_IN_FUTURE": "Datum liegt in der Zukunft",
@@ -540,7 +565,8 @@
                 "TOO_MANY_TAGS": "Zu viele Tags (max 20 pro Zeile)",
                 "TAG_NAME_TOO_LONG": "Tag-Name zu lang (max 100 Zeichen)",
                 "MISSING_HEADERS": "CSV fehlen Pflichtfelder",
-                "TOO_MANY_COLUMNS": "CSV hat zu viele Spalten (max 20)"
+                "TOO_MANY_COLUMNS": "CSV hat zu viele Spalten (max 20)",
+                "INVALID_COLUMN_MAPPING": "Die Spaltenzuordnung ist ungültig"
             }
         }
     },

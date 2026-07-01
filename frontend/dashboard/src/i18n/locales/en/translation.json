@@ -202,6 +202,18 @@
                                              "saving":  "Saving…",
                                              "error":  "Failed to update default category."
                                          },
+                     "csvColumnMapping":  {
+                                              "title":  "Default CSV Columns",
+                                              "description":  "Saved when you confirm a column mapping during CSV import — used to skip that step next time.",
+                                              "empty":  "No default column mapping saved yet — one will be created automatically next time you confirm a mapping during CSV import.",
+                                              "rawColumn":  "CSV column",
+                                              "mapsTo":  "Maps to",
+                                              "addColumn":  "Add column",
+                                              "save":  "Save",
+                                              "saving":  "Saving…",
+                                              "clear":  "Clear default mapping",
+                                              "error":  "Failed to update default column mapping."
+                                          },
                      "expenseDate":  {
                                          "title":  "Default Expense Date",
                                          "description":  "Pre-fill the date when adding a new expense.",
@@ -521,6 +533,19 @@
                                                     "editing":  "Editing",
                                                     "edited":  "Edited"
                                                 },
+                                    "mapping":  {
+                                                    "title":  "Match your CSV columns",
+                                                    "description":  "We couldn't find some required columns automatically. Match each column from your file to the right field below.",
+                                                    "rawColumn":  "CSV column",
+                                                    "mapsTo":  "Maps to",
+                                                    "ignore":  "Ignore",
+                                                    "suggested":  "Suggested",
+                                                    "missingRequired":  "Please map the following required fields: {{fields}}",
+                                                    "continue":  "Continue",
+                                                    "remember":  "Remember this mapping for future imports",
+                                                    "rememberHint":  "We'll skip this step next time you import a file with these same column names.",
+                                                    "mapColumnLabel":  "Map column \"{{header}}\""
+                                                },
                                     "errors":  {
                                                    "DATE_INVALID":  "Invalid date (use YYYY-MM-DD)",
                                                    "DATE_IN_FUTURE":  "Date is in the future",
@@ -540,7 +565,8 @@
                                                    "TOO_MANY_TAGS":  "Too many tags (max 20 per row)",
                                                    "TAG_NAME_TOO_LONG":  "Tag name too long (max 100 characters)",
                                                    "MISSING_HEADERS":  "CSV is missing required columns",
-                                                   "TOO_MANY_COLUMNS":  "CSV has too many columns (max 20)"
+                                                   "TOO_MANY_COLUMNS":  "CSV has too many columns (max 20)",
+                                                   "INVALID_COLUMN_MAPPING":  "Column mapping is invalid"
                                                }
                                 }
                  },

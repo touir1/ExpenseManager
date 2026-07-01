@@ -6,6 +6,7 @@ namespace Touir.ExpensesManager.Expenses.Models
         public int UserId { get; set; }
         public int? DefaultCurrencyId { get; set; }
         public int? DefaultCategoryId { get; set; }
+        public string? DefaultCsvColumnMappingJson { get; set; }
 
         public Currency? DefaultCurrency { get; set; }
         public Category? DefaultCategory { get; set; }

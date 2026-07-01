@@ -235,10 +235,11 @@
 
 ---
 
-### 🟢 Web: No column mapping step
+### ✅ 🟢 Web: No column mapping step
 
 **Problem:** If a user's CSV has columns named `sum`, `cur`, `cat` the import will fail. The preview step shows raw column values but no way to remap.  
-**Fix:** Add optional column-mapping step between upload and preview: auto-detect common alternatives (amt/amount, cat/category), let user confirm or override.
+**Fix:** Add optional column-mapping step between upload and preview: auto-detect common alternatives (amt/amount, cat/category), let user confirm or override.  
+**Done:** `previewCsvImport` first tries the file as-is (skips the step entirely for well-formed CSVs); on `MISSING_HEADERS`, `detectCsvHeaders` returns raw headers + alias-table suggestions and the page renders an inline mapping step (reusing `StringCombobox`-style selects) with a "Remember this mapping" checkbox that saves the confirmed mapping as the user's per-user default (`UserConfigs.DefaultCsvColumnMappingJson`) via `PUT /config/csv-column-mapping`; on future imports with the same header shape, `CsvImportService.ParseAndValidateAsync` auto-applies the saved mapping silently, skipping the step again — backend: `CsvHeaderAliasResolver.cs`, `CsvImportService.cs`, `ExpenseImportController.cs` (new `POST /import/detect-headers`), `UserConfigController.cs`; frontend: `CsvImportPage.tsx`, `SettingsPage.tsx` (`DefaultCsvColumnMappingCard`), all 4 locale files.
 
 ---
 
@@ -586,7 +587,7 @@
 |-----------|--------|------------|
 | Full-page Notifications inbox (`/notifications`) | High | Medium |
 | ~~Chart drill-down → filtered expenses~~ | ~~High~~ | ✅ Done (CategoryDonut → /expenses with params) |
-| CSV import column mapper | High | High |
+| ~~CSV import column mapper~~ | ~~High~~ | ✅ Done (mapping step + per-user saved default) |
 | Mobile expense search (IonSearchbar + backend filter) | High | Medium |
 | ARIA combobox keyboard support | High | Medium |
 | Screen reader accessible chart data tables | Medium | Medium |

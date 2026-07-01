@@ -6,5 +6,6 @@ namespace Touir.ExpensesManager.Expenses.Services.Contracts
     {
         Task<UserConfigDto> GetAsync(int userId);
         Task<UserConfigDto?> UpdateAsync(int userId, int? currencyId, int? categoryId);
+        Task<UserConfigDto?> UpdateCsvColumnMappingAsync(int userId, Dictionary<string, string>? mapping);
     }
 }

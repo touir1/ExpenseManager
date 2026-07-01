@@ -12,12 +12,16 @@ import {
   confirmCsvImport,
   validateCsvRows,
   getImportTemplateUrl,
+  detectCsvHeaders,
 } from '@/features/expenses/services/expensesApi.service'
-import type {
-  CsvImportPreviewDto,
-  CsvImportRowPreview,
-  CsvImportConfirmRowDto,
-  RawCsvRowDto,
+import { updateDefaultCsvColumnMapping } from '@/features/settings/services/userConfigApi.service'
+import {
+  CSV_CANONICAL_FIELDS,
+  type CsvImportPreviewDto,
+  type CsvImportRowPreview,
+  type CsvImportConfirmRowDto,
+  type RawCsvRowDto,
+  type CsvHeaderDetectionDto,
 } from '@/features/expenses/types/expenses.type'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -617,6 +621,13 @@ export default function CsvImportPage() {
   const [userEditedRows, setUserEditedRows] = useState<Set<number>>(new Set())
   const [sortErrors, setSortErrors] = useState(false)
 
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
+  const [headerDetection, setHeaderDetection] = useState<CsvHeaderDetectionDto | null>(null)
+  const [columnMapping, setColumnMapping] = useState<Record<string, string>>({})
+  const [rememberMapping, setRememberMapping] = useState(true)
+  const [detecting, setDetecting] = useState(false)
+  const [mappingSubmitting, setMappingSubmitting] = useState(false)
+
   const blocker = useBlocker(preview !== null)
 
   useEffect(() => {
@@ -720,6 +731,14 @@ export default function CsvImportPage() {
 
   const MAX_FILE_SIZE = 1 * 1024 * 1024 // 1 MB — must match backend
 
+  function resetImportState() {
+    setEditedRows({})
+    setPendingEdits({})
+    setEditingRows(new Set())
+    setSortErrors(false)
+    setUserEditedRows(new Set())
+  }
+
   async function handleFile(file: File) {
     setError(null)
     if (file.size > MAX_FILE_SIZE) {
@@ -735,15 +754,70 @@ export default function CsvImportPage() {
     setLoadingPreview(false)
     if (res.ok) {
       setPreview(res.data!)
-      setEditedRows({})
-      setPendingEdits({})
-      setEditingRows(new Set())
-      setSortErrors(false)
-      setUserEditedRows(new Set())
-    } else {
-      setError(res.error ?? t('expenses.errors.loadFailed'))
+      resetImportState()
+      return
     }
+
+    if (res.rawCode?.startsWith('MISSING_HEADERS')) {
+      setPendingFile(file)
+      setDetecting(true)
+      const detectRes = await detectCsvHeaders(file)
+      setDetecting(false)
+      if (detectRes.ok && detectRes.data) {
+        setHeaderDetection(detectRes.data)
+        const seeded: Record<string, string> = {}
+        for (const header of detectRes.data.rawHeaders) {
+          seeded[header] = detectRes.data.suggestedMapping[header] ?? 'ignore'
+        }
+        setColumnMapping(seeded)
+      } else {
+        setError(detectRes.error ?? t('expenses.errors.loadFailed'))
+      }
+      return
+    }
+
+    setError(res.error ?? t('expenses.errors.loadFailed'))
   }
+
+  function cancelMapping() {
+    setPendingFile(null)
+    setHeaderDetection(null)
+    setColumnMapping({})
+    setRememberMapping(true)
+  }
+
+  async function handleMappingContinue() {
+    if (!pendingFile || !headerDetection) return
+    setMappingSubmitting(true)
+    const confirmedMapping = Object.fromEntries(
+      Object.entries(columnMapping).filter(([, canonical]) => canonical !== 'ignore'),
+    )
+
+    const res = await previewCsvImport(pendingFile, confirmedMapping)
+    setMappingSubmitting(false)
+    if (!res.ok) {
+      setError(res.error ?? t('expenses.errors.loadFailed'))
+      return
+    }
+
+    if (rememberMapping) {
+      // Non-blocking: import flow must not fail if saving the default mapping fails.
+      updateDefaultCsvColumnMapping(confirmedMapping).catch(() => undefined)
+    }
+
+    setPreview(res.data!)
+    resetImportState()
+    setPendingFile(null)
+    setHeaderDetection(null)
+    setColumnMapping({})
+    setRememberMapping(true)
+  }
+
+  const missingRequiredFields = headerDetection
+    ? CSV_CANONICAL_FIELDS.filter(
+        f => ['date', 'amount', 'currency_code'].includes(f) && !Object.values(columnMapping).includes(f),
+      )
+    : []
 
   function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -802,7 +876,97 @@ export default function CsvImportPage() {
         <div className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
 
-      {!preview ? (
+      {!preview && headerDetection ? (
+        <div className="max-w-3xl bg-surface-card shadow-card border border-surface-border rounded-2xl p-8">
+          <h2 className="text-base font-semibold text-ink mb-1">{t('expenses.import.mapping.title')}</h2>
+          <p className="text-sm text-ink-mute mb-5">{t('expenses.import.mapping.description')}</p>
+
+          <table className="w-full text-sm mb-4">
+            <thead>
+              <tr>
+                <th className="text-left text-xs font-semibold text-ink-mute uppercase tracking-wide pb-2">{t('expenses.import.mapping.rawColumn')}</th>
+                <th className="text-left text-xs font-semibold text-ink-mute uppercase tracking-wide pb-2">{t('expenses.import.mapping.mapsTo')}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-surface-border">
+              {headerDetection.rawHeaders.map(header => {
+                const usedElsewhere = new Set(
+                  Object.entries(columnMapping)
+                    .filter(([h]) => h !== header)
+                    .map(([, v]) => v)
+                    .filter(v => v !== 'ignore'),
+                )
+                const options = [
+                  { value: 'ignore', label: t('expenses.import.mapping.ignore') },
+                  ...CSV_CANONICAL_FIELDS
+                    .filter(f => !usedElsewhere.has(f))
+                    .map(f => ({ value: f, label: t(`expenses.table.${f}`, t(`expenses.fields.${f}`, f)) })),
+                ]
+                const isSuggested = headerDetection.suggestedMapping[header] === columnMapping[header]
+                return (
+                  <tr key={header}>
+                    <td className="py-2 pr-4 font-mono text-xs text-ink">
+                      {header}
+                      {isSuggested && columnMapping[header] !== 'ignore' && (
+                        <span className="ml-2 px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 rounded">
+                          {t('expenses.import.mapping.suggested')}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-2">
+                      <select
+                        aria-label={t('expenses.import.mapping.mapColumnLabel', { header })}
+                        value={columnMapping[header] ?? 'ignore'}
+                        onChange={e => setColumnMapping(prev => ({ ...prev, [header]: e.target.value }))}
+                        className="w-full max-w-xs text-sm border border-surface-border rounded-lg px-3 py-1.5 bg-surface-card text-ink focus:outline-none focus:ring-2 focus:ring-brand-400"
+                      >
+                        {options.map(o => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                      </select>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+
+          {missingRequiredFields.length > 0 && (
+            <div role="alert" className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+              {t('expenses.import.mapping.missingRequired', {
+                fields: missingRequiredFields.map(f => t(`expenses.table.${f}`, t(`expenses.fields.${f}`, f))).join(', '),
+              })}
+            </div>
+          )}
+
+          <label className="flex items-center gap-2 mb-5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={rememberMapping}
+              onChange={e => setRememberMapping(e.target.checked)}
+              className="accent-brand-600 h-4 w-4"
+            />
+            <span className="text-sm text-ink">{t('expenses.import.mapping.remember')}</span>
+          </label>
+          <p className="text-xs text-ink-mute -mt-3 mb-5">{t('expenses.import.mapping.rememberHint')}</p>
+
+          <div className="flex gap-3 justify-end">
+            <button
+              onClick={cancelMapping}
+              className="px-4 py-2 text-sm font-medium rounded-xl border border-surface-border text-ink hover:bg-surface-subtle transition-colors"
+            >
+              {t('expenses.import.cancel')}
+            </button>
+            <button
+              onClick={handleMappingContinue}
+              disabled={mappingSubmitting || missingRequiredFields.length > 0}
+              className="px-4 py-2 text-sm font-medium rounded-xl bg-brand-600 hover:bg-brand-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {t('expenses.import.mapping.continue')}
+            </button>
+          </div>
+        </div>
+      ) : !preview ? (
         <div className="max-w-2xl bg-surface-card shadow-card border border-surface-border rounded-2xl p-8">
           <div
             role="button" tabIndex={0} aria-label={t('expenses.import.dropzone')}
@@ -811,9 +975,9 @@ export default function CsvImportPage() {
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
             onKeyDown={e => e.key === 'Enter' && fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors ${loadingPreview ? 'pointer-events-none opacity-75 cursor-default' : 'cursor-pointer'} ${dragging ? 'border-brand-600 bg-brand-50' : 'border-surface-border hover:border-brand-400'}`}
+            className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors ${loadingPreview || detecting ? 'pointer-events-none opacity-75 cursor-default' : 'cursor-pointer'} ${dragging ? 'border-brand-600 bg-brand-50' : 'border-surface-border hover:border-brand-400'}`}
           >
-            {loadingPreview ? (
+            {loadingPreview || detecting ? (
               <div className="flex flex-col items-center gap-3">
                 <svg className="animate-spin h-8 w-8 text-brand-500" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

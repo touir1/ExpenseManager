@@ -9,6 +9,7 @@ import type {
   CsvImportConfirmRowDto,
   CsvImportResultDto,
   RawCsvRowDto,
+  CsvHeaderDetectionDto,
 } from '@/features/expenses/types/expenses.type'
 
 const BASE = '/api/expenses'
@@ -54,10 +55,20 @@ export function deleteExpense(id: number): Promise<ApiResponse<void>> {
   return del<void>(`${BASE}/${id}`)
 }
 
-export function previewCsvImport(file: File): Promise<ApiResponse<CsvImportPreviewDto>> {
+export function previewCsvImport(
+  file: File,
+  columnMapping?: Record<string, string>,
+): Promise<ApiResponse<CsvImportPreviewDto>> {
   const fd = new FormData()
   fd.append('file', file)
+  if (columnMapping) fd.append('columnMapping', JSON.stringify(columnMapping))
   return postFormData<CsvImportPreviewDto>(`${BASE}/import/preview`, fd)
+}
+
+export function detectCsvHeaders(file: File): Promise<ApiResponse<CsvHeaderDetectionDto>> {
+  const fd = new FormData()
+  fd.append('file', file)
+  return postFormData<CsvHeaderDetectionDto>(`${BASE}/import/detect-headers`, fd)
 }
 
 export function confirmCsvImport(rows: CsvImportConfirmRowDto[]): Promise<ApiResponse<CsvImportResultDto>> {

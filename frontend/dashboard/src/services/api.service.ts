@@ -47,10 +47,14 @@ function redirectToLogin(): void {
   unauthorizedHandler?.()
 }
 
+function getRawCode(data: any): string | undefined {
+  return data?.message ?? data?.Message ?? data?.error
+}
+
 function buildErrorResponse<T>(status: number, data: unknown, statusText: string, silent = false): ApiResponse<T> {
   const msg = getErrorMessage(status, data, statusText)
   if (errorHandler && !silent) errorHandler(msg)
-  return { ok: false, status, error: msg }
+  return { ok: false, status, error: msg, rawCode: getRawCode(data) }
 }
 
 async function retryRequest<T>(url: string, init: RequestInit, headers: Record<string, string>): Promise<ApiResponse<T>> {

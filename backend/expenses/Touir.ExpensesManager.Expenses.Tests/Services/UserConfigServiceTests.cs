@@ -143,5 +143,55 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             Assert.NotNull(result);
             Assert.Equal(7, result.DefaultCategoryId);
         }
+
+        // ── UpdateCsvColumnMappingAsync ───────────────────────────────────────
+
+        [Fact]
+        public async Task UpdateCsvColumnMappingAsync_ValidMapping_PersistsAndReturnsDto()
+        {
+            var mapping = new Dictionary<string, string> { ["sum"] = "amount", ["cur"] = "currency_code" };
+            var config = new UserConfig { Id = 1, UserId = 1, DefaultCsvColumnMappingJson = "{\"sum\":\"amount\",\"cur\":\"currency_code\"}" };
+            var configRepo = new Mock<IUserConfigRepository>();
+            configRepo.Setup(r => r.UpsertCsvColumnMappingAsync(1, mapping)).ReturnsAsync(config);
+
+            var result = await CreateService(configRepo.Object).UpdateCsvColumnMappingAsync(1, mapping);
+
+            Assert.NotNull(result);
+            Assert.Equal("amount", result.DefaultCsvColumnMapping!["sum"]);
+        }
+
+        [Fact]
+        public async Task UpdateCsvColumnMappingAsync_UnknownCanonicalValue_ReturnsNull()
+        {
+            var mapping = new Dictionary<string, string> { ["sum"] = "not_a_real_field" };
+
+            var result = await CreateService().UpdateCsvColumnMappingAsync(1, mapping);
+
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task UpdateCsvColumnMappingAsync_TooManyEntries_ReturnsNull()
+        {
+            var mapping = Enumerable.Range(0, 25).ToDictionary(i => $"col{i}", _ => "description");
+
+            var result = await CreateService().UpdateCsvColumnMappingAsync(1, mapping);
+
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task UpdateCsvColumnMappingAsync_NullMapping_ClearsSavedDefault()
+        {
+            var config = new UserConfig { Id = 1, UserId = 1, DefaultCsvColumnMappingJson = null };
+            var configRepo = new Mock<IUserConfigRepository>();
+            configRepo.Setup(r => r.UpsertCsvColumnMappingAsync(1, null)).ReturnsAsync(config);
+
+            var result = await CreateService(configRepo.Object).UpdateCsvColumnMappingAsync(1, null);
+
+            Assert.NotNull(result);
+            Assert.Null(result.DefaultCsvColumnMapping);
+            configRepo.Verify(r => r.UpsertCsvColumnMappingAsync(1, null), Times.Once);
+        }
     }
 }

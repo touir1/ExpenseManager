@@ -110,7 +110,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         {
             var preview = new CsvImportPreviewDto { TotalRows = 2, ValidCount = 2, ErrorCount = 0 };
             var svc = new Mock<ICsvImportService>();
-            svc.Setup(s => s.ParseAndValidateAsync(It.IsAny<Stream>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            svc.Setup(s => s.ParseAndValidateAsync(It.IsAny<Stream>(), It.IsAny<int>(), It.IsAny<Dictionary<string, string>?>(), It.IsAny<CancellationToken>()))
                .ReturnsAsync(preview);
 
             var result = await CreateController(svc.Object).PreviewAsync(MakeFormFile());
@@ -123,7 +123,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         public async Task PreviewAsync_Returns400_OnException()
         {
             var svc = new Mock<ICsvImportService>();
-            svc.Setup(s => s.ParseAndValidateAsync(It.IsAny<Stream>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            svc.Setup(s => s.ParseAndValidateAsync(It.IsAny<Stream>(), It.IsAny<int>(), It.IsAny<Dictionary<string, string>?>(), It.IsAny<CancellationToken>()))
                .ThrowsAsync(new Exception("parse error"));
 
             var result = await CreateController(svc.Object).PreviewAsync(MakeFormFile());
@@ -134,13 +134,80 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
         public async Task PreviewAsync_Returns400_OnTimeout()
         {
             var svc = new Mock<ICsvImportService>();
-            svc.Setup(s => s.ParseAndValidateAsync(It.IsAny<Stream>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            svc.Setup(s => s.ParseAndValidateAsync(It.IsAny<Stream>(), It.IsAny<int>(), It.IsAny<Dictionary<string, string>?>(), It.IsAny<CancellationToken>()))
                .ThrowsAsync(new OperationCanceledException());
 
             var result = await CreateController(svc.Object).PreviewAsync(MakeFormFile());
             var bad = Assert.IsType<BadRequestObjectResult>(result);
             var err = Assert.IsType<ErrorResponse>(bad.Value);
             Assert.Equal("IMPORT_TIMEOUT", err.Message);
+        }
+
+        [Fact]
+        public async Task PreviewAsync_Returns400_WithMissingHeadersCode_InsteadOfGenericServerError()
+        {
+            var svc = new Mock<ICsvImportService>();
+            svc.Setup(s => s.ParseAndValidateAsync(It.IsAny<Stream>(), It.IsAny<int>(), It.IsAny<Dictionary<string, string>?>(), It.IsAny<CancellationToken>()))
+               .ThrowsAsync(new InvalidOperationException("MISSING_HEADERS:date,amount"));
+
+            var result = await CreateController(svc.Object).PreviewAsync(MakeFormFile());
+
+            var bad = Assert.IsType<BadRequestObjectResult>(result);
+            var err = Assert.IsType<ErrorResponse>(bad.Value);
+            Assert.Equal("MISSING_HEADERS:date,amount", err.Message);
+        }
+
+        [Fact]
+        public async Task PreviewAsync_Returns400_WithInvalidColumnMapping_OnMalformedMappingJson()
+        {
+            var result = await CreateController().PreviewAsync(MakeFormFile(), columnMapping: "{not valid json");
+
+            var bad = Assert.IsType<BadRequestObjectResult>(result);
+            var err = Assert.IsType<ErrorResponse>(bad.Value);
+            Assert.Equal("INVALID_COLUMN_MAPPING", err.Message);
+        }
+
+        // ── DetectHeadersAsync ───────────────────────────────────────────────────
+
+        [Fact]
+        public async Task DetectHeadersAsync_Returns401_WhenNoCookie()
+        {
+            var controller = CreateController(jwtCookie: null);
+            var result = await controller.DetectHeadersAsync(MakeFormFile());
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task DetectHeadersAsync_Returns400_WhenNoFile()
+        {
+            var result = await CreateController().DetectHeadersAsync(null);
+            var bad = Assert.IsType<BadRequestObjectResult>(result);
+            var err = Assert.IsType<ErrorResponse>(bad.Value);
+            Assert.Equal("IMPORT_NO_FILE", err.Message);
+        }
+
+        [Fact]
+        public async Task DetectHeadersAsync_Returns400_WhenWrongExtension()
+        {
+            var file = MakeFormFile(fileName: "upload.exe", contentType: "text/csv");
+            var result = await CreateController().DetectHeadersAsync(file);
+            var bad = Assert.IsType<BadRequestObjectResult>(result);
+            var err = Assert.IsType<ErrorResponse>(bad.Value);
+            Assert.Equal("INVALID_FILE_TYPE", err.Message);
+        }
+
+        [Fact]
+        public async Task DetectHeadersAsync_Returns200_WithDetectionResult()
+        {
+            var detection = new CsvHeaderDetectionDto { RawHeaders = ["sum", "cur"], HeadersMatchExactly = false };
+            var svc = new Mock<ICsvImportService>();
+            svc.Setup(s => s.DetectHeadersAsync(It.IsAny<Stream>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+               .ReturnsAsync(detection);
+
+            var result = await CreateController(svc.Object).DetectHeadersAsync(MakeFormFile());
+
+            var ok = Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(detection, ok.Value);
         }
 
         // ── ConfirmAsync ──────────────────────────────────────────────────────────

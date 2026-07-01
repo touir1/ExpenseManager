@@ -27,7 +27,8 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             ICategoryRepository? categoryRepo = null,
             IFamilyRepository? familyRepo = null,
             ITagService? tagService = null,
-            IExpenseService? expenseService = null)
+            IExpenseService? expenseService = null,
+            IUserConfigRepository? userConfigRepo = null)
         {
             if (currencyRepo == null)
             {
@@ -52,13 +53,22 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
                 familyRepo = fam.Object;
             }
 
+            if (userConfigRepo == null)
+            {
+                var cfg = new Mock<IUserConfigRepository>();
+                cfg.Setup(x => x.GetDefaultCsvColumnMappingAsync(It.IsAny<int>()))
+                   .ReturnsAsync((Dictionary<string, string>?)null);
+                userConfigRepo = cfg.Object;
+            }
+
             return new CsvImportService(
                 currencyRepo,
                 categoryRepo,
                 familyRepo,
                 tagService ?? Mock.Of<ITagService>(),
                 expenseService ?? Mock.Of<IExpenseService>(),
-                Mock.Of<IExpensesOutboxRepository>());
+                Mock.Of<IExpensesOutboxRepository>(),
+                userConfigRepo);
         }
 
         private static Stream MakeCsv(string content)
@@ -330,6 +340,172 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
 
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 svc.ParseAndValidateAsync(stream, userId: 1));
+        }
+
+        // ── ParseAndValidateAsync — column mapping ────────────────────────────
+
+        [Fact]
+        public async Task ParseAndValidateAsync_WithColumnMapping_MapsAliasedHeadersCorrectly()
+        {
+            var svc = CreateService();
+            var validDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)).ToString("yyyy-MM-dd");
+            var stream = MakeCsv($"sum,cur,tx_date\n50.00,EUR,{validDate}");
+            var mapping = new Dictionary<string, string> { ["sum"] = "amount", ["cur"] = "currency_code", ["tx_date"] = "date" };
+
+            var result = await svc.ParseAndValidateAsync(stream, userId: 1, columnMapping: mapping);
+
+            var row = result.Rows.Single();
+            Assert.True(row.IsValid);
+            Assert.Equal(50.00m, row.Amount);
+        }
+
+        [Fact]
+        public async Task ParseAndValidateAsync_WithColumnMapping_RequiredFieldNotMapped_ThrowsMissingHeaders()
+        {
+            var svc = CreateService();
+            var stream = MakeCsv("sum,cur,tx_date\n50.00,EUR,2025-01-01");
+            var mapping = new Dictionary<string, string> { ["cur"] = "currency_code", ["tx_date"] = "date" };
+
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                svc.ParseAndValidateAsync(stream, userId: 1, columnMapping: mapping));
+            Assert.StartsWith("MISSING_HEADERS", ex.Message);
+        }
+
+        [Fact]
+        public async Task ParseAndValidateAsync_WithColumnMapping_MappingReferencesNonexistentColumn_ThrowsInvalidColumnMapping()
+        {
+            var svc = CreateService();
+            var stream = MakeCsv("sum,cur,tx_date\n50.00,EUR,2025-01-01");
+            var mapping = new Dictionary<string, string>
+            {
+                ["sum"] = "amount",
+                ["cur"] = "currency_code",
+                ["tx_date"] = "date",
+                ["nonexistent_column"] = "category",
+            };
+
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                svc.ParseAndValidateAsync(stream, userId: 1, columnMapping: mapping));
+            Assert.Equal("INVALID_COLUMN_MAPPING", ex.Message);
+        }
+
+        [Fact]
+        public async Task ParseAndValidateAsync_WithColumnMapping_IgnoredColumnIsExcluded()
+        {
+            var svc = CreateService();
+            var validDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)).ToString("yyyy-MM-dd");
+            var stream = MakeCsv($"sum,cur,tx_date,cat\n50.00,EUR,{validDate},Food");
+            // "cat" present in file but not in mapping — should be excluded (treated as "Ignore")
+            var mapping = new Dictionary<string, string> { ["sum"] = "amount", ["cur"] = "currency_code", ["tx_date"] = "date" };
+
+            var result = await svc.ParseAndValidateAsync(stream, userId: 1, columnMapping: mapping);
+
+            var row = result.Rows.Single();
+            Assert.True(row.IsValid);
+            Assert.Null(row.CategoryDisplay);
+        }
+
+        [Fact]
+        public async Task ParseAndValidateAsync_NoMapping_UserHasSavedDefault_CoversFile_AutoApplies()
+        {
+            var validDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)).ToString("yyyy-MM-dd");
+            var savedMapping = new Dictionary<string, string> { ["sum"] = "amount", ["cur"] = "currency_code", ["tx_date"] = "date" };
+            var cfg = new Mock<IUserConfigRepository>();
+            cfg.Setup(x => x.GetDefaultCsvColumnMappingAsync(1)).ReturnsAsync(savedMapping);
+
+            var svc = CreateService(userConfigRepo: cfg.Object);
+            var stream = MakeCsv($"sum,cur,tx_date\n50.00,EUR,{validDate}");
+
+            var result = await svc.ParseAndValidateAsync(stream, userId: 1);
+
+            Assert.True(result.Rows.Single().IsValid);
+        }
+
+        [Fact]
+        public async Task ParseAndValidateAsync_NoMapping_SavedDefaultMissingFromFile_ThrowsMissingHeaders()
+        {
+            var savedMapping = new Dictionary<string, string> { ["sum"] = "amount", ["cur"] = "currency_code", ["tx_date"] = "date" };
+            var cfg = new Mock<IUserConfigRepository>();
+            cfg.Setup(x => x.GetDefaultCsvColumnMappingAsync(1)).ReturnsAsync(savedMapping);
+
+            var svc = CreateService(userConfigRepo: cfg.Object);
+            // File doesn't contain "tx_date" (saved mapping references a header this file doesn't have)
+            var stream = MakeCsv("sum,cur\n50.00,EUR");
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                svc.ParseAndValidateAsync(stream, userId: 1));
+        }
+
+        [Fact]
+        public async Task ParseAndValidateAsync_ExplicitMappingPassed_TakesPrecedenceOverSavedDefault()
+        {
+            var validDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)).ToString("yyyy-MM-dd");
+            var savedMapping = new Dictionary<string, string> { ["wrong"] = "amount", ["wrong2"] = "currency_code", ["wrong3"] = "date" };
+            var cfg = new Mock<IUserConfigRepository>();
+            cfg.Setup(x => x.GetDefaultCsvColumnMappingAsync(1)).ReturnsAsync(savedMapping);
+
+            var svc = CreateService(userConfigRepo: cfg.Object);
+            var stream = MakeCsv($"sum,cur,tx_date\n50.00,EUR,{validDate}");
+            var explicitMapping = new Dictionary<string, string> { ["sum"] = "amount", ["cur"] = "currency_code", ["tx_date"] = "date" };
+
+            var result = await svc.ParseAndValidateAsync(stream, userId: 1, columnMapping: explicitMapping);
+
+            Assert.True(result.Rows.Single().IsValid);
+            cfg.Verify(x => x.GetDefaultCsvColumnMappingAsync(It.IsAny<int>()), Times.Never);
+        }
+
+        // ── DetectHeadersAsync ─────────────────────────────────────────────────
+
+        [Fact]
+        public async Task DetectHeadersAsync_WellFormedCsv_ReturnsHeadersMatchExactlyTrue()
+        {
+            var svc = CreateService();
+            var stream = MakeCsv("date,amount,currency_code\n2025-01-01,10.00,EUR");
+
+            var result = await svc.DetectHeadersAsync(stream, userId: 1);
+
+            Assert.True(result.HeadersMatchExactly);
+        }
+
+        [Fact]
+        public async Task DetectHeadersAsync_AliasedCsv_ReturnsSuggestedMappingAndHeadersMatchExactlyFalse()
+        {
+            var svc = CreateService();
+            var stream = MakeCsv("sum,cur,cat\n50.00,EUR,Food");
+
+            var result = await svc.DetectHeadersAsync(stream, userId: 1);
+
+            Assert.False(result.HeadersMatchExactly);
+            Assert.Equal("amount", result.SuggestedMapping["sum"]);
+            Assert.Equal("currency_code", result.SuggestedMapping["cur"]);
+            Assert.Equal("category", result.SuggestedMapping["cat"]);
+        }
+
+        [Fact]
+        public async Task DetectHeadersAsync_UserHasSavedMapping_PrefersSavedOverAliasTable()
+        {
+            var cfg = new Mock<IUserConfigRepository>();
+            cfg.Setup(x => x.GetDefaultCsvColumnMappingAsync(1))
+               .ReturnsAsync(new Dictionary<string, string> { ["sum"] = "description" }); // deliberately different from the generic alias suggestion
+
+            var svc = CreateService(userConfigRepo: cfg.Object);
+            var stream = MakeCsv("sum,cur\n50.00,EUR");
+
+            var result = await svc.DetectHeadersAsync(stream, userId: 1);
+
+            Assert.Equal("description", result.SuggestedMapping["sum"]);
+        }
+
+        [Fact]
+        public async Task DetectHeadersAsync_DoesNotThrow_OnMalformedDataRows()
+        {
+            var svc = CreateService();
+            // Header is fine; the "data row" is empty/malformed — DetectHeadersAsync never reads rows
+            var stream = MakeCsv("date,amount,currency_code\n");
+
+            var result = await svc.DetectHeadersAsync(stream, userId: 1);
+
+            Assert.True(result.HeadersMatchExactly);
         }
 
         // ── ConfirmImportAsync ────────────────────────────────────────────────────

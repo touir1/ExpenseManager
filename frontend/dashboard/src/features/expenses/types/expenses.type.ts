@@ -125,6 +125,17 @@ export type CsvImportResultDto = {
   skipped: number
 }
 
+export type CsvHeaderDetectionDto = {
+  rawHeaders: string[]
+  suggestedMapping: Record<string, string>
+  headersMatchExactly: boolean
+}
+
+export const CSV_CANONICAL_FIELDS = [
+  'date', 'amount', 'currency_code', 'category', 'subcategory', 'description', 'tags', 'families',
+] as const
+export type CsvCanonicalField = typeof CSV_CANONICAL_FIELDS[number]
+
 export type RawCsvRowDto = {
   rowNumber: number
   date?: string | null
