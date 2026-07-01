@@ -1,6 +1,13 @@
 
 # Changelog
 
+## [0.123.2] - 2026-07-01
+### Fix: NavBar theme toggle icon size mismatch
+
+- **`NavBarThemeButton.tsx`** — sun/moon icon bumped `h-4 w-4` → `h-4.5 w-4.5` to match `NotificationBell` icon size; button container was already `h-8 w-8` (consistent), but the smaller icon made the theme toggle look undersized next to other navbar icon buttons.
+
+---
+
 ## [0.123.1] - 2026-06-30
 ### Fix: Visual save confirmation on Settings default currency/category cards
 
