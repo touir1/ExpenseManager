@@ -1,6 +1,14 @@
 
 # Changelog
 
+## [0.124.2] - 2026-07-01
+### Fix: leave-import confirmation shown after successful CSV import
+
+- **`CsvImportPage.tsx`** — `useBlocker(preview !== null)` stayed armed after a successful import because `preview` was never cleared, so the page's own `navigate('/expenses')` on success tripped its own "Leave import?" guard. Fixed by clearing `preview` before navigating on success.
+- **`CsvImportPage.test.tsx`** — new regression test asserting the preview UI (and thus the blocker condition) is torn down after a successful import.
+
+---
+
 ## [0.124.1] - 2026-07-01
 ### Fix: CSV column mapping form field silently dropped by model binding
 

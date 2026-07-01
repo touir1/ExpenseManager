@@ -460,6 +460,18 @@ describe('CsvImportPage', () => {
     await waitFor(() => { expect(mockNavigate).toHaveBeenCalledWith('/expenses') })
   })
 
+  it('clears preview state after successful import so the leave-confirmation blocker is not armed', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewAllValid })
+    mockConfirmCsvImport.mockResolvedValue({ ok: true, data: { imported: 1, skipped: 0 } })
+    renderPage()
+    uploadFile()
+    await waitFor(() => screen.getByRole('button', { name: /import 1/i }))
+    fireEvent.click(screen.getByRole('button', { name: /import 1/i }))
+
+    await waitFor(() => { expect(mockNavigate).toHaveBeenCalledWith('/expenses') })
+    expect(screen.queryByRole('button', { name: /import 1/i })).not.toBeInTheDocument()
+  })
+
   it('calls refresh after successful import', async () => {
     mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewAllValid })
     mockConfirmCsvImport.mockResolvedValue({ ok: true, data: { imported: 1, skipped: 0 } })

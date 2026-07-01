@@ -851,7 +851,7 @@ export default function CsvImportPage() {
 
     const res = await confirmCsvImport(validRows)
     setConfirming(false)
-    if (res.ok) { refresh(); navigate('/expenses') }
+    if (res.ok) { setPreview(null); refresh(); navigate('/expenses') }
     else setError(res.error ?? t('expenses.errors.saveFailed'))
   }
 
