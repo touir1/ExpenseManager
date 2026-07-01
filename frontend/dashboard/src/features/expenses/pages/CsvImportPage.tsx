@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom'
+import { createPortal, flushSync } from 'react-dom'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useBlocker } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -851,7 +851,11 @@ export default function CsvImportPage() {
 
     const res = await confirmCsvImport(validRows)
     setConfirming(false)
-    if (res.ok) { setPreview(null); refresh(); navigate('/expenses') }
+    if (res.ok) {
+      flushSync(() => setPreview(null))
+      refresh()
+      navigate('/expenses')
+    }
     else setError(res.error ?? t('expenses.errors.saveFailed'))
   }
 

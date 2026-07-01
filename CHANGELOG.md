@@ -1,6 +1,13 @@
 
 # Changelog
 
+## [0.124.4] - 2026-07-01
+### Fix: leave-import confirmation still shown after successful CSV import (batching)
+
+- **`CsvImportPage.tsx`** — the `0.124.2` fix (`setPreview(null)` before `navigate('/expenses')`) didn't hold: both calls batch into the same commit, so `useBlocker(preview !== null)` still evaluated against the stale `true` at the moment `navigate()` fired, re-arming the "Leave import?" modal on every successful import. Fixed by wrapping the state clear in `flushSync` to force the commit (and blocker re-evaluation) before navigating. The existing regression test didn't catch this because it mocks `useBlocker` directly instead of exercising react-router's real batching.
+
+---
+
 ## [0.124.3] - 2026-07-01
 ### Fix: unread notifications unreadable in dark mode
 
