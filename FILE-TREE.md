@@ -804,7 +804,7 @@ ExpenseManager/
 │           │   │   ├── components/
 │           │   │   │   ├── AddExpenseModal.tsx  — Modal overlay with ExpenseForm; max-w-2xl; centered (items-center), max-h-[90dvh], header fixed + body overflow-y-auto; calls addExpense; onSuccess/onClose callbacks
 │           │   │   │   ├── EditExpenseModal.tsx — Modal overlay with pre-filled ExpenseForm; max-w-2xl; same layout as AddExpenseModal; fetches expense by id via useQuery; onSuccess/onClose callbacks
-│           │   │   │   ├── ExpenseForm.tsx     — RHF+Zod form: 2-column grid (left: amount+currency, date, category, subcategory; right: description, tags, families); modifiedAt note + buttons below grid
+│           │   │   │   ├── ExpenseForm.tsx     — RHF+Zod form: 2-column grid (left: amount+currency, date, category, subcategory; right: description, tags, families); modifiedAt note + buttons below grid; amount field is a local AmountInput component (Controller-driven text input) — raw sanitized digits while focused, locale-grouped display via amountFormat util on blur, underlying RHF value stays a plain number
 │           │   │   │   ├── ExpenseFilters.tsx  — Collapsible filter panel; toggle with aria-expanded; resets page to 1 on apply; FilterCombobox for category/subcategory/currency (case-insensitive search)
 │           │   │   │   └── __tests__/
 │           │   │   │       ├── AddExpenseModal.test.tsx
@@ -819,6 +819,10 @@ ExpenseManager/
 │           │   │   │       └── CsvImportPage.test.tsx — 55 tests: dropzone/template, preview, all 8 columns header, tags-as-chips display, families-as-"default" display, badge counts, error codes, edit button per row, inputs after edit click (incl. tags/families inputs), save/cancel, cancel discards, re-validate visibility, re-validate auto-saves pending edits, tags serialised as semicolon string, preview updates, confirm/navigate/error, preview state cleared after successful import (leave-blocker regression), cancel to upload, file too large shows error, wrong extension shows error; leave-confirmation blocker ×5 (shows when blocked, buttons present, proceed/reset wiring, hidden when idle); column mapping step ×6 (shows on MISSING_HEADERS, skipped on exact-header upload, disables Continue when required field unmapped, resubmits with confirmed mapping + saves default, remember-checkbox opt-out, Cancel resets state)
 │           │   │   ├── expense.schemas.ts  — makeExpenseSchema(t): Zod v4 schema; categoryId/subcategoryId use .catch(undefined) to coerce NaN
 │           │   │   ├── ExpensesDataContext.tsx  — ExpensesDataProvider / useExpensesData(); fetches categories + currencies on mount
+│           │   │   ├── utils/
+│           │   │   │   ├── amountFormat.ts  — formatAmountDisplay(value,decimals) locale-aware grouped string via toLocaleString; parseAmountInput(raw) strips separators → number|undefined; sanitizeAmountInputChars(raw) keeps digits+single dot for live typing
+│           │   │   │   └── __tests__/
+│           │   │   │       └── amountFormat.test.ts
 │           │   │   └── __tests__/
 │           │   │       ├── ExpensesDataContext.test.tsx
 │           │   │       └── expense.schemas.test.ts

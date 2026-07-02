@@ -1,6 +1,16 @@
 
 # Changelog
 
+## [0.125.0] - 2026-07-02
+### Feature: locale-aware thousands separator on the expense amount input
+
+- **`ExpenseForm.tsx`** — amount field switched from native `type="number"` (which rejects grouping characters) to a `Controller`-driven text input (`AmountInput`). Shows raw sanitized digits while focused; reformats with locale-aware grouping (`toLocaleString`) on blur. Underlying RHF/zod value stays a plain `number`, unaffected by display formatting.
+- **`features/expenses/utils/amountFormat.ts`** (new) — `formatAmountDisplay`, `parseAmountInput`, `sanitizeAmountInputChars` extracted as reusable, unit-tested helpers.
+- **`MonthHero.tsx`** — adopted `formatAmountDisplay` from the new shared util, removing its duplicate local formatter.
+- Addresses the "Amount input — no thousands separator display while typing" item in `docs/plans/ux-ui-improvements.md`.
+
+---
+
 ## [0.124.4] - 2026-07-01
 ### Fix: leave-import confirmation still shown after successful CSV import (batching)
 

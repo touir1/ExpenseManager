@@ -186,10 +186,11 @@
 
 ---
 
-### 🟢 Web: Amount input — no thousands separator display while typing
+### ✅ 🟢 Web: Amount input — no thousands separator display while typing
 
 **Problem:** Typing `2430.50` shows raw digits. Hard to read large amounts without visual grouping.  
-**Fix:** Format display value with locale-aware grouping on blur while keeping raw value in form state.
+**Fix:** Format display value with locale-aware grouping on blur while keeping raw value in form state.  
+**Done:** Amount field switched from `type="number"` to a `Controller`-driven text input (`AmountInput` in `ExpenseForm.tsx`) showing raw sanitized digits while focused and locale-grouped display via `formatAmountDisplay` on blur; underlying RHF/zod value stays a plain `number` via `parseAmountInput`. New shared util `features/expenses/utils/amountFormat.ts` (also adopted by `MonthHero.tsx`, removing its duplicate local formatter).
 
 ---
 

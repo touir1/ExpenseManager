@@ -10,6 +10,7 @@ import TagInput from '@/features/tags/components/TagInput'
 import FieldError from '@/components/FieldError'
 import SubmitButton from '@/components/SubmitButton'
 import { makeExpenseSchema, type ExpenseFormData } from '@/features/expenses/expense.schemas'
+import { formatAmountDisplay, parseAmountInput, sanitizeAmountInputChars } from '@/features/expenses/utils/amountFormat'
 import type { Tag } from '@/features/tags/types/tag.type'
 import type { ExpenseDto } from '@/features/expenses/types/expenses.type'
 
@@ -23,6 +24,51 @@ interface ExpenseFormProps {
 
 function today(): string {
   return new Date().toISOString().slice(0, 10)
+}
+
+interface AmountInputProps {
+  readonly id: string
+  readonly value: number | undefined
+  readonly onChange: (value: number | undefined) => void
+  readonly onFieldBlur: () => void
+  readonly ariaDescribedBy: string
+  readonly ariaInvalid: boolean
+}
+
+function AmountInput({ id, value, onChange, onFieldBlur, ariaDescribedBy, ariaInvalid }: AmountInputProps) {
+  const [isFocused, setIsFocused] = useState(false)
+  const [displayValue, setDisplayValue] = useState(() => (value != null ? formatAmountDisplay(value) : ''))
+
+  useEffect(() => {
+    if (!isFocused) {
+      setDisplayValue(value != null ? formatAmountDisplay(value) : '')
+    }
+  }, [value, isFocused])
+
+  return (
+    <input
+      id={id}
+      type="text"
+      inputMode="decimal"
+      className="field-input"
+      aria-describedby={ariaDescribedBy}
+      aria-invalid={ariaInvalid}
+      value={displayValue}
+      onFocus={() => {
+        setIsFocused(true)
+        setDisplayValue(value != null ? String(value) : '')
+      }}
+      onChange={e => {
+        const sanitized = sanitizeAmountInputChars(e.target.value)
+        setDisplayValue(sanitized)
+        onChange(parseAmountInput(sanitized))
+      }}
+      onBlur={() => {
+        setIsFocused(false)
+        onFieldBlur()
+      }}
+    />
+  )
 }
 
 export default function ExpenseForm({ initialValues, onSubmit, onSaveAndAddAnother, isSubmitting, onCancel }: ExpenseFormProps) {
@@ -121,15 +167,19 @@ export default function ExpenseForm({ initialValues, onSubmit, onSaveAndAddAnoth
               <label htmlFor="amount" className="field-label">
                 {t('expenses.fields.amount')}
               </label>
-              <input
-                id="amount"
-                type="number"
-                step="0.01"
-                min="0.01"
-                className="field-input"
-                aria-describedby="amount-error"
-                aria-invalid={!!errors.amount}
-                {...register('amount', { valueAsNumber: true })}
+              <Controller
+                name="amount"
+                control={control}
+                render={({ field }) => (
+                  <AmountInput
+                    id="amount"
+                    value={field.value as number | undefined}
+                    onChange={field.onChange}
+                    onFieldBlur={field.onBlur}
+                    ariaDescribedBy="amount-error"
+                    ariaInvalid={!!errors.amount}
+                  />
+                )}
               />
               <FieldError id="amount-error" message={errors.amount?.message} />
             </div>

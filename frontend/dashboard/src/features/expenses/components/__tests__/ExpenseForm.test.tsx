@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ExpenseForm from '../ExpenseForm'
+import { formatAmountDisplay } from '@/features/expenses/utils/amountFormat'
 import type { ExpenseDto } from '@/features/expenses/types/expenses.type'
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
@@ -188,9 +189,9 @@ describe('ExpenseForm', () => {
       displayCurrency: null,
     }
 
-    it('pre-fills amount from initialValues', () => {
+    it('pre-fills amount from initialValues, formatted', () => {
       renderForm({ initialValues: expense })
-      expect(screen.getByLabelText(/^amount$/i)).toHaveValue(42.5)
+      expect(screen.getByLabelText(/^amount$/i)).toHaveValue(formatAmountDisplay(42.5))
     })
 
     it('pre-fills date from initialValues', () => {
@@ -206,6 +207,63 @@ describe('ExpenseForm', () => {
     it('shows modifiedAt line when modifiedAt present', () => {
       renderForm({ initialValues: expense })
       expect(screen.getByText(/last modified/i)).toBeInTheDocument()
+    })
+  })
+
+  describe('amount formatting', () => {
+    it('shows raw digits while focused, with no thousands separator', () => {
+      renderForm()
+      const amountInput = screen.getByLabelText(/^amount$/i)
+      fireEvent.focus(amountInput)
+      fireEvent.change(amountInput, { target: { value: '2430.5' } })
+      expect(amountInput).toHaveValue('2430.5')
+    })
+
+    it('formats with locale-aware grouping on blur', () => {
+      renderForm()
+      const amountInput = screen.getByLabelText(/^amount$/i)
+      fireEvent.focus(amountInput)
+      fireEvent.change(amountInput, { target: { value: '2430.5' } })
+      fireEvent.blur(amountInput)
+      expect(amountInput).toHaveValue(formatAmountDisplay(2430.5))
+    })
+
+    it('reverts to raw value when re-focused after formatting', () => {
+      renderForm()
+      const amountInput = screen.getByLabelText(/^amount$/i)
+      fireEvent.focus(amountInput)
+      fireEvent.change(amountInput, { target: { value: '2430.5' } })
+      fireEvent.blur(amountInput)
+      fireEvent.focus(amountInput)
+      expect(amountInput).toHaveValue('2430.5')
+    })
+
+    it('filters non-numeric characters while typing', () => {
+      renderForm()
+      const amountInput = screen.getByLabelText(/^amount$/i)
+      fireEvent.focus(amountInput)
+      fireEvent.change(amountInput, { target: { value: '12a3b.4c5' } })
+      expect(amountInput).toHaveValue('123.45')
+    })
+
+    it('submits the raw numeric amount, unaffected by display formatting', async () => {
+      const user = userEvent.setup()
+      const { onSubmit } = renderForm()
+      const amountInput = screen.getByLabelText(/^amount$/i)
+      fireEvent.focus(amountInput)
+      fireEvent.change(amountInput, { target: { value: '2430.5' } })
+      fireEvent.blur(amountInput)
+
+      fireEvent.focus(screen.getByLabelText(/^currency$/i))
+      fireEvent.mouseDown(screen.getByRole('option', { name: 'EUR' }))
+      fireEvent.focus(screen.getByLabelText(/^category$/i))
+      fireEvent.mouseDown(screen.getByRole('option', { name: 'Transport' }))
+
+      await user.click(screen.getByRole('button', { name: /^save$/i }))
+
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ amount: 2430.5 }), expect.anything())
+      })
     })
   })
 

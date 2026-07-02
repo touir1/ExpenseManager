@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import type { DashboardSummaryDto } from '@/features/dashboard/types/dashboard.type'
+import { formatAmountDisplay } from '@/features/expenses/utils/amountFormat'
 
 type Props = {
   data: DashboardSummaryDto | undefined
@@ -23,10 +24,6 @@ function Skeleton() {
       </div>
     </div>
   )
-}
-
-function formatAmount(amount: number, decimals = 2): string {
-  return amount.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
 }
 
 export function MonthHero({ data, isLoading, comparedToLabel }: Props) {
@@ -56,7 +53,7 @@ export function MonthHero({ data, isLoading, comparedToLabel }: Props) {
           <span className="text-2xl font-bold text-ink-mute">{mainCurrency.symbol}</span>
         )}
         <span className="text-4xl font-bold text-ink tracking-tight">
-          {formatAmount(mainAmount, decimals)}
+          {formatAmountDisplay(mainAmount, decimals)}
         </span>
       </div>
 

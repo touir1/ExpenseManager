@@ -86,6 +86,8 @@
 
 **expense userId:** `JwtCookieReader.GetUserId(Request)` reads `auth_token` cookie, base64url-decodes payload, extracts `sub` as int; no signature validation; null→401.
 
+**amount input formatting (frontend/dashboard):** `features/expenses/utils/amountFormat.ts` — `formatAmountDisplay`/`parseAmountInput`/`sanitizeAmountInputChars`; `ExpenseForm.tsx`'s amount field is a local `AmountInput` (Controller-driven `type="text"`, not native `type="number"` — number inputs reject grouping characters): raw sanitized digits while focused, locale-grouped via `toLocaleString` on blur, RHF/zod value stays a plain `number`; `MonthHero.tsx` reuses `formatAmountDisplay` for its summary display (not editable). `formatAmountDisplay`'s separator characters are host-locale-dependent — tests must not assert literal `,`/`.` strings, compare digit-only content or call the same util for the expected value.
+
 **ExpenseDto shape:** nested: `Currency:CurrencyDto?`, `Category:SubcategoryDto?`, `Subcategory:SubcategoryDto?`, `Tags:IEnumerable<TagDto>`, `Families:IEnumerable<FamilyNameDto>` (non-default only); `SubcategoryDto:{id,name,description}`; `FamilyNameDto:{id,name}`; `MapToDto(explicitTags,explicitFamilies)` — explicit params needed on Add/Update (EF fixup doesn't load sub-nav, `a.Family=null`→NullRef on serialization); `WriteAttributionsAsync`→`(AllIds,NonDefaultFamilies)` using `GetFamiliesByUserAsync` (single query, filters `!IsDeleted`).
 
 **expense audit:** `ExpenseAuditService` injected into `ExpenseService`; writes `ExpenseAuditLog` then `ExpenseAuditSnapshot` (2 `SaveChangesAsync`); add→1 after, update→before+after, delete→1 before; `PerformedFromId=1` (SingleWeb hardcoded).
