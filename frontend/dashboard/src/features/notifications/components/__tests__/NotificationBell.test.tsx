@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import NotificationBell from '../NotificationBell'
 
@@ -26,7 +27,7 @@ vi.mock('@/components/Toast', () => ({
 }))
 
 function renderBell() {
-  return render(<NotificationBell />)
+  return render(<MemoryRouter><NotificationBell /></MemoryRouter>)
 }
 
 describe('NotificationBell', () => {
@@ -236,7 +237,7 @@ describe('NotificationBell', () => {
 
   describe('toast on new notification', () => {
     it('shows toast when unreadCount increases', async () => {
-      const { rerender } = render(<NotificationBell />)
+      const { rerender } = render(<MemoryRouter><NotificationBell /></MemoryRouter>)
       mockUseNotifications.mockReturnValue({
         notifications: [makeNotif()],
         unreadCount: 1,
@@ -244,8 +245,48 @@ describe('NotificationBell', () => {
         markRead: mockMarkRead,
         markAllRead: mockMarkAllRead,
       })
-      rerender(<NotificationBell />)
+      rerender(<MemoryRouter><NotificationBell /></MemoryRouter>)
       await waitFor(() => expect(mockShow).toHaveBeenCalled())
+    })
+  })
+
+  describe('icons', () => {
+    it('renders a per-type icon for each notification', async () => {
+      mockUseNotifications.mockReturnValue({
+        notifications: [makeNotif()],
+        unreadCount: 1,
+        isLoading: false,
+        markRead: mockMarkRead,
+        markAllRead: mockMarkAllRead,
+      })
+      const user = userEvent.setup()
+      renderBell()
+      await user.click(screen.getByRole('button', { name: /notifications/i }))
+      expect(screen.getByTestId('notification-icon-FAMILY_MEMBER_REMOVED')).toBeInTheDocument()
+    })
+
+    it('renders the default icon for an unrecognized notification type', async () => {
+      mockUseNotifications.mockReturnValue({
+        notifications: [{ id: 1, type: 'UNKNOWN_TYPE', payload: {}, isRead: true, createdAt: '2026-06-01T10:00:00Z', readAt: null }],
+        unreadCount: 0,
+        isLoading: false,
+        markRead: mockMarkRead,
+        markAllRead: mockMarkAllRead,
+      })
+      const user = userEvent.setup()
+      renderBell()
+      await user.click(screen.getByRole('button', { name: /notifications/i }))
+      expect(screen.getByTestId('notification-icon-UNKNOWN_TYPE')).toBeInTheDocument()
+    })
+  })
+
+  describe('view all link', () => {
+    it('renders a View all link to /notifications', async () => {
+      const user = userEvent.setup()
+      renderBell()
+      await user.click(screen.getByRole('button', { name: /notifications/i }))
+      const link = screen.getByRole('link', { name: /view all/i })
+      expect(link).toHaveAttribute('href', '/notifications')
     })
   })
 })

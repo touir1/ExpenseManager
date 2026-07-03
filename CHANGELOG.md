@@ -1,6 +1,18 @@
 
 # Changelog
 
+## [0.126.0] - 2026-07-03
+### Feature: notifications UX improvements (web & mobile)
+
+- **`features/notifications/notificationDisplay.tsx`** (new, web + mobile) — `getNotificationText`/`getNotificationIcon` extracted from `NotificationBell.tsx` into a shared module so the dropdown and the new full-page inbox use one source of truth instead of duplicated switch statements. Per-type icon + color mapping (web: inline SVG in a tinted circle; mobile: `IonIcon` from `ionicons/icons`, `color` prop), with a bell/`notificationsOutline` fallback for unrecognized types.
+- **`features/notifications/pages/NotificationsPage.tsx`** (new, web) — full-page notification inbox at `/notifications` (protected route); paged via existing `getNotifications(page, pageSize)`, mark-read on click, "Mark all read", empty state. Pagination is prev/next only (`hasMore` = page came back full) since the backend endpoint doesn't return a total count.
+- **`NotificationBell.tsx`** (web + mobile) — dropdown rows now show the per-type icon; web dropdown gained a "View all" footer link to `/notifications`.
+- **`Toast.tsx`** — rapid same-type toasts within a 3s window now collapse into a single toast with an incrementing count badge (dismiss timer resets on each collapse) instead of stacking; different-type toasts still stack independently.
+- No backend changes — `GET/PUT /config/notifications` and `NotificationPreferenceDto` were already wired to `NotificationPreferencesCard` in `SettingsPage.tsx`; added the missing debounced-save payload test.
+- Implements `docs/plans/notifications-ux-improvements-plan.md`.
+
+---
+
 ## [0.125.0] - 2026-07-02
 ### Feature: locale-aware thousands separator on the expense amount input
 

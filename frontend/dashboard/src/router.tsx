@@ -24,6 +24,7 @@ import FamiliesPage from '@/features/families/pages/FamiliesPage'
 import AcceptInvitePage from '@/features/families/pages/AcceptInvitePage'
 import ExpensesPage from '@/features/expenses/pages/ExpensesPage'
 import CsvImportPage from '@/features/expenses/pages/CsvImportPage'
+import NotificationsPage from '@/features/notifications/pages/NotificationsPage'
 
 export const routes: RouteObject[] = [
   {
@@ -44,6 +45,7 @@ export const routes: RouteObject[] = [
       { path: '/expenses/add', element: <ProtectedRoute><ExpensesPage /></ProtectedRoute> },
       { path: '/expenses/:id/edit', element: <ProtectedRoute><ExpensesPage /></ProtectedRoute> },
       { path: '/expenses/import', element: <ProtectedRoute><CsvImportPage /></ProtectedRoute> },
+      { path: '/notifications', element: <ProtectedRoute><NotificationsPage /></ProtectedRoute> },
 
       {
         path: '/admin',

@@ -892,10 +892,15 @@ ExpenseManager/
 │           │   ├── notifications/     — In-app notifications feature (Phase 13+14)
 │           │   │   ├── types/
 │           │   │   │   └── notification.type.ts  — NotificationPayload discriminated union (7 types); Notification shape
+│           │   │   ├── notificationDisplay.tsx   — getNotificationText/getNotificationIcon shared by NotificationBell dropdown + NotificationsPage; per-type SVG icon in a tinted circle, bell fallback for unknown types
 │           │   │   ├── components/
-│           │   │   │   ├── NotificationBell.tsx  — Bell icon + badge + dropdown; getNotificationText() maps all 7 types to i18n labels; toast on new notification
+│           │   │   │   ├── NotificationBell.tsx  — Bell icon + badge + dropdown; per-row icon via notificationDisplay; toast on new notification; "View all" link to /notifications
 │           │   │   │   └── __tests__/
 │           │   │   │       └── NotificationBell.test.tsx
+│           │   │   ├── pages/
+│           │   │   │   ├── NotificationsPage.tsx — full-page inbox at /notifications; paged via getNotifications(page,pageSize); mark-read/mark-all-read; prev/next pagination (no backend total count)
+│           │   │   │   └── __tests__/
+│           │   │   │       └── NotificationsPage.test.tsx
 │           │   │   ├── services/
 │           │   │   │   ├── notificationApi.service.ts  — getNotifications, getUnreadCount, markAsRead, markAllAsRead
 │           │   │   │   └── __tests__/
@@ -1034,11 +1039,13 @@ ExpenseManager/
 │               │       └── AcceptInvitePage.tsx  — IonPage with IonBackButton; reads ?token=; calls acceptInvite; shows loading/success/error
 │               ├── notifications/
 │               │   ├── NotificationContext.tsx   — SignalR + @capacitor/push-notifications registration; POST /push-token on login
+│               │   ├── notificationDisplay.tsx   — getNotificationText/getNotificationIcon shared module; IonIcon from ionicons/icons per type, notificationsOutline fallback
 │               │   ├── services/
 │               │   │   ├── notificationApi.service.ts — getNotifications, getUnreadCount, markAsRead, markAllAsRead, registerPushToken
 │               │   │   └── types/notification.type.ts
 │               │   ├── components/
-│               │   │   └── NotificationBell.tsx  — IonButton + IonBadge + IonPopover notification list
+│               │   │   ├── NotificationBell.tsx  — IonButton + IonBadge + IonPopover notification list; per-row icon via notificationDisplay
+│               │   │   └── __tests__/NotificationBell.test.tsx
 │               │   └── __tests__/NotificationContext.test.tsx — real class MockHubConnectionBuilder
 │               ├── settings/
 │               │   ├── ThemeContext.tsx          — ThemeProvider / useTheme(); async load via @capacitor/preferences (localStorage fallback); applies .dark/.light to <html>

@@ -11,7 +11,14 @@
         "familyExpenseDeleted": "{{actorName}} hat eine Ausgabe von {{amount}} {{currencyCode}} in \"{{familyName}}\" gelöscht.",
         "csvImportCompleted": "Import abgeschlossen: {{importedCount}}/{{totalRows}} Zeile(n) importiert, {{skippedCount}} übersprungen.",
         "rateConflictCreated": "Kurskonflikt: {{sourceCurrencyCode}}/{{destCurrencyCode}} — manueller Kurs durch automatische Aktualisierung ersetzt.",
-        "badge": "{{count}} ungelesen"
+        "badge": "{{count}} ungelesen",
+        "viewAll": "Alle anzeigen",
+        "pageTitle": "Benachrichtigungen",
+        "pageSubtitle": "Alle deine Benachrichtigungen an einem Ort.",
+        "emptyTitle": "Du bist auf dem neuesten Stand",
+        "prevPage": "← Zurück",
+        "nextPage": "Weiter →",
+        "pageLabel": "Seite {{page}}"
     },
     "nav": {
         "home": "Startseite",

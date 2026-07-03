@@ -249,6 +249,84 @@ describe('ToastProvider', () => {
     expect(container).toBeInTheDocument()
   })
 
+  it('collapses rapid successive same-type toasts into one with an incrementing count', () => {
+    vi.useFakeTimers()
+
+    function RepeatTrigger() {
+      const { show } = useToast()
+      let n = 0
+      return <button onClick={() => show(`Notification ${++n}`, 'info')}>Notify</button>
+    }
+
+    render(
+      <ToastProvider>
+        <RepeatTrigger />
+      </ToastProvider>
+    )
+
+    const button = screen.getByRole('button', { name: /notify/i })
+    act(() => { button.click() })
+    act(() => { vi.advanceTimersByTime(500); button.click() })
+    act(() => { vi.advanceTimersByTime(500); button.click() })
+
+    expect(screen.getAllByText(/Notification \d/).length).toBe(1)
+    expect(screen.getByText('3')).toBeInTheDocument()
+  })
+
+  it('keeps different-type toasts stacked separately even when triggered rapidly', () => {
+    vi.useFakeTimers()
+
+    function MixedTrigger() {
+      const { show } = useToast()
+      return (
+        <>
+          <button onClick={() => show('Info message', 'info')}>Info</button>
+          <button onClick={() => show('Error message', 'error')}>Error</button>
+        </>
+      )
+    }
+
+    render(
+      <ToastProvider>
+        <MixedTrigger />
+      </ToastProvider>
+    )
+
+    act(() => { screen.getByRole('button', { name: /^info$/i }).click() })
+    act(() => { screen.getByRole('button', { name: /^error$/i }).click() })
+
+    expect(screen.getByText('Info message')).toBeInTheDocument()
+    expect(screen.getByText('Error message')).toBeInTheDocument()
+  })
+
+  it('resets the auto-dismiss timer each time a toast collapses', () => {
+    vi.useFakeTimers()
+
+    function RepeatTrigger() {
+      const { show } = useToast()
+      return <button onClick={() => show('Collapsing', 'info')}>Notify</button>
+    }
+
+    render(
+      <ToastProvider>
+        <RepeatTrigger />
+      </ToastProvider>
+    )
+
+    const button = screen.getByRole('button', { name: /notify/i })
+    act(() => { button.click() })
+    act(() => { vi.advanceTimersByTime(3000) })
+    act(() => { button.click() }) // collapses, resets timer
+    act(() => { vi.advanceTimersByTime(3000) })
+
+    // 6s since first show, but only 3s since last collapse — still visible
+    expect(screen.getByText('Collapsing')).toBeInTheDocument()
+
+    act(() => { vi.advanceTimersByTime(1000) })
+
+    expect(screen.queryByText('Collapsing')).not.toBeInTheDocument()
+  })
+
   it('renders children correctly', () => {
     render(
       <ToastProvider>

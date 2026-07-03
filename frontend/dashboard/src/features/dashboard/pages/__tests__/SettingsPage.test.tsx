@@ -6,7 +6,7 @@ import SettingsPage from '@/features/dashboard/pages/SettingsPage'
 
 const {
   mockUseExpensesData, mockGetConfig, mockUpdateConfig, mockShow, mockGetNotificationPreferences, mockUseAuth,
-  mockUpdateDefaultCsvColumnMapping, mockClearDefaultCsvColumnMapping,
+  mockUpdateDefaultCsvColumnMapping, mockClearDefaultCsvColumnMapping, mockUpdateNotificationPreferences,
 } = vi.hoisted(() => ({
   mockUseExpensesData: vi.fn(),
   mockGetConfig: vi.fn(),
@@ -16,6 +16,7 @@ const {
   mockUseAuth: vi.fn(),
   mockUpdateDefaultCsvColumnMapping: vi.fn(),
   mockClearDefaultCsvColumnMapping: vi.fn(),
+  mockUpdateNotificationPreferences: vi.fn(),
 }))
 
 vi.mock('@/features/expenses/ExpensesDataContext', () => ({
@@ -31,7 +32,7 @@ vi.mock('@/features/settings/services/userConfigApi.service', () => ({
 
 vi.mock('@/features/settings/services/notificationPreferencesApi.service', () => ({
   getNotificationPreferences: () => mockGetNotificationPreferences(),
-  updateNotificationPreferences: vi.fn(),
+  updateNotificationPreferences: (...args: unknown[]) => mockUpdateNotificationPreferences(...args),
 }))
 
 vi.mock('@/features/auth/services/authApi.service', () => ({
@@ -157,6 +158,24 @@ describe('Settings page', () => {
     renderSettings()
     const checkboxes = await screen.findAllByRole('checkbox')
     expect(checkboxes.length).toBe(7)
+  })
+
+  it('toggling a notification preference calls updateNotificationPreferences with expected payload', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    mockGetNotificationPreferences.mockResolvedValue({ ok: true, data: [{ eventType: 'familyMemberJoined', emailEnabled: true }] })
+    mockUpdateNotificationPreferences.mockResolvedValue({ ok: true, data: [] })
+    renderSettings()
+    const checkboxes = await screen.findAllByRole('checkbox')
+    fireEvent.click(checkboxes[0])
+
+    await act(async () => {
+      vi.advanceTimersByTime(500)
+    })
+
+    expect(mockUpdateNotificationPreferences).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ eventType: expect.any(String), emailEnabled: expect.any(Boolean) })])
+    )
+    vi.useRealTimers()
   })
 
   it('shows checkmark icon and saved text after successful currency save', async () => {

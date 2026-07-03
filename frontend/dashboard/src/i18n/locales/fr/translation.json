@@ -11,7 +11,14 @@
         "familyExpenseDeleted": "{{actorName}} a supprimé une dépense de {{amount}} {{currencyCode}} dans \"{{familyName}}\".",
         "csvImportCompleted": "Import terminé : {{importedCount}}/{{totalRows}} ligne(s) importée(s), {{skippedCount}} ignorée(s).",
         "rateConflictCreated": "Conflit de taux : {{sourceCurrencyCode}}/{{destCurrencyCode}} — taux manuel remplacé par la mise à jour automatique.",
-        "badge": "{{count}} non lu(s)"
+        "badge": "{{count}} non lu(s)",
+        "viewAll": "Voir tout",
+        "pageTitle": "Notifications",
+        "pageSubtitle": "Toutes vos notifications au même endroit.",
+        "emptyTitle": "Vous êtes à jour",
+        "prevPage": "← Précédent",
+        "nextPage": "Suivant →",
+        "pageLabel": "Page {{page}}"
     },
     "nav": {
         "home": "Accueil",
