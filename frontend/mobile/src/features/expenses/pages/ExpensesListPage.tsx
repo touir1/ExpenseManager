@@ -24,9 +24,15 @@ import {
   IonSkeletonText,
   IonSearchbar,
   IonToast,
+  IonModal,
+  IonButton,
+  IonButtons,
+  IonIcon,
+  IonSpinner,
 } from '@ionic/react'
+import { receiptOutline, closeOutline, downloadOutline, trashOutline } from 'ionicons/icons'
 import { useTranslation } from 'react-i18next'
-import { getExpenses, deleteExpense, addExpense } from '@/features/expenses/services/expensesApi.service'
+import { getExpenses, deleteExpense, addExpense, getExpenseReceiptBlob, deleteExpenseReceipt } from '@/features/expenses/services/expensesApi.service'
 import { useFamilies } from '@/features/families/FamilyContext'
 import { useDisplayCurrency } from '@/features/currencies/DisplayCurrencyContext'
 import { useNetworkSync } from '@/hooks/useNetworkSync'
@@ -69,9 +75,15 @@ export default function ExpensesListPage() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [undoState, setUndoState] = useState<{ expense: ExpenseDto } | null>(null)
+  const [viewerExpenseId, setViewerExpenseId] = useState<number | null>(null)
+  const [viewerBlobUrl, setViewerBlobUrl] = useState<string | null>(null)
+  const [viewerLoading, setViewerLoading] = useState(false)
+  const [viewerError, setViewerError] = useState<string | null>(null)
+  const [confirmDeleteReceipt, setConfirmDeleteReceipt] = useState(false)
   const slidingRefs = useRef<Map<number, HTMLIonItemSlidingElement>>(new Map())
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const viewerBlobUrlRef = useRef<string | null>(null)
 
   const PAGE_SIZE = 20
 
@@ -110,6 +122,7 @@ export default function ExpensesListPage() {
     return () => {
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
       if (undoTimerRef.current) clearTimeout(undoTimerRef.current)
+      if (viewerBlobUrlRef.current) URL.revokeObjectURL(viewerBlobUrlRef.current)
     }
   }, [])
 
@@ -179,6 +192,55 @@ export default function ExpensesListPage() {
       await Haptics.impact({ style: ImpactStyle.Heavy })
     } catch { /* ignore */ }
     handleDelete(id)
+  }
+
+  function revokeViewerUrl() {
+    if (viewerBlobUrlRef.current) URL.revokeObjectURL(viewerBlobUrlRef.current)
+    viewerBlobUrlRef.current = null
+    setViewerBlobUrl(null)
+  }
+
+  async function openReceiptViewer(id: number) {
+    setViewerExpenseId(id)
+    setViewerLoading(true)
+    setViewerError(null)
+    const res = await getExpenseReceiptBlob(id)
+    if (res.ok && res.data) {
+      const url = URL.createObjectURL(res.data)
+      viewerBlobUrlRef.current = url
+      setViewerBlobUrl(url)
+    } else {
+      setViewerError(res.error ?? t('expenses.receiptLoadFailed', 'Could not load receipt.'))
+    }
+    setViewerLoading(false)
+  }
+
+  function closeReceiptViewer() {
+    revokeViewerUrl()
+    setViewerExpenseId(null)
+    setViewerError(null)
+    setViewerLoading(false)
+    setConfirmDeleteReceipt(false)
+  }
+
+  function handleDownloadReceipt() {
+    if (!viewerBlobUrl || viewerExpenseId == null) return
+    const a = document.createElement('a')
+    a.href = viewerBlobUrl
+    a.download = `receipt-${viewerExpenseId}`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+  }
+
+  async function handleDeleteReceipt() {
+    if (viewerExpenseId == null) return
+    const id = viewerExpenseId
+    const res = await deleteExpenseReceipt(id)
+    if (res.ok) {
+      setAllItems(prev => prev.map(e => (e.id === id ? { ...e, hasReceipt: false } : e)))
+    }
+    closeReceiptViewer()
   }
 
   const grouped = groupByDate(allItems)
@@ -277,6 +339,17 @@ export default function ExpensesListPage() {
                       <h3>{expense.category?.name ?? t('expenses.uncategorized', 'Uncategorized')}</h3>
                       <p>{expense.description ?? ''}</p>
                     </IonLabel>
+                    {expense.hasReceipt && (
+                      <IonButton
+                        slot="end"
+                        fill="clear"
+                        aria-label={t('expenses.viewReceipt', 'View receipt')}
+                        style={{ minWidth: 44, minHeight: 44, margin: 0 }}
+                        onClick={() => openReceiptViewer(expense.id)}
+                      >
+                        <IonIcon slot="icon-only" icon={receiptOutline} />
+                      </IonButton>
+                    )}
                     <IonText slot="end" color="dark">
                       <span style={{ fontWeight: 600 }}>
                         {expense.amount.toFixed(expense.currency?.decimals ?? 2)}{' '}
@@ -331,6 +404,74 @@ export default function ExpensesListPage() {
             handler: handleUndo,
           },
         ]}
+      />
+
+      <IonModal isOpen={viewerExpenseId !== null} onDidDismiss={closeReceiptViewer}>
+        <IonHeader>
+          <IonToolbar>
+            <IonTitle>{t('expenses.receipt', 'Receipt')}</IonTitle>
+            <IonButtons slot="start">
+              <IonButton
+                aria-label={t('common.close', 'Close')}
+                style={{ minWidth: 44, minHeight: 44 }}
+                onClick={closeReceiptViewer}
+              >
+                <IonIcon slot="icon-only" icon={closeOutline} />
+              </IonButton>
+            </IonButtons>
+            <IonButtons slot="end">
+              <IonButton
+                aria-label={t('expenses.downloadReceipt', 'Download receipt')}
+                disabled={!viewerBlobUrl}
+                style={{ minWidth: 44, minHeight: 44 }}
+                onClick={handleDownloadReceipt}
+              >
+                <IonIcon slot="icon-only" icon={downloadOutline} />
+              </IonButton>
+              <IonButton
+                aria-label={t('expenses.deleteReceipt', 'Delete receipt')}
+                color="danger"
+                disabled={!viewerBlobUrl}
+                style={{ minWidth: 44, minHeight: 44 }}
+                onClick={() => setConfirmDeleteReceipt(true)}
+              >
+                <IonIcon slot="icon-only" icon={trashOutline} />
+              </IonButton>
+            </IonButtons>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent className="ion-padding">
+          {viewerLoading && (
+            <div style={{ textAlign: 'center', padding: '40px 16px' }}>
+              <IonSpinner name="crescent" />
+            </div>
+          )}
+          {!viewerLoading && viewerError && (
+            <div style={{ textAlign: 'center', padding: '40px 16px' }}>
+              <IonText color="danger">
+                <p>{viewerError}</p>
+              </IonText>
+            </div>
+          )}
+          {!viewerLoading && !viewerError && viewerBlobUrl && (
+            <img
+              src={viewerBlobUrl}
+              alt={t('expenses.receipt', 'Receipt')}
+              style={{ maxWidth: '100%', width: '100%', display: 'block', borderRadius: 8 }}
+            />
+          )}
+        </IonContent>
+      </IonModal>
+
+      <IonAlert
+        isOpen={confirmDeleteReceipt}
+        header={t('expenses.deleteReceiptConfirm', 'Delete receipt?')}
+        message={t('expenses.deleteReceiptConfirmMessage', 'This cannot be undone.')}
+        buttons={[
+          { text: t('common.cancel', 'Cancel'), role: 'cancel', handler: () => setConfirmDeleteReceipt(false) },
+          { text: t('common.delete', 'Delete'), role: 'destructive', handler: () => handleDeleteReceipt() },
+        ]}
+        onDidDismiss={() => setConfirmDeleteReceipt(false)}
       />
     </IonPage>
   )

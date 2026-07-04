@@ -36,6 +36,7 @@ const mockExpense: ExpenseDto = {
   tags: [],
   convertedAmount: null,
   displayCurrency: null,
+  hasReceipt: false,
 }
 
 function makeQC() {

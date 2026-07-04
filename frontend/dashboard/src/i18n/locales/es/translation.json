@@ -456,7 +456,9 @@
             "description": "Descripción",
             "tags": "Etiquetas",
             "tagsPlaceholder": "Escribe y pulsa Intro para añadir",
-            "families": "Familias"
+            "families": "Familias",
+            "receipt": "Recibo",
+            "receiptPreviewAlt": "Vista previa del recibo"
         },
         "filters": {
             "title": "Filtros",
@@ -491,6 +493,13 @@
             "confirmBody": "Esta acción no se puede deshacer.",
             "confirm": "Eliminar",
             "cancel": "Cancelar"
+        },
+        "receipt": {
+            "viewReceipt": "Ver recibo",
+            "title": "Recibo",
+            "download": "Descargar",
+            "close": "Cerrar",
+            "delete": "Eliminar recibo"
         },
         "errors": {
             "loadFailed": "Error al cargar los gastos.",

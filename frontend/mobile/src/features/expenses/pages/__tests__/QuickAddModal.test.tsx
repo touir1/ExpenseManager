@@ -6,6 +6,7 @@ import { MemoryRouter } from 'react-router-dom'
 
 vi.mock('@/features/expenses/services/expensesApi.service', () => ({
   addExpense: vi.fn(),
+  uploadExpenseReceipt: vi.fn(),
 }))
 
 vi.mock('@/features/expenses/ExpensesDataContext', () => {
@@ -112,10 +113,17 @@ vi.mock('@ionic/react', () => ({
     IonText: ({ children }: any) => <span>{children}</span>,
 }))
 
-import { addExpense } from '@/features/expenses/services/expensesApi.service'
+import { addExpense, uploadExpenseReceipt } from '@/features/expenses/services/expensesApi.service'
 import QuickAddModal from '@/features/expenses/pages/QuickAddModal'
 
 const mockAddExpense = addExpense as ReturnType<typeof vi.fn>
+const mockUploadExpenseReceipt = uploadExpenseReceipt as ReturnType<typeof vi.fn>
+
+function clickCameraButton() {
+  const buttons = screen.getAllByRole('button')
+  const cameraBtn = buttons.find(b => b.textContent === '')
+  fireEvent.click(cameraBtn!)
+}
 
 function makeWrapper() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -131,6 +139,7 @@ describe('QuickAddModal', () => {
 
   beforeEach(() => {
     mockAddExpense.mockReset()
+    mockUploadExpenseReceipt.mockReset()
     onClose.mockReset()
     mockSetCurrentBreakpoint.mockReset()
   })
@@ -175,6 +184,58 @@ describe('QuickAddModal', () => {
     await waitFor(() => {
       const alerts = screen.queryAllByRole('alert')
       expect(alerts.length).toBeGreaterThanOrEqual(0)
+    })
+  })
+
+  it('uploads the captured receipt after a successful add, without blocking the success flow', async () => {
+    mockAddExpense.mockResolvedValue({ ok: true, status: 201, data: { id: 42 } })
+    mockUploadExpenseReceipt.mockResolvedValue({ ok: true, status: 200, data: { id: 42 } })
+    render(<QuickAddModal isOpen onClose={onClose} />, { wrapper: makeWrapper() })
+
+    const amountInput = document.querySelector('input[type="number"]') as HTMLInputElement
+    fireEvent.change(amountInput, { target: { value: '50' } })
+
+    clickCameraButton()
+    await waitFor(() => expect(screen.getByAltText('receipt')).toBeTruthy())
+
+    fireEvent.click(screen.getByText('Save'))
+
+    // Success path (close + invalidate) is not blocked by the receipt upload.
+    await waitFor(() => expect(onClose).toHaveBeenCalled())
+
+    await waitFor(() => {
+      expect(mockUploadExpenseReceipt).toHaveBeenCalledWith(42, expect.any(Blob), 'image/jpeg')
+    })
+  })
+
+  it('does not attempt a receipt upload when no photo was captured', async () => {
+    mockAddExpense.mockResolvedValue({ ok: true, status: 201, data: { id: 7 } })
+    render(<QuickAddModal isOpen onClose={onClose} />, { wrapper: makeWrapper() })
+    const amountInput = document.querySelector('input[type="number"]') as HTMLInputElement
+    fireEvent.change(amountInput, { target: { value: '10' } })
+    fireEvent.click(screen.getByText('Save'))
+    await waitFor(() => expect(mockAddExpense).toHaveBeenCalled())
+    expect(mockUploadExpenseReceipt).not.toHaveBeenCalled()
+  })
+
+  it('shows a non-blocking toast when the receipt upload fails, without reverting the success feedback', async () => {
+    mockAddExpense.mockResolvedValue({ ok: true, status: 201, data: { id: 99 } })
+    mockUploadExpenseReceipt.mockResolvedValue({ ok: false, status: 500, error: 'Server error' })
+    render(<QuickAddModal isOpen onClose={onClose} />, { wrapper: makeWrapper() })
+
+    const amountInput = document.querySelector('input[type="number"]') as HTMLInputElement
+    fireEvent.change(amountInput, { target: { value: '15' } })
+
+    clickCameraButton()
+    await waitFor(() => expect(screen.getByAltText('receipt')).toBeTruthy())
+
+    fireEvent.click(screen.getByText('Save'))
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled())
+    await waitFor(() => expect(mockUploadExpenseReceipt).toHaveBeenCalled())
+
+    await waitFor(() => {
+      expect(screen.getByText(/receipt upload failed/i)).toBeTruthy()
     })
   })
 })

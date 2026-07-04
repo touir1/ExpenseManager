@@ -13,5 +13,9 @@ namespace Touir.ExpensesManager.Expenses.Controllers
         public const string InvalidFileType = "INVALID_FILE_TYPE";
         public const string InvalidFileContent = "INVALID_FILE_CONTENT";
         public const string ImportTimeout = "IMPORT_TIMEOUT";
+        public const string ReceiptNoFile = "RECEIPT_NO_FILE";
+        public const string ReceiptFileTooLarge = "RECEIPT_FILE_TOO_LARGE";
+        public const string ReceiptInvalidFileType = "RECEIPT_INVALID_FILE_TYPE";
+        public const string ReceiptNotFound = "RECEIPT_NOT_FOUND";
     }
 }

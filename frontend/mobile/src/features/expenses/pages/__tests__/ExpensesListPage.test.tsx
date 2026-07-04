@@ -7,6 +7,16 @@ vi.mock('@/features/expenses/services/expensesApi.service', () => ({
   getExpenses: vi.fn(),
   deleteExpense: vi.fn(),
   addExpense: vi.fn(),
+  getExpenseReceiptBlob: vi.fn(),
+  deleteExpenseReceipt: vi.fn(),
+}))
+
+// ionicons/icons exports all ~1200 icons — loading causes heap OOM in tests.
+vi.mock('ionicons/icons', () => ({
+  receiptOutline: 'receipt-outline',
+  closeOutline: 'close-outline',
+  downloadOutline: 'download-outline',
+  trashOutline: 'trash-outline',
 }))
 
 vi.mock('@/features/families/FamilyContext', () => ({
@@ -73,14 +83,23 @@ vi.mock('@ionic/react', async () => ({
       {buttons?.map((b: any) => <button key={b.text} onClick={b.handler}>{b.text}</button>)}
     </div>
   ) : null,
+  IonModal: ({ isOpen, children }: any) => isOpen ? <div role="dialog">{children}</div> : null,
+  IonButton: ({ children, onClick, disabled, 'aria-label': ariaLabel }: any) => (
+    <button onClick={onClick} disabled={disabled} aria-label={ariaLabel}>{children}</button>
+  ),
+  IonButtons: ({ children }: any) => <div>{children}</div>,
+  IonIcon: () => null,
+  IonSpinner: () => <span>Loading</span>,
 }))
 
-import { getExpenses, deleteExpense, addExpense } from '@/features/expenses/services/expensesApi.service'
+import { getExpenses, deleteExpense, addExpense, getExpenseReceiptBlob, deleteExpenseReceipt } from '@/features/expenses/services/expensesApi.service'
 import ExpensesListPage from '@/features/expenses/pages/ExpensesListPage'
 
 const mockGetExpenses = getExpenses as ReturnType<typeof vi.fn>
 const mockDeleteExpense = deleteExpense as ReturnType<typeof vi.fn>
 const mockAddExpense = addExpense as ReturnType<typeof vi.fn>
+const mockGetExpenseReceiptBlob = getExpenseReceiptBlob as ReturnType<typeof vi.fn>
+const mockDeleteExpenseReceipt = deleteExpenseReceipt as ReturnType<typeof vi.fn>
 
 const mockExpense = {
   id: 1,
@@ -97,6 +116,7 @@ const mockExpense = {
   families: [],
   convertedAmount: null,
   displayCurrency: null,
+  hasReceipt: false,
 }
 
 const pagedResponse = {
@@ -123,7 +143,13 @@ describe('ExpensesListPage', () => {
     mockGetExpenses.mockReset()
     mockDeleteExpense.mockReset()
     mockAddExpense.mockReset()
+    mockGetExpenseReceiptBlob.mockReset()
+    mockDeleteExpenseReceipt.mockReset()
     mockGetExpenses.mockResolvedValue({ ok: true, status: 200, data: pagedResponse })
+    if (!URL.createObjectURL) (URL as any).createObjectURL = vi.fn()
+    if (!URL.revokeObjectURL) (URL as any).revokeObjectURL = vi.fn()
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url')
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
   })
 
   it('renders day-grouped expense list', async () => {
@@ -232,5 +258,61 @@ describe('ExpensesListPage', () => {
       expect(lastCall?.description).toBe('coffee')
     })
     vi.useRealTimers()
+  })
+
+  it('does not render a receipt icon when hasReceipt is false', async () => {
+    render(<ExpensesListPage />, { wrapper: makeWrapper() })
+    await waitFor(() => screen.getAllByText('Food'))
+    expect(screen.queryByLabelText(/view receipt/i)).toBeNull()
+  })
+
+  it('renders a receipt icon when hasReceipt is true and opens the viewer on tap', async () => {
+    mockGetExpenses.mockResolvedValue({
+      ok: true,
+      status: 200,
+      data: { ...pagedResponse, items: [{ ...mockExpense, hasReceipt: true }] },
+    })
+    mockGetExpenseReceiptBlob.mockResolvedValue({ ok: true, status: 200, data: new Blob(['x'], { type: 'image/jpeg' }) })
+    render(<ExpensesListPage />, { wrapper: makeWrapper() })
+    await waitFor(() => screen.getAllByText('Food'))
+
+    const receiptBtn = screen.getByLabelText(/view receipt/i)
+    fireEvent.click(receiptBtn)
+
+    await waitFor(() => {
+      expect(mockGetExpenseReceiptBlob).toHaveBeenCalledWith(1)
+    })
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeTruthy()
+    })
+  })
+
+  it('deletes the receipt and removes the icon after confirm', async () => {
+    mockGetExpenses.mockResolvedValue({
+      ok: true,
+      status: 200,
+      data: { ...pagedResponse, items: [{ ...mockExpense, hasReceipt: true }] },
+    })
+    mockGetExpenseReceiptBlob.mockResolvedValue({ ok: true, status: 200, data: new Blob(['x'], { type: 'image/jpeg' }) })
+    mockDeleteExpenseReceipt.mockResolvedValue({ ok: true, status: 204 })
+    render(<ExpensesListPage />, { wrapper: makeWrapper() })
+    await waitFor(() => screen.getAllByText('Food'))
+
+    fireEvent.click(screen.getByLabelText(/view receipt/i))
+    await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
+
+    fireEvent.click(screen.getByLabelText(/delete receipt/i))
+    await waitFor(() => screen.getByRole('alertdialog'))
+    const confirmBtn = screen.getAllByRole('button', { name: /delete/i }).find(
+      b => b.closest('[role="alertdialog"]') !== null
+    )
+    if (confirmBtn) fireEvent.click(confirmBtn)
+
+    await waitFor(() => {
+      expect(mockDeleteExpenseReceipt).toHaveBeenCalledWith(1)
+    })
+    await waitFor(() => {
+      expect(screen.queryByLabelText(/view receipt/i)).toBeNull()
+    })
   })
 })

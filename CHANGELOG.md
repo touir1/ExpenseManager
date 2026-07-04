@@ -1,6 +1,37 @@
 
 # Changelog
 
+## [0.129.1] - 2026-07-04
+### Refactor: receipt storage — shared MinIO instance, generic S3 client, per-service bucket
+
+- **`S3ReceiptStorageService`** (renamed from `MinioReceiptStorageService`) now uses `AWSSDK.S3` (`IAmazonS3`, `AmazonS3Config{ServiceURL,ForcePathStyle=true}`) instead of the `Minio` NuGet package — MinIO remains the storage backend transparently, only the client SDK changed; `PutObjectRequest.DisablePayloadSigning=true` needed for MinIO compatibility.
+- **Infra** — dropped the dedicated `minio-receipts` service from `docker-compose-apps.yml`; `expenses-service` now joins `expenses_manager_tools_net` (declared `external`, `name: expense-management-tools_expenses_manager_tools_net`) to reach the existing `minio` service from `docker-compose-tools.yml` (same instance backing GitLab's registry) — mirrors the `jobs-runner` service's reverse cross-stack network join already used in `docker-compose-tools.yml`. Requires the tools stack to be started first.
+- **Config** — `EXPENSES_MANAGEMENT_EXPENSES_RECEIPTSTORAGE_{ENDPOINT,ACCESS_KEY,SECRET_KEY,BUCKET}` are now dedicated `.env`/`.env.example` variables (not a `${MINIO_ACCESS_KEY}`/`${MINIO_SECRET_KEY}` substitution), decoupling the expenses service's storage credentials from the tools stack's var names even though the values point at the same MinIO instance.
+- **Bucket naming** — changed from feature-scoped `expense-receipts` to per-service `expenses-manager-expenses-artifacts` (pattern `expenses-manager-<service>-artifacts` for future services sharing the instance); receipts are namespaced under a `receipts/` key prefix (`receipts/{expenseId}/{guid}{ext}`) within that bucket rather than owning a dedicated bucket.
+
+---
+
+## [0.129.0] - 2026-07-04
+### Feature: receipt photo storage — mobile + web upload/view/delete
+
+- **Mobile (`frontend/mobile`)** — `QuickAddModal.tsx` uploads the captured receipt (best-effort, non-blocking) via new `uploadExpenseReceipt` after a successful add, with a brief "Uploading receipt…" `IonToast` and a non-blocking failure toast that doesn't roll back the saved expense; `ExpensesListPage.tsx` shows a 44×44 receipt icon per row when `hasReceipt`, opening a full-screen `IonModal` viewer (fetched via new `getExpenseReceiptBlob`) with close/download/delete actions, the last confirmed via the existing `IonAlert` pattern and calling new `deleteExpenseReceipt`.
+- **Web (`frontend/dashboard`)** — `ExpenseForm.tsx` gained a receipt file input (jpeg/png/webp) with local/existing-receipt preview, uploading via `postFormData`-backed `uploadExpenseReceipt` after the expense save succeeds; `ExpensesPage.tsx` (table row + `ExpenseCard`) shows a receipt button when `hasReceipt`, opening a `shadow-warm`/Hearth-token modal (styled like `ConfirmDeleteModal`) with view/download (`?download=true`)/delete actions.
+- Both clients add `ExpenseDto.hasReceipt: boolean` to their local types; upload/delete error handling reuses each app's existing toast infrastructure (no bespoke error UI).
+- Completes `docs/plans/mobile-app-ionic-ux-improvements-plan.md` item 2.3 (Option B) end-to-end — plan moved to `docs/plans/done/`.
+
+---
+
+## [0.128.0] - 2026-07-04
+### Feature: receipt photo storage backend (expenses service)
+
+- **`Expense.ReceiptStorageKey`** (new nullable `varchar(500)` column, migration `AddExpenseReceiptStorageKey`) — 1:1 storage-object key per expense; `ExpenseDto.HasReceipt:bool` (computed, key itself never exposed to clients).
+- **`IReceiptStorageService`** (new) — `UploadAsync`/`GetStreamAsync`/`DeleteAsync` against a MinIO/S3-compatible bucket (lazily created on first use); `ReceiptStorageOptions` bound from `EXPENSES_MANAGEMENT_EXPENSES_RECEIPTSTORAGE_*` env vars. (Client SDK/infra reworked in [0.129.1] — see that entry for the current shape.)
+- **`IReceiptService`/`ReceiptService`** (new) — ownership-scoped orchestration reusing `IExpenseRepository.GetByIdAsync(id,userId)` for the same not-found-or-not-yours check as the rest of `ExpenseController`; replacing a receipt best-effort-deletes the old object after the new one is stored and the DB row is updated.
+- **`ExpenseReceiptController`** (new, `[Route("{id:long}/receipt")]`) — `POST` (upload/replace, jpeg/png/webp, 5MB cap, mirrors `ExpenseImportController`'s validation pattern), `GET` (`?download=true` for `Content-Disposition: attachment`, otherwise inline), `DELETE`; all behind `expenses_global` rate limiting and the standard `JwtCookieReader` auth guard. New `ControllerErrors`: `RECEIPT_NO_FILE`, `RECEIPT_FILE_TOO_LARGE`, `RECEIPT_INVALID_FILE_TYPE`, `RECEIPT_NOT_FOUND`.
+- Implements `docs/plans/mobile-app-ionic-ux-improvements-plan.md` item 2.3 (Option B) backend half; mobile/web upload/view UI shipped in [0.129.0].
+
+---
+
 ## [0.127.0] - 2026-07-04
 ### Feature: mobile app (Ionic) UX improvements
 

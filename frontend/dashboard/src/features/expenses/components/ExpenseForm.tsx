@@ -11,16 +11,21 @@ import FieldError from '@/components/FieldError'
 import SubmitButton from '@/components/SubmitButton'
 import { makeExpenseSchema, type ExpenseFormData } from '@/features/expenses/expense.schemas'
 import { formatAmountDisplay, parseAmountInput, sanitizeAmountInputChars } from '@/features/expenses/utils/amountFormat'
+import { uploadExpenseReceipt, getExpenseReceiptUrl } from '@/features/expenses/services/expensesApi.service'
 import type { Tag } from '@/features/tags/types/tag.type'
 import type { ExpenseDto } from '@/features/expenses/types/expenses.type'
 
+export type ExpenseSubmitResult = { id: number } | void
+
 interface ExpenseFormProps {
   readonly initialValues?: ExpenseDto
-  readonly onSubmit: (data: ExpenseFormData) => Promise<void>
-  readonly onSaveAndAddAnother?: (data: ExpenseFormData) => Promise<void>
+  readonly onSubmit: (data: ExpenseFormData) => Promise<ExpenseSubmitResult>
+  readonly onSaveAndAddAnother?: (data: ExpenseFormData) => Promise<ExpenseSubmitResult>
   readonly isSubmitting: boolean
   readonly onCancel: () => void
 }
+
+const RECEIPT_ACCEPT = 'image/jpeg,image/png,image/webp'
 
 function today(): string {
   return new Date().toISOString().slice(0, 10)
@@ -135,6 +140,35 @@ export default function ExpenseForm({ initialValues, onSubmit, onSaveAndAddAnoth
     setValue('tagIds', selectedTags.map(t => t.id))
   }, [selectedTags, setValue])
 
+  // Receipt photo
+  const [receiptFile, setReceiptFile] = useState<File | null>(null)
+  const [receiptPreviewUrl, setReceiptPreviewUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!receiptFile) {
+      setReceiptPreviewUrl(null)
+      return
+    }
+    const url = URL.createObjectURL(receiptFile)
+    setReceiptPreviewUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [receiptFile])
+
+  const handleReceiptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null
+    setReceiptFile(file)
+  }
+
+  const existingReceiptUrl = initialValues?.hasReceipt ? getExpenseReceiptUrl(initialValues.id) : null
+  const receiptDisplayUrl = receiptPreviewUrl ?? existingReceiptUrl
+
+  const maybeUploadReceipt = async (result: ExpenseSubmitResult) => {
+    if (!receiptFile) return
+    const targetId = initialValues?.id ?? result?.id
+    if (targetId == null) return
+    await uploadExpenseReceipt(targetId, receiptFile)
+  }
+
   const handleFamilyToggle = (id: number) => {
     setCheckedFamilyIds(prev => {
       const next = new Set(prev)
@@ -144,12 +178,19 @@ export default function ExpenseForm({ initialValues, onSubmit, onSaveAndAddAnoth
     })
   }
 
+  const handleFormSubmit = async (data: ExpenseFormData) => {
+    const result = await onSubmit(data)
+    await maybeUploadReceipt(result)
+  }
+
   const handleSaveAndAddAnother = async (data: ExpenseFormData) => {
     if (!onSaveAndAddAnother) return
-    await onSaveAndAddAnother(data)
+    const result = await onSaveAndAddAnother(data)
+    await maybeUploadReceipt(result)
     reset({ date: today(), description: '', tagIds: [], familyIds: defaultFamily ? [defaultFamily.id] : [] })
     setSelectedTags([])
     setCheckedFamilyIds(defaultFamily ? new Set([defaultFamily.id]) : new Set())
+    setReceiptFile(null)
   }
 
   const currencyOptions: ComboOption[] = currencies.map(c => ({ value: c.id, label: c.code }))
@@ -157,7 +198,7 @@ export default function ExpenseForm({ initialValues, onSubmit, onSaveAndAddAnoth
   const subcategoryOptions: ComboOption[] = subcategories.map(s => ({ value: s.id, label: s.name }))
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4" noValidate>
       <div className="grid grid-cols-2 gap-x-5 gap-y-4">
         {/* Left column: financial fields */}
         <div className="space-y-4">
@@ -313,6 +354,27 @@ export default function ExpenseForm({ initialValues, onSubmit, onSaveAndAddAnoth
               </div>
             </div>
           )}
+
+          {/* Receipt photo */}
+          <div>
+            <label htmlFor="receipt" className="field-label">
+              {t('expenses.fields.receipt')}
+            </label>
+            <input
+              id="receipt"
+              type="file"
+              accept={RECEIPT_ACCEPT}
+              onChange={handleReceiptChange}
+              className="field-input file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 file:cursor-pointer cursor-pointer"
+            />
+            {receiptDisplayUrl && (
+              <img
+                src={receiptDisplayUrl}
+                alt={t('expenses.fields.receiptPreviewAlt')}
+                className="mt-2 max-h-32 rounded-lg border border-surface-border object-contain"
+              />
+            )}
+          </div>
         </div>
       </div>
 

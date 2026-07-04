@@ -40,10 +40,13 @@ vi.mock('@/features/expenses/components/ExpenseForm', () => ({
 const mockGetExpenses = vi.fn()
 const mockDeleteExpense = vi.fn()
 const mockAddExpense = vi.fn()
+const mockDeleteExpenseReceipt = vi.fn()
 vi.mock('@/features/expenses/services/expensesApi.service', () => ({
   getExpenses: (...args: unknown[]) => mockGetExpenses(...args),
   deleteExpense: (...args: unknown[]) => mockDeleteExpense(...args),
   addExpense: (...args: unknown[]) => mockAddExpense(...args),
+  deleteExpenseReceipt: (...args: unknown[]) => mockDeleteExpenseReceipt(...args),
+  getExpenseReceiptUrl: (id: number, download?: boolean) => `/api/expenses/${id}/receipt${download ? '?download=true' : ''}`,
 }))
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -62,10 +65,21 @@ const expense: ExpenseDto = {
   tags: [],
   convertedAmount: null,
   displayCurrency: null,
+  hasReceipt: false,
 }
+
+const expenseWithReceipt: ExpenseDto = { ...expense, id: 2, hasReceipt: true }
 
 const pagedResponse: ExpensePagedResponse = {
   items: [expense],
+  totalCount: 1,
+  page: 1,
+  pageSize: 20,
+  totalPages: 1,
+}
+
+const pagedResponseWithReceipt: ExpensePagedResponse = {
+  items: [expenseWithReceipt],
   totalCount: 1,
   page: 1,
   pageSize: 20,
@@ -104,6 +118,7 @@ describe('ExpensesPage', () => {
     mockGetExpenses.mockResolvedValue({ ok: true, data: pagedResponse })
     mockDeleteExpense.mockResolvedValue({ ok: true })
     mockAddExpense.mockResolvedValue({ ok: true })
+    mockDeleteExpenseReceipt.mockResolvedValue({ ok: true })
   })
 
   it('renders page heading', () => {
@@ -268,6 +283,69 @@ describe('ExpensesPage', () => {
         expect(mockAddExpense).toHaveBeenCalledOnce()
       })
       expect(mockNavigate).not.toHaveBeenCalledWith('/expenses')
+    })
+  })
+
+  describe('receipt', () => {
+    it('does not show a receipt icon when the expense has no receipt', async () => {
+      renderPage()
+      await waitFor(() => screen.getByRole('table'))
+      expect(within(screen.getByRole('table')).queryByRole('button', { name: /view receipt/i })).not.toBeInTheDocument()
+    })
+
+    it('shows a receipt icon when the expense has a receipt', async () => {
+      mockGetExpenses.mockResolvedValue({ ok: true, data: pagedResponseWithReceipt })
+      renderPage()
+      await waitFor(() => screen.getByRole('table'))
+      expect(within(screen.getByRole('table')).getByRole('button', { name: /view receipt/i })).toBeInTheDocument()
+    })
+
+    it('opens a modal with the receipt image when the icon is clicked', async () => {
+      mockGetExpenses.mockResolvedValue({ ok: true, data: pagedResponseWithReceipt })
+      const user = userEvent.setup()
+      renderPage()
+      await waitFor(() => screen.getByRole('table'))
+      await user.click(within(screen.getByRole('table')).getByRole('button', { name: /view receipt/i }))
+
+      const dialog = screen.getByRole('dialog')
+      const img = within(dialog).getByRole('img')
+      expect(img).toHaveAttribute('src', '/api/expenses/2/receipt')
+    })
+
+    it('renders a download link with the download query flag and download attribute', async () => {
+      mockGetExpenses.mockResolvedValue({ ok: true, data: pagedResponseWithReceipt })
+      const user = userEvent.setup()
+      renderPage()
+      await waitFor(() => screen.getByRole('table'))
+      await user.click(within(screen.getByRole('table')).getByRole('button', { name: /view receipt/i }))
+
+      const dialog = screen.getByRole('dialog')
+      const downloadLink = within(dialog).getByRole('link', { name: /download/i })
+      expect(downloadLink).toHaveAttribute('href', '/api/expenses/2/receipt?download=true')
+      expect(downloadLink).toHaveAttribute('download')
+    })
+
+    it('closes the receipt modal via the close button', async () => {
+      mockGetExpenses.mockResolvedValue({ ok: true, data: pagedResponseWithReceipt })
+      const user = userEvent.setup()
+      renderPage()
+      await waitFor(() => screen.getByRole('table'))
+      await user.click(within(screen.getByRole('table')).getByRole('button', { name: /view receipt/i }))
+      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /close/i }))
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+
+    it('deletes the receipt and closes the modal on confirm', async () => {
+      mockGetExpenses.mockResolvedValue({ ok: true, data: pagedResponseWithReceipt })
+      const user = userEvent.setup()
+      renderPage()
+      await waitFor(() => screen.getByRole('table'))
+      await user.click(within(screen.getByRole('table')).getByRole('button', { name: /view receipt/i }))
+      await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /delete receipt/i }))
+      await waitFor(() => {
+        expect(mockDeleteExpenseReceipt).toHaveBeenCalledWith(2)
+      })
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     })
   })
 })

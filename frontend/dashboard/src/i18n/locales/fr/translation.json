@@ -456,7 +456,9 @@
             "description": "Description",
             "tags": "Étiquettes",
             "tagsPlaceholder": "Saisissez et appuyez sur Entrée pour ajouter",
-            "families": "Familles"
+            "families": "Familles",
+            "receipt": "Reçu",
+            "receiptPreviewAlt": "Aperçu du reçu"
         },
         "filters": {
             "title": "Filtres",
@@ -491,6 +493,13 @@
             "confirmBody": "Cette action est irréversible.",
             "confirm": "Supprimer",
             "cancel": "Annuler"
+        },
+        "receipt": {
+            "viewReceipt": "Voir le reçu",
+            "title": "Reçu",
+            "download": "Télécharger",
+            "close": "Fermer",
+            "delete": "Supprimer le reçu"
         },
         "errors": {
             "loadFailed": "Échec du chargement des dépenses.",

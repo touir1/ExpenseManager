@@ -337,7 +337,8 @@ namespace Touir.ExpensesManager.Expenses.Services
                 .Where(a => a.Family != null && !a.Family.IsDeleted && !a.Family.IsDefault)
                 .Select(a => new FamilyNameDto { Id = a.Family.Id, Name = a.Family.Name }),
             ConvertedAmount = convertedAmount,
-            DisplayCurrency = displayCurrency
+            DisplayCurrency = displayCurrency,
+            HasReceipt = e.ReceiptStorageKey != null
         };
 
         private static Expense CloneExpense(Expense e) => new()

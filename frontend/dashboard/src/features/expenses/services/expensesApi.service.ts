@@ -83,3 +83,19 @@ export function getImportTemplateUrl(): string {
 export function validateCsvRows(rows: RawCsvRowDto[]): Promise<ApiResponse<CsvImportPreviewDto>> {
   return post<CsvImportPreviewDto>(`${BASE}/import/validate-rows`, { rows })
 }
+
+export function uploadExpenseReceipt(expenseId: number, file: File): Promise<ApiResponse<ExpenseDto | undefined>> {
+  const fd = new FormData()
+  fd.append('file', file)
+  return postFormData<ExpenseDto | undefined>(`${BASE}/${expenseId}/receipt`, fd)
+}
+
+export function getExpenseReceiptUrl(expenseId: number, download = false): string {
+  const base = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '')
+  const qs = download ? '?download=true' : ''
+  return `${base}${BASE}/${expenseId}/receipt${qs}`
+}
+
+export function deleteExpenseReceipt(expenseId: number): Promise<ApiResponse<void>> {
+  return del<void>(`${BASE}/${expenseId}/receipt`)
+}

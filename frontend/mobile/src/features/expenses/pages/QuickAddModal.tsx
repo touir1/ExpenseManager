@@ -26,7 +26,7 @@ import {
 } from '@ionic/react'
 import { cameraOutline } from 'ionicons/icons'
 import { useTranslation } from 'react-i18next'
-import { addExpense } from '@/features/expenses/services/expensesApi.service'
+import { addExpense, uploadExpenseReceipt } from '@/features/expenses/services/expensesApi.service'
 import { useExpensesData } from '@/features/expenses/ExpensesDataContext'
 import { useFamilies } from '@/features/families/FamilyContext'
 import { useNetworkSync } from '@/hooks/useNetworkSync'
@@ -40,6 +40,16 @@ interface Props {
   onClose: () => void
 }
 
+function dataUrlToBlob(dataUrl: string): { blob: Blob; mimeType: string } {
+  const [header, base64 = ''] = dataUrl.split(',')
+  const mimeMatch = header.match(/data:(.*?);base64/)
+  const mimeType = mimeMatch?.[1] ?? 'image/jpeg'
+  const binary = atob(base64)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+  return { blob: new Blob([bytes], { type: mimeType }), mimeType }
+}
+
 export default function QuickAddModal({ isOpen, onClose }: Props) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
@@ -48,6 +58,7 @@ export default function QuickAddModal({ isOpen, onClose }: Props) {
   const { isOnline } = useNetworkSync()
   const { enqueue } = useOfflineQueue()
   const [toast, setToast] = useState<{ message: string; color: string } | null>(null)
+  const [receiptToast, setReceiptToast] = useState<{ message: string; color: string } | null>(null)
   const [receiptDataUrl, setReceiptDataUrl] = useState<string | null>(null)
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
   const modalRef = useRef<HTMLIonModalElement>(null)
@@ -90,11 +101,28 @@ export default function QuickAddModal({ isOpen, onClose }: Props) {
         resultType: CameraResultType.DataUrl,
         source: CameraSource.Prompt,
         quality: 80,
+        width: 1600,
       })
       if (photo.dataUrl) setReceiptDataUrl(photo.dataUrl)
     } catch {
       // User cancelled or camera not available
     }
+  }
+
+  function uploadReceiptBestEffort(expenseId: number, dataUrl: string) {
+    const { blob, mimeType } = dataUrlToBlob(dataUrl)
+    setReceiptToast({ message: t('expenses.uploadingReceipt', 'Uploading receipt…'), color: 'medium' })
+    uploadExpenseReceipt(expenseId, blob, mimeType)
+      .then(uploadRes => {
+        if (!uploadRes.ok) {
+          setReceiptToast({ message: t('expenses.receiptUploadFailed', 'Receipt upload failed.'), color: 'danger' })
+        } else {
+          setReceiptToast(null)
+        }
+      })
+      .catch(() => {
+        setReceiptToast({ message: t('expenses.receiptUploadFailed', 'Receipt upload failed.'), color: 'danger' })
+      })
   }
 
   const FIELD_ORDER = ['amount', 'currencyId', 'date', 'subcategoryId'] as const
@@ -131,6 +159,10 @@ export default function QuickAddModal({ isOpen, onClose }: Props) {
       } catch { /* ignore */ }
       queryClient.invalidateQueries({ queryKey: ['expenses'] })
       setToast({ message: t('expenses.addSuccess', 'Expense added!'), color: 'success' })
+      const newExpenseId = (res.data as { id?: number } | undefined)?.id
+      if (receiptDataUrl && newExpenseId != null) {
+        uploadReceiptBestEffort(newExpenseId, receiptDataUrl)
+      }
       onClose()
     } else {
       setToast({ message: res.error ?? t('common.error', 'Something went wrong.'), color: 'danger' })
@@ -343,6 +375,14 @@ export default function QuickAddModal({ isOpen, onClose }: Props) {
         duration={2500}
         color={toast?.color}
         onDidDismiss={() => setToast(null)}
+      />
+
+      <IonToast
+        isOpen={!!receiptToast}
+        message={receiptToast?.message ?? ''}
+        duration={receiptToast?.color === 'danger' ? 3500 : 4000}
+        color={receiptToast?.color}
+        onDidDismiss={() => setReceiptToast(null)}
       />
     </>
   )

@@ -19,6 +19,7 @@ const makeExpense = (id: number, overrides: Partial<ExpenseDto> = {}): ExpenseDt
   families: [],
   convertedAmount: null,
   displayCurrency: null,
+  hasReceipt: false,
   ...overrides,
 })
 

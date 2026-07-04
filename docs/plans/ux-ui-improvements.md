@@ -361,11 +361,12 @@
 
 ---
 
-### 🔴 Mobile: Receipt photo captured but never submitted to backend
+### ✅ 🔴 Mobile: Receipt photo captured but never submitted to backend
 
 **Problem:** `QuickAddModal` captures a photo via `Camera.getPhoto()` and shows a preview, but looking at the add expense API, there's no `receiptUrl` field in the expense DTO. The photo is captured but silently dropped.  
 **Fix (option A):** Remove the camera FAB until a receipt storage API exists — avoid the illusion of a feature.  
-**Fix (option B):** Upload the image to a storage service (S3/MinIO) as part of the submit flow and store the URL.
+**Fix (option B):** Upload the image to a storage service (S3/MinIO) as part of the submit flow and store the URL.  
+**Done (Option B, full stack):** Backend: MinIO-backed `IReceiptStorageService`/`ReceiptService`, `Expense.ReceiptStorageKey` (nullable, migration `AddExpenseReceiptStorageKey`), `ExpenseDto.HasReceipt`, `ExpenseReceiptController` (`POST/GET/DELETE {id}/receipt`, jpeg/png/webp ≤5MB, ownership-checked), new `minio-receipts` compose service. Mobile: `QuickAddModal.tsx` uploads best-effort after add succeeds (non-blocking, toast on failure); `ExpensesListPage.tsx` shows a receipt icon + full-screen `IonModal` viewer with download/delete. Web: `ExpenseForm.tsx` file input + preview + best-effort upload after save; `ExpensesPage.tsx` receipt icon/thumbnail + `shadow-warm` viewer modal with download/delete. See `docs/plans/done/mobile-app-ionic-ux-improvements-plan.md` section 2.3 for full spec.
 
 ---
 
@@ -609,7 +610,7 @@
 | ~~Settings page expansion (notification prefs)~~ | ~~Medium~~ | ✅ Done (mobile: default category, notification prefs, account deletion; data export still open on mobile) |
 | ~~Undo delete (5 s toast with restore)~~ | ~~Medium~~ | ✅ Done (mobile: re-POST client-side, no restore endpoint) |
 | PWA manifest + favicon | Low | Low |
-| Receipt storage API + mobile upload | High | High |
+| ~~Receipt storage API + mobile upload~~ | ~~High~~ | ✅ Done (MinIO storage, `{id}/receipt` endpoints, mobile + web upload/view/download/delete) |
 
 ---
 
@@ -626,7 +627,7 @@
 | Notification bell (icons/view-all/prefs) | ✅ Done | ✅ Partial | 🟡 Medium |
 | Dark mode | ✅ | ✅ | ✅ Done |
 | Offline queue | ❌ None | ✅ Full | 🟢 Low (web unlikely to need) |
-| Receipt capture | ❌ N/A | ⚠️ Captured but not stored | 🔴 Fix or remove |
+| Receipt capture | ✅ Done | ✅ Done | ✅ Done |
 
 ---
 

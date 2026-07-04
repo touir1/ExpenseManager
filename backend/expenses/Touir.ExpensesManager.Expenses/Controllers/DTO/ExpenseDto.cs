@@ -16,5 +16,6 @@ namespace Touir.ExpensesManager.Expenses.Controllers.DTO
         public IEnumerable<FamilyNameDto> Families { get; set; } = [];
         public decimal? ConvertedAmount { get; set; }
         public CurrencyDto? DisplayCurrency { get; set; }
+        public bool HasReceipt { get; set; }
     }
 }

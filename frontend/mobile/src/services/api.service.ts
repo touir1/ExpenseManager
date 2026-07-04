@@ -114,3 +114,33 @@ export async function del<T>(path: string): Promise<ApiResponse<T>> {
 export async function postFormData<T>(path: string, body: FormData, opts: { skipUnauthorized?: boolean; silent?: boolean } = {}): Promise<ApiResponse<T>> {
   return request<T>(path, { method: 'POST', body }, opts)
 }
+
+export async function getBlob(path: string, opts: { skipUnauthorized?: boolean; silent?: boolean } = {}): Promise<ApiResponse<Blob>> {
+  const url = `${API_BASE}${path}`
+  try {
+    const res = await fetch(url, { method: 'GET', credentials: 'include' })
+    const status = res.status
+
+    if (status === 401 && !opts.skipUnauthorized) {
+      const refreshed = await attemptTokenRefresh()
+      if (refreshed) {
+        const retryRes = await fetch(url, { method: 'GET', credentials: 'include' })
+        if (retryRes.ok) return { ok: true, status: retryRes.status, data: await retryRes.blob() }
+        const retryData = await parseJsonSafe(retryRes)
+        return buildErrorResponse(retryRes.status, retryData, retryRes.statusText, opts.silent)
+      }
+      redirectToLogin()
+      return { ok: false, status, error: API_ERRORS.UNAUTHORIZED }
+    }
+
+    if (!res.ok) {
+      const data = await parseJsonSafe(res)
+      return buildErrorResponse(status, data, res.statusText, opts.silent)
+    }
+    return { ok: true, status, data: await res.blob() }
+  } catch {
+    const msg = API_ERRORS.NETWORK
+    if (errorHandler) errorHandler(msg)
+    return { ok: false, status: 0, error: msg }
+  }
+}

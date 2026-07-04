@@ -44,6 +44,12 @@ vi.mock('@/features/tags/services/tagsApi.service', () => ({
   removeTag: vi.fn(),
 }))
 
+const mockUploadExpenseReceipt = vi.fn()
+vi.mock('@/features/expenses/services/expensesApi.service', () => ({
+  uploadExpenseReceipt: (...args: unknown[]) => mockUploadExpenseReceipt(...args),
+  getExpenseReceiptUrl: (id: number, download?: boolean) => `/api/expenses/${id}/receipt${download ? '?download=true' : ''}`,
+}))
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function renderForm(overrides: Partial<Parameters<typeof ExpenseForm>[0]> = {}) {
@@ -63,7 +69,14 @@ function renderForm(overrides: Partial<Parameters<typeof ExpenseForm>[0]> = {}) 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('ExpenseForm', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockUploadExpenseReceipt.mockResolvedValue({ ok: true })
+    if (!URL.createObjectURL) URL.createObjectURL = vi.fn()
+    if (!URL.revokeObjectURL) URL.revokeObjectURL = vi.fn()
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url')
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+  })
 
   describe('rendering', () => {
     it('renders amount, currency, date fields', () => {
@@ -187,6 +200,7 @@ describe('ExpenseForm', () => {
       tags: [{ id: 5, name: 'food' }],
       convertedAmount: null,
       displayCurrency: null,
+      hasReceipt: false,
     }
 
     it('pre-fills amount from initialValues, formatted', () => {
@@ -262,7 +276,7 @@ describe('ExpenseForm', () => {
       await user.click(screen.getByRole('button', { name: /^save$/i }))
 
       await waitFor(() => {
-        expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ amount: 2430.5 }), expect.anything())
+        expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ amount: 2430.5 }))
       })
     })
   })
@@ -273,6 +287,101 @@ describe('ExpenseForm', () => {
       const { onCancel } = renderForm()
       await user.click(screen.getByRole('button', { name: /^cancel$/i }))
       expect(onCancel).toHaveBeenCalledOnce()
+    })
+  })
+
+  describe('receipt photo', () => {
+    const receiptFile = new File(['dummy'], 'receipt.jpg', { type: 'image/jpeg' })
+
+    function fillMinimalFields() {
+      const amountInput = screen.getByLabelText(/^amount$/i)
+      fireEvent.focus(amountInput)
+      fireEvent.change(amountInput, { target: { value: '10' } })
+      fireEvent.blur(amountInput)
+      fireEvent.focus(screen.getByLabelText(/^currency$/i))
+      fireEvent.mouseDown(screen.getByRole('option', { name: 'EUR' }))
+      fireEvent.focus(screen.getByLabelText(/^category$/i))
+      fireEvent.mouseDown(screen.getByRole('option', { name: 'Transport' }))
+    }
+
+    it('renders a file input accepting the supported image types', () => {
+      renderForm()
+      const input = screen.getByLabelText(/^receipt$/i)
+      expect(input).toHaveAttribute('type', 'file')
+      expect(input).toHaveAttribute('accept', 'image/jpeg,image/png,image/webp')
+    })
+
+    it('shows a local preview when a file is selected', () => {
+      renderForm()
+      const input = screen.getByLabelText(/^receipt$/i)
+      fireEvent.change(input, { target: { files: [receiptFile] } })
+      expect(URL.createObjectURL).toHaveBeenCalledWith(receiptFile)
+      expect(screen.getByAltText(/receipt preview/i)).toHaveAttribute('src', 'blob:mock-url')
+    })
+
+    it('shows the existing receipt image when editing an expense that already has one', () => {
+      const expense: ExpenseDto = {
+        id: 7,
+        amount: 12,
+        currency: { id: 1, code: 'EUR', name: 'Euro', symbol: '€', decimals: 2 },
+        date: '2026-05-19',
+        category: null,
+        subcategory: null,
+        description: null,
+        createdAt: '2026-05-19T10:00:00Z',
+        modifiedAt: null,
+        modifiedFrom: null,
+        tags: [],
+        convertedAmount: null,
+        displayCurrency: null,
+        hasReceipt: true,
+      }
+      renderForm({ initialValues: expense })
+      expect(screen.getByAltText(/receipt preview/i)).toHaveAttribute('src', '/api/expenses/7/receipt')
+    })
+
+    it('uploads the receipt after the expense save succeeds', async () => {
+      const user = userEvent.setup()
+      const onSubmit = vi.fn().mockResolvedValue({ id: 99 })
+      renderForm({ onSubmit })
+      fillMinimalFields()
+      fireEvent.change(screen.getByLabelText(/^receipt$/i), { target: { files: [receiptFile] } })
+
+      await user.click(screen.getByRole('button', { name: /^save$/i }))
+
+      await waitFor(() => {
+        expect(mockUploadExpenseReceipt).toHaveBeenCalledWith(99, receiptFile)
+      })
+    })
+
+    it('does not attempt an upload when no file was selected', async () => {
+      const user = userEvent.setup()
+      const onSubmit = vi.fn().mockResolvedValue({ id: 99 })
+      renderForm({ onSubmit })
+      fillMinimalFields()
+
+      await user.click(screen.getByRole('button', { name: /^save$/i }))
+
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalledOnce()
+      })
+      expect(mockUploadExpenseReceipt).not.toHaveBeenCalled()
+    })
+
+    it('does not fail the save flow when the receipt upload fails', async () => {
+      mockUploadExpenseReceipt.mockResolvedValue({ ok: false, error: 'upload failed' })
+      const user = userEvent.setup()
+      const onSubmit = vi.fn().mockResolvedValue({ id: 99 })
+      renderForm({ onSubmit })
+      fillMinimalFields()
+      fireEvent.change(screen.getByLabelText(/^receipt$/i), { target: { files: [receiptFile] } })
+
+      await user.click(screen.getByRole('button', { name: /^save$/i }))
+
+      await waitFor(() => {
+        expect(mockUploadExpenseReceipt).toHaveBeenCalledWith(99, receiptFile)
+      })
+      expect(onSubmit).toHaveBeenCalledOnce()
     })
   })
 })

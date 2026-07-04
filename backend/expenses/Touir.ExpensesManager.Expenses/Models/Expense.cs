@@ -21,6 +21,7 @@ namespace Touir.ExpensesManager.Expenses.Models
         public int? ModifiedFromId { get; set; }
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }
+        public string? ReceiptStorageKey { get; set; }
 
         public User User { get; set; } = null!;
         public Currency Currency { get; set; } = null!;

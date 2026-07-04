@@ -31,6 +31,9 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 | `DELETE` | `/{id}` | Soft-delete expense → 204 or 404 |
 | `GET` | `/{id}` | Get expense by id → `ExpenseDto` (200) or 404 |
 | `GET` | `/` | Paged + filtered expense list → `ExpensePagedResponse` |
+| `POST` | `/{id}/receipt` | Upload/replace the receipt image for an owned expense (multipart, jpeg/png/webp, max 5MB) → `ExpenseDto` (200); replacing deletes the previous stored object; 400 `RECEIPT_NO_FILE`/`RECEIPT_FILE_TOO_LARGE`/`RECEIPT_INVALID_FILE_TYPE`, 404 `EXPENSE_NOT_FOUND` |
+| `GET` | `/{id}/receipt` | Stream the receipt image back inline, or as an attachment with `?download=true` → 200 or 404 `EXPENSE_NOT_FOUND`/`RECEIPT_NOT_FOUND` |
+| `DELETE` | `/{id}/receipt` | Remove the receipt image and clear the stored key → 204 or 404 `EXPENSE_NOT_FOUND`/`RECEIPT_NOT_FOUND` |
 | `GET` | `/families` | List families for authenticated user → `FamilyDto[]` |
 | `POST` | `/families` | Create a new family → `FamilyDto` (201); **409** if user already has a family with that name |
 | `GET` | `/families/{id}` | Family detail with members → `FamilyDetailDto` (200) or 403/404 |

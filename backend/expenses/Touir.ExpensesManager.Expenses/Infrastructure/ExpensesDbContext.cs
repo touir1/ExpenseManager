@@ -214,6 +214,7 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
 
                 entity.Property(e => e.IsDeleted).HasDefaultValue(false);
                 entity.Property(e => e.DeletedAt).IsRequired(false);
+                entity.Property(e => e.ReceiptStorageKey).HasMaxLength(500);
 
                 entity.HasIndex(e => new { e.UserId, e.Date });
                 entity.HasIndex(e => e.CategoryId);

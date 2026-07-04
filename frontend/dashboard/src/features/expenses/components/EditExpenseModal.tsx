@@ -36,6 +36,7 @@ export default function EditExpenseModal({
     })
     setIsSubmitting(false)
     if (res.ok) onSuccess()
+    return { id: expenseId }
   }
 
   return (

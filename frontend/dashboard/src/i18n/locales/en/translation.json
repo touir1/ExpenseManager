@@ -456,7 +456,9 @@
                                     "description":  "Description",
                                     "tags":  "Tags",
                                     "tagsPlaceholder":  "Type and press Enter to add",
-                                    "families":  "Families"
+                                    "families":  "Families",
+                                    "receipt":  "Receipt",
+                                    "receiptPreviewAlt":  "Receipt preview"
                                 },
                      "filters":  {
                                      "title":  "Filters",
@@ -492,6 +494,13 @@
                                     "confirm":  "Delete",
                                     "cancel":  "Cancel"
                                 },
+                     "receipt":  {
+                                     "viewReceipt":  "View receipt",
+                                     "title":  "Receipt",
+                                     "download":  "Download",
+                                     "close":  "Close",
+                                     "delete":  "Delete receipt"
+                                 },
                      "errors":  {
                                     "loadFailed":  "Failed to load expenses.",
                                     "saveFailed":  "Failed to save expense.",

@@ -45,6 +45,7 @@ export type ExpenseDto = {
   families?: FamilyNameDto[]
   convertedAmount: number | null
   displayCurrency: Currency | null
+  hasReceipt: boolean
 }
 
 export type ExpensePagedResponse = {

@@ -1,4 +1,5 @@
 using System.Globalization;
+using Amazon.S3;
 using Quartz;
 using Touir.ExpensesManager.Expenses.Controllers.Responses;
 using Touir.ExpensesManager.Expenses.Jobs;
@@ -138,6 +139,18 @@ builder.Services.Configure<CurrencyRateOptions>(c =>
                     Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_CURRENCYRATE_UPDATE_TIME")) ?? "02:00";
     c.UpdateTime = TimeOnly.Parse(updateTime, CultureInfo.InvariantCulture);
 });
+
+builder.Services.Configure<ReceiptStorageOptions>(c =>
+{
+    c.Endpoint = builder.Configuration.GetValue("ReceiptStorage:Endpoint",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_RECEIPTSTORAGE_ENDPOINT")) ?? "127.0.0.1:9001";
+    c.AccessKey = builder.Configuration.GetValue("ReceiptStorage:AccessKey",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_RECEIPTSTORAGE_ACCESS_KEY")) ?? "";
+    c.SecretKey = builder.Configuration.GetValue("ReceiptStorage:SecretKey",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_RECEIPTSTORAGE_SECRET_KEY")) ?? "";
+    c.BucketName = builder.Configuration.GetValue("ReceiptStorage:BucketName",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_RECEIPTSTORAGE_BUCKET")) ?? "expenses-manager-expenses-artifacts";
+});
 #endregion
 
 #region Services
@@ -158,6 +171,19 @@ builder.Services.AddScoped<IUserConfigService, UserConfigService>();
 builder.Services.AddScoped<IExpenseExportService, ExpenseExportService>();
 builder.Services.AddScoped<ICsvImportService, CsvImportService>();
 builder.Services.AddScoped<IFamilyEventPublisher, FamilyEventPublisher>();
+builder.Services.AddSingleton<IAmazonS3>(sp =>
+{
+    var options = sp.GetRequiredService<IOptions<ReceiptStorageOptions>>().Value;
+    var serviceUrl = options.Endpoint.Contains("://") ? options.Endpoint : $"http://{options.Endpoint}";
+    var config = new AmazonS3Config
+    {
+        ServiceURL = serviceUrl,
+        ForcePathStyle = true,
+    };
+    return new AmazonS3Client(options.AccessKey, options.SecretKey, config);
+});
+builder.Services.AddScoped<IReceiptStorageService, S3ReceiptStorageService>();
+builder.Services.AddScoped<IReceiptService, ReceiptService>();
 #endregion
 
 #region Messaging

@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation, useMatch, useSearchParams } from 'react
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { getExpenses, deleteExpense } from '@/features/expenses/services/expensesApi.service'
+import { getExpenses, deleteExpense, getExpenseReceiptUrl, deleteExpenseReceipt } from '@/features/expenses/services/expensesApi.service'
 import ExpenseFilters from '@/features/expenses/components/ExpenseFilters'
 import AddExpenseModal from '@/features/expenses/components/AddExpenseModal'
 import EditExpenseModal from '@/features/expenses/components/EditExpenseModal'
@@ -83,10 +83,93 @@ function DeleteButton({ onClick, className }: Readonly<{ onClick: () => void; cl
   )
 }
 
+function ReceiptButton({ onClick, className }: Readonly<{ onClick: () => void; className?: string }>) {
+  const { t } = useTranslation()
+  return (
+    <button
+      onClick={onClick}
+      aria-label={t('expenses.receipt.viewReceipt')}
+      className={`p-1.5 rounded-lg text-ink-mute hover:text-brand-600 hover:bg-brand-50 transition-colors ${className ?? ''}`}
+    >
+      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    </button>
+  )
+}
+
+function ReceiptModal({
+  expense,
+  onClose,
+  onDeleted,
+}: Readonly<{ expense: ExpenseDto; onClose: () => void; onDeleted: () => void }>) {
+  const { t } = useTranslation()
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleDelete = async () => {
+    setIsDeleting(true)
+    const res = await deleteExpenseReceipt(expense.id)
+    setIsDeleting(false)
+    if (res.ok) {
+      onDeleted()
+      onClose()
+    }
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="receipt-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    >
+      <div className="bg-surface-card rounded-2xl shadow-warm border border-surface-border w-full max-w-lg flex flex-col max-h-[90dvh]">
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-surface-border flex-shrink-0">
+          <h2 id="receipt-modal-title" className="text-base font-semibold text-ink">{t('expenses.receipt.title')}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t('expenses.receipt.close')}
+            className="h-7 w-7 rounded-lg text-ink-mute hover:text-ink hover:bg-surface-subtle flex items-center justify-center transition-colors"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="px-6 py-5 overflow-y-auto">
+          <img
+            src={getExpenseReceiptUrl(expense.id)}
+            alt={t('expenses.receipt.title')}
+            className="max-w-full h-auto rounded-lg border border-surface-border"
+          />
+        </div>
+        <div className="flex gap-3 justify-end px-6 pb-5 pt-1 flex-shrink-0">
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="px-4 py-2 text-sm font-medium rounded-lg border border-surface-border text-berry hover:bg-berry-soft transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {t('expenses.receipt.delete')}
+          </button>
+          <a
+            href={getExpenseReceiptUrl(expense.id, true)}
+            download
+            className="px-4 py-2 text-sm font-medium rounded-lg bg-brand-600 hover:bg-brand-700 text-white transition-colors"
+          >
+            {t('expenses.receipt.download')}
+          </a>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ExpenseRow({
   expense,
   onDelete,
-}: Readonly<{ expense: ExpenseDto; onDelete: (expense: ExpenseDto) => void }>) {
+  onViewReceipt,
+}: Readonly<{ expense: ExpenseDto; onDelete: (expense: ExpenseDto) => void; onViewReceipt: (expense: ExpenseDto) => void }>) {
   const { t } = useTranslation()
   const amount = formatExpenseAmount(expense)
 
@@ -118,6 +201,7 @@ function ExpenseRow({
           : '—'}
       </td>
       <td className="px-4 py-3 text-sm whitespace-nowrap">
+        {expense.hasReceipt && <ReceiptButton onClick={() => onViewReceipt(expense)} className="mr-1" />}
         <EditButton expenseId={expense.id} className="mr-1" />
         <DeleteButton onClick={() => onDelete(expense)} />
       </td>
@@ -128,7 +212,8 @@ function ExpenseRow({
 function ExpenseCard({
   expense,
   onDelete,
-}: Readonly<{ expense: ExpenseDto; onDelete: (expense: ExpenseDto) => void }>) {
+  onViewReceipt,
+}: Readonly<{ expense: ExpenseDto; onDelete: (expense: ExpenseDto) => void; onViewReceipt: (expense: ExpenseDto) => void }>) {
   const { t } = useTranslation()
   const amount = formatExpenseAmount(expense)
 
@@ -140,6 +225,7 @@ function ExpenseCard({
           <p className="text-xs text-ink-mute tabular-nums">{expense.date}</p>
         </div>
         <div className="flex items-center -mr-1">
+          {expense.hasReceipt && <ReceiptButton onClick={() => onViewReceipt(expense)} />}
           <EditButton expenseId={expense.id} />
           <DeleteButton onClick={() => onDelete(expense)} />
         </div>
@@ -185,6 +271,7 @@ export default function ExpensesPage() {
     dateTo: initParams.get('dateTo') ?? undefined,
   }))
   const [deleteTarget, setDeleteTarget] = useState<ExpenseDto | null>(null)
+  const [receiptTarget, setReceiptTarget] = useState<ExpenseDto | null>(null)
   const [pageInput, setPageInput] = useState('')
 
   useEffect(() => {
@@ -280,7 +367,7 @@ export default function ExpensesPage() {
               {/* Mobile card list */}
               <div className="md:hidden space-y-2">
                 {data.items.map(expense => (
-                  <ExpenseCard key={expense.id} expense={expense} onDelete={setDeleteTarget} />
+                  <ExpenseCard key={expense.id} expense={expense} onDelete={setDeleteTarget} onViewReceipt={setReceiptTarget} />
                 ))}
               </div>
 
@@ -300,7 +387,7 @@ export default function ExpensesPage() {
                   </thead>
                   <tbody className="bg-surface-card">
                     {data.items.map(expense => (
-                      <ExpenseRow key={expense.id} expense={expense} onDelete={setDeleteTarget} />
+                      <ExpenseRow key={expense.id} expense={expense} onDelete={setDeleteTarget} onViewReceipt={setReceiptTarget} />
                     ))}
                   </tbody>
                 </table>
@@ -370,6 +457,14 @@ export default function ExpensesPage() {
           expense={deleteTarget}
           onConfirm={handleDelete}
           onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {receiptTarget != null && (
+        <ReceiptModal
+          expense={receiptTarget}
+          onClose={() => setReceiptTarget(null)}
+          onDeleted={refetch}
         />
       )}
 

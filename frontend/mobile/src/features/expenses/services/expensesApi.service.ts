@@ -1,8 +1,14 @@
-import { get, post, put, del } from '@/services/api.service'
+import { get, post, put, del, postFormData, getBlob } from '@/services/api.service'
 import type { ApiResponse } from '@/types/api.type'
 import type { ExpenseDto, ExpenseFilter, ExpensePagedResponse, ExpenseRequest } from '@/features/expenses/types/expenses.type'
 
 const BASE = '/api/expenses'
+
+const MIME_TO_EXT: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+}
 
 export function getExpenses(filter: ExpenseFilter = {}): Promise<ApiResponse<ExpensePagedResponse>> {
   const params = new URLSearchParams()
@@ -38,4 +44,19 @@ export function updateExpense(id: number, req: ExpenseRequest): Promise<ApiRespo
 
 export function deleteExpense(id: number): Promise<ApiResponse<void>> {
   return del<void>(`${BASE}/${id}`)
+}
+
+export function uploadExpenseReceipt(expenseId: string | number, blob: Blob, mimeType: string): Promise<ApiResponse<ExpenseDto | undefined>> {
+  const ext = MIME_TO_EXT[mimeType] ?? 'jpg'
+  const formData = new FormData()
+  formData.append('file', blob, `receipt.${ext}`)
+  return postFormData<ExpenseDto | undefined>(`${BASE}/${expenseId}/receipt`, formData)
+}
+
+export function getExpenseReceiptBlob(expenseId: string | number): Promise<ApiResponse<Blob>> {
+  return getBlob(`${BASE}/${expenseId}/receipt`)
+}
+
+export function deleteExpenseReceipt(expenseId: string | number): Promise<ApiResponse<void>> {
+  return del<void>(`${BASE}/${expenseId}/receipt`)
 }

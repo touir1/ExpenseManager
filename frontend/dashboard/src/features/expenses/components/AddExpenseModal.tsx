@@ -29,6 +29,7 @@ export default function AddExpenseModal({
     const res = await submitExpense(data)
     setIsSubmitting(false)
     if (res.ok) onSuccess()
+    return res.ok && res.data ? { id: res.data.id } : undefined
   }
 
   const handleSaveAndAddAnother = async (data: ExpenseFormData) => {
@@ -36,6 +37,7 @@ export default function AddExpenseModal({
     const res = await submitExpense(data)
     setIsSubmitting(false)
     if (res.ok) onAdded?.()
+    return res.ok && res.data ? { id: res.data.id } : undefined
   }
 
   return (

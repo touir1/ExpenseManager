@@ -456,7 +456,9 @@
             "description": "Beschreibung",
             "tags": "Schlagwörter",
             "tagsPlaceholder": "Eingeben und Enter drücken, um hinzuzufügen",
-            "families": "Familien"
+            "families": "Familien",
+            "receipt": "Beleg",
+            "receiptPreviewAlt": "Belegvorschau"
         },
         "filters": {
             "title": "Filter",
@@ -491,6 +493,13 @@
             "confirmBody": "Dies kann nicht rückgängig gemacht werden.",
             "confirm": "Löschen",
             "cancel": "Abbrechen"
+        },
+        "receipt": {
+            "viewReceipt": "Beleg ansehen",
+            "title": "Beleg",
+            "download": "Herunterladen",
+            "close": "Schließen",
+            "delete": "Beleg löschen"
         },
         "errors": {
             "loadFailed": "Ausgaben konnten nicht geladen werden.",
