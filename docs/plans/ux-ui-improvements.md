@@ -311,31 +311,35 @@
 
 ## 7. Notifications (Web & Mobile)
 
-### 🟡 Web/Mobile: Notification bell shows count but items have no category icon
+### ✅ 🟡 Web/Mobile: Notification bell shows count but items have no category icon
 
 **Problem:** All notifications look the same (same list item style). Users must read the text to identify the type.  
-**Fix:** Prepend a small colored icon per notification type (👥 family events, 💸 expense events, 📊 import, ⚠️ rate conflicts). Adds scannability.
+**Fix:** Prepend a small colored icon per notification type (👥 family events, 💸 expense events, 📊 import, ⚠️ rate conflicts). Adds scannability.  
+**Done:** `getNotificationIcon` (shared `notificationDisplay.tsx`) renders inline SVG in tinted circle per type — `NotificationBell.tsx`.
 
 ---
 
-### 🟡 Web: Notification dropdown has no "view all" link
+### ✅ 🟡 Web: Notification dropdown has no "view all" link
 
 **Problem:** Max-height 320px means only ~5–6 notifications are visible. Users with many notifications can scroll but there's no full-page view.  
-**Fix:** Add `/notifications` route with a full-page notification inbox. Link from dropdown header.
+**Fix:** Add `/notifications` route with a full-page notification inbox. Link from dropdown header.  
+**Done:** `/notifications` route (`NotificationsPage.tsx`, prev/next pagination) + `t('notifications.viewAll')` link in dropdown — `NotificationBell.tsx`.
 
 ---
 
-### 🟡 Web: Toasts for new notifications can stack and obscure content
+### ✅ 🟡 Web: Toasts for new notifications can stack and obscure content
 
 **Problem:** If multiple notifications arrive in quick succession (e.g. 3 family events), 3 toasts stack.  
-**Fix:** Rate-limit toast notifications to one per 3 s, or collapse multiple into "3 new notifications" toast.
+**Fix:** Rate-limit toast notifications to one per 3 s, or collapse multiple into "3 new notifications" toast.  
+**Done:** Same-type toasts within 3s window merge into existing toast (message replaced, count badge incremented, dismiss timer reset) instead of stacking — `Toast.tsx`.
 
 ---
 
-### 🟢 Web: No notification preferences — all events generate notifications
+### ✅ 🟢 Web: No notification preferences — all events generate notifications
 
 **Problem:** Power users in active families may find the notification volume excessive (every expense added triggers a bell).  
-**Fix:** Add per-event-type toggle in Settings > Notifications.
+**Fix:** Add per-event-type toggle in Settings > Notifications.  
+**Done:** `GET/PUT /config/notifications` (users service) + Settings preferences panel — `notificationPreferencesApi.service.ts`, `SettingsPage.tsx`.
 
 ---
 
@@ -586,13 +590,13 @@
 
 | Initiative | Impact | Complexity |
 |-----------|--------|------------|
-| Full-page Notifications inbox (`/notifications`) | High | Medium |
+| ~~Full-page Notifications inbox (`/notifications`)~~ | ~~High~~ | ✅ Done |
 | ~~Chart drill-down → filtered expenses~~ | ~~High~~ | ✅ Done (CategoryDonut → /expenses with params) |
 | ~~CSV import column mapper~~ | ~~High~~ | ✅ Done (mapping step + per-user saved default) |
 | Mobile expense search (IonSearchbar + backend filter) | High | Medium |
 | ARIA combobox keyboard support | High | Medium |
 | Screen reader accessible chart data tables | Medium | Medium |
-| Settings page expansion (export, notification prefs) | Medium | Medium |
+| ~~Settings page expansion (notification prefs)~~ | ~~Medium~~ | ✅ Done (export/account deletion still open) |
 | Undo delete (5 s toast with restore) | Medium | Low (backend soft-delete exists) |
 | PWA manifest + favicon | Low | Low |
 | Receipt storage API + mobile upload | High | High |
@@ -609,7 +613,7 @@
 | CSV import | ✅ Full | ❌ None | 🟢 Low |
 | Families management | ✅ Full | ❌ Read-only context | 🟡 Medium |
 | Admin pages | ✅ Full | ❌ None | 🟢 Low |
-| Notification bell | ✅ Full | ✅ Partial | 🟡 Medium |
+| Notification bell (icons/view-all/prefs) | ✅ Done | ✅ Partial | 🟡 Medium |
 | Dark mode | ✅ | ✅ | ✅ Done |
 | Offline queue | ❌ None | ✅ Full | 🟢 Low (web unlikely to need) |
 | Receipt capture | ❌ N/A | ⚠️ Captured but not stored | 🔴 Fix or remove |
