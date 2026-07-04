@@ -1,10 +1,19 @@
 
 # Changelog
 
+## [0.129.2] - 2026-07-04
+### Fix: receipt upload always failing (500/400 `SERVER_ERROR`)
+
+- **`S3ReceiptStorageService.UploadAsync`** — removed `PutObjectRequest.DisablePayloadSigning=true`. This AWSSDK.S3 version throws `AmazonClientException: When DisablePayloadSigning is true, the request must be sent over HTTPS` for any plain-HTTP endpoint (MinIO here has no TLS), so **every** receipt upload/replace threw before reaching MinIO — the claim in [0.129.1] that this flag was "needed for MinIO compatibility" was wrong. No functional downside to removing it (normal SigV4 payload signing works fine over HTTP, just slightly more CPU per request).
+- **`ExpenseReceiptController`** — the catch-all exception handler on `POST/GET/DELETE` silently swallowed exceptions with no logging, always returning `400 SERVER_ERROR` regardless of cause; added `ILogger<ExpenseReceiptController>` and logs the exception on upload failure so future storage-layer errors are diagnosable instead of a dead end.
+- Root cause was found by reproducing the upload in a live browser session (chrome-devtools) and tailing `expenses-service` container logs with instrumentation added specifically to surface the swallowed exception — the `EXPENSES_MANAGEMENT_EXPENSES_RECEIPTSTORAGE_ENDPOINT` misconfiguration (`host.docker.internal:9000` vs `minio:9000`) reported alongside was a secondary, environment-local issue and not the actual defect.
+
+---
+
 ## [0.129.1] - 2026-07-04
 ### Refactor: receipt storage — shared MinIO instance, generic S3 client, per-service bucket
 
-- **`S3ReceiptStorageService`** (renamed from `MinioReceiptStorageService`) now uses `AWSSDK.S3` (`IAmazonS3`, `AmazonS3Config{ServiceURL,ForcePathStyle=true}`) instead of the `Minio` NuGet package — MinIO remains the storage backend transparently, only the client SDK changed; `PutObjectRequest.DisablePayloadSigning=true` needed for MinIO compatibility.
+- **`S3ReceiptStorageService`** (renamed from `MinioReceiptStorageService`) now uses `AWSSDK.S3` (`IAmazonS3`, `AmazonS3Config{ServiceURL,ForcePathStyle=true}`) instead of the `Minio` NuGet package — MinIO remains the storage backend transparently, only the client SDK changed. (`PutObjectRequest.DisablePayloadSigning=true` was set here but turned out to break every upload over plain HTTP — removed in [0.129.2].)
 - **Infra** — dropped the dedicated `minio-receipts` service from `docker-compose-apps.yml`; `expenses-service` now joins `expenses_manager_tools_net` (declared `external`, `name: expense-management-tools_expenses_manager_tools_net`) to reach the existing `minio` service from `docker-compose-tools.yml` (same instance backing GitLab's registry) — mirrors the `jobs-runner` service's reverse cross-stack network join already used in `docker-compose-tools.yml`. Requires the tools stack to be started first.
 - **Config** — `EXPENSES_MANAGEMENT_EXPENSES_RECEIPTSTORAGE_{ENDPOINT,ACCESS_KEY,SECRET_KEY,BUCKET}` are now dedicated `.env`/`.env.example` variables (not a `${MINIO_ACCESS_KEY}`/`${MINIO_SECRET_KEY}` substitution), decoupling the expenses service's storage credentials from the tools stack's var names even though the values point at the same MinIO instance.
 - **Bucket naming** — changed from feature-scoped `expense-receipts` to per-service `expenses-manager-expenses-artifacts` (pattern `expenses-manager-<service>-artifacts` for future services sharing the instance); receipts are namespaced under a `receipts/` key prefix (`receipts/{expenseId}/{guid}{ext}`) within that bucket rather than owning a dedicated bucket.

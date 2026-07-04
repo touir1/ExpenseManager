@@ -13,7 +13,8 @@
       "Bash(rtk dotnet *)",
       "mcp__chrome-devtools__list_network_requests",
       "mcp__chrome-devtools__get_network_request",
-      "mcp__chrome-devtools__list_pages"
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__upload_file"
     ]
   },
   "hooks": {

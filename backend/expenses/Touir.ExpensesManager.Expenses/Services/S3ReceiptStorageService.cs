@@ -37,7 +37,6 @@ namespace Touir.ExpensesManager.Expenses.Services
                 InputStream = content,
                 ContentType = contentType,
                 AutoCloseStream = false,
-                DisablePayloadSigning = true,
             };
 
             await _s3Client.PutObjectAsync(request, cancellationToken);

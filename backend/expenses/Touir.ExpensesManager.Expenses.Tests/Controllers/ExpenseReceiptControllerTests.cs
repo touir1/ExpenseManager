@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Touir.ExpensesManager.Expenses.Controllers;
 using Touir.ExpensesManager.Expenses.Controllers.DTO;
@@ -20,7 +21,7 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
             IReceiptService? service = null,
             string? jwtCookie = FakeJwt)
         {
-            var controller = new ExpenseReceiptController(service ?? Mock.Of<IReceiptService>());
+            var controller = new ExpenseReceiptController(service ?? Mock.Of<IReceiptService>(), Mock.Of<ILogger<ExpenseReceiptController>>());
             var httpContext = new DefaultHttpContext();
             if (jwtCookie is not null)
                 httpContext.Request.Headers.Cookie = $"auth_token={jwtCookie}";

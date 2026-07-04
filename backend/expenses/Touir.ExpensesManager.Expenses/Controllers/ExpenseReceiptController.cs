@@ -4,6 +4,7 @@ using Touir.ExpensesManager.Expenses.Controllers.DTO;
 using Touir.ExpensesManager.Expenses.Controllers.Responses;
 using Touir.ExpensesManager.Expenses.Infrastructure;
 using Touir.ExpensesManager.Expenses.Services.Contracts;
+using Microsoft.Extensions.Logging;
 
 namespace Touir.ExpensesManager.Expenses.Controllers
 {
@@ -30,10 +31,12 @@ namespace Touir.ExpensesManager.Expenses.Controllers
         };
 
         private readonly IReceiptService _receiptService;
+        private readonly ILogger<ExpenseReceiptController> _logger;
 
-        public ExpenseReceiptController(IReceiptService receiptService)
+        public ExpenseReceiptController(IReceiptService receiptService, ILogger<ExpenseReceiptController> logger)
         {
             _receiptService = receiptService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -70,8 +73,9 @@ namespace Touir.ExpensesManager.Expenses.Controllers
 
                 return Ok(dto);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Receipt upload failed for expense {ExpenseId}", id);
                 return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
