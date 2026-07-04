@@ -1,6 +1,18 @@
 
 # Changelog
 
+## [0.127.0] - 2026-07-04
+### Feature: mobile app (Ionic) UX improvements
+
+- **`QuickAddModal.tsx`** — on validation failure, the bottom sheet auto-expands from the 0.75 to the full (1) breakpoint via an `IonModal` ref, then scrolls+focuses the first invalid field (amount → currency → date → subcategory).
+- **`ExpensesListPage.tsx`** — offline banner (via `useNetworkSync`, pull-to-refresh disabled while offline); swipe-delete now shows a 5s "Undo" `IonToast` with `Haptics.impact({style: Heavy})` on confirm (undo re-`POST`s the deleted expense client-side — no restore endpoint exists); date dividers show "Today"/"Yesterday" via new `features/expenses/utils/dateGroupLabel.ts`; `IonSearchbar` (400ms debounce) filters via the existing `description` query param (no backend change needed); loading skeleton row count now scales with `window.innerHeight` instead of a hardcoded 5.
+- **`DashboardDateFilter.tsx`** — added a 4th "Custom" segment revealing `IonDatetimeButton`+`IonModal`+`IonDatetime` from/to pickers; rejects `from > to` with an inline error. `getPeriodDates` takes optional `customFrom`/`customTo`. `DashboardPage.tsx` now holds the full `PeriodDates` state instead of recomputing dates from `period` alone, so custom-picked dates survive re-renders.
+- **`SettingsPage.tsx`** — added default category selector (`GET/PUT /config`), email notification preference toggles (new `notificationPreferencesApi.service.ts` mirroring the dashboard's, `GET/PUT /config/notifications`), and account deletion (`DELETE /me` via new `deleteAccountRequest` in `authApi.service.ts`, confirm `IonAlert`, logout on success). CSV data export deferred (lower priority per plan).
+- **`router.tsx`** — tab bar labels ("Dashboard"/"Expenses"/"Family"/"Settings") were hardcoded strings; wrapped in `t('nav.*')` — all 4 locale files already had the keys.
+- Implements `docs/plans/mobile-app-ionic-ux-improvements-plan.md` items 2.1, 2.2, 2.4–2.11 (2.3 receipt storage explicitly deferred — cross-service sub-project, out of scope for this session).
+
+---
+
 ## [0.126.0] - 2026-07-03
 ### Feature: notifications UX improvements (web & mobile)
 

@@ -345,17 +345,19 @@
 
 ## 8. Mobile App (Ionic)
 
-### 🔴 Mobile: QuickAddModal — no field-level error messages visible
+### ✅ 🔴 Mobile: QuickAddModal — no field-level error messages visible
 
 **Problem:** The bottom sheet form submits via RHF + Zod. If validation fails, errors display but may be below the fold in the half-height (0.75 breakpoint) state. User may not know why submit failed.  
-**Fix:** Auto-expand to full height on first validation error. Scroll the first error into view.
+**Fix:** Auto-expand to full height on first validation error. Scroll the first error into view.  
+**Done:** `handleSubmit(onSubmit, onInvalid)` expands the sheet to breakpoint `1` via an `IonModal` ref and scrolls+focuses the first invalid field (amount → currency → date → subcategory) — `QuickAddModal.tsx`.
 
 ---
 
-### 🔴 Mobile: No offline indicator in the main expense list
+### ✅ 🔴 Mobile: No offline indicator in the main expense list
 
 **Problem:** `useNetworkSync` detects offline status in `QuickAddModal`, but the main expense list has no indicator when the device is offline. A user who pulls to refresh while offline gets no feedback.  
-**Fix:** Show an IonBanner ("You're offline — showing cached data") when `navigator.onLine === false`.
+**Fix:** Show an IonBanner ("You're offline — showing cached data") when `navigator.onLine === false`.  
+**Done:** `ExpensesListPage.tsx` now uses `useNetworkSync`; banner renders above the list when offline, pull-to-refresh is disabled while offline (cached list stays scrollable).
 
 ---
 
@@ -367,59 +369,67 @@
 
 ---
 
-### 🟡 Mobile: Swipe-to-delete has no undo mechanism
+### ✅ 🟡 Mobile: Swipe-to-delete has no undo mechanism
 
 **Problem:** A slip of the finger on the expense list triggers a delete alert. After confirming, the deletion is permanent. No undo toast.  
-**Fix:** After successful delete, show a toast with "Undo" action for 5 s that calls a restore/un-delete endpoint. (Requires soft-delete API support — which the backend already has.)
+**Fix:** After successful delete, show a toast with "Undo" action for 5 s that calls a restore/un-delete endpoint. (Requires soft-delete API support — which the backend already has.)  
+**Done:** No un-delete endpoint exists, so "Undo" re-`POST`s the deleted expense's payload client-side within a 5s `IonToast` window — `ExpensesListPage.tsx`.
 
 ---
 
-### 🟡 Mobile: Date grouping in expense list uses relative dates inconsistently
+### ✅ 🟡 Mobile: Date grouping in expense list uses relative dates inconsistently
 
 **Problem:** `IonItemDivider` shows "Mon, Jan 15" but does not say "Today" or "Yesterday" for recent groups. Competitors (Monzo, Revolut) always use relative dates for the most recent 2 days.  
-**Fix:** Format group headers as "Today", "Yesterday", then localized date for older groups.
+**Fix:** Format group headers as "Today", "Yesterday", then localized date for older groups.  
+**Done:** New pure helper `features/expenses/utils/dateGroupLabel.ts` (unit-tested) used by `ExpensesListPage.tsx`'s divider.
 
 ---
 
-### 🟡 Mobile: No search/filter capability on expense list
+### ✅ 🟡 Mobile: No search/filter capability on expense list
 
 **Problem:** The web app has a full filter bar (category, date, description search). The mobile list only allows family filtering. Power users manage hundreds of expenses and need to find specific ones.  
-**Fix:** Add a searchbar (IonSearchbar) that filters by description client-side (for loaded pages) and triggers a server search on blur.
+**Fix:** Add a searchbar (IonSearchbar) that filters by description client-side (for loaded pages) and triggers a server search on blur.  
+**Done:** `IonSearchbar` added above the list, debounced 400ms, passed as `description` to the existing `GET /expenses` filter (backend `ExpenseFilterDto.Description` already supported it, no backend change needed) — `ExpensesListPage.tsx`.
 
 ---
 
-### 🟡 Mobile: Dashboard period selector (month/week/year) lacks custom date range
+### ✅ 🟡 Mobile: Dashboard period selector (month/week/year) lacks custom date range
 
 **Problem:** Business users often need ad-hoc ranges (e.g. "last 10 days"). The period tabs cover most cases but not all.  
-**Fix:** Add a "Custom" tab that opens an IonDatetimeButton date range picker.
+**Fix:** Add a "Custom" tab that opens an IonDatetimeButton date range picker.  
+**Done:** 4th segment `custom` reveals two `IonDatetimeButton`+`IonModal`+`IonDatetime` pickers; `from > to` is rejected with an inline error — `DashboardDateFilter.tsx`, `DashboardPage.tsx` now holds full `PeriodDates` state instead of recomputing from `period` alone.
 
 ---
 
-### 🟡 Mobile: SettingsPage is underdeveloped vs web
+### ✅ 🟡 Mobile: SettingsPage is underdeveloped vs web
 
 **Problem:** The mobile settings screen is not documented in the audit — likely a stub or minimal screen. Web settings already has 3 cards; mobile may have less.  
-**Fix:** Ensure mobile settings matches web settings feature parity (password change, default currency, theme, notifications).
+**Fix:** Ensure mobile settings matches web settings feature parity (password change, default currency, theme, notifications).  
+**Done:** Added default category selector (`GET/PUT /config`), email notification preference toggles (`GET/PUT /config/notifications`, new mobile `notificationPreferencesApi.service.ts` mirroring web), and account deletion (`DELETE /me`, new `deleteAccountRequest` + confirm `IonAlert`) — `SettingsPage.tsx`. Data export (CSV) deferred as lower priority per plan.
 
 ---
 
-### 🟢 Mobile: No haptic feedback on destructive actions
+### ✅ 🟢 Mobile: No haptic feedback on destructive actions
 
 **Problem:** Haptic feedback (`ImpactStyle.Medium`) fires on successful expense add. No haptic on delete confirmation — the riskiest action.  
-**Fix:** Add `Haptics.impact({ style: ImpactStyle.Heavy })` when the user taps "Delete" in the IonAlert.
+**Fix:** Add `Haptics.impact({ style: ImpactStyle.Heavy })` when the user taps "Delete" in the IonAlert.  
+**Done:** `confirmDelete` fires `Haptics.impact({ style: ImpactStyle.Heavy })` before deleting — `ExpensesListPage.tsx`.
 
 ---
 
-### 🟢 Mobile: Loading skeleton item count (5) is hardcoded
+### ✅ 🟢 Mobile: Loading skeleton item count (5) is hardcoded
 
 **Problem:** On large screens (tablet) 5 skeleton items don't fill the screen. On small screens this is fine.  
-**Fix:** Compute skeleton count as `Math.ceil(window.innerHeight / ITEM_HEIGHT)` to fill viewport.
+**Fix:** Compute skeleton count as `Math.ceil(window.innerHeight / ITEM_HEIGHT)` to fill viewport.  
+**Done:** `getSkeletonCount()` computes `Math.min(20, Math.max(5, Math.ceil(window.innerHeight / ITEM_HEIGHT_PX)))` — `ExpensesListPage.tsx`.
 
 ---
 
-### 🟢 Mobile: Tab bar labels not localized
+### ✅ 🟢 Mobile: Tab bar labels not localized
 
 **Problem:** If tab labels ("Dashboard", "Expenses", "Families", "Settings") are hardcoded strings rather than using `t()`, they won't change with the language setting.  
-**Fix:** Wrap all tab labels in `t('nav.dashboard')` etc.
+**Fix:** Wrap all tab labels in `t('nav.dashboard')` etc.  
+**Done:** Confirmed as hardcoded strings; wrapped in `t('nav.dashboard')`/`t('nav.expenses')`/`t('nav.families')`/`t('nav.settings')` — all 4 locale files already had these keys, no new translations needed — `router.tsx`.
 
 ---
 
@@ -593,11 +603,11 @@
 | ~~Full-page Notifications inbox (`/notifications`)~~ | ~~High~~ | ✅ Done |
 | ~~Chart drill-down → filtered expenses~~ | ~~High~~ | ✅ Done (CategoryDonut → /expenses with params) |
 | ~~CSV import column mapper~~ | ~~High~~ | ✅ Done (mapping step + per-user saved default) |
-| Mobile expense search (IonSearchbar + backend filter) | High | Medium |
+| ~~Mobile expense search (IonSearchbar + backend filter)~~ | ~~High~~ | ✅ Done |
 | ARIA combobox keyboard support | High | Medium |
 | Screen reader accessible chart data tables | Medium | Medium |
-| ~~Settings page expansion (notification prefs)~~ | ~~Medium~~ | ✅ Done (export/account deletion still open) |
-| Undo delete (5 s toast with restore) | Medium | Low (backend soft-delete exists) |
+| ~~Settings page expansion (notification prefs)~~ | ~~Medium~~ | ✅ Done (mobile: default category, notification prefs, account deletion; data export still open on mobile) |
+| ~~Undo delete (5 s toast with restore)~~ | ~~Medium~~ | ✅ Done (mobile: re-POST client-side, no restore endpoint) |
 | PWA manifest + favicon | Low | Low |
 | Receipt storage API + mobile upload | High | High |
 
@@ -607,9 +617,9 @@
 
 | Feature | Web | Mobile | Priority |
 |---------|-----|--------|----------|
-| Expense search/filter | ✅ Full | ❌ Family only | 🔴 High |
-| Custom date range | ✅ | ❌ Period tabs only | 🟡 Medium |
-| Settings (full) | ✅ 3 cards | ⚠️ Partial | 🟡 Medium |
+| Expense search/filter | ✅ Full | ✅ Done | ✅ Done |
+| Custom date range | ✅ | ✅ Done | ✅ Done |
+| Settings (full) | ✅ 3 cards | ✅ Done (export still open) | 🟢 Low |
 | CSV import | ✅ Full | ❌ None | 🟢 Low |
 | Families management | ✅ Full | ❌ Read-only context | 🟡 Medium |
 | Admin pages | ✅ Full | ❌ None | 🟢 Low |

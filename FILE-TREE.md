@@ -993,7 +993,7 @@ ExpenseManager/
 │               ├── auth/
 │               │   ├── AuthContext.tsx          — Cookie auth; adapted from dashboard (IonRouter navigation)
 │               │   ├── auth.schemas.ts          — Zod v4 schemas (verbatim copy)
-│               │   ├── services/authApi.service.ts
+│               │   ├── services/authApi.service.ts — +deleteAccountRequest (DELETE /api/users/me)
 │               │   ├── types/auth.type.ts
 │               │   └── pages/
 │               │       ├── LoginPage.tsx        — IonPage + IonContent wrapping auth form
@@ -1006,9 +1006,12 @@ ExpenseManager/
 │               │   │   ├── categoriesApi.service.ts
 │               │   │   └── currenciesApi.service.ts
 │               │   ├── types/expenses.type.ts
+│               │   ├── utils/
+│               │   │   ├── dateGroupLabel.ts      — Pure helper: Today/Yesterday/localized weekday for IonItemDivider group headers
+│               │   │   └── __tests__/dateGroupLabel.test.ts
 │               │   └── pages/
-│               │       ├── ExpensesListPage.tsx   — IonList grouped by date; IonItemSliding swipe-delete; IonRefresher; IonInfiniteScroll; IonSegment family filter
-│               │       ├── QuickAddModal.tsx      — IonModal sheet (0.75 breakpoint); offline enqueue; Haptics; Camera receipt
+│               │       ├── ExpensesListPage.tsx   — IonList grouped by date (Today/Yesterday labels); IonItemSliding swipe-delete + Haptics.Heavy + 5s undo IonToast (re-POSTs on Undo, no restore endpoint); IonRefresher (disabled offline); IonInfiniteScroll; IonSegment family filter; IonSearchbar (400ms debounce → `description` filter); offline banner via useNetworkSync; dynamic skeleton row count from viewport height
+│               │       ├── QuickAddModal.tsx      — IonModal sheet (0.75 breakpoint, auto-expands to 1 + scrolls/focuses first invalid field on validation failure); offline enqueue; Haptics; Camera receipt
 │               │       └── __tests__/
 │               │           ├── ExpensesListPage.test.tsx
 │               │           └── QuickAddModal.test.tsx
@@ -1016,7 +1019,7 @@ ExpenseManager/
 │               │   ├── services/dashboardApi.service.ts — getSummary, getMonthly, getDashboardCategories, getSameMonthYearly, getByCurrency, getRecent
 │               │   ├── types/dashboard.type.ts
 │               │   ├── components/
-│               │   │   ├── DashboardDateFilter.tsx — IonSegment (This Month / 6 Months / This Year); exports getPeriodDates(period) pure helper
+│               │   │   ├── DashboardDateFilter.tsx — IonSegment (This Month / 6 Months / This Year / Custom); custom reveals IonDatetimeButton+IonModal+IonDatetime from/to pickers, validates from<=to; exports getPeriodDates(period, customFrom?, customTo?) pure helper
 │               │   │   ├── SpendTrendChart.tsx    — Recharts AreaChart; monthly spend trend; displayCurrency-aware
 │               │   │   ├── CategoryPieChart.tsx   — Recharts PieChart (donut); top-6 categories + Other bucket; percentage legend
 │               │   │   ├── SameMonthChart.tsx     — Recharts BarChart; year-over-year same-month comparison
@@ -1028,7 +1031,7 @@ ExpenseManager/
 │               │   │       ├── SameMonthChart.test.tsx
 │               │   │       └── CurrenciesPanel.test.tsx
 │               │   └── pages/
-│               │       ├── DashboardPage.tsx     — Period filter state; 6 useQuery calls; DateFilter + hero + SpendTrendChart + CategoryPieChart + CurrenciesPanel + SameMonthChart + recent-5 IonList
+│               │       ├── DashboardPage.tsx     — Full PeriodDates state (not just period) so custom-range dates survive; 6 useQuery calls; DateFilter + hero + SpendTrendChart + CategoryPieChart + CurrenciesPanel + SameMonthChart + recent-5 IonList
 │               │       └── __tests__/DashboardPage.test.tsx
 │               ├── families/
 │               │   ├── FamilyContext.tsx         — FamilyProvider / useFamilies() (adapted from dashboard)
@@ -1049,8 +1052,12 @@ ExpenseManager/
 │               │   └── __tests__/NotificationContext.test.tsx — real class MockHubConnectionBuilder
 │               ├── settings/
 │               │   ├── ThemeContext.tsx          — ThemeProvider / useTheme(); async load via @capacitor/preferences (localStorage fallback); applies .dark/.light to <html>
+│               │   ├── types/userConfig.type.ts  — UserConfigDto (+defaultCategoryId), UpdateUserConfigRequest, NotificationPreferenceDto
+│               │   ├── services/
+│               │   │   ├── userConfigApi.service.ts
+│               │   │   └── notificationPreferencesApi.service.ts — GET/PUT /api/users/config/notifications (mirrors dashboard)
 │               │   └── pages/
-│               │       ├── SettingsPage.tsx      — Display currency + language + theme (IonSelect, action-sheet) selectors; persists language to @capacitor/preferences; logout
+│               │       ├── SettingsPage.tsx      — Display currency + default category + language + theme (IonSelect, action-sheet) selectors; email notification preference IonToggle list; account deletion (DELETE /me + confirm IonAlert + logout); persists language to @capacitor/preferences; logout
 │               │       └── __tests__/SettingsPage.test.tsx
 │               ├── currencies/
 │               │   ├── DisplayCurrencyContext.tsx  — Session state; adapted from dashboard (Preferences persistence)

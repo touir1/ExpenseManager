@@ -6,6 +6,7 @@ import { MemoryRouter } from 'react-router-dom'
 vi.mock('@/features/expenses/services/expensesApi.service', () => ({
   getExpenses: vi.fn(),
   deleteExpense: vi.fn(),
+  addExpense: vi.fn(),
 }))
 
 vi.mock('@/features/families/FamilyContext', () => ({
@@ -18,6 +19,16 @@ vi.mock('@/features/currencies/DisplayCurrencyContext', () => ({
 
 vi.mock('@/features/notifications/components/NotificationBell', () => ({
   NotificationBell: () => <div data-testid="notification-bell" />,
+}))
+
+let mockIsOnline = true
+vi.mock('@/hooks/useNetworkSync', () => ({
+  useNetworkSync: () => ({ isOnline: mockIsOnline, lastSync: null }),
+}))
+
+vi.mock('@capacitor/haptics', () => ({
+  Haptics: { impact: vi.fn() },
+  ImpactStyle: { Heavy: 'HEAVY' },
 }))
 
 vi.mock('@ionic/react', async () => ({
@@ -49,13 +60,27 @@ vi.mock('@ionic/react', async () => ({
   IonText: ({ children }: any) => <span>{children}</span>,
   IonSkeletonText: () => <span>Loading</span>,
   IonBadge: ({ children }: any) => <span>{children}</span>,
+  IonSearchbar: ({ value, onIonInput, placeholder }: any) => (
+    <input
+      placeholder={placeholder}
+      value={value}
+      onChange={e => onIonInput?.({ detail: { value: e.target.value } })}
+    />
+  ),
+  IonToast: ({ isOpen, message, buttons }: any) => isOpen ? (
+    <div role="alert">
+      {message}
+      {buttons?.map((b: any) => <button key={b.text} onClick={b.handler}>{b.text}</button>)}
+    </div>
+  ) : null,
 }))
 
-import { getExpenses, deleteExpense } from '@/features/expenses/services/expensesApi.service'
+import { getExpenses, deleteExpense, addExpense } from '@/features/expenses/services/expensesApi.service'
 import ExpensesListPage from '@/features/expenses/pages/ExpensesListPage'
 
 const mockGetExpenses = getExpenses as ReturnType<typeof vi.fn>
 const mockDeleteExpense = deleteExpense as ReturnType<typeof vi.fn>
+const mockAddExpense = addExpense as ReturnType<typeof vi.fn>
 
 const mockExpense = {
   id: 1,
@@ -93,8 +118,11 @@ function makeWrapper() {
 
 describe('ExpensesListPage', () => {
   beforeEach(() => {
+    vi.useRealTimers()
+    mockIsOnline = true
     mockGetExpenses.mockReset()
     mockDeleteExpense.mockReset()
+    mockAddExpense.mockReset()
     mockGetExpenses.mockResolvedValue({ ok: true, status: 200, data: pagedResponse })
   })
 
@@ -137,5 +165,72 @@ describe('ExpensesListPage', () => {
     await waitFor(() => {
       expect(mockGetExpenses).toHaveBeenCalledTimes(2)
     })
+  })
+
+  it('shows offline banner when offline', async () => {
+    mockIsOnline = false
+    render(<ExpensesListPage />, { wrapper: makeWrapper() })
+    await waitFor(() => {
+      expect(screen.getByText(/offline/i)).toBeTruthy()
+    })
+  })
+
+  it('does not show offline banner when online', async () => {
+    render(<ExpensesListPage />, { wrapper: makeWrapper() })
+    await waitFor(() => screen.getAllByText('Food'))
+    expect(screen.queryByText(/offline/i)).toBeNull()
+  })
+
+  it('shows undo toast after delete and re-adds expense via Undo', async () => {
+    mockDeleteExpense.mockResolvedValue({ ok: true, status: 204 })
+    mockAddExpense.mockResolvedValue({ ok: true, status: 201, data: {} })
+    render(<ExpensesListPage />, { wrapper: makeWrapper() })
+    await waitFor(() => screen.getAllByText('Food'))
+    fireEvent.click(screen.getAllByText('Delete')[0])
+    await waitFor(() => screen.getByRole('alertdialog'))
+    const confirmBtn = screen.getAllByRole('button', { name: /delete/i }).find(
+      b => b.closest('[role="alertdialog"]') !== null
+    )
+    if (confirmBtn) fireEvent.click(confirmBtn)
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeTruthy()
+    })
+    fireEvent.click(screen.getByText('Undo'))
+    await waitFor(() => {
+      expect(mockAddExpense).toHaveBeenCalled()
+    })
+  })
+
+  it('fires haptic feedback on delete confirm', async () => {
+    const { Haptics, ImpactStyle } = await import('@capacitor/haptics')
+    mockDeleteExpense.mockResolvedValue({ ok: true, status: 204 })
+    render(<ExpensesListPage />, { wrapper: makeWrapper() })
+    await waitFor(() => screen.getAllByText('Food'))
+    fireEvent.click(screen.getAllByText('Delete')[0])
+    await waitFor(() => screen.getByRole('alertdialog'))
+    const confirmBtn = screen.getAllByRole('button', { name: /delete/i }).find(
+      b => b.closest('[role="alertdialog"]') !== null
+    )
+    if (confirmBtn) fireEvent.click(confirmBtn)
+    await waitFor(() => {
+      expect(Haptics.impact).toHaveBeenCalledWith({ style: ImpactStyle.Heavy })
+    })
+  })
+
+  it('filters via searchbar with debounce', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    render(<ExpensesListPage />, { wrapper: makeWrapper() })
+    await vi.waitFor(() => expect(mockGetExpenses).toHaveBeenCalledTimes(1))
+
+    const searchInput = screen.getByPlaceholderText(/search/i)
+    fireEvent.change(searchInput, { target: { value: 'coffee' } })
+
+    await vi.advanceTimersByTimeAsync(500)
+
+    await vi.waitFor(() => {
+      const lastCall = mockGetExpenses.mock.calls.at(-1)?.[0]
+      expect(lastCall?.description).toBe('coffee')
+    })
+    vi.useRealTimers()
   })
 })

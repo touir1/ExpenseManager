@@ -56,9 +56,13 @@ vi.mock('@hookform/resolvers/zod', () => ({
   },
 }))
 
+const mockSetCurrentBreakpoint = vi.fn()
+
 vi.mock('@ionic/react', () => ({
-  IonModal: ({ isOpen, children }: any) =>
-    isOpen ? <div role="dialog">{children}</div> : null,
+  IonModal: React.forwardRef(({ isOpen, children }: any, ref: any) => {
+    React.useImperativeHandle(ref, () => ({ setCurrentBreakpoint: mockSetCurrentBreakpoint }))
+    return isOpen ? <div role="dialog">{children}</div> : null
+  }),
     IonHeader: ({ children }: any) => <div>{children}</div>,
     IonToolbar: ({ children }: any) => <div>{children}</div>,
     IonTitle: ({ children }: any) => <h2>{children}</h2>,
@@ -128,6 +132,7 @@ describe('QuickAddModal', () => {
   beforeEach(() => {
     mockAddExpense.mockReset()
     onClose.mockReset()
+    mockSetCurrentBreakpoint.mockReset()
   })
 
   it('renders modal with Add Expense title when open', () => {
@@ -150,6 +155,14 @@ describe('QuickAddModal', () => {
     fireEvent.click(screen.getByText('Save'))
     await waitFor(() => {
       expect(mockAddExpense).toHaveBeenCalled()
+    })
+  })
+
+  it('expands the sheet to full breakpoint when validation fails on submit', async () => {
+    render(<QuickAddModal isOpen onClose={onClose} />, { wrapper: makeWrapper() })
+    fireEvent.click(screen.getByText('Save'))
+    await waitFor(() => {
+      expect(mockSetCurrentBreakpoint).toHaveBeenCalledWith(1)
     })
   })
 

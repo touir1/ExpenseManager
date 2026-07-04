@@ -1,30 +1,49 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 
-vi.mock('@ionic/react', () => ({
-  IonSegment: ({ children, value }: any) => (
-    <div data-testid="segment" data-value={value}>
-      {/* simulate change via the child buttons */}
-      {children}
-    </div>
-  ),
-  IonSegmentButton: ({ children, value, onClick }: any) => (
-    <button data-testid={`seg-btn-${value}`} onClick={onClick} value={value}>
-      {children}
-    </button>
-  ),
-  IonLabel: ({ children }: any) => <span>{children}</span>,
-}))
+vi.mock('@ionic/react', async () => {
+  const React = await import('react')
+  return {
+    IonSegment: ({ children, value, onIonChange }: any) => (
+      <div data-testid="segment" data-value={value}>
+        {React.Children.map(children, (child: any) =>
+          React.cloneElement(child, {
+            onClick: () => onIonChange?.({ detail: { value: child.props.value } }),
+          }),
+        )}
+      </div>
+    ),
+    IonSegmentButton: ({ children, value, onClick }: any) => (
+      <button data-testid={`seg-btn-${value}`} value={value} onClick={onClick}>
+        {children}
+      </button>
+    ),
+    IonLabel: ({ children }: any) => <span>{children}</span>,
+    IonDatetimeButton: ({ datetime }: any) => <button data-testid={`datetime-btn-${datetime}`} />,
+    IonModal: ({ children }: any) => <div>{children}</div>,
+    IonDatetime: ({ id, value, onIonChange }: any) => (
+      <input
+        data-testid={id}
+        type="date"
+        value={value}
+        onChange={e => onIonChange?.({ detail: { value: e.target.value } })}
+      />
+    ),
+    IonText: ({ children }: any) => <span>{children}</span>,
+  }
+})
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => {
+    t: (key: string, fallback?: string) => {
       const map: Record<string, string> = {
         'dashboard.filters.thisMonth': 'This month',
         'dashboard.filters.sixMonths': '6 Months',
         'dashboard.filters.thisYear': 'This year',
+        'dashboard.filters.custom': 'Custom',
+        'dashboard.filters.invalidRange': 'From date must be before To date.',
       }
-      return map[key] ?? key
+      return map[key] ?? fallback ?? key
     },
   }),
 }))
@@ -70,5 +89,34 @@ describe('DashboardDateFilter', () => {
     expect(screen.getByText('This month')).toBeDefined()
     expect(screen.getByText('6 Months')).toBeDefined()
     expect(screen.getByText('This year')).toBeDefined()
+  })
+
+  it('selecting custom reveals date pickers', () => {
+    render(<DashboardDateFilter value="custom" onChange={vi.fn()} />)
+    expect(screen.getByTestId('dashboard-date-from')).toBeDefined()
+    expect(screen.getByTestId('dashboard-date-to')).toBeDefined()
+  })
+
+  it('changing custom dates calls onChange with correct shape', () => {
+    const onChange = vi.fn()
+    render(<DashboardDateFilter value="custom" onChange={onChange} />)
+    const fromInput = screen.getByTestId('dashboard-date-from')
+    fireEvent.change(fromInput, { target: { value: '2024-01-01' } })
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ dateFrom: '2024-01-01', period: 'custom' }),
+    )
+  })
+
+  it('rejects a from date after the to date', () => {
+    const onChange = vi.fn()
+    render(<DashboardDateFilter value="custom" onChange={onChange} />)
+    const fromInput = screen.getByTestId('dashboard-date-from')
+    const toInput = screen.getByTestId('dashboard-date-to')
+    fireEvent.change(fromInput, { target: { value: '2024-01-01' } })
+    fireEvent.change(toInput, { target: { value: '2024-01-31' } })
+    onChange.mockClear()
+    fireEvent.change(fromInput, { target: { value: '2024-06-01' } })
+    expect(onChange).not.toHaveBeenCalled()
+    expect(screen.getByText('From date must be before To date.')).toBeDefined()
   })
 })

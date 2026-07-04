@@ -37,7 +37,7 @@ import { SpendTrendChart } from '@/features/dashboard/components/SpendTrendChart
 import { CategoryPieChart } from '@/features/dashboard/components/CategoryPieChart'
 import { SameMonthChart } from '@/features/dashboard/components/SameMonthChart'
 import { CurrenciesPanel } from '@/features/dashboard/components/CurrenciesPanel'
-import type { Period } from '@/features/dashboard/components/DashboardDateFilter'
+import type { PeriodDates } from '@/features/dashboard/components/DashboardDateFilter'
 
 function formatAmount(amount: number, decimals = 2): string {
   return amount.toFixed(decimals)
@@ -49,8 +49,8 @@ export default function DashboardPage() {
   const { displayCurrencyId, setDisplayCurrencyId } = useDisplayCurrency()
   const { currencies } = useExpensesData()
 
-  const [period, setPeriod] = useState<Period>('month')
-  const { dateFrom, dateTo } = getPeriodDates(period)
+  const [periodDates, setPeriodDates] = useState<PeriodDates>(() => getPeriodDates('month'))
+  const { period, dateFrom, dateTo } = periodDates
 
   const filter = {
     familyId: activeFamilyId ?? undefined,
@@ -124,7 +124,7 @@ export default function DashboardPage() {
       <IonContent>
         <DashboardDateFilter
           value={period}
-          onChange={({ period: p }) => setPeriod(p)}
+          onChange={setPeriodDates}
         />
 
         {/* Month hero card */}

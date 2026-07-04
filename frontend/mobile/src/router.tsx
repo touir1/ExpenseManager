@@ -9,6 +9,7 @@ import {
   IonTabs,
 } from '@ionic/react'
 import { homeOutline, receiptOutline, addCircle, peopleOutline, settingsOutline } from 'ionicons/icons'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthContext'
 import LoginPage from '@/features/auth/pages/LoginPage'
 import DashboardPage from '@/features/dashboard/pages/DashboardPage'
@@ -26,6 +27,7 @@ function AuthGuard({ children }: Readonly<{ children: React.ReactNode }>) {
 }
 
 function TabsLayout({ onAdd }: { onAdd: () => void }) {
+  const { t } = useTranslation()
   return (
     <IonTabs>
       <IonRouterOutlet>
@@ -41,12 +43,12 @@ function TabsLayout({ onAdd }: { onAdd: () => void }) {
       <IonTabBar slot="bottom">
         <IonTabButton tab="dashboard" href="/dashboard">
           <IonIcon icon={homeOutline} />
-          <IonLabel>Dashboard</IonLabel>
+          <IonLabel>{t('nav.dashboard')}</IonLabel>
         </IonTabButton>
 
         <IonTabButton tab="expenses" href="/expenses">
           <IonIcon icon={receiptOutline} />
-          <IonLabel>Expenses</IonLabel>
+          <IonLabel>{t('nav.expenses')}</IonLabel>
         </IonTabButton>
 
         <IonTabButton tab="add" onClick={onAdd}>
@@ -55,12 +57,12 @@ function TabsLayout({ onAdd }: { onAdd: () => void }) {
 
         <IonTabButton tab="families" href="/families">
           <IonIcon icon={peopleOutline} />
-          <IonLabel>Family</IonLabel>
+          <IonLabel>{t('nav.families')}</IonLabel>
         </IonTabButton>
 
         <IonTabButton tab="settings" href="/settings">
           <IonIcon icon={settingsOutline} />
-          <IonLabel>Settings</IonLabel>
+          <IonLabel>{t('nav.settings')}</IonLabel>
         </IonTabButton>
       </IonTabBar>
     </IonTabs>

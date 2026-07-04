@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -50,6 +50,8 @@ export default function QuickAddModal({ isOpen, onClose }: Props) {
   const [toast, setToast] = useState<{ message: string; color: string } | null>(null)
   const [receiptDataUrl, setReceiptDataUrl] = useState<string | null>(null)
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
+  const modalRef = useRef<HTMLIonModalElement>(null)
+  const fieldWrapperRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   const schema = makeExpenseSchema(t)
   const {
@@ -95,6 +97,20 @@ export default function QuickAddModal({ isOpen, onClose }: Props) {
     }
   }
 
+  const FIELD_ORDER = ['amount', 'currencyId', 'date', 'subcategoryId'] as const
+
+  function onInvalid(invalidErrors: typeof errors) {
+    modalRef.current?.setCurrentBreakpoint?.(1)
+    const firstKey = FIELD_ORDER.find(key => invalidErrors[key])
+    if (!firstKey) return
+    requestAnimationFrame(() => {
+      const wrapper = fieldWrapperRefs.current[firstKey]
+      wrapper?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      const focusable = wrapper?.querySelector('input, select, textarea') as HTMLElement | null
+      focusable?.focus()
+    })
+  }
+
   async function onSubmit(data: ExpenseFormData) {
     const payload = { ...data, tagIds: selectedTagIds }
     if (!isOnline) {
@@ -124,6 +140,7 @@ export default function QuickAddModal({ isOpen, onClose }: Props) {
   return (
     <>
       <IonModal
+        ref={modalRef}
         isOpen={isOpen}
         onDidDismiss={onClose}
         initialBreakpoint={0.75}
@@ -136,7 +153,7 @@ export default function QuickAddModal({ isOpen, onClose }: Props) {
             </IonButtons>
             <IonTitle>{t('expenses.addExpense', 'Add Expense')}</IonTitle>
             <IonButtons slot="end">
-              <IonButton strong onClick={handleSubmit(onSubmit)} disabled={isSubmitting}>
+              <IonButton strong onClick={handleSubmit(onSubmit, onInvalid)} disabled={isSubmitting}>
                 {isSubmitting ? <IonSpinner name="crescent" /> : t('common.save', 'Save')}
               </IonButton>
             </IonButtons>
@@ -144,64 +161,70 @@ export default function QuickAddModal({ isOpen, onClose }: Props) {
         </IonHeader>
 
         <IonContent className="ion-padding">
-          <IonItem>
-            <IonLabel position="stacked">{t('expenses.amount', 'Amount')} *</IonLabel>
-            <Controller
-              name="amount"
-              control={control}
-              render={({ field }) => (
-                <IonInput
-                  type="number"
-                  inputmode="decimal"
-                  autofocus
-                  value={field.value ?? ''}
-                  onIonInput={e => field.onChange(parseFloat(String(e.detail.value)) || undefined)}
-                />
-              )}
-            />
-          </IonItem>
-          {errors.amount && (
-            <IonText color="danger" style={{ fontSize: 12, paddingLeft: 16 }}>
-              <p>{errors.amount.message}</p>
-            </IonText>
-          )}
+          <div ref={el => { fieldWrapperRefs.current.amount = el }}>
+            <IonItem>
+              <IonLabel position="stacked">{t('expenses.amount', 'Amount')} *</IonLabel>
+              <Controller
+                name="amount"
+                control={control}
+                render={({ field }) => (
+                  <IonInput
+                    type="number"
+                    inputmode="decimal"
+                    autofocus
+                    value={field.value ?? ''}
+                    onIonInput={e => field.onChange(parseFloat(String(e.detail.value)) || undefined)}
+                  />
+                )}
+              />
+            </IonItem>
+            {errors.amount && (
+              <IonText color="danger" style={{ fontSize: 12, paddingLeft: 16 }}>
+                <p>{errors.amount.message}</p>
+              </IonText>
+            )}
+          </div>
 
-          <IonItem>
-            <IonLabel position="stacked">{t('expenses.currency', 'Currency')} *</IonLabel>
-            <Controller
-              name="currencyId"
-              control={control}
-              render={({ field }) => (
-                <IonSelect
-                  value={field.value}
-                  onIonChange={e => field.onChange(e.detail.value)}
-                  interface="action-sheet"
-                >
-                  {currencies.map(c => (
-                    <IonSelectOption key={c.id} value={c.id}>{c.code} — {c.name}</IonSelectOption>
-                  ))}
-                </IonSelect>
-              )}
-            />
-          </IonItem>
+          <div ref={el => { fieldWrapperRefs.current.currencyId = el }}>
+            <IonItem>
+              <IonLabel position="stacked">{t('expenses.currency', 'Currency')} *</IonLabel>
+              <Controller
+                name="currencyId"
+                control={control}
+                render={({ field }) => (
+                  <IonSelect
+                    value={field.value}
+                    onIonChange={e => field.onChange(e.detail.value)}
+                    interface="action-sheet"
+                  >
+                    {currencies.map(c => (
+                      <IonSelectOption key={c.id} value={c.id}>{c.code} — {c.name}</IonSelectOption>
+                    ))}
+                  </IonSelect>
+                )}
+              />
+            </IonItem>
+          </div>
 
-          <IonItem>
-            <IonLabel position="stacked">{t('expenses.date', 'Date')} *</IonLabel>
-            <Controller
-              name="date"
-              control={control}
-              render={({ field }) => (
-                <IonDatetime
-                  presentation="date"
-                  value={field.value}
-                  onIonChange={e => {
-                    const v = e.detail.value
-                    field.onChange(typeof v === 'string' ? v.substring(0, 10) : v?.[0]?.substring(0, 10))
-                  }}
-                />
-              )}
-            />
-          </IonItem>
+          <div ref={el => { fieldWrapperRefs.current.date = el }}>
+            <IonItem>
+              <IonLabel position="stacked">{t('expenses.date', 'Date')} *</IonLabel>
+              <Controller
+                name="date"
+                control={control}
+                render={({ field }) => (
+                  <IonDatetime
+                    presentation="date"
+                    value={field.value}
+                    onIonChange={e => {
+                      const v = e.detail.value
+                      field.onChange(typeof v === 'string' ? v.substring(0, 10) : v?.[0]?.substring(0, 10))
+                    }}
+                  />
+                )}
+              />
+            </IonItem>
+          </div>
 
           <IonItem>
             <IonLabel position="stacked">{t('expenses.category', 'Category')}</IonLabel>
@@ -224,25 +247,27 @@ export default function QuickAddModal({ isOpen, onClose }: Props) {
           </IonItem>
 
           {selectedCategory && selectedCategory.subcategories.length > 0 && (
-            <IonItem>
-              <IonLabel position="stacked">{t('expenses.subcategory', 'Subcategory')}</IonLabel>
-              <Controller
-                name="subcategoryId"
-                control={control}
-                render={({ field }) => (
-                  <IonSelect
-                    value={field.value}
-                    onIonChange={e => field.onChange(e.detail.value)}
-                    interface="action-sheet"
-                    placeholder={t('expenses.optional', 'Optional')}
-                  >
-                    {selectedCategory.subcategories.map(s => (
-                      <IonSelectOption key={s.id} value={s.id}>{s.name}</IonSelectOption>
-                    ))}
-                  </IonSelect>
-                )}
-              />
-            </IonItem>
+            <div ref={el => { fieldWrapperRefs.current.subcategoryId = el }}>
+              <IonItem>
+                <IonLabel position="stacked">{t('expenses.subcategory', 'Subcategory')}</IonLabel>
+                <Controller
+                  name="subcategoryId"
+                  control={control}
+                  render={({ field }) => (
+                    <IonSelect
+                      value={field.value}
+                      onIonChange={e => field.onChange(e.detail.value)}
+                      interface="action-sheet"
+                      placeholder={t('expenses.optional', 'Optional')}
+                    >
+                      {selectedCategory.subcategories.map(s => (
+                        <IonSelectOption key={s.id} value={s.id}>{s.name}</IonSelectOption>
+                      ))}
+                    </IonSelect>
+                  )}
+                />
+              </IonItem>
+            </div>
           )}
 
           <IonItem>
