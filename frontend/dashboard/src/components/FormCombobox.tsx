@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 export interface ComboOption {
@@ -17,18 +17,25 @@ export interface FormComboboxProps {
   'aria-invalid'?: boolean
 }
 
+const TYPEAHEAD_RESET_MS = 500
+
 export function FormCombobox({ id, value, onChange, options, disabled, className = 'field-input', ...ariaProps }: FormComboboxProps) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLUListElement>(null)
+  const typeaheadRef = useRef({ buffer: '', timer: undefined as ReturnType<typeof setTimeout> | undefined })
+  const listboxId = useId()
 
   const selectedLabel = options.find(o => o.value === value)?.label ?? ''
   const filtered = query
     ? options.filter(o => o.label.toLowerCase().includes(query.toLowerCase()))
     : options
+  const items: Array<ComboOption | undefined> = [undefined, ...filtered]
+  const optionId = (index: number) => `${listboxId}-option-${index}`
 
   useEffect(() => {
     if (!open) return
@@ -37,17 +44,28 @@ export function FormCombobox({ id, value, onChange, options, disabled, className
         containerRef.current?.contains(e.target as Node) ||
         dropdownRef.current?.contains(e.target as Node)
       ) return
-      setOpen(false)
-      setQuery('')
+      closeDropdown()
     }
-    const onScroll = () => { setOpen(false); setQuery('') }
+    const onScroll = () => closeDropdown()
     document.addEventListener('mousedown', onMouseDown)
     window.addEventListener('scroll', onScroll, true)
     return () => {
       document.removeEventListener('mousedown', onMouseDown)
       window.removeEventListener('scroll', onScroll, true)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
+
+  useEffect(() => {
+    if (highlightedIndex < 0) return
+    dropdownRef.current?.children[highlightedIndex]?.scrollIntoView?.({ block: 'nearest' })
+  }, [highlightedIndex])
+
+  function closeDropdown() {
+    setOpen(false)
+    setQuery('')
+    setHighlightedIndex(-1)
+  }
 
   function openDropdown() {
     if (disabled) return
@@ -63,6 +81,58 @@ export function FormCombobox({ id, value, onChange, options, disabled, className
     }
     setOpen(true)
     setQuery('')
+    setHighlightedIndex(items.findIndex(o => o?.value === value))
+  }
+
+  function selectItem(item: ComboOption | undefined) {
+    onChange(item?.value)
+    closeDropdown()
+  }
+
+  function jumpToTypeahead(char: string) {
+    const t = typeaheadRef.current
+    clearTimeout(t.timer)
+    t.buffer += char.toLowerCase()
+    t.timer = setTimeout(() => { t.buffer = '' }, TYPEAHEAD_RESET_MS)
+    const match = items.findIndex(o => o?.label.toLowerCase().startsWith(t.buffer))
+    if (match !== -1) setHighlightedIndex(match)
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (!open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+      e.preventDefault()
+      openDropdown()
+      return
+    }
+    if (!open) return
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setHighlightedIndex(i => Math.min(items.length - 1, i + 1))
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setHighlightedIndex(i => Math.max(0, i - 1))
+        break
+      case 'Home':
+        e.preventDefault()
+        setHighlightedIndex(0)
+        break
+      case 'End':
+        e.preventDefault()
+        setHighlightedIndex(items.length - 1)
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (highlightedIndex >= 0) selectItem(items[highlightedIndex])
+        break
+      case 'Escape':
+        e.preventDefault()
+        closeDropdown()
+        break
+      default:
+        if (e.key.length === 1 && /\S/.test(e.key)) jumpToTypeahead(e.key)
+    }
   }
 
   return (
@@ -71,41 +141,53 @@ export function FormCombobox({ id, value, onChange, options, disabled, className
         ref={inputRef}
         id={id}
         type="text"
+        role="combobox"
+        aria-expanded={open}
+        aria-controls={listboxId}
+        aria-autocomplete="list"
+        aria-activedescendant={open && highlightedIndex >= 0 ? optionId(highlightedIndex) : undefined}
         autoComplete="off"
         className={`${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         disabled={disabled}
         value={open ? query : selectedLabel}
         placeholder="—"
         onFocus={openDropdown}
-        onChange={e => setQuery(e.target.value)}
+        onChange={e => { setQuery(e.target.value); setHighlightedIndex(-1) }}
+        onKeyDown={onKeyDown}
         {...ariaProps}
       />
       {open && !disabled && createPortal(
         <ul
           ref={dropdownRef}
+          id={listboxId}
           role="listbox"
           style={dropdownStyle}
-          className="bg-surface-card border border-surface-border rounded-lg shadow-lg max-h-48 overflow-y-auto text-ink"
+          className="bg-surface-card border border-surface-border rounded-lg shadow-warm max-h-48 overflow-y-auto text-ink"
         >
-          <li
-            role="option"
-            aria-selected={value === undefined}
-            className="px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-subtle text-ink-mute"
-            onMouseDown={() => { onChange(undefined); setOpen(false); setQuery('') }}
-          >
-            —
-          </li>
-          {filtered.map(o => (
-            <li
-              key={o.value}
-              role="option"
-              aria-selected={o.value === value}
-              className={`px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-subtle text-ink ${o.value === value ? 'font-semibold' : ''}`}
-              onMouseDown={() => { onChange(o.value); setOpen(false); setQuery('') }}
-            >
-              {o.label}
-            </li>
-          ))}
+          {items.map((item, index) => {
+            const isSelected = item?.value === value
+            const isHighlighted = index === highlightedIndex
+            return (
+              <li
+                key={item?.value ?? 'clear'}
+                id={optionId(index)}
+                role="option"
+                aria-selected={isSelected}
+                className={`px-3 py-1.5 text-sm cursor-pointer flex items-center justify-between ${
+                  isHighlighted ? 'bg-brand-50' : 'hover:bg-surface-subtle'
+                } ${isSelected ? 'font-semibold text-brand-600' : item ? 'text-ink' : 'text-ink-mute'}`}
+                onMouseEnter={() => setHighlightedIndex(index)}
+                onMouseDown={() => selectItem(item)}
+              >
+                {item?.label ?? '—'}
+                {isSelected && (
+                  <svg className="h-3.5 w-3.5 shrink-0 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </li>
+            )
+          })}
           {filtered.length === 0 && (
             <li className="px-3 py-1.5 text-sm text-ink-mute">—</li>
           )}

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import type { CategoryBreakdownDto } from '@/features/dashboard/types/dashboard.type'
 import { getCategoryColor } from '@/features/dashboard/utils/categoryColors'
+import { ChartDataTable } from '@/features/dashboard/components/ChartDataTable'
 
 type DisplayCurrency = { symbol: string; decimals: number }
 
@@ -55,6 +56,22 @@ export function CategoryDonut({ data, isLoading, displayCurrency, onCategoryClic
       {data.length === 0 ? (
         <p className="text-sm text-ink-faint italic py-8 text-center">{t('dashboard.empty')}</p>
       ) : (
+        <>
+        <ChartDataTable
+          caption={t('dashboard.charts.categories')}
+          columns={[
+            { key: 'category', header: t('dashboard.charts.category') },
+            { key: 'amount', header: t('dashboard.charts.amount') },
+            { key: 'percentage', header: t('dashboard.charts.percentage') },
+          ]}
+          rows={data.map(item => ({
+            category: item.category?.name ?? t('expenses.uncategorised'),
+            amount: displayCurrency
+              ? `${displayCurrency.symbol} ${(item.convertedTotal ?? item.totalAmount).toFixed(displayCurrency.decimals)}`
+              : item.totalAmount.toFixed(2),
+            percentage: `${item.percentage.toFixed(0)}%`,
+          }))}
+        />
         <div className="flex gap-4 items-center">
           <div className="shrink-0 w-28 h-28">
             <ResponsiveContainer width="100%" height="100%">
@@ -108,6 +125,7 @@ export function CategoryDonut({ data, isLoading, displayCurrency, onCategoryClic
             ))}
           </ul>
         </div>
+        </>
       )}
     </div>
   )

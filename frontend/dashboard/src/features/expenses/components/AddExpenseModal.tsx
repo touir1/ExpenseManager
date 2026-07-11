@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { addExpense } from '@/features/expenses/services/expensesApi.service'
 import ExpenseForm from '@/features/expenses/components/ExpenseForm'
 import type { ExpenseFormData } from '@/features/expenses/expense.schemas'
+import { useReturnFocusOnUnmount } from '@/hooks/useReturnFocusOnUnmount'
 
 export default function AddExpenseModal({
   onSuccess,
@@ -11,6 +12,7 @@ export default function AddExpenseModal({
 }: Readonly<{ onSuccess: () => void; onAdded?: () => void; onClose: () => void }>) {
   const { t } = useTranslation()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  useReturnFocusOnUnmount()
 
   const submitExpense = (data: ExpenseFormData) =>
     addExpense({

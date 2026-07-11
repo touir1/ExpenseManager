@@ -78,6 +78,10 @@
 
 **frontend CSS:** `@layer components` in `index.css` — extend before adding; brand: `brand-600`; cards: `bg-white shadow-card border border-slate-200 rounded-2xl`.
 
+**modal focus return:** `hooks/useReturnFocusOnUnmount.ts` — captures `document.activeElement` on mount, restores it on unmount; call at the top of any modal component that's only rendered while open (any close path — Escape, backdrop, confirm, cancel — unmounts it, triggering restore); used by `AddExpenseModal.tsx` and `ConfirmDeleteModal` (`ExpensesPage.tsx`); apply to new modals (`ConfirmArchiveModal`, `InviteMemberModal`, `CreateFamilyModal`, etc.) the same way.
+
+**chart accessibility:** `features/dashboard/components/ChartDataTable.tsx` — shared `sr-only` `<table>`+`<caption>` mirroring a chart's series (Recharts SVGs expose nothing to screen readers); render it alongside any new Recharts chart, same pattern as `SpendChart.tsx`/`SameMonthChart.tsx`/`CategoryDonut.tsx`.
+
 **backend validation:** FluentValidation (`AddFluentValidationAutoValidation()`+`AddValidatorsFromAssemblyContaining<Program>()`); `InvalidModelStateResponseFactory`→`401 UnauthorizedObjectResult(ErrorResponse{Message=firstError})`; validators in `Validators/`, `CascadeMode.Stop` per-field.
 
 **expenses lookup tables:** enum-like values as DB tables in `Models/Lookups/`, not C# enums; FK: `int`; resolve via `ILookupCacheService.GetIdAsync<T>/GetNameAsync<T>` (IMemoryCache, NeverRemove); seeds: OperationSource 1=SingleWeb/2=SingleMobile/3=BulkWeb; ModifiedSource 1=Web/2=Mobile; FamilyRole 1=Head/2=Member; RateSource 1=Auto/2=Manual; ConflictStatus 1=Pending/2=Resolved; ConflictResolution 1=AcceptAuto/2=KeepManual/3=Custom; AuditOperation 1=Add/2=Update/3=Delete; SnapshotType 1=Before/2=After.

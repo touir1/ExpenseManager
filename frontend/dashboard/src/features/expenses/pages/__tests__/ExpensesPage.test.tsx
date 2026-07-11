@@ -209,6 +209,16 @@ describe('ExpensesPage', () => {
     expect(screen.queryByText(/delete expense\?/i)).not.toBeInTheDocument()
   })
 
+  it('returns focus to the Delete button that opened the confirm modal after cancel', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await waitFor(() => screen.getByRole('table'))
+    const deleteButton = within(screen.getByRole('table')).getByRole('button', { name: /delete/i })
+    await user.click(deleteButton)
+    await user.click(screen.getByRole('button', { name: /^cancel$/i }))
+    expect(deleteButton).toHaveFocus()
+  })
+
   it('shows pagination when totalPages > 1', async () => {
     mockGetExpenses.mockResolvedValue({
       ok: true,

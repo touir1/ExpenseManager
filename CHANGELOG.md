@@ -1,6 +1,18 @@
 
 # Changelog
 
+## [0.130.0] - 2026-07-11
+### Feature: accessibility gaps closed (section 9 of ux-ui-improvements.md)
+
+- **`FormCombobox.tsx`** — full ARIA combobox pattern: `role="combobox"`/`aria-expanded`/`aria-controls`/`aria-autocomplete="list"`/`aria-activedescendant` on the input, `role="listbox"`/`role="option"` on the dropdown; keyboard support for Arrow Down/Up, Home/End, Enter, Escape, and 500ms-buffered type-ahead; highlighted option gets `bg-brand-50`, selected option gets a checkmark + `text-brand-600` (also closes the "no selected-item indicator" gap from section 16).
+- **`Toast.tsx`** — each toast now carries `role="status"`/`aria-live="polite"`/`aria-atomic="true"` (info/success) or `role="alert"`/`aria-live="assertive"` (error) so screen readers announce them.
+- **`hooks/useReturnFocusOnUnmount.ts`** (new) — captures `document.activeElement` on mount, restores it on unmount; applied to `AddExpenseModal.tsx` and `ExpensesPage.tsx`'s `ConfirmDeleteModal` so focus returns to the triggering button on any close path.
+- **`features/dashboard/components/ChartDataTable.tsx`** (new) — visually-hidden (`sr-only`) `<table>` + `<caption>` mirroring a chart's series; wired into `SpendChart.tsx`, `SameMonthChart.tsx`, `CategoryDonut.tsx` so screen reader users get the underlying data (Recharts SVGs expose nothing natively).
+- Confirmed `NotificationBell.tsx`'s badge already carried a dynamic `aria-label` with unread count — no change needed.
+- Plan: `docs/plans/done/accessibility-gaps-plan.md`.
+
+---
+
 ## [0.129.2] - 2026-07-04
 ### Fix: receipt upload always failing (500/400 `SERVER_ERROR`)
 

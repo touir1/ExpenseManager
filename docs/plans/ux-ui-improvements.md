@@ -436,24 +436,27 @@
 
 ## 9. Accessibility Gaps
 
-### 🔴 Web/Mobile: FormCombobox dropdown not keyboard-navigable
+### ✅ 🔴 Web/Mobile: FormCombobox dropdown not keyboard-navigable
 
 **Problem:** The custom `FormCombobox` component (used for currency, category, subcategory) is implemented as a custom dropdown. Arrow key navigation, Home/End, and type-ahead character selection are not confirmed to be implemented.  
-**Fix:** Ensure the combobox follows [ARIA Combobox Pattern](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/): `role="combobox"`, `aria-expanded`, `aria-activedescendant`, `aria-autocomplete`, and full keyboard support (Arrow Down/Up, Enter to select, Escape to close).
+**Fix:** Ensure the combobox follows [ARIA Combobox Pattern](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/): `role="combobox"`, `aria-expanded`, `aria-activedescendant`, `aria-autocomplete`, and full keyboard support (Arrow Down/Up, Enter to select, Escape to close).  
+**Done:** Added `role="combobox"`/`aria-expanded`/`aria-controls`/`aria-autocomplete="list"`/`aria-activedescendant` on the input, `role="listbox"`/`role="option"` on the dropdown; `highlightedIndex` state drives Arrow Down/Up, Home/End, Enter (select), Escape (close), and 500ms-buffered type-ahead; highlighted option gets `bg-brand-50`, selected option gets a checkmark + `text-brand-600` — `FormCombobox.tsx`.
 
 ---
 
-### 🔴 Web: Toast notifications are not announced to screen readers
+### ✅ 🔴 Web: Toast notifications are not announced to screen readers
 
 **Problem:** Toasts appear visually in the top-right corner but are not in an ARIA live region. Screen reader users will never hear them.  
-**Fix:** Wrap the toast container in a `<div role="status" aria-live="polite" aria-atomic="true">` (or `"assertive"` for errors).
+**Fix:** Wrap the toast container in a `<div role="status" aria-live="polite" aria-atomic="true">` (or `"assertive"` for errors).  
+**Done:** Each toast now has `role="status"`/`aria-live="polite"`/`aria-atomic="true"` for info/success, `role="alert"`/`aria-live="assertive"` for error — `Toast.tsx`.
 
 ---
 
-### 🟡 Web: Modal focus management — focus does not return to trigger element on close
+### ✅ 🟡 Web: Modal focus management — focus does not return to trigger element on close
 
 **Problem:** When AddExpenseModal or ConfirmDeleteModal closes, focus should return to the element that opened it (the "Add Expense" button or the row's "Delete" link). Without this, keyboard users lose their place.  
-**Fix:** Store a `triggerRef` before opening modal; call `triggerRef.current?.focus()` on modal close.
+**Fix:** Store a `triggerRef` before opening modal; call `triggerRef.current?.focus()` on modal close.  
+**Done:** New shared hook `useReturnFocusOnUnmount` captures `document.activeElement` on mount and restores focus to it on unmount (covers every close path — Escape, backdrop, confirm, cancel); applied to `AddExpenseModal.tsx` and `ConfirmDeleteModal` (`ExpensesPage.tsx`) — `hooks/useReturnFocusOnUnmount.ts`.
 
 ---
 
@@ -465,17 +468,19 @@
 
 ---
 
-### 🟡 Web: NotificationBell badge has no accessible label for count
+### ✅ 🟡 Web: NotificationBell badge has no accessible label for count
 
 **Problem:** The red badge shows "3" visually but the bell's `aria-label` may say "Notifications" without including the count.  
-**Fix:** Update aria-label dynamically: `aria-label={t('notifications.bell', { count: unreadCount })}` → "3 unread notifications".
+**Fix:** Update aria-label dynamically: `aria-label={t('notifications.bell', { count: unreadCount })}` → "3 unread notifications".  
+**Done:** Already implemented — badge span has `aria-label={t('notifications.badge', { count: unreadCount })}`, translated in all 4 locales — `NotificationBell.tsx`.
 
 ---
 
-### 🟢 Web: Charts (Recharts) have no accessible data table fallback
+### ✅ 🟢 Web: Charts (Recharts) have no accessible data table fallback
 
 **Problem:** SVG charts are invisible to screen readers. Users navigating by keyboard/screen reader get no spending data from the dashboard.  
-**Fix:** Add `<caption>` and a visually-hidden `<table>` with the underlying data next to each chart. Recharts doesn't do this automatically.
+**Fix:** Add `<caption>` and a visually-hidden `<table>` with the underlying data next to each chart. Recharts doesn't do this automatically.  
+**Done:** Shared `ChartDataTable` component renders a `sr-only` `<table>` with `<caption>` + column headers mirroring each chart's series; wired into `SpendChart.tsx`, `SameMonthChart.tsx`, `CategoryDonut.tsx` — `ChartDataTable.tsx`.
 
 ---
 
@@ -605,8 +610,8 @@
 | ~~Chart drill-down → filtered expenses~~ | ~~High~~ | ✅ Done (CategoryDonut → /expenses with params) |
 | ~~CSV import column mapper~~ | ~~High~~ | ✅ Done (mapping step + per-user saved default) |
 | ~~Mobile expense search (IonSearchbar + backend filter)~~ | ~~High~~ | ✅ Done |
-| ARIA combobox keyboard support | High | Medium |
-| Screen reader accessible chart data tables | Medium | Medium |
+| ~~ARIA combobox keyboard support~~ | ~~High~~ | ✅ Done |
+| ~~Screen reader accessible chart data tables~~ | ~~Medium~~ | ✅ Done |
 | ~~Settings page expansion (notification prefs)~~ | ~~Medium~~ | ✅ Done (mobile: default category, notification prefs, account deletion; data export still open on mobile) |
 | ~~Undo delete (5 s toast with restore)~~ | ~~Medium~~ | ✅ Done (mobile: re-POST client-side, no restore endpoint) |
 | PWA manifest + favicon | Low | Low |

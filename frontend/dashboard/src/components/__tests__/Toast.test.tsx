@@ -327,6 +327,37 @@ describe('ToastProvider', () => {
     expect(screen.queryByText('Collapsing')).not.toBeInTheDocument()
   })
 
+  it('renders non-error toasts as a polite status region', async () => {
+    const user = userEvent.setup()
+
+    render(
+      <ToastProvider>
+        <TestTrigger message="Saved" type="success" />
+      </ToastProvider>
+    )
+
+    await user.click(screen.getByRole('button', { name: /show toast/i }))
+    const toast = screen.getByText('Saved').closest('div')!
+    expect(toast).toHaveAttribute('role', 'status')
+    expect(toast).toHaveAttribute('aria-live', 'polite')
+    expect(toast).toHaveAttribute('aria-atomic', 'true')
+  })
+
+  it('renders error toasts as an assertive alert region', async () => {
+    const user = userEvent.setup()
+
+    render(
+      <ToastProvider>
+        <TestTrigger message="Failed" type="error" />
+      </ToastProvider>
+    )
+
+    await user.click(screen.getByRole('button', { name: /show toast/i }))
+    const toast = screen.getByText('Failed').closest('div')!
+    expect(toast).toHaveAttribute('role', 'alert')
+    expect(toast).toHaveAttribute('aria-live', 'assertive')
+  })
+
   it('renders children correctly', () => {
     render(
       <ToastProvider>

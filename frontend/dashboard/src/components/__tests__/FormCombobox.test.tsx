@@ -79,4 +79,83 @@ describe('FormCombobox', () => {
     fireEvent.focus(input)
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
   })
+
+  describe('accessibility', () => {
+    it('exposes combobox role and aria attributes', () => {
+      render(<FormCombobox value={undefined} onChange={vi.fn()} options={options} />)
+      const input = screen.getByRole('combobox')
+      expect(input).toHaveAttribute('aria-expanded', 'false')
+      expect(input).toHaveAttribute('aria-autocomplete', 'list')
+      fireEvent.focus(input)
+      expect(input).toHaveAttribute('aria-expanded', 'true')
+      expect(input).toHaveAttribute('aria-controls', screen.getByRole('listbox').id)
+    })
+  })
+
+  describe('keyboard navigation', () => {
+    it('ArrowDown opens the dropdown and highlights the first option', () => {
+      render(<FormCombobox value={undefined} onChange={vi.fn()} options={options} />)
+      const input = screen.getByRole('combobox')
+      fireEvent.keyDown(input, { key: 'ArrowDown' })
+      expect(screen.getByRole('listbox')).toBeInTheDocument()
+    })
+
+    it('ArrowDown/ArrowUp move aria-activedescendant through options in order', () => {
+      render(<FormCombobox value={undefined} onChange={vi.fn()} options={options} />)
+      const input = screen.getByRole('combobox')
+      fireEvent.focus(input)
+      fireEvent.keyDown(input, { key: 'ArrowDown' }) // clear -> USD
+      const usdOption = screen.getByRole('option', { name: 'USD' })
+      expect(input).toHaveAttribute('aria-activedescendant', usdOption.id)
+      fireEvent.keyDown(input, { key: 'ArrowDown' }) // USD -> EUR
+      const eurOption = screen.getByRole('option', { name: 'EUR' })
+      expect(input).toHaveAttribute('aria-activedescendant', eurOption.id)
+      fireEvent.keyDown(input, { key: 'ArrowUp' }) // EUR -> USD
+      expect(input).toHaveAttribute('aria-activedescendant', usdOption.id)
+    })
+
+    it('Enter selects the highlighted option and closes the dropdown', () => {
+      const onChange = vi.fn()
+      render(<FormCombobox value={undefined} onChange={onChange} options={options} />)
+      const input = screen.getByRole('combobox')
+      fireEvent.focus(input)
+      fireEvent.keyDown(input, { key: 'ArrowDown' }) // -> USD
+      fireEvent.keyDown(input, { key: 'Enter' })
+      expect(onChange).toHaveBeenCalledWith(1)
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    })
+
+    it('Escape closes the dropdown without changing the value', () => {
+      const onChange = vi.fn()
+      render(<FormCombobox value={2} onChange={onChange} options={options} />)
+      const input = screen.getByRole('combobox')
+      fireEvent.focus(input)
+      expect(screen.getByRole('listbox')).toBeInTheDocument()
+      fireEvent.keyDown(input, { key: 'Escape' })
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+      expect(onChange).not.toHaveBeenCalled()
+      expect(screen.getByDisplayValue('EUR')).toBeInTheDocument()
+    })
+
+    it('Home/End jump to the first/last option', () => {
+      render(<FormCombobox value={undefined} onChange={vi.fn()} options={options} />)
+      const input = screen.getByRole('combobox')
+      fireEvent.focus(input)
+      fireEvent.keyDown(input, { key: 'End' })
+      const gbpOption = screen.getByRole('option', { name: 'GBP' })
+      expect(input).toHaveAttribute('aria-activedescendant', gbpOption.id)
+      fireEvent.keyDown(input, { key: 'Home' })
+      const clearOption = screen.getAllByRole('option').find(el => el.textContent === '—')!
+      expect(input).toHaveAttribute('aria-activedescendant', clearOption.id)
+    })
+
+    it('type-ahead jumps to the option starting with the typed character', () => {
+      render(<FormCombobox value={undefined} onChange={vi.fn()} options={options} />)
+      const input = screen.getByRole('combobox')
+      fireEvent.focus(input)
+      fireEvent.keyDown(input, { key: 'g' })
+      const gbpOption = screen.getByRole('option', { name: 'GBP' })
+      expect(input).toHaveAttribute('aria-activedescendant', gbpOption.id)
+    })
+  })
 })

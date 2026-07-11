@@ -170,7 +170,12 @@
             "sameMonth": "{{month}} im Jahresvergleich",
             "currencies": "Nach Währung",
             "drillDown": "Klicken, um Ausgaben dieser Kategorie anzuzeigen",
-            "noExpenses": "Keine Ausgaben"
+            "noExpenses": "Keine Ausgaben",
+            "month": "Monat",
+            "year": "Jahr",
+            "category": "Kategorie",
+            "amount": "Betrag",
+            "percentage": "Prozent"
         },
         "recent": {
             "title": "Aktuelle Ausgaben",

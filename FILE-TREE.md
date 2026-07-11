@@ -686,14 +686,14 @@ ExpenseManager/
 │           ├── components/            — Shared UI primitives (generic, cross-feature)
 │           │   ├── BackLink.tsx        — Back-arrow link with chevron SVG
 │           │   ├── FieldError.tsx      — Per-field error paragraph with role="alert"
-│           │   ├── FormCombobox.tsx    — Searchable combobox (text input + listbox dropdown); portal-based dropdown via createPortal to document.body at position:fixed; optional className prop; used in ExpenseForm + admin pages
+│           │   ├── FormCombobox.tsx    — Searchable combobox (text input + listbox dropdown); portal-based dropdown via createPortal to document.body at position:fixed; optional className prop; used in ExpenseForm + admin pages; full ARIA combobox pattern (role/aria-expanded/aria-activedescendant) + Arrow/Home/End/Enter/Escape/type-ahead keyboard nav
 │           │   ├── LanguageSwitcher.tsx — Language selector dropdown wired to i18n.changeLanguage
 │           │   ├── NavBarThemeButton.tsx — Icon-only theme toggle (light↔dark only); resolves system theme via OS matchMedia; sun/moon SVG; aria-label+title; h-8 w-8 utility style; placed in NavBar right-side controls
 │           │   ├── PasswordInput.tsx   — Password input with show/hide toggle
 │           │   ├── PasswordStrength.tsx — Live password strength indicator (5-segment bar + checklist)
 │           │   ├── SubmitButton.tsx    — Submit button with spinner SVG and configurable labels
 │           │   ├── ThemeToggle.tsx     — Segmented 3-button control (Day/Default/Dark); uses useTheme(); aria-pressed; active = brand-500
-│           │   ├── Toast.tsx           — Toast notification provider and hook
+│           │   ├── Toast.tsx           — Toast notification provider and hook; each toast has role="status"/aria-live="polite" (info/success) or role="alert"/aria-live="assertive" (error)
 │           │   └── __tests__/
 │           │       ├── BackLink.test.tsx
 │           │       ├── FieldError.test.tsx
@@ -849,9 +849,10 @@ ExpenseManager/
 │           │   │   │       └── categoryColors.test.ts — 11 tests: CHART_COLORS (length/hex/unique), getCategoryColor (fallback/determinism/modulo/shape/palette membership)
 │           │   │   ├── components/
 │           │   │   │   ├── MonthHero.tsx        — Summary card: total, ±% delta chip, expense count, top category pill
-│           │   │   │   ├── SpendChart.tsx        — Monthly stacked bar + average line (Recharts ComposedChart)
-│           │   │   │   ├── CategoryDonut.tsx     — Donut chart + legend (Recharts PieChart); design-palette colors; legend shows amount + percentage; optional displayCurrency prop for converted totals
-│           │   │   │   ├── SameMonthChart.tsx    — Year-over-year bar chart (Recharts BarChart)
+│           │   │   │   ├── SpendChart.tsx        — Monthly stacked bar + average line (Recharts ComposedChart); renders a ChartDataTable sr-only fallback
+│           │   │   │   ├── CategoryDonut.tsx     — Donut chart + legend (Recharts PieChart); design-palette colors; legend shows amount + percentage; optional displayCurrency prop for converted totals; renders a ChartDataTable sr-only fallback
+│           │   │   │   ├── SameMonthChart.tsx    — Year-over-year bar chart (Recharts BarChart); renders a ChartDataTable sr-only fallback
+│           │   │   │   ├── ChartDataTable.tsx    — Shared sr-only `<table>` + `<caption>` mirroring a chart's series, for screen readers (Recharts SVGs expose nothing natively)
 │           │   │   │   ├── CurrenciesPanel.tsx   — Per-currency breakdown rows
 │           │   │   │   ├── RecentExpenses.tsx    — Last 10 expenses feed; "View all" → /expenses
 │           │   │   │   ├── DashboardFilters.tsx  — Family + display-currency + date-range selectors; "This month"/"This year" presets
@@ -942,8 +943,10 @@ ExpenseManager/
 │           │       └── AppProviders.test.tsx
 │           ├── hooks/                 — Shared hooks
 │           │   ├── usePageTitle.ts    — Sets document.title per page
+│           │   ├── useReturnFocusOnUnmount.ts — Captures document.activeElement on mount, restores focus to it on unmount; used by modals (AddExpenseModal, ConfirmDeleteModal) so closing returns focus to the trigger
 │           │   └── __tests__/
-│           │       └── usePageTitle.test.ts
+│           │       ├── usePageTitle.test.ts
+│           │       └── useReturnFocusOnUnmount.test.tsx
 │           ├── layouts/               — App-wide layout components
 │           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive; "Admin" link shown only when isAdmin=true; right-side controls: FamilySelector → DisplayCurrencySelector → Add Expense `+` button → notification bell → NavBarThemeButton → user avatar dropdown
 │           │   ├── RootLayout.tsx      — Pathless data-router layout: ToastProvider + ErrorBinder + AppProviders + NavBar + <main><Outlet /></main>; required for useBlocker data-router context

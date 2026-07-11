@@ -67,7 +67,6 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
       {/* Toast container – fixed top-right, stacks vertically */}
       <section
         className="fixed right-4 top-4 z-50 flex flex-col gap-2 w-80 max-w-[calc(100vw-2rem)]"
-        aria-live="polite"
         aria-label="Notifications"
       >
         {toasts.map(t => {
@@ -75,6 +74,9 @@ export function ToastProvider({ children }: Readonly<{ children: React.ReactNode
           return (
             <div
               key={t.id}
+              role={type === 'error' ? 'alert' : 'status'}
+              aria-live={type === 'error' ? 'assertive' : 'polite'}
+              aria-atomic="true"
               className={`flex items-start gap-3 px-4 py-3 rounded-xl border shadow-card-md text-sm font-medium transition-opacity duration-200 ${toastStyles[type]}`}
             >
               {toastIcons[type]}

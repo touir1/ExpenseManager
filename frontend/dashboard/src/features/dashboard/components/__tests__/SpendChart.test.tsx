@@ -49,6 +49,14 @@ describe('SpendChart', () => {
 
   it('renders section title', () => {
     render(<SpendChart data={mockMonthly} isLoading={false} />)
-    expect(screen.getByText(/monthly spending/i)).toBeInTheDocument()
+    expect(screen.getByText(/monthly spending/i, { selector: 'p' })).toBeInTheDocument()
+  })
+
+  it('renders a screen-reader-only data table mirroring the chart series', () => {
+    render(<SpendChart data={mockMonthly} isLoading={false} />)
+    const table = screen.getByText(/monthly spending/i, { selector: 'caption' }).closest('table')!
+    expect(table).toHaveClass('sr-only')
+    expect(table.textContent).toContain('Jan 24')
+    expect(table.textContent).toContain('1000.00')
   })
 })

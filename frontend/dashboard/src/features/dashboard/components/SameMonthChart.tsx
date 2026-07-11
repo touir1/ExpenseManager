@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import type { SameMonthYearlyDto, Currency } from '@/features/dashboard/types/dashboard.type'
+import { ChartDataTable } from '@/features/dashboard/components/ChartDataTable'
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -53,6 +54,15 @@ export function SameMonthChart({ data, isLoading, selectedMonth, displayCurrency
       {chartData.length === 0 ? (
         <p className="text-sm text-ink-faint italic py-6 text-center">{t('dashboard.noData')}</p>
       ) : (
+        <>
+        <ChartDataTable
+          caption={t('dashboard.charts.sameMonth', { month: monthName })}
+          columns={[
+            { key: 'year', header: t('dashboard.charts.year') },
+            { key: 'amount', header: t('dashboard.charts.amount') },
+          ]}
+          rows={chartData.map(d => ({ year: d.year, amount: `${currSymbol}${currSymbol ? ' ' : ''}${d.amount.toFixed(2)}` }))}
+        />
         <ResponsiveContainer width="100%" height={120}>
           <BarChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
@@ -74,6 +84,7 @@ export function SameMonthChart({ data, isLoading, selectedMonth, displayCurrency
             <Bar dataKey="amount" fill="#c8623e" radius={[4, 4, 0, 0]} maxBarSize={40} minPointSize={2} />
           </BarChart>
         </ResponsiveContainer>
+        </>
       )}
     </div>
   )

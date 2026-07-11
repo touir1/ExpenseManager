@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { useState } from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import AddExpenseModal from '../AddExpenseModal'
@@ -67,5 +68,23 @@ describe('AddExpenseModal', () => {
     render(<AddExpenseModal onSuccess={onSuccess} onClose={onClose} />)
     await user.click(screen.getByText('Submit'))
     expect(onSuccess).not.toHaveBeenCalled()
+  })
+
+  it('returns focus to the trigger button after closing via the close button', async () => {
+    function Harness() {
+      const [open, setOpen] = useState(false)
+      return (
+        <div>
+          <button onClick={() => setOpen(true)}>Add expense</button>
+          {open && <AddExpenseModal onSuccess={onSuccess} onClose={() => setOpen(false)} />}
+        </div>
+      )
+    }
+    const user = userEvent.setup()
+    render(<Harness />)
+    const trigger = screen.getByRole('button', { name: 'Add expense' })
+    await user.click(trigger)
+    await user.click(screen.getByRole('button', { name: /close/i }))
+    expect(trigger).toHaveFocus()
   })
 })

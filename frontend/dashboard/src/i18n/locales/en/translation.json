@@ -170,7 +170,12 @@
                                      "sameMonth":  "{{month}} across years",
                                      "currencies":  "By currency",
                                      "drillDown":  "Click to view expenses in this category",
-                                     "noExpenses":  "No expenses"
+                                     "noExpenses":  "No expenses",
+                                     "month":  "Month",
+                                     "year":  "Year",
+                                     "category":  "Category",
+                                     "amount":  "Amount",
+                                     "percentage":  "Percentage"
                                  },
                       "recent":  {
                                      "title":  "Recent expenses",

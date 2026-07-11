@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation, useMatch, useSearchParams } from 'react
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useReturnFocusOnUnmount } from '@/hooks/useReturnFocusOnUnmount'
 import { getExpenses, deleteExpense, getExpenseReceiptUrl, deleteExpenseReceipt } from '@/features/expenses/services/expensesApi.service'
 import ExpenseFilters from '@/features/expenses/components/ExpenseFilters'
 import AddExpenseModal from '@/features/expenses/components/AddExpenseModal'
@@ -24,6 +25,7 @@ function ConfirmDeleteModal({
   onCancel,
 }: Readonly<{ expense: ExpenseDto; onConfirm: () => void; onCancel: () => void }>) {
   const { t } = useTranslation()
+  useReturnFocusOnUnmount()
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-surface-card rounded-2xl shadow-warm border border-surface-border w-full max-w-sm mx-4 p-6">

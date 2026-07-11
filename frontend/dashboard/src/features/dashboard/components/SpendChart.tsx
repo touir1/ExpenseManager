@@ -10,6 +10,7 @@ import {
   CartesianGrid,
 } from 'recharts'
 import type { MonthlyBreakdownDto, Currency } from '@/features/dashboard/types/dashboard.type'
+import { ChartDataTable } from '@/features/dashboard/components/ChartDataTable'
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const BAR_COLOR = '#c8623e'
@@ -65,6 +66,15 @@ export function SpendChart({ data, isLoading, displayCurrency }: Props) {
       {chartData.length === 0 ? (
         <p className="text-sm text-ink-faint italic py-8 text-center">{t('dashboard.empty')}</p>
       ) : (
+        <>
+        <ChartDataTable
+          caption={t('dashboard.charts.monthly')}
+          columns={[
+            { key: 'label', header: t('dashboard.charts.month') },
+            { key: 'amount', header: t('dashboard.charts.amount') },
+          ]}
+          rows={chartData.map(d => ({ label: d.label, amount: `${currSymbol}${currSymbol ? ' ' : ''}${d.amount.toFixed(2)}` }))}
+        />
         <ResponsiveContainer width="100%" height={180}>
           <ComposedChart data={chartDataWithAvg} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
@@ -99,6 +109,7 @@ export function SpendChart({ data, isLoading, displayCurrency }: Props) {
             />
           </ComposedChart>
         </ResponsiveContainer>
+        </>
       )}
     </div>
   )

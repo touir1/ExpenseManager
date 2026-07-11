@@ -38,8 +38,15 @@ describe('CategoryDonut', () => {
 
   it('renders legend with category names', () => {
     render(<CategoryDonut data={mockCategories} isLoading={false} />)
-    expect(screen.getByText('Food')).toBeInTheDocument()
-    expect(screen.getByText('Transport')).toBeInTheDocument()
+    expect(screen.getByText('Food', { selector: 'span' })).toBeInTheDocument()
+    expect(screen.getByText('Transport', { selector: 'span' })).toBeInTheDocument()
+  })
+
+  it('renders a screen-reader-only data table mirroring the legend', () => {
+    render(<CategoryDonut data={mockCategories} isLoading={false} />)
+    const table = screen.getByText('Food', { selector: 'td' }).closest('table')!
+    expect(table).toHaveClass('sr-only')
+    expect(table.textContent).toContain('Transport')
   })
 
   it('renders amount and percentage in legend', () => {
@@ -80,6 +87,6 @@ describe('CategoryDonut', () => {
 
   it('renders section title', () => {
     render(<CategoryDonut data={mockCategories} isLoading={false} />)
-    expect(screen.getByText(/by category/i)).toBeInTheDocument()
+    expect(screen.getByText(/by category/i, { selector: 'p' })).toBeInTheDocument()
   })
 })

@@ -48,7 +48,7 @@ describe('SameMonthChart', () => {
 
   it('shows month name in title', () => {
     render(<SameMonthChart data={mockYearly} isLoading={false} selectedMonth={5} />)
-    expect(screen.getByText(/may/i)).toBeInTheDocument()
+    expect(screen.getByText(/may/i, { selector: 'p' })).toBeInTheDocument()
   })
 
   it('handles all 12 months', () => {
@@ -58,8 +58,16 @@ describe('SameMonthChart', () => {
       const { unmount } = render(
         <SameMonthChart data={mockYearly} isLoading={false} selectedMonth={i + 1} />,
       )
-      expect(screen.getByText(new RegExp(month, 'i'))).toBeInTheDocument()
+      expect(screen.getByText(new RegExp(month, 'i'), { selector: 'p' })).toBeInTheDocument()
       unmount()
     })
+  })
+
+  it('renders a screen-reader-only data table mirroring the chart series', () => {
+    render(<SameMonthChart data={mockYearly} isLoading={false} selectedMonth={5} />)
+    const table = screen.getByText(/may/i, { selector: 'caption' }).closest('table')!
+    expect(table).toHaveClass('sr-only')
+    expect(table.textContent).toContain('2023')
+    expect(table.textContent).toContain('2430.00')
   })
 })
