@@ -1,6 +1,17 @@
 
 # Changelog
 
+## [0.131.0] - 2026-07-12
+### Feature: performance & loading states closed (section 10 of ux-ui-improvements.md)
+
+- **`HomeDashboardPage.tsx`** — `summaryQ` given `staleTime:60_000` so MonthHero data stays fresh across quick nav/refocus instead of refetching immediately. Kept the other 5 dashboard queries parallel (no forced waterfall) — they're cheap and each panel already renders its own skeleton independently, so serializing them would slow the common case without a clear benefit.
+- **`ExpensesPage.tsx`** — replaced the plain "Loading…" text with `ExpensesTableSkeleton`/`ExpensesCardSkeleton` (`animate-pulse`, matches the 7-column desktop table and mobile card layout), wrapped in `ExpensesLoadingSkeleton` with an sr-only `role="status"` announcement for screen readers.
+- **`FormCombobox.tsx`** — capped the open dropdown to 50 rendered options (windowed around the highlighted index so Arrow/Home/End/type-ahead keyboard nav can still reach any option), with a trailing "N more — keep typing to narrow" hint when the list is capped. No new dependency (`react-window` skipped as unnecessary for ≤200-item lists).
+- **`AuthBrandPanel.tsx`** — confirmed no-op: already pure CSS gradient decoration, no `<img>`/raster asset to optimize.
+- Plan: `docs/plans/performance-loading-states-plan.md`.
+
+---
+
 ## [0.130.0] - 2026-07-11
 ### Feature: accessibility gaps closed (section 9 of ux-ui-improvements.md)
 

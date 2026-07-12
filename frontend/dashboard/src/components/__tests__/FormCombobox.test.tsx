@@ -158,4 +158,38 @@ describe('FormCombobox', () => {
       expect(input).toHaveAttribute('aria-activedescendant', gbpOption.id)
     })
   })
+
+  describe('large option lists (virtualization cap)', () => {
+    const manyOptions = Array.from({ length: 120 }, (_, i) => ({
+      value: i + 1,
+      label: `Currency ${String(i + 1).padStart(3, '0')}`,
+    }))
+
+    it('renders at most 50 options plus a clear option, with an overflow hint', () => {
+      render(<FormCombobox value={undefined} onChange={vi.fn()} options={manyOptions} />)
+      fireEvent.focus(screen.getByRole('combobox'))
+      const listOptions = screen.getAllByRole('option')
+      expect(listOptions.length).toBe(50) // capped window, includes the clear option
+      expect(screen.getByText(/71 more — keep typing to narrow/i)).toBeInTheDocument()
+    })
+
+    it('does not show an overflow hint for 50 or fewer options', () => {
+      render(<FormCombobox value={undefined} onChange={vi.fn()} options={options} />)
+      fireEvent.focus(screen.getByRole('combobox'))
+      expect(screen.queryByText(/more — keep typing to narrow/i)).not.toBeInTheDocument()
+    })
+
+    it('keyboard navigation can reach and select an option beyond the initial 50-item window', () => {
+      const onChange = vi.fn()
+      render(<FormCombobox value={undefined} onChange={onChange} options={manyOptions} />)
+      const input = screen.getByRole('combobox')
+      fireEvent.focus(input)
+      // clear-option + first 100 items -> lands on "Currency 100" (option index 100)
+      for (let i = 0; i < 100; i++) fireEvent.keyDown(input, { key: 'ArrowDown' })
+      const target = screen.getByRole('option', { name: 'Currency 100' })
+      expect(input).toHaveAttribute('aria-activedescendant', target.id)
+      fireEvent.keyDown(input, { key: 'Enter' })
+      expect(onChange).toHaveBeenCalledWith(100)
+    })
+  })
 })

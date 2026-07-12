@@ -137,6 +137,21 @@ describe('ExpensesPage', () => {
     expect(screen.getByText(/loading/i)).toBeInTheDocument()
   })
 
+  it('shows skeleton rows instead of a spinner while loading', () => {
+    mockGetExpenses.mockReturnValue(new Promise(() => {}))
+    renderPage()
+    const skeleton = screen.getByTestId('expenses-skeleton')
+    expect(skeleton).toBeInTheDocument()
+    expect(within(skeleton).getByRole('status')).toHaveTextContent(/loading/i)
+    expect(within(skeleton).getByRole('table', { hidden: true })).toBeInTheDocument()
+  })
+
+  it('does not show the skeleton once expenses have loaded', async () => {
+    renderPage()
+    await waitFor(() => screen.getByRole('table'))
+    expect(screen.queryByTestId('expenses-skeleton')).not.toBeInTheDocument()
+  })
+
   it('shows error when fetch fails', async () => {
     mockGetExpenses.mockResolvedValue({ ok: false })
     renderPage()

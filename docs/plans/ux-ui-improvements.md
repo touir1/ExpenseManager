@@ -486,31 +486,35 @@
 
 ## 10. Performance & Loading States
 
-### 🟡 Web: All 6 dashboard queries fire in parallel — no priority ordering
+### ✅ 🟡 Web: All 6 dashboard queries fire in parallel — no priority ordering
 
 **Problem:** On slow connections all 6 queries start simultaneously, each competing for bandwidth. The most visible component (MonthHero) may load last.  
-**Fix:** Use TanStack Query's `staleTime` and `gcTime` to keep MonthHero data fresh longest. Consider sequential loading (MonthHero → SpendChart → rest) with a waterfall approach for slow connections.
+**Fix:** Use TanStack Query's `staleTime` and `gcTime` to keep MonthHero data fresh longest. Consider sequential loading (MonthHero → SpendChart → rest) with a waterfall approach for slow connections.  
+**Done:** `summaryQ` given `staleTime:60_000` so MonthHero data stays fresh across quick nav/refocus — `HomeDashboardPage.tsx`. Full waterfall skipped: 6 queries are cheap and parallel loading is faster on typical connections; each panel already shows its own skeleton independently.
 
 ---
 
-### 🟡 Web: ExpensesPage shows "Loading…" text — not skeleton
+### ✅ 🟡 Web: ExpensesPage shows "Loading…" text — not skeleton
 
 **Problem:** All other loading states use skeleton placeholders, but ExpensesPage shows plain "Loading…" text. Inconsistent.  
-**Fix:** Replace with skeleton rows matching the table layout (consistent with MonthHero and other panels).
+**Fix:** Replace with skeleton rows matching the table layout (consistent with MonthHero and other panels).  
+**Done:** Added `ExpensesTableSkeleton`/`ExpensesCardSkeleton` (`animate-pulse`, matches 7-column table + mobile card shape) rendered via `ExpensesLoadingSkeleton`, with an sr-only `role="status"` announcement for screen readers — `ExpensesPage.tsx`.
 
 ---
 
-### 🟡 Web: No image optimization for AuthBrandPanel background
+### ✅ 🟡 Web: No image optimization for AuthBrandPanel background
 
 **Problem:** The brand panel likely uses a background image or gradient. No lazy-loading or WebP optimization observed.  
-**Recommendation:** Use `loading="lazy"` and WebP format for any images. Use pure CSS gradients where possible.
+**Recommendation:** Use `loading="lazy"` and WebP format for any images. Use pure CSS gradients where possible.  
+**Done:** No-op — `AuthBrandPanel.tsx` already uses pure CSS `linear-gradient`/`radial-gradient` decoration, no `<img>` or raster asset present.
 
 ---
 
-### 🟢 Web: FormCombobox renders all options without virtualization
+### ✅ 🟢 Web: FormCombobox renders all options without virtualization
 
 **Problem:** The currency list has 100+ options. Rendering all as DOM nodes on open is slow.  
-**Fix:** Add windowing (`react-window` or manual slice) — show max 50 options, rely on search to narrow.
+**Fix:** Add windowing (`react-window` or manual slice) — show max 50 options, rely on search to narrow.  
+**Done:** Manual slice to 50 visible options (windowed around the highlighted index for keyboard nav), trailing "N more — keep typing to narrow" hint when capped — `FormCombobox.tsx`. No new dependency added.
 
 ---
 

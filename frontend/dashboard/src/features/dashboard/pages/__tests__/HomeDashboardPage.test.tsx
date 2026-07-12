@@ -4,6 +4,18 @@ import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import HomeDashboardPage from '@/features/dashboard/pages/HomeDashboardPage'
 
+const useQuerySpy = vi.fn()
+vi.mock('@tanstack/react-query', async () => {
+  const actual = await vi.importActual<typeof import('@tanstack/react-query')>('@tanstack/react-query')
+  return {
+    ...actual,
+    useQuery: (options: Parameters<typeof actual.useQuery>[0]) => {
+      useQuerySpy(options)
+      return actual.useQuery(options)
+    },
+  }
+})
+
 vi.mock('@/features/auth/AuthContext', () => ({
   useAuth: () => ({ user: { firstName: 'Ali', email: 'ali@test.com' }, isAuthenticated: true, isLoading: false }),
 }))
@@ -84,7 +96,18 @@ function renderPage() {
 }
 
 describe('HomeDashboardPage', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    useQuerySpy.mockClear()
+  })
+
+  it('keeps the summary query fresh longer than the default staleTime', () => {
+    renderPage()
+    const summaryCall = useQuerySpy.mock.calls.find(
+      ([options]) => Array.isArray(options.queryKey) && options.queryKey[1] === 'summary',
+    )
+    expect(summaryCall?.[0].staleTime).toBe(60_000)
+  })
 
   it('renders without crashing', () => {
     renderPage()

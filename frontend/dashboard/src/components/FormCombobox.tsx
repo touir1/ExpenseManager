@@ -18,6 +18,7 @@ export interface FormComboboxProps {
 }
 
 const TYPEAHEAD_RESET_MS = 500
+const MAX_VISIBLE_OPTIONS = 50
 
 export function FormCombobox({ id, value, onChange, options, disabled, className = 'field-input', ...ariaProps }: FormComboboxProps) {
   const [open, setOpen] = useState(false)
@@ -36,6 +37,13 @@ export function FormCombobox({ id, value, onChange, options, disabled, className
     : options
   const items: Array<ComboOption | undefined> = [undefined, ...filtered]
   const optionId = (index: number) => `${listboxId}-option-${index}`
+
+  const overflowCount = Math.max(0, items.length - MAX_VISIBLE_OPTIONS)
+  const visibleStart =
+    overflowCount > 0 && highlightedIndex >= MAX_VISIBLE_OPTIONS
+      ? Math.min(highlightedIndex - MAX_VISIBLE_OPTIONS + 1, items.length - MAX_VISIBLE_OPTIONS)
+      : 0
+  const visibleItems = overflowCount > 0 ? items.slice(visibleStart, visibleStart + MAX_VISIBLE_OPTIONS) : items
 
   useEffect(() => {
     if (!open) return
@@ -58,8 +66,8 @@ export function FormCombobox({ id, value, onChange, options, disabled, className
 
   useEffect(() => {
     if (highlightedIndex < 0) return
-    dropdownRef.current?.children[highlightedIndex]?.scrollIntoView?.({ block: 'nearest' })
-  }, [highlightedIndex])
+    dropdownRef.current?.children[highlightedIndex - visibleStart]?.scrollIntoView?.({ block: 'nearest' })
+  }, [highlightedIndex, visibleStart])
 
   function closeDropdown() {
     setOpen(false)
@@ -164,7 +172,8 @@ export function FormCombobox({ id, value, onChange, options, disabled, className
           style={dropdownStyle}
           className="bg-surface-card border border-surface-border rounded-lg shadow-warm max-h-48 overflow-y-auto text-ink"
         >
-          {items.map((item, index) => {
+          {visibleItems.map((item, i) => {
+            const index = visibleStart + i
             const isSelected = item?.value === value
             const isHighlighted = index === highlightedIndex
             return (
@@ -190,6 +199,11 @@ export function FormCombobox({ id, value, onChange, options, disabled, className
           })}
           {filtered.length === 0 && (
             <li className="px-3 py-1.5 text-sm text-ink-mute">—</li>
+          )}
+          {overflowCount > 0 && (
+            <li className="px-3 py-1.5 text-xs text-ink-faint select-none">
+              {overflowCount} more — keep typing to narrow
+            </li>
           )}
         </ul>,
         document.body

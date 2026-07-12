@@ -19,6 +19,64 @@ function formatExpenseAmount(expense: ExpenseDto): string {
     : `${expense.amount.toFixed(expense.currency?.decimals ?? 2)} ${expense.currency?.code ?? ''}`
 }
 
+const SKELETON_ROW_COUNT = 6
+
+function ExpensesTableSkeleton() {
+  return (
+    <div className="hidden md:block overflow-x-auto rounded-2xl border border-surface-border shadow-card">
+      <table className="w-full" aria-hidden="true">
+        <thead className="bg-surface-subtle">
+          <tr>
+            {Array.from({ length: 7 }).map((_, i) => (
+              <th key={i} className="px-4 py-3">
+                <div className="h-3 w-16 rounded bg-surface-border/60 animate-pulse" />
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="bg-surface-card">
+          {Array.from({ length: SKELETON_ROW_COUNT }).map((_, row) => (
+            <tr key={row} className="border-t border-surface-border">
+              {Array.from({ length: 7 }).map((_, col) => (
+                <td key={col} className="px-4 py-3">
+                  <div className="h-4 rounded bg-surface-subtle animate-pulse" style={{ width: col === 3 ? '80%' : '60%' }} />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function ExpensesCardSkeleton() {
+  return (
+    <div className="md:hidden space-y-2" aria-hidden="true">
+      {Array.from({ length: SKELETON_ROW_COUNT }).map((_, i) => (
+        <div key={i} className="rounded-2xl border border-surface-border bg-surface-card shadow-card p-4 animate-pulse">
+          <div className="h-4 w-1/3 rounded bg-surface-subtle mb-2" />
+          <div className="h-3 w-2/3 rounded bg-surface-subtle mb-1" />
+          <div className="h-3 w-1/2 rounded bg-surface-subtle" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ExpensesLoadingSkeleton() {
+  const { t } = useTranslation()
+  return (
+    <div data-testid="expenses-skeleton">
+      <span className="sr-only" role="status" aria-live="polite">
+        {t('expenses.loading', 'Loading…')}
+      </span>
+      <ExpensesCardSkeleton />
+      <ExpensesTableSkeleton />
+    </div>
+  )
+}
+
 function ConfirmDeleteModal({
   expense,
   onConfirm,
@@ -340,11 +398,7 @@ export default function ExpensesPage() {
       <ExpenseFilters filter={filter} onApply={setFilter} />
 
       {/* Content */}
-      {isLoading && (
-        <div className="flex justify-center py-16">
-          <span className="text-ink-mute">{t('expenses.loading', 'Loading…')}</span>
-        </div>
-      )}
+      {isLoading && <ExpensesLoadingSkeleton />}
 
       {isError && (
         <div className="flex justify-center py-16">

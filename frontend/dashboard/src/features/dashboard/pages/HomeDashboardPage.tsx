@@ -72,6 +72,7 @@ export default function HomeDashboardPage() {
   const summaryQ = useQuery({
     queryKey: ['dashboard', 'summary', filter],
     queryFn: () => getSummary(filter),
+    staleTime: 60_000,
   })
 
   const monthlyQ = useQuery({
