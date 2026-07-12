@@ -570,24 +570,27 @@
 
 ## 12. UX Copy & Microcopy
 
-### 🟡 Web: Error messages use internal error codes exposed to users
+### ✅ 🟡 Web: Error messages use internal error codes exposed to users
 
 **Problem:** Messages like `FAMILY_NAME_ALREADY_EXISTS` or `CATEGORY_NAME_DUPLICATE` from the API may reach user-facing toast messages if the i18n key is missing.  
-**Fix:** Ensure every backend error code has a corresponding i18n translation key. Add a global fallback: `t(errorCode, errorCode)` → shows the code only if key is missing, then alert developers.
+**Fix:** Ensure every backend error code has a corresponding i18n translation key. Add a global fallback: `t(errorCode, errorCode)` → shows the code only if key is missing, then alert developers.  
+**Done:** `getErrorMessage` in `api.service.ts` no longer returns the raw backend code — falls back to a translated `apiErrors.generic` message (added to all 4 locales) and `console.warn`s the unmapped code in dev builds so gaps get caught before shipping.
 
 ---
 
-### 🟡 Web/Mobile: Empty states use only text — no illustration or CTA
+### ✅ 🟡 Web/Mobile: Empty states use only text — no illustration or CTA
 
 **Problem:** "No expenses yet" is informational but doesn't tell the user what to do next.  
-**Fix:** Add consistent empty-state pattern: small illustration + bold "Nothing here yet" + CTA button ("Add your first expense →").
+**Fix:** Add consistent empty-state pattern: small illustration + bold "Nothing here yet" + CTA button ("Add your first expense →").  
+**Done:** New `components/EmptyState.tsx` (icon + title + optional subtitle + optional action button/link, `compact` variant for chart panels); applied to `ExpensesPage.tsx`, `RecentExpenses.tsx`, `SpendChart.tsx`, `CategoryDonut.tsx`, `HomeDashboardPage.tsx`'s `EmptyDashboard`, `NotificationsPage.tsx`, `FamiliesPage.tsx`. Left `NotificationBell.tsx`'s dropdown and `SettingsPage.tsx`'s CSV-mapping hint as plain text — both are small inline hints in already-compact widgets, not page-level empty states.
 
 ---
 
-### 🟢 Web: Form submit button label is static ("Save", "Add")
+### ✅ 🟢 Web: Form submit button label is static ("Save", "Add")
 
 **Problem:** After clicking submit, the button shows a spinner but the label doesn't change to indicate what's happening.  
-**Fix:** Change button label during submission: "Save" → "Saving…", "Add" → "Adding…". This is more descriptive than a spinner alone.
+**Fix:** Change button label during submission: "Save" → "Saving…", "Add" → "Adding…". This is more descriptive than a spinner alone.  
+**Done:** `AdminCategoriesPage.tsx`'s category/subcategory save modal was the one remaining static button (`ExpenseForm.tsx`/`FamiliesPage.tsx` already used `SubmitButton`) — now shows a spinner + "Saving…" and disables Save/Cancel while pending. Also fixed a bug found in the process: the modal closed synchronously right after `mutate()` fired instead of waiting for the request to resolve.
 
 ---
 

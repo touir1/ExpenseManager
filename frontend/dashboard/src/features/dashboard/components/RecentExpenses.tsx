@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { ExpenseDto } from '@/features/expenses/types/expenses.type'
 import { getCategoryColor } from '@/features/dashboard/utils/categoryColors'
+import EmptyState from '@/components/EmptyState'
 
 type Props = {
   data: ExpenseDto[]
@@ -71,7 +72,7 @@ export function RecentExpenses({ data, isLoading }: Props) {
       </div>
 
       {data.length === 0 ? (
-        <p className="text-sm text-ink-faint italic py-4 text-center">{t('dashboard.recent.empty')}</p>
+        <EmptyState compact icon="🧾" title={t('dashboard.recent.empty')} />
       ) : (
         <ul>
           {data.map(expense => {

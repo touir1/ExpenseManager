@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { request, get, post, put, del, onUnauthorized, onError } from '@/services/api.service'
+import { API_ERRORS } from '@/constants/apiErrors.constant'
 
 // Mock fetch globally
 const mockFetch = vi.fn()
@@ -250,7 +251,7 @@ describe('API utilities', () => {
       expect(result.data).toBeUndefined()
     })
 
-    it('uses custom error message from API response', async () => {
+    it('falls back to a translated generic message when the backend code has no i18n mapping', async () => {
       const errorHandler = vi.fn()
       onError(errorHandler)
 
@@ -262,7 +263,7 @@ describe('API utilities', () => {
 
       await request('/test')
 
-      expect(errorHandler).toHaveBeenCalledWith('Custom error message')
+      expect(errorHandler).toHaveBeenCalledWith(API_ERRORS.GENERIC)
     })
   })
 

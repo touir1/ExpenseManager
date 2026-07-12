@@ -28,6 +28,7 @@ import type { Family, FamilyDetail, FamilyMember, FamilyPendingInvitation } from
 import { useToast } from '@/components/Toast'
 import FieldError from '@/components/FieldError'
 import SubmitButton from '@/components/SubmitButton'
+import EmptyState from '@/components/EmptyState'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -723,11 +724,7 @@ export default function FamiliesPage() {
   const displayed = tab === 'active' ? activeFamilies : archivedFamilies
 
   const familiesList = displayed.length === 0 ? (
-    <div className="text-center py-16">
-      <p className="text-sm text-ink-faint">
-        {tab === 'active' ? t('families.emptyActive') : t('families.emptyArchived')}
-      </p>
-    </div>
+    <EmptyState icon="👪" title={tab === 'active' ? t('families.emptyActive') : t('families.emptyArchived')} />
   ) : (
     <div className="grid gap-4 sm:grid-cols-2">
       {displayed.map(family => (

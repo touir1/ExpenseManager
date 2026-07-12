@@ -4,6 +4,7 @@ import type { CategoryBreakdownDto } from '@/features/dashboard/types/dashboard.
 import { getCategoryColor } from '@/features/dashboard/utils/categoryColors'
 import { ChartDataTable } from '@/features/dashboard/components/ChartDataTable'
 import { useChartColors } from '@/features/dashboard/utils/chartTheme'
+import EmptyState from '@/components/EmptyState'
 
 type DisplayCurrency = { symbol: string; decimals: number }
 
@@ -56,7 +57,7 @@ export function CategoryDonut({ data, isLoading, displayCurrency, onCategoryClic
       </p>
 
       {data.length === 0 ? (
-        <p className="text-sm text-ink-faint italic py-8 text-center">{t('dashboard.empty')}</p>
+        <EmptyState compact icon="🥧" title={t('dashboard.empty')} />
       ) : (
         <>
         <ChartDataTable

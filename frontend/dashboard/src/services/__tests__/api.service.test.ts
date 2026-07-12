@@ -141,18 +141,29 @@ describe('api.service', () => {
     expect(result.error).toBe('Invalid email or password.')
   })
 
-  it('falls back to statusText when status is unclassified and no backend message', async () => {
+  it('falls back to a translated generic message when status is unclassified and no backend message', async () => {
     mockFetch.mockResolvedValueOnce(makeResponse(418, null, "I'm a teapot"))
     const result = await get('/test')
     expect(result.ok).toBe(false)
-    expect(result.error).toBe("I'm a teapot")
+    expect(result.error).toBe(API_ERRORS.GENERIC)
   })
 
-  it('falls back to "Request failed" when status is unclassified with no statusText or body', async () => {
+  it('falls back to a translated generic message with no statusText or body', async () => {
     mockFetch.mockResolvedValueOnce(makeResponse(418, null, ''))
     const result = await get('/test')
     expect(result.ok).toBe(false)
-    expect(result.error).toBe('Request failed')
+    expect(result.error).toBe(API_ERRORS.GENERIC)
+  })
+
+  it('returns generic message and warns when backend code has no i18n mapping', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    mockFetch.mockResolvedValueOnce(makeResponse(422, { message: 'SOME_UNMAPPED_CODE' }))
+    const result = await get('/test')
+    expect(result.ok).toBe(false)
+    expect(result.error).toBe(API_ERRORS.GENERIC)
+    expect(result.rawCode).toBe('SOME_UNMAPPED_CODE')
+    expect(warnSpy).toHaveBeenCalledWith('Missing i18n mapping for error code:', 'SOME_UNMAPPED_CODE')
+    warnSpy.mockRestore()
   })
 
   // ── Handlers ──────────────────────────────────────────────────────────────

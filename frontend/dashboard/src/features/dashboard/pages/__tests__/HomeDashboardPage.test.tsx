@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import HomeDashboardPage from '@/features/dashboard/pages/HomeDashboardPage'
+import { getSummary, getCategories } from '@/features/dashboard/services/dashboardApi.service'
 
 const useQuerySpy = vi.fn()
 vi.mock('@tanstack/react-query', async () => {
@@ -143,5 +144,25 @@ describe('HomeDashboardPage', () => {
   it('renders RecentExpenses section link', async () => {
     renderPage()
     await waitFor(() => expect(screen.getByRole('link', { name: /view all/i })).toBeInTheDocument())
+  })
+
+  it('renders EmptyDashboard with a CTA when there is no data', async () => {
+    vi.mocked(getSummary).mockResolvedValueOnce({
+      ok: true,
+      data: {
+        totalAmount: 0,
+        convertedTotal: null,
+        displayCurrency: null,
+        expenseCount: 0,
+        previousPeriodTotal: 0,
+        changePercent: 0,
+        topCategory: null,
+        topCategoryAmount: 0,
+      },
+    })
+    vi.mocked(getCategories).mockResolvedValueOnce({ ok: true, data: [] })
+    renderPage()
+    await waitFor(() => expect(screen.getByRole('button', { name: /add/i })).toBeInTheDocument())
+    expect(screen.getByText('💸')).toBeInTheDocument()
   })
 })

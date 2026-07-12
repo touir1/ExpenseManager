@@ -21,6 +21,7 @@ import { SameMonthChart } from '@/features/dashboard/components/SameMonthChart'
 import { CurrenciesPanel } from '@/features/dashboard/components/CurrenciesPanel'
 import { RecentExpenses } from '@/features/dashboard/components/RecentExpenses'
 import { DashboardFilters } from '@/features/dashboard/components/DashboardFilters'
+import EmptyState from '@/components/EmptyState'
 import type { DashboardFilter } from '@/features/dashboard/types/dashboard.type'
 
 function todayStr(): string {
@@ -196,16 +197,11 @@ export default function HomeDashboardPage() {
 function EmptyDashboard({ onAddExpense }: Readonly<{ onAddExpense: () => void }>) {
   const { t } = useTranslation()
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="mb-6 text-6xl select-none" aria-hidden="true">💸</div>
-      <h2 className="text-xl font-semibold text-ink mb-2">{t('dashboard.emptyState.title')}</h2>
-      <p className="text-sm text-ink-mute mb-8 max-w-sm">{t('dashboard.emptyState.subtitle')}</p>
-      <button
-        onClick={onAddExpense}
-        className="btn-primary px-6 py-2.5 text-sm font-semibold rounded-xl"
-      >
-        {t('dashboard.emptyState.cta')}
-      </button>
-    </div>
+    <EmptyState
+      icon="💸"
+      title={t('dashboard.emptyState.title')}
+      subtitle={t('dashboard.emptyState.subtitle')}
+      action={{ label: t('dashboard.emptyState.cta'), onClick: onAddExpense }}
+    />
   )
 }

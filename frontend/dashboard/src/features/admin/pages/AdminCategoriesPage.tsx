@@ -62,19 +62,25 @@ export default function AdminCategoriesPage() {
 
   const submitCatModal = () => {
     if (!catModal) return
-    if (catModal.mode === 'add') addCatMutation.mutate({ name: formName, desc: formDesc || undefined })
-    else updateCatMutation.mutate({ id: catModal.id, name: formName, desc: formDesc || undefined })
-    setCatModal(null)
+    const onSuccess = () => setCatModal(null)
+    if (catModal.mode === 'add') addCatMutation.mutate({ name: formName, desc: formDesc || undefined }, { onSuccess })
+    else updateCatMutation.mutate({ id: catModal.id, name: formName, desc: formDesc || undefined }, { onSuccess })
   }
 
   const submitSubModal = () => {
     if (!subModal) return
-    if (subModal.mode === 'add') addSubMutation.mutate({ pid: subModal.parentId, name: formName, desc: formDesc || undefined })
-    else updateSubMutation.mutate({ pid: subModal.parentId, id: subModal.id, name: formName, desc: formDesc || undefined })
-    setSubModal(null)
+    const onSuccess = () => setSubModal(null)
+    if (subModal.mode === 'add') addSubMutation.mutate({ pid: subModal.parentId, name: formName, desc: formDesc || undefined }, { onSuccess })
+    else updateSubMutation.mutate({ pid: subModal.parentId, id: subModal.id, name: formName, desc: formDesc || undefined }, { onSuccess })
   }
 
   const visible = categories.filter((c: AdminCategory) => showArchived || !c.isArchived)
+
+  const isSubmitting = catModal
+    ? (catModal.mode === 'add' ? addCatMutation.isPending : updateCatMutation.isPending)
+    : subModal
+      ? (subModal.mode === 'add' ? addSubMutation.isPending : updateSubMutation.isPending)
+      : false
 
   return (
     <div>
@@ -166,11 +172,25 @@ export default function AdminCategoriesPage() {
               className="w-full border border-surface-border rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-brand-300"
             />
             <div className="flex gap-2 justify-end">
-              <button onClick={() => { setCatModal(null); setSubModal(null) }} className="text-sm px-3 py-1.5 rounded-lg border border-surface-border text-ink-mute hover:bg-surface-subtle">
+              <button
+                onClick={() => { setCatModal(null); setSubModal(null) }}
+                disabled={isSubmitting}
+                className="text-sm px-3 py-1.5 rounded-lg border border-surface-border text-ink-mute hover:bg-surface-subtle disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 {t('common.cancel', 'Cancel')}
               </button>
-              <button onClick={catModal ? submitCatModal : submitSubModal} className="text-sm px-3 py-1.5 rounded-lg bg-brand-500 text-white hover:bg-brand-600">
-                {t('common.save', 'Save')}
+              <button
+                onClick={catModal ? submitCatModal : submitSubModal}
+                disabled={isSubmitting}
+                className="text-sm px-3 py-1.5 rounded-lg bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+              >
+                {isSubmitting && (
+                  <svg className="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                )}
+                {isSubmitting ? t('common.saving', 'Saving…') : t('common.save', 'Save')}
               </button>
             </div>
           </div>

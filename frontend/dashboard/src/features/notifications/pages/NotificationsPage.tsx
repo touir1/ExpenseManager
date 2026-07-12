@@ -4,6 +4,7 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import { useNotifications } from '@/features/notifications/NotificationContext'
 import { getNotifications } from '@/features/notifications/services/notificationApi.service'
 import { getNotificationText, getNotificationIcon } from '@/features/notifications/notificationDisplay'
+import EmptyState from '@/components/EmptyState'
 import type { AppNotification } from '@/features/notifications/types/notification.type'
 
 const PAGE_SIZE = 20
@@ -64,10 +65,7 @@ export default function NotificationsPage() {
         {isLoading ? (
           <div className="px-4 py-8 text-sm text-ink-mute text-center">…</div>
         ) : items.length === 0 ? (
-          <div className="px-4 py-12 text-center">
-            <p className="text-sm font-semibold text-ink mb-1">{t('notifications.emptyTitle')}</p>
-            <p className="text-xs text-ink-mute">{t('notifications.empty')}</p>
-          </div>
+          <EmptyState icon="🔔" title={t('notifications.emptyTitle')} subtitle={t('notifications.empty')} />
         ) : (
           items.map(n => (
             <button

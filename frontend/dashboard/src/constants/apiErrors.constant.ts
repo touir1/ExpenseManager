@@ -8,6 +8,7 @@ export const API_ERRORS = {
   get BAD_REQUEST(){ return i18next.t('apiErrors.badRequest') },
   get NETWORK()    { return i18next.t('apiErrors.network') },
   get UNAUTHORIZED(){ return i18next.t('apiErrors.unauthorized') },
+  get GENERIC()    { return i18next.t('apiErrors.generic') },
 }
 
 const BACKEND_KEYS: Record<string, string> = {

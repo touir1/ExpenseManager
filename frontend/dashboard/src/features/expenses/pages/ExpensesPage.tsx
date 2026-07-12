@@ -6,6 +6,7 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import { useReturnFocusOnUnmount } from '@/hooks/useReturnFocusOnUnmount'
 import { getExpenses, deleteExpense, getExpenseReceiptUrl, deleteExpenseReceipt } from '@/features/expenses/services/expensesApi.service'
 import ExpenseFilters from '@/features/expenses/components/ExpenseFilters'
+import EmptyState from '@/components/EmptyState'
 import AddExpenseModal from '@/features/expenses/components/AddExpenseModal'
 import EditExpenseModal from '@/features/expenses/components/EditExpenseModal'
 import { useFamilies } from '@/features/families/FamilyContext'
@@ -418,15 +419,11 @@ export default function ExpensesPage() {
       {!isLoading && !isError && data && (
         <>
           {data.items.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-sm text-ink-mute mb-4">{t('expenses.noExpenses')}</p>
-              <Link
-                to="/expenses/add"
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700 transition-colors"
-              >
-                {t('expenses.firstExpense')}
-              </Link>
-            </div>
+            <EmptyState
+              icon="🧾"
+              title={t('expenses.noExpenses')}
+              action={{ label: t('expenses.firstExpense'), to: '/expenses/add' }}
+            />
           ) : (
             <>
               {/* Mobile card list */}

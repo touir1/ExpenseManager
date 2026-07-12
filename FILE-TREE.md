@@ -685,6 +685,7 @@ ExpenseManager/
 │           ├── vitest.d.ts            — Vitest type declarations
 │           ├── components/            — Shared UI primitives (generic, cross-feature)
 │           │   ├── BackLink.tsx        — Back-arrow link with chevron SVG
+│           │   ├── EmptyState.tsx      — Shared empty-state pattern: decorative icon + title + optional subtitle + optional action (button or react-router Link via `to`); `compact` prop for chart-panel usage
 │           │   ├── FieldError.tsx      — Per-field error paragraph with role="alert"
 │           │   ├── FormCombobox.tsx    — Searchable combobox (text input + listbox dropdown); portal-based dropdown via createPortal to document.body at position:fixed; optional className prop; used in ExpenseForm + admin pages; full ARIA combobox pattern (role/aria-expanded/aria-activedescendant) + Arrow/Home/End/Enter/Escape/type-ahead keyboard nav
 │           │   ├── LanguageSwitcher.tsx — Language selector dropdown wired to i18n.changeLanguage
@@ -696,6 +697,7 @@ ExpenseManager/
 │           │   ├── Toast.tsx           — Toast notification provider and hook; each toast has role="status"/aria-live="polite" (info/success) or role="alert"/aria-live="assertive" (error)
 │           │   └── __tests__/
 │           │       ├── BackLink.test.tsx
+│           │       ├── EmptyState.test.tsx
 │           │       ├── FieldError.test.tsx
 │           │       ├── FormCombobox.test.tsx
 │           │       ├── LanguageSwitcher.test.tsx

@@ -347,7 +347,8 @@
         "familyInvitationInvalid": "Este enlace de invitación no es válido.",
         "familyInvitationAlreadyAccepted": "Esta invitación ya fue aceptada.",
         "familyInvitationExpired": "Esta invitación ha expirado.",
-        "familyNameAlreadyExists": "Ya existe una familia con este nombre."
+        "familyNameAlreadyExists": "Ya existe una familia con este nombre.",
+        "generic": "Algo salió mal. Por favor, inténtalo de nuevo."
     },
     "families": {
         "pageTitle": "Familias",

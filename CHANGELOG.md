@@ -1,6 +1,16 @@
 
 # Changelog
 
+## [0.132.0] - 2026-07-12
+### Feature: UX copy & microcopy closed (section 12 of ux-ui-improvements.md)
+
+- **`api.service.ts`** — unmapped backend error codes (missing from `BACKEND_KEYS`) no longer surface raw/untranslated to the user; `getErrorMessage` now falls back to a translated `apiErrors.generic` message and logs `console.warn('Missing i18n mapping for error code:', backendCode)` in dev builds so gaps are caught during development instead of shipping a code like `FAMILY_NAME_ALREADY_EXISTS` straight into a toast. Added `apiErrors.generic` to all four locales (`en`/`fr`/`es`/`de`).
+- **`components/EmptyState.tsx`** (new) — shared empty-state pattern: decorative icon (`aria-hidden`) + bold title + optional subtitle + optional action (button `onClick` or react-router `Link` via `to`), `compact` variant for in-panel chart usage. Replaced plain-text empty states in `ExpensesPage.tsx`, `RecentExpenses.tsx`, `SpendChart.tsx`, `CategoryDonut.tsx`, `HomeDashboardPage.tsx`'s `EmptyDashboard`, `NotificationsPage.tsx`, and `FamiliesPage.tsx`'s active/archived list. Left `NotificationBell.tsx`'s dropdown and `SettingsPage.tsx`'s CSV-mapping empty hint as plain text — both are small inline hints inside compact widgets where an icon would clutter, not page-level empty states.
+- **`AdminCategoriesPage.tsx`** — the category/subcategory save modal's button was a static `<button>{t('common.save','Save')}</button>` with no loading feedback; now shows a spinner + `t('common.saving','Saving…')` and disables both Save/Cancel while the add/update mutation is pending. Fixed a related bug found while wiring this up: the modal was closing synchronously right after `mutate()` fired, before the request resolved — moved the close into the mutation's `onSuccess` callback so the pending state is actually observable (and the modal no longer closes on a failed save).
+- Plan: `docs/plans/done/ux-copy-microcopy-plan.md`.
+
+---
+
 ## [0.131.0] - 2026-07-12
 ### Feature: performance & loading states closed (section 10 of ux-ui-improvements.md)
 

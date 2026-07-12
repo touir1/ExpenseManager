@@ -12,6 +12,7 @@ import {
 import type { MonthlyBreakdownDto, Currency } from '@/features/dashboard/types/dashboard.type'
 import { ChartDataTable } from '@/features/dashboard/components/ChartDataTable'
 import { useChartColors } from '@/features/dashboard/utils/chartTheme'
+import EmptyState from '@/components/EmptyState'
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const BAR_COLOR = '#c8623e'
@@ -65,7 +66,7 @@ export function SpendChart({ data, isLoading, displayCurrency }: Props) {
       </p>
 
       {chartData.length === 0 ? (
-        <p className="text-sm text-ink-faint italic py-8 text-center">{t('dashboard.empty')}</p>
+        <EmptyState compact icon="📊" title={t('dashboard.empty')} />
       ) : (
         <>
         <ChartDataTable

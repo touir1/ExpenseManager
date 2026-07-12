@@ -98,4 +98,23 @@ describe('AdminCategoriesPage', () => {
     await user.click(archiveBtns[0])
     expect(mockArchiveCategory).toHaveBeenCalledWith(1)
   })
+
+  it('shows saving label and disables buttons while the add-category mutation is pending', async () => {
+    let resolveAdd: (v: unknown) => void
+    mockAddCategory.mockReturnValue(new Promise(resolve => { resolveAdd = resolve }))
+    const user = userEvent.setup()
+    renderPage()
+    await waitFor(() => screen.getByText('Food'))
+    await user.click(screen.getByText('admin.categories.add'))
+    await user.type(screen.getByPlaceholderText('Name'), 'NewCategory')
+    await user.click(screen.getByText('common.save'))
+
+    expect(await screen.findByText('common.saving')).toBeInTheDocument()
+    expect(screen.getByText('common.saving').closest('button')).toBeDisabled()
+    expect(screen.getByText('common.cancel')).toBeDisabled()
+
+    resolveAdd!({ ok: true, data: { id: 10, name: 'NewCategory', isArchived: false, subcategories: [] } })
+    await waitFor(() => expect(screen.queryByText('common.saving')).not.toBeInTheDocument())
+    expect(screen.queryByPlaceholderText('Name')).not.toBeInTheDocument()
+  })
 })

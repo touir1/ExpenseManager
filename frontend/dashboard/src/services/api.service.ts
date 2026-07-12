@@ -27,7 +27,8 @@ function getErrorMessage(status: number, data: any, statusText: string): string 
   if (status === 404) return API_ERRORS.NOT_FOUND
   if (status === 403) return API_ERRORS.FORBIDDEN
   if (status === 400) return API_ERRORS.BAD_REQUEST
-  return backendCode || statusText || 'Request failed'
+  if (backendCode && import.meta.env.DEV) console.warn('Missing i18n mapping for error code:', backendCode)
+  return API_ERRORS.GENERIC
 }
 
 let refreshInFlight: Promise<boolean> | null = null
