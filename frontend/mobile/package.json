@@ -15,7 +15,8 @@
     "build:android": "npm run build && npx cap sync android && node scripts/android-gradle.js assembleDebug",
     "build:android-aab": "npm run build && npx cap sync android && node scripts/android-gradle.js bundleRelease",
     "deploy:android": "npm run build:android && node scripts/android-deploy.js device",
-    "test:android": "npm run build:android && (emulator -avd Rachma_Test -no-snapshot-load -gpu auto &) && adb wait-for-device && adb shell \"until [ $(getprop sys.boot_completed) = 1 ]; do sleep 3; done\" && node scripts/android-deploy.js emulator"
+    "test:android": "npm run build:android && (emulator -avd Rachma_Test -no-snapshot-load -gpu auto &) && adb wait-for-device && adb shell \"until [ $(getprop sys.boot_completed) = 1 ]; do sleep 3; done\" && node scripts/android-deploy.js emulator",
+    "generate:assets": "capacitor-assets generate"
   },
   "dependencies": {
     "@capacitor/android": "^7.0.0",
@@ -43,6 +44,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.5.2",

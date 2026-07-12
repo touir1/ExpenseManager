@@ -518,6 +518,14 @@ describe('FamiliesPage', () => {
       expect(screen.getByText('families.createTitle')).toBeInTheDocument()
     })
 
+    it('uses the shared modal-md size class', async () => {
+      makeCtx()
+      const user = userEvent.setup()
+      render(<FamiliesPage />)
+      await user.click(screen.getByRole('button', { name: /families\.createAction/i }))
+      expect(screen.getByText('families.createTitle').closest('div.fixed')?.firstElementChild).toHaveClass('modal-md')
+    })
+
     it('closes when modal close button is clicked', async () => {
       makeCtx()
       const user = userEvent.setup()

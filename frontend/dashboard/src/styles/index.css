@@ -21,6 +21,12 @@
   --color-mustard-soft: #F4E1B5;
   --color-sky-soft:     #CFE0E6;
   --color-brand-soft:   #FDF4EF;
+
+  /* Recharts read these at render time — see chartTheme.ts */
+  --chart-grid:            #E8DECB;
+  --chart-tick:            #8E8170;
+  --chart-tooltip-bg:      #FFFCF6;
+  --chart-tooltip-border:  #E8DECB;
 }
 
 /* ── Dark mode overrides ─────────────────────────────────────────── */
@@ -45,6 +51,11 @@
   --color-mustard-soft: #2E2510;
   --color-sky-soft:     #162430;
   --color-brand-soft:   #3A2A1E;
+
+  --chart-grid:            #3E2E22;
+  --chart-tick:            #A09285;
+  --chart-tooltip-bg:      #251D16;
+  --chart-tooltip-border:  #3E2E22;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -65,6 +76,11 @@
     --color-mustard-soft: #2E2510;
     --color-sky-soft:     #162430;
     --color-brand-soft:   #3A2A1E;
+
+    --chart-grid:            #3E2E22;
+    --chart-tick:            #A09285;
+    --chart-tooltip-bg:      #251D16;
+    --chart-tooltip-border:  #3E2E22;
   }
 }
 
@@ -148,5 +164,18 @@
 
   .msg-success {
     @apply text-sm text-sage bg-sage-soft border border-sage/30 rounded-xl px-3.5 py-2.5;
+  }
+
+  /* ── Modal size scale ────────────────────────────────────────── */
+  .modal-sm {
+    @apply max-w-sm;
+  }
+
+  .modal-md {
+    @apply max-w-lg;
+  }
+
+  .modal-lg {
+    @apply max-w-2xl;
   }
 }

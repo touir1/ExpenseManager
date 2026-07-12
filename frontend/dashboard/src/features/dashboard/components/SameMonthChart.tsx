@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import type { SameMonthYearlyDto, Currency } from '@/features/dashboard/types/dashboard.type'
 import { ChartDataTable } from '@/features/dashboard/components/ChartDataTable'
+import { useChartColors } from '@/features/dashboard/utils/chartTheme'
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -34,6 +35,7 @@ function Skeleton() {
 
 export function SameMonthChart({ data, isLoading, selectedMonth, displayCurrency }: Props) {
   const { t } = useTranslation()
+  const chartColors = useChartColors()
 
   if (isLoading) return <Skeleton />
 
@@ -65,10 +67,10 @@ export function SameMonthChart({ data, isLoading, selectedMonth, displayCurrency
         />
         <ResponsiveContainer width="100%" height={120}>
           <BarChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-            <XAxis dataKey="year" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
+            <XAxis dataKey="year" tick={{ fontSize: 11, fill: chartColors.tick }} axisLine={false} tickLine={false} />
             <YAxis
-              tick={{ fontSize: 11, fill: '#94a3b8' }}
+              tick={{ fontSize: 11, fill: chartColors.tick }}
               axisLine={false}
               tickLine={false}
               tickFormatter={v => `${currSymbol}${currSymbol ? ' ' : ''}${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`}
@@ -79,7 +81,12 @@ export function SameMonthChart({ data, isLoading, selectedMonth, displayCurrency
                 const n = value as number
                 return [n === 0 ? t('dashboard.charts.noExpenses') : `${currSymbol}${currSymbol ? ' ' : ''}${n.toFixed(2)}`, '']
               }}
-              contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 12 }}
+              contentStyle={{
+                borderRadius: '12px',
+                border: `1px solid ${chartColors.tooltipBorder}`,
+                backgroundColor: chartColors.tooltipBg,
+                fontSize: 12,
+              }}
             />
             <Bar dataKey="amount" fill="#c8623e" radius={[4, 4, 0, 0]} maxBarSize={40} minPointSize={2} />
           </BarChart>

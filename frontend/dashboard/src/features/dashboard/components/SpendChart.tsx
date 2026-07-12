@@ -11,10 +11,10 @@ import {
 } from 'recharts'
 import type { MonthlyBreakdownDto, Currency } from '@/features/dashboard/types/dashboard.type'
 import { ChartDataTable } from '@/features/dashboard/components/ChartDataTable'
+import { useChartColors } from '@/features/dashboard/utils/chartTheme'
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const BAR_COLOR = '#c8623e'
-const LINE_COLOR = '#94a3b8'
 
 type Props = {
   data: MonthlyBreakdownDto[]
@@ -41,6 +41,7 @@ function Skeleton() {
 
 export function SpendChart({ data, isLoading, displayCurrency }: Props) {
   const { t } = useTranslation()
+  const chartColors = useChartColors()
 
   if (isLoading) return <Skeleton />
 
@@ -77,15 +78,15 @@ export function SpendChart({ data, isLoading, displayCurrency }: Props) {
         />
         <ResponsiveContainer width="100%" height={180}>
           <ComposedChart data={chartDataWithAvg} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
             <XAxis
               dataKey="label"
-              tick={{ fontSize: 11, fill: '#94a3b8' }}
+              tick={{ fontSize: 11, fill: chartColors.tick }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: '#94a3b8' }}
+              tick={{ fontSize: 11, fill: chartColors.tick }}
               axisLine={false}
               tickLine={false}
               tickFormatter={v => `${currSymbol}${currSymbol ? ' ' : ''}${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`}
@@ -96,13 +97,18 @@ export function SpendChart({ data, isLoading, displayCurrency }: Props) {
                 const n = value as number
                 return [n === 0 ? t('dashboard.charts.noExpenses') : `${currSymbol}${currSymbol ? ' ' : ''}${n.toFixed(2)}`, '']
               }}
-              contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 12 }}
+              contentStyle={{
+                borderRadius: '12px',
+                border: `1px solid ${chartColors.tooltipBorder}`,
+                backgroundColor: chartColors.tooltipBg,
+                fontSize: 12,
+              }}
             />
             <Bar dataKey="amount" fill={BAR_COLOR} radius={[4, 4, 0, 0]} maxBarSize={32} minPointSize={2} />
             <Line
               type="monotone"
               dataKey="avg"
-              stroke={LINE_COLOR}
+              stroke={chartColors.tick}
               strokeWidth={1.5}
               dot={false}
               strokeDasharray="4 3"

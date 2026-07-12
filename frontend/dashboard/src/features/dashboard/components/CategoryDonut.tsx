@@ -3,6 +3,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import type { CategoryBreakdownDto } from '@/features/dashboard/types/dashboard.type'
 import { getCategoryColor } from '@/features/dashboard/utils/categoryColors'
 import { ChartDataTable } from '@/features/dashboard/components/ChartDataTable'
+import { useChartColors } from '@/features/dashboard/utils/chartTheme'
 
 type DisplayCurrency = { symbol: string; decimals: number }
 
@@ -39,6 +40,7 @@ function Skeleton() {
 export function CategoryDonut({ data, isLoading, displayCurrency, onCategoryClick }: Props) {
   const { t } = useTranslation()
   const clickable = !!onCategoryClick
+  const chartColors = useChartColors()
 
   if (isLoading) return <Skeleton />
 
@@ -93,7 +95,12 @@ export function CategoryDonut({ data, isLoading, displayCurrency, onCategoryClic
                 </Pie>
                 <Tooltip
                   formatter={(value) => [(value as number).toFixed(2), '']}
-                  contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 12 }}
+                  contentStyle={{
+                    borderRadius: '12px',
+                    border: `1px solid ${chartColors.tooltipBorder}`,
+                    backgroundColor: chartColors.tooltipBg,
+                    fontSize: 12,
+                  }}
                 />
               </PieChart>
             </ResponsiveContainer>

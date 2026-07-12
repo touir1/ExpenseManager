@@ -1,0 +1,17 @@
+{
+  "name": "Expenses Manager",
+  "short_name": "Expenses",
+  "description": "Track, categorize, and review your personal expenses in one place.",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#C8623E",
+  "background_color": "#FAF6EE",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

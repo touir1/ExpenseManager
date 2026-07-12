@@ -86,7 +86,7 @@ function ConfirmDeleteModal({
   useReturnFocusOnUnmount()
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-surface-card rounded-2xl shadow-warm border border-surface-border w-full max-w-sm mx-4 p-6">
+      <div className="bg-surface-card rounded-2xl shadow-warm border border-surface-border w-full modal-sm mx-4 p-6">
         <h2 className="text-base font-semibold text-ink mb-2">{t('expenses.delete.confirmTitle')}</h2>
         <p className="text-sm text-ink-body font-medium mb-1">
           {formatExpenseAmount(expense)} — {expense.date}
@@ -118,7 +118,7 @@ function EditButton({ expenseId, className }: Readonly<{ expenseId: number; clas
   const navigate = useNavigate()
   return (
     <button
-      onClick={() => navigate(`/expenses/${expenseId}/edit`)}
+      onClick={(e) => { e.stopPropagation(); navigate(`/expenses/${expenseId}/edit`) }}
       aria-label="Edit expense"
       className={`p-1.5 rounded-lg text-ink-mute hover:text-brand-600 hover:bg-brand-50 transition-colors ${className ?? ''}`}
     >
@@ -132,7 +132,7 @@ function EditButton({ expenseId, className }: Readonly<{ expenseId: number; clas
 function DeleteButton({ onClick, className }: Readonly<{ onClick: () => void; className?: string }>) {
   return (
     <button
-      onClick={onClick}
+      onClick={(e) => { e.stopPropagation(); onClick() }}
       aria-label="Delete expense"
       className={`p-1.5 rounded-lg text-ink-mute hover:text-berry hover:bg-berry-soft transition-colors ${className ?? ''}`}
     >
@@ -147,7 +147,7 @@ function ReceiptButton({ onClick, className }: Readonly<{ onClick: () => void; c
   const { t } = useTranslation()
   return (
     <button
-      onClick={onClick}
+      onClick={(e) => { e.stopPropagation(); onClick() }}
       aria-label={t('expenses.receipt.viewReceipt')}
       className={`p-1.5 rounded-lg text-ink-mute hover:text-brand-600 hover:bg-brand-50 transition-colors ${className ?? ''}`}
     >
@@ -231,10 +231,15 @@ function ExpenseRow({
   onViewReceipt,
 }: Readonly<{ expense: ExpenseDto; onDelete: (expense: ExpenseDto) => void; onViewReceipt: (expense: ExpenseDto) => void }>) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const amount = formatExpenseAmount(expense)
+  const goToEdit = () => navigate(`/expenses/${expense.id}/edit`)
 
   return (
-    <tr className="border-b border-surface-border hover:bg-surface-subtle transition-colors">
+    <tr
+      className="border-b border-surface-border hover:bg-surface-subtle transition-colors cursor-pointer"
+      onClick={goToEdit}
+    >
       <td className="px-4 py-3 text-sm text-ink-body whitespace-nowrap tabular-nums">{expense.date}</td>
       <td className="px-4 py-3 text-sm font-medium text-ink whitespace-nowrap font-mono tabular-nums">{amount}</td>
       <td className="px-4 py-3 text-sm text-ink-mute">
@@ -275,10 +280,14 @@ function ExpenseCard({
   onViewReceipt,
 }: Readonly<{ expense: ExpenseDto; onDelete: (expense: ExpenseDto) => void; onViewReceipt: (expense: ExpenseDto) => void }>) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const amount = formatExpenseAmount(expense)
 
   return (
-    <div className="bg-surface-card rounded-2xl border border-surface-border p-3">
+    <div
+      className="bg-surface-card rounded-2xl border border-surface-border p-3 cursor-pointer"
+      onClick={() => navigate(`/expenses/${expense.id}/edit`)}
+    >
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-medium text-ink font-mono tabular-nums">{amount}</p>

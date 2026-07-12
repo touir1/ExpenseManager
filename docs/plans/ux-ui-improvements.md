@@ -520,45 +520,51 @@
 
 ## 11. Visual Design & Polish
 
-### 🟡 Web: Dark mode missing from dashboard charts
+### ✅ 🟡 Web: Dark mode missing from dashboard charts
 
 **Problem:** ThemeContext provides dark mode, but Recharts chart tooltips and axes use hardcoded colors (likely `#333`, `#fff`). In dark mode these will look wrong.  
-**Fix:** Pass theme-aware colors to Recharts props: `stroke={theme === 'dark' ? '#cbd5e1' : '#334155'}` etc.
+**Fix:** Pass theme-aware colors to Recharts props: `stroke={theme === 'dark' ? '#cbd5e1' : '#334155'}` etc.  
+**Done:** Added `--chart-grid`/`--chart-tick`/`--chart-tooltip-bg`/`--chart-tooltip-border` CSS vars (light+dark) to `index.css`; new `useChartColors()` hook (`chartTheme.ts`, MutationObserver on `<html>` class — decoupled from ThemeContext so it works in standalone tests) re-reads them on theme change; wired into `SpendChart.tsx`, `SameMonthChart.tsx`, `CategoryDonut.tsx`. `CurrenciesPanel.tsx` needed no change (already token-based, no hardcoded hex).
 
 ---
 
-### 🟡 Web: Inconsistent modal sizes
+### ✅ 🟡 Web: Inconsistent modal sizes
 
 **Problem:** AddExpenseModal, ConfirmDeleteModal, InviteMemberModal, and CreateFamilyModal have different max-widths. No modal size scale.  
-**Fix:** Define `sm`/`md`/`lg` modal size classes in `index.css` and apply consistently.
+**Fix:** Define `sm`/`md`/`lg` modal size classes in `index.css` and apply consistently.  
+**Done:** `.modal-sm`(`max-w-sm`)/`.modal-md`(`max-w-lg`)/`.modal-lg`(`max-w-2xl`) added to `index.css` `@layer components`; applied to `ConfirmDeleteModal`/`AddExpenseModal`/`EditExpenseModal` (`ExpensesPage.tsx`, `AddExpenseModal.tsx`, `EditExpenseModal.tsx`) and the shared Families `Modal` used by Create/Invite (`FamiliesPage.tsx`).
 
 ---
 
-### 🟡 Web: Tables lack row hover cursor — no affordance that rows are clickable
+### ✅ 🟡 Web: Tables lack row hover cursor — no affordance that rows are clickable
 
 **Problem:** In the expense table, rows have a hover darken effect but no pointer cursor change. Users don't know if they can click the row itself.  
-**Fix:** Either make rows fully clickable (click row → edit expense) with `cursor-pointer`, or remove the hover darkening to avoid false affordance.
+**Fix:** Either make rows fully clickable (click row → edit expense) with `cursor-pointer`, or remove the hover darkening to avoid false affordance.  
+**Done:** Row (`<tr>`) and mobile `ExpenseCard` now navigate to `/expenses/{id}/edit` on click with `cursor-pointer`; `EditButton`/`DeleteButton`/`ReceiptButton` call `e.stopPropagation()` so they don't double-fire the row navigation — `ExpensesPage.tsx`.
 
 ---
 
-### 🟢 Web: No favicon or PWA manifest
+### ✅ 🟢 Web: No favicon or PWA manifest
 
 **Problem:** Tab icon is the browser default. No `<link rel="manifest">` for installability.  
-**Fix:** Add SVG favicon using brand color + "E" logo. Add `manifest.json` for PWA install support.
+**Fix:** Add SVG favicon using brand color + "E" logo. Add `manifest.json` for PWA install support.  
+**Done:** `public/favicon.svg` (brand-clay `#C8623E` + "E" mark) and `public/manifest.json` added, wired via `<link rel="icon">`/`<link rel="manifest">`/`theme-color` in `index.html`.
 
 ---
 
-### 🟢 Mobile: App icon and splash screen not customized
+### 🟡 Mobile: App icon and splash screen not customized
 
 **Problem:** `android/` and `ios/` are gitignored but Capacitor generates default Ionic splash screens. The brand icon should be applied.  
-**Recommendation:** Use `@capacitor/assets` to generate icons/splash from a single source SVG before production builds.
+**Recommendation:** Use `@capacitor/assets` to generate icons/splash from a single source SVG before production builds.  
+**Partially done:** `@capacitor/assets` devDependency + `npm run generate:assets` script added (`frontend/mobile/package.json`); `resources/README.md` documents the required `icon.png`(1024×1024)/`splash.png`(2732×2732) source art. **Still open:** the actual brand PNG art hasn't been produced/dropped in — run `generate:assets` once it is.
 
 ---
 
-### 🟢 Web: Empty pagination state ("Page 1 of 1") always shows even with no records
+### ✅ 🟢 Web: Empty pagination state ("Page 1 of 1") always shows even with no records
 
 **Problem:** When the expense list is empty, pagination still renders "Page 1 of 0" or "Page 1 of 1". Looks broken.  
-**Fix:** Hide pagination controls when total pages ≤ 1.
+**Fix:** Hide pagination controls when total pages ≤ 1.  
+**Done:** Pagination nav (prev/next/jump-to-page) wrapped in `{totalPages > 1 && (...)}`; the "Showing X–Y of Z" count line stays visible independently — `ExpensesPage.tsx` (implemented in an earlier session, verified + covered by `ExpensesPage.test.tsx`).
 
 ---
 
@@ -618,7 +624,7 @@
 | ~~Screen reader accessible chart data tables~~ | ~~Medium~~ | ✅ Done |
 | ~~Settings page expansion (notification prefs)~~ | ~~Medium~~ | ✅ Done (mobile: default category, notification prefs, account deletion; data export still open on mobile) |
 | ~~Undo delete (5 s toast with restore)~~ | ~~Medium~~ | ✅ Done (mobile: re-POST client-side, no restore endpoint) |
-| PWA manifest + favicon | Low | Low |
+| ~~PWA manifest + favicon~~ | ~~Low~~ | ✅ Done |
 | ~~Receipt storage API + mobile upload~~ | ~~High~~ | ✅ Done (MinIO storage, `{id}/receipt` endpoints, mobile + web upload/view/download/delete) |
 
 ---

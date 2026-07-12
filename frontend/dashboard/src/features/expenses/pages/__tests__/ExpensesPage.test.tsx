@@ -193,6 +193,44 @@ describe('ExpensesPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/expenses/1/edit')
   })
 
+  it('navigates to edit page when the row itself is clicked', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await waitFor(() => screen.getByRole('table'))
+    const row = within(screen.getByRole('table')).getByText('2026-05-01').closest('tr')!
+    expect(row).toHaveClass('cursor-pointer')
+    await user.click(row)
+    expect(mockNavigate).toHaveBeenCalledWith('/expenses/1/edit')
+  })
+
+  it('does not open the delete confirmation when clicking the row (only Delete button)', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await waitFor(() => screen.getByRole('table'))
+    const row = within(screen.getByRole('table')).getByText('2026-05-01').closest('tr')!
+    await user.click(row)
+    expect(screen.queryByText(/delete expense\?/i)).not.toBeInTheDocument()
+  })
+
+  it('does not navigate to edit when the Delete button is clicked (stops row-click propagation)', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await waitFor(() => screen.getByRole('table'))
+    const deleteButton = within(screen.getByRole('table')).getByRole('button', { name: /delete/i })
+    await user.click(deleteButton)
+    expect(mockNavigate).not.toHaveBeenCalledWith('/expenses/1/edit')
+  })
+
+  it('navigates to edit page when the mobile card is clicked', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await waitFor(() => screen.getByRole('table'))
+    const cardList = document.querySelector('.md\\:hidden.space-y-2')!
+    const card = within(cardList as HTMLElement).getByText('2026-05-01').closest('div.cursor-pointer')!
+    await user.click(card)
+    expect(mockNavigate).toHaveBeenCalledWith('/expenses/1/edit')
+  })
+
   it('shows confirm modal on Delete click', async () => {
     const user = userEvent.setup()
     renderPage()
@@ -200,6 +238,16 @@ describe('ExpensesPage', () => {
     const deleteButton = within(screen.getByRole('table')).getByRole('button', { name: /delete/i })
     await user.click(deleteButton)
     expect(screen.getByText(/delete expense\?/i)).toBeInTheDocument()
+  })
+
+  it('uses the shared modal-sm size class for the delete confirmation', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await waitFor(() => screen.getByRole('table'))
+    const deleteButton = within(screen.getByRole('table')).getByRole('button', { name: /delete/i })
+    await user.click(deleteButton)
+    const heading = screen.getByText(/delete expense\?/i)
+    expect(heading.closest('div')).toHaveClass('modal-sm')
   })
 
   it('calls deleteExpense and closes modal on confirm', async () => {

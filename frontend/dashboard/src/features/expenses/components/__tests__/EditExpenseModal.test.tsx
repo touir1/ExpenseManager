@@ -63,6 +63,11 @@ describe('EditExpenseModal', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
+  it('uses the shared modal-lg size class', () => {
+    renderModal()
+    expect(screen.getByRole('dialog').firstElementChild).toHaveClass('modal-lg')
+  })
+
   it('shows loading state initially', () => {
     let resolve!: (v: unknown) => void
     mockGetExpenseById.mockReturnValue(new Promise(r => { resolve = r }))

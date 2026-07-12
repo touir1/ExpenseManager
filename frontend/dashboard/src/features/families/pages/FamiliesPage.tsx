@@ -77,7 +77,7 @@ function Modal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div
         ref={ref}
-        className="bg-surface-card rounded-2xl shadow-xl border border-surface-border w-full max-w-md mx-4 p-6"
+        className="bg-surface-card rounded-2xl shadow-xl border border-surface-border w-full modal-md mx-4 p-6"
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-semibold text-ink">{title}</h2>

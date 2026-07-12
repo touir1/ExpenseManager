@@ -38,6 +38,11 @@ describe('AddExpenseModal', () => {
     expect(screen.getByTestId('expense-form')).toBeInTheDocument()
   })
 
+  it('uses the shared modal-lg size class', () => {
+    render(<AddExpenseModal onSuccess={onSuccess} onClose={onClose} />)
+    expect(screen.getByRole('dialog').firstElementChild).toHaveClass('modal-lg')
+  })
+
   it('calls onClose when close button clicked', async () => {
     const user = userEvent.setup()
     render(<AddExpenseModal onSuccess={onSuccess} onClose={onClose} />)
