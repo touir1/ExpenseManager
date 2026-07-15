@@ -552,11 +552,11 @@
 
 ---
 
-### 🟡 Mobile: App icon and splash screen not customized
+### ✅ 🟢 Mobile: App icon and splash screen not customized
 
 **Problem:** `android/` and `ios/` are gitignored but Capacitor generates default Ionic splash screens. The brand icon should be applied.  
-**Recommendation:** Use `@capacitor/assets` to generate icons/splash from a single source SVG before production builds.  
-**Partially done:** `@capacitor/assets` devDependency + `npm run generate:assets` script added (`frontend/mobile/package.json`); `resources/README.md` documents the required `icon.png`(1024×1024)/`splash.png`(2732×2732) source art. **Still open:** the actual brand PNG art hasn't been produced/dropped in — run `generate:assets` once it is.
+**Fix:** Use `@capacitor/assets` to generate icons/splash from a single source SVG before production builds.  
+**Done:** `@capacitor/assets` devDependency + `npm run generate:assets` script (`frontend/mobile/package.json`); brand-clay (`#C8623E`) `resources/icon.png` (1024×1024) and `resources/splash.png` (2732×2732) with the "E" mark (matching `frontend/dashboard/public/favicon.svg`) added; `android` platform added via `npx cap add android` and `generate:assets` run — `android/app/src/main/res/mipmap-*/ic_launcher*.png` and `drawable-*/splash.png` populated for all densities. iOS platform requires Xcode/macOS — add and regenerate there before an iOS build.
 
 ---
 

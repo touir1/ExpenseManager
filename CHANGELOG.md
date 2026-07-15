@@ -1,6 +1,14 @@
 
 # Changelog
 
+## [0.133.0] - 2026-07-15
+### Fix: mobile app icon/splash art closed (ux-ui-improvements.md)
+
+- **`frontend/mobile/resources/`** — added brand-clay (`#C8623E`) `icon.png` (1024×1024, rounded) and `splash.png` (2732×2732) with the "E" mark, matching `frontend/dashboard/public/favicon.svg`.
+- Added `android` platform (`npx cap add android`) and ran `npm run generate:assets` — populated `android/app/src/main/res/mipmap-*/ic_launcher*.png` and `drawable-*/splash.png` for all densities. iOS platform still needs to be added on macOS (Xcode) and regenerated there.
+
+---
+
 ## [0.132.0] - 2026-07-12
 ### Feature: UX copy & microcopy closed (section 12 of ux-ui-improvements.md)
 
