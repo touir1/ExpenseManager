@@ -73,6 +73,24 @@ describe('NotificationBell', () => {
     })
   })
 
+  describe('touch target', () => {
+    it('meets the 40px touch target size on the bell button', () => {
+      renderBell()
+      expect(screen.getByRole('button', { name: /notifications/i })).toHaveClass('h-10', 'w-10')
+    })
+  })
+
+  describe('dropdown shadow', () => {
+    it('uses the shadow-warm design token instead of an inline boxShadow', async () => {
+      const user = userEvent.setup()
+      renderBell()
+      await user.click(screen.getByRole('button', { name: /notifications/i }))
+      const dropdown = screen.getByText('No notifications yet').parentElement!.parentElement!
+      expect(dropdown).toHaveClass('shadow-warm')
+      expect(dropdown).not.toHaveAttribute('style')
+    })
+  })
+
   describe('bell aria-label', () => {
     it('uses static label when there are no unread notifications', () => {
       renderBell()
@@ -120,7 +138,7 @@ describe('NotificationBell', () => {
       expect(screen.getByText('No notifications yet')).toBeInTheDocument()
     })
 
-    it('shows loading indicator when loading and no notifications', async () => {
+    it('shows skeleton loading rows when loading and no notifications', async () => {
       mockUseNotifications.mockReturnValue({
         notifications: [],
         unreadCount: 0,
@@ -131,7 +149,7 @@ describe('NotificationBell', () => {
       const user = userEvent.setup()
       renderBell()
       await user.click(screen.getByRole('button', { name: /notifications/i }))
-      expect(screen.getByText('…')).toBeInTheDocument()
+      expect(screen.getByTestId('notifications-loading-skeleton')).toBeInTheDocument()
     })
 
     it('renders notification items', async () => {

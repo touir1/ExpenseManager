@@ -299,6 +299,29 @@ describe('ExpensesPage', () => {
     expect(screen.queryByText(/page \d+ of \d+/i)).not.toBeInTheDocument()
   })
 
+  it('renders pagination prev/next as bordered buttons, not bare text links', async () => {
+    mockGetExpenses.mockResolvedValue({
+      ok: true,
+      data: { ...pagedResponse, totalPages: 3, totalCount: 60 },
+    })
+    renderPage()
+    await waitFor(() => {
+      expect(screen.getByText(/page 1 of 3/i)).toBeInTheDocument()
+    })
+    const prevBtn = screen.getByRole('button', { name: /prev/i })
+    const nextBtn = screen.getByRole('button', { name: /next/i })
+    expect(prevBtn).toHaveClass('border', 'border-surface-border')
+    expect(nextBtn).toHaveClass('border', 'border-surface-border')
+  })
+
+  it('shows the load-failed error using the berry (Hearth semantic) color token', async () => {
+    mockGetExpenses.mockResolvedValue({ ok: false })
+    renderPage()
+    await waitFor(() => {
+      expect(screen.getByText(/failed/i).closest('span')).toHaveClass('text-berry')
+    })
+  })
+
   describe('add expense modal', () => {
     it('does not show modal when on /expenses', () => {
       renderPage('/expenses')

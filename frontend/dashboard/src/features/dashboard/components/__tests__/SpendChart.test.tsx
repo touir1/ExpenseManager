@@ -8,7 +8,7 @@ vi.mock('recharts', () => ({
     <div data-testid="composed-chart">{children}</div>
   ),
   Bar: () => null,
-  Line: () => null,
+  Line: (props: { stroke: string }) => <div data-testid="avg-line" data-stroke={props.stroke} />,
   XAxis: () => null,
   YAxis: () => null,
   Tooltip: () => null,
@@ -50,6 +50,11 @@ describe('SpendChart', () => {
   it('renders section title', () => {
     render(<SpendChart data={mockMonthly} isLoading={false} />)
     expect(screen.getByText(/monthly spending/i, { selector: 'p' })).toBeInTheDocument()
+  })
+
+  it('uses the Hearth mustard color for the average line, not slate', () => {
+    render(<SpendChart data={mockMonthly} isLoading={false} />)
+    expect(screen.getByTestId('avg-line')).toHaveAttribute('data-stroke', '#D6A23F')
   })
 
   it('renders a screen-reader-only data table mirroring the chart series', () => {

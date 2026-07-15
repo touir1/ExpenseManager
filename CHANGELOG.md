@@ -1,6 +1,22 @@
 
 # Changelog
 
+## [0.135.0] - 2026-07-15
+### Feature: Visual Design Deep-Dive closed (section 16 of ux-ui-improvements.md)
+
+- Audited all 22 items in §16 — ~9 were already fixed in prior sessions (dark-mode-safe design tokens in `ExpensesPage.tsx`, chart colors reading `--chart-*` CSS vars via `useChartColors()`, `FormCombobox` selected-item checkmark, tabular-aligned/locale-formatted amounts and dates, icon-only edit/delete buttons, `ExpenseForm` amount/currency proportions, web `font-display: swap`); remaining items implemented.
+- **`MonthHero.tsx`** — delta badge now uses Hearth semantic tokens (`bg-sage-soft text-sage` / `bg-berry-soft text-berry`) instead of raw `green`/`red`; top-category badge no longer renders the emoji `icon` field (name text only, per no-emoji-icons rule).
+- **`NavBar.tsx`** — Add Expense and avatar buttons enlarged `h-8 w-8` → `h-10 w-10` (44px-adjacent touch target); user dropdown now animates via `opacity`/`scale`/`invisible` classes instead of a hard `hidden` toggle; dropdown shadow consolidated to the `shadow-warm` token (was inline `boxShadow`); logo wordmark uses `font-serif` (Instrument Serif) for brand distinction.
+- **`NotificationBell.tsx`** (web) — bell button enlarged to `h-10 w-10`; dropdown shadow consolidated to `shadow-warm`; loading state replaced `…` text with 3 skeleton rows (`data-testid="notifications-loading-skeleton"`).
+- **`FormCombobox.tsx`** — added a chevron-down indicator (input gets `pr-8` to make room); option row density `py-1.5` → `py-2`.
+- **`ExpenseForm.tsx`** — description textarea now shows a `{length}/500` character counter; family checkboxes replaced native browser styling with a custom `sr-only` input + styled indicator span (checkmark driven by React state, not CSS `peer-checked` — the checkmark SVG is nested inside the indicator span rather than a direct sibling of the input, so Tailwind's sibling-only `peer-checked:` selector can't reach it).
+- **`ExpensesPage.tsx`** — pagination Prev/Next changed from bare text links to bordered buttons with chevron icons; load-failed error text uses `text-berry` instead of raw `text-red-500`.
+- **`SpendChart.tsx`** — average line color changed from the adaptive `chartColors.tick` to a fixed Hearth mustard (`#D6A23F`) for contrast against the clay bars.
+- Added/updated unit tests across `MonthHero`, `NavBar`, `NotificationBell` (web), `FormCombobox`, `ExpenseForm`, `ExpensesPage`, `SpendChart` test files; full dashboard suite (1212 tests) and typecheck pass.
+- Marked all §16 rows ✅ Done in `docs/plans/ux-ui-improvements.md`; moved `docs/plans/visual-design-deep-dive-plan.md` to `docs/plans/done/`.
+
+---
+
 ## [0.134.0] - 2026-07-15
 ### Feature: Quick Wins closed (section 13 of ux-ui-improvements.md)
 

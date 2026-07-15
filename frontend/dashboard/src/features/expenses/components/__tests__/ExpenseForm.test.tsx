@@ -101,6 +101,13 @@ describe('ExpenseForm', () => {
       expect(screen.getByLabelText(/^description$/i)).toBeInTheDocument()
     })
 
+    it('shows a character counter that updates as description is typed', () => {
+      renderForm()
+      expect(screen.getByText('0/500')).toBeInTheDocument()
+      fireEvent.change(screen.getByLabelText(/^description$/i), { target: { value: 'Weekly shop' } })
+      expect(screen.getByText('11/500')).toBeInTheDocument()
+    })
+
     it('renders tag input', () => {
       renderForm()
       expect(screen.getByTestId('tag-input')).toBeInTheDocument()
@@ -170,6 +177,15 @@ describe('ExpenseForm', () => {
       const labels = screen.getAllByRole('checkbox')
       const nonDefault = labels.find(el => el.closest('label')?.textContent?.includes('Smith'))
       expect(nonDefault).not.toBeDisabled()
+    })
+
+    it('custom checkbox indicator toggles on click without breaking form state', async () => {
+      const user = userEvent.setup()
+      renderForm()
+      const checkbox = screen.getAllByRole('checkbox').find(el => el.closest('label')?.textContent?.includes('Smith'))!
+      expect(checkbox).not.toBeChecked()
+      await user.click(checkbox.closest('label')!)
+      expect(checkbox).toBeChecked()
     })
   })
 

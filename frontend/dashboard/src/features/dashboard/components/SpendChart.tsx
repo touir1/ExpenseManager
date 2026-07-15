@@ -16,6 +16,7 @@ import EmptyState from '@/components/EmptyState'
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const BAR_COLOR = '#c8623e'
+const AVG_LINE_COLOR = '#D6A23F' // mustard — Hearth palette, contrasts against clay bars
 
 type Props = {
   data: MonthlyBreakdownDto[]
@@ -109,7 +110,7 @@ export function SpendChart({ data, isLoading, displayCurrency }: Props) {
             <Line
               type="monotone"
               dataKey="avg"
-              stroke={chartColors.tick}
+              stroke={AVG_LINE_COLOR}
               strokeWidth={1.5}
               dot={false}
               strokeDasharray="4 3"

@@ -38,8 +38,8 @@ export function MonthHero({ data, isLoading, comparedToLabel }: Props) {
 
   const deltaPositive = (data.changePercent ?? 0) >= 0
   const deltaClass = deltaPositive
-    ? 'bg-green-50 text-green-700'
-    : 'bg-red-50 text-red-700'
+    ? 'bg-sage-soft text-sage'
+    : 'bg-berry-soft text-berry'
   const deltaSign = deltaPositive ? '+' : ''
 
   return (
@@ -81,7 +81,6 @@ export function MonthHero({ data, isLoading, comparedToLabel }: Props) {
         {data.topCategory && (
           <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-brand-50 text-brand-700">
             <span className="font-normal opacity-75">{t('dashboard.summary.topCategory')}</span>
-            {data.topCategory.icon && <span>{data.topCategory.icon}</span>}
             {data.topCategory.name}
           </span>
         )}

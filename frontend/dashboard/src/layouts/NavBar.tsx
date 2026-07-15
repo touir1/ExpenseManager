@@ -127,7 +127,7 @@ export default function NavBar() {
               />
             </svg>
           </span>
-          <span className="font-bold text-ink text-[15px] tracking-tight">
+          <span className="font-serif font-bold text-ink text-[17px] tracking-tight">
             Expense<span className="text-brand-500">Manager.</span>
           </span>
         </Link>
@@ -163,7 +163,7 @@ export default function NavBar() {
                   onClick={() => setAddExpenseOpen(true)}
                   aria-label={t('nav.addExpense')}
                   title={t('nav.addExpenseTooltip')}
-                  className="h-8 w-8 rounded-lg bg-brand-500 hover:bg-brand-600 text-white flex items-center justify-center transition-colors duration-150"
+                  className="h-10 w-10 rounded-lg bg-brand-500 hover:bg-brand-600 text-white flex items-center justify-center transition-colors duration-150"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -184,14 +184,17 @@ export default function NavBar() {
                     onClick={() => setUserMenuOpen(o => !o)}
                     aria-label={t('nav.userMenu')}
                     aria-expanded={userMenuOpen}
-                    className="h-8 w-8 rounded-full bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold flex items-center justify-center transition-colors duration-150 cursor-pointer"
+                    className="h-10 w-10 rounded-full bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold flex items-center justify-center transition-colors duration-150 cursor-pointer"
                   >
                     {userInitials}
                   </button>
 
                   <div
-                    className={`absolute right-0 top-full mt-2 w-56 bg-surface-card border border-surface-border rounded-2xl py-1.5 z-50 ${userMenuOpen ? '' : 'hidden'}`}
-                    style={{ boxShadow: '0 8px 20px -10px rgba(30,20,10,0.5)' }}
+                    className={`absolute right-0 top-full mt-2 w-56 bg-surface-card border border-surface-border rounded-2xl py-1.5 z-50 shadow-warm transition-all duration-150 origin-top-right ${
+                      userMenuOpen
+                        ? 'visible opacity-100 scale-100'
+                        : 'invisible opacity-0 scale-95'
+                    }`}
                   >
                     <NavLink
                       to="/settings"

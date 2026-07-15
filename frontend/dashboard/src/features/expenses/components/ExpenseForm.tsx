@@ -321,6 +321,9 @@ export default function ExpenseForm({ initialValues, onSubmit, onSaveAndAddAnoth
               maxLength={500}
               {...register('description')}
             />
+            <p className="text-xs text-ink-faint text-right mt-0.5">
+              {(watch('description') ?? '').length}/500
+            </p>
           </div>
 
           {/* Tags */}
@@ -340,17 +343,36 @@ export default function ExpenseForm({ initialValues, onSubmit, onSaveAndAddAnoth
             <div>
               <label className="field-label">{t('expenses.fields.families')}</label>
               <div className="space-y-1.5">
-                {nonDefaultFamilies.map(f => (
-                  <label key={f.id} className="flex items-center gap-2 text-sm text-ink-body cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={checkedFamilyIds.has(f.id)}
-                      onChange={() => handleFamilyToggle(f.id)}
-                      className="h-4 w-4 rounded border-surface-border accent-brand-500 cursor-pointer"
-                    />
-                    {f.name}
-                  </label>
-                ))}
+                {nonDefaultFamilies.map(f => {
+                  const isChecked = checkedFamilyIds.has(f.id)
+                  return (
+                    <label key={f.id} className="flex items-center gap-2.5 text-sm text-ink-body cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => handleFamilyToggle(f.id)}
+                        className="peer sr-only"
+                      />
+                      <span
+                        aria-hidden="true"
+                        className={`h-4 w-4 rounded-md border flex items-center justify-center
+                                   transition-colors duration-150 shrink-0
+                                   peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500 peer-focus-visible:ring-offset-1 ${
+                                     isChecked
+                                       ? 'bg-brand-500 border-brand-500'
+                                       : 'bg-surface-card border-surface-border'
+                                   }`}
+                      >
+                        {isChecked && (
+                          <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </span>
+                      {f.name}
+                    </label>
+                  )
+                })}
               </div>
             </div>
           )}

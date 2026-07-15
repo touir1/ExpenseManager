@@ -20,6 +20,11 @@ describe('FormCombobox', () => {
     expect(screen.getByDisplayValue('EUR')).toBeInTheDocument()
   })
 
+  it('renders a dropdown chevron indicator', () => {
+    const { container } = render(<FormCombobox value={undefined} onChange={vi.fn()} options={options} />)
+    expect(container.querySelector('svg path[d="M19 9l-7 7-7-7"]')).toBeInTheDocument()
+  })
+
   it('opens dropdown on focus', () => {
     render(<FormCombobox value={undefined} onChange={vi.fn()} options={options} />)
     const input = screen.getByPlaceholderText('—')

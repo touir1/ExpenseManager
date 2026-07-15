@@ -412,7 +412,7 @@ export default function ExpensesPage() {
 
       {isError && (
         <div className="flex justify-center py-16">
-          <span className="text-red-500">{t('expenses.errors.loadFailed')}</span>
+          <span className="text-berry">{t('expenses.errors.loadFailed')}</span>
         </div>
       )}
 
@@ -474,8 +474,11 @@ export default function ExpensesPage() {
                   <button
                     onClick={() => setFilter(f => ({ ...f, page: Math.max(1, (f.page ?? 1) - 1) }))}
                     disabled={page <= 1}
-                    className="text-sm font-medium text-brand-600 hover:text-brand-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-surface-border text-sm font-medium text-ink-body hover:bg-surface-subtle disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
                     {t('expenses.pagination.prev')}
                   </button>
                   <span className="text-sm text-ink-mute">
@@ -484,9 +487,12 @@ export default function ExpensesPage() {
                   <button
                     onClick={() => setFilter(f => ({ ...f, page: Math.min(totalPages, (f.page ?? 1) + 1) }))}
                     disabled={page >= totalPages}
-                    className="text-sm font-medium text-brand-600 hover:text-brand-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-surface-border text-sm font-medium text-ink-body hover:bg-surface-subtle disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
                     {t('expenses.pagination.next')}
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
                   </button>
                   <label htmlFor="pagination-goto" className="text-sm text-ink-mute flex items-center gap-1.5">
                     {t('expenses.pagination.goToPage')}

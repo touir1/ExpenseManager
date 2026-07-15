@@ -225,6 +225,42 @@ describe('NavBar', () => {
       renderNavBar('/dashboard')
       expect(screen.getByRole('button', { name: /user menu/i })).toHaveTextContent('?')
     })
+
+    it('meets the 44px-adjacent touch target minimum (40px, h-10 w-10) for the avatar button', () => {
+      renderNavBar('/dashboard')
+      expect(screen.getByRole('button', { name: /user menu/i })).toHaveClass('h-10', 'w-10')
+    })
+
+    it('animates the dropdown via opacity/scale instead of a hard hidden toggle', async () => {
+      const user = userEvent.setup()
+      renderNavBar('/dashboard')
+
+      const settingsLink = screen.getAllByRole('link', { name: /^settings$/i })[0]
+      const dropdown = settingsLink.closest('div')!
+
+      expect(dropdown).toHaveClass('invisible', 'opacity-0', 'scale-95')
+      expect(dropdown).not.toHaveClass('hidden')
+
+      await user.click(screen.getByRole('button', { name: /user menu/i }))
+
+      expect(dropdown).toHaveClass('visible', 'opacity-100', 'scale-100')
+    })
+  })
+
+  describe('add expense button', () => {
+    it('meets the 40px touch target size', () => {
+      renderNavBar('/dashboard')
+      expect(screen.getByRole('button', { name: /add expense/i })).toHaveClass('h-10', 'w-10')
+    })
+  })
+
+  describe('logo', () => {
+    it('uses the serif wordmark font for brand distinction', () => {
+      renderNavBar('/dashboard')
+      const logoLink = screen.getByRole('link', { name: /ExpenseManager\.$/i })
+      const wordmark = Array.from(logoLink.querySelectorAll('span')).find(el => el.textContent?.includes('ExpenseManager'))
+      expect(wordmark).toHaveClass('font-serif')
+    })
   })
 
   // ── Logout ───────────────────────────────────────────────────────────────

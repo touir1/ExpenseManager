@@ -41,7 +41,7 @@ export default function NotificationBell() {
         onClick={() => setOpen(o => !o)}
         aria-label={unreadCount > 0 ? t('notifications.bellLabelUnread', { count: unreadCount }) : t('notifications.bellLabel')}
         aria-expanded={open}
-        className="relative h-8 w-8 rounded-lg text-ink-mute hover:text-ink hover:bg-surface-subtle flex items-center justify-center transition-colors duration-150 cursor-pointer"
+        className="relative h-10 w-10 rounded-lg text-ink-mute hover:text-ink hover:bg-surface-subtle flex items-center justify-center transition-colors duration-150 cursor-pointer"
       >
         <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -58,8 +58,7 @@ export default function NotificationBell() {
 
       {open && (
         <div
-          className="absolute right-0 top-full mt-2 w-80 bg-surface-card border border-surface-border rounded-2xl z-50 overflow-hidden"
-          style={{ boxShadow: '0 8px 20px -10px rgba(30,20,10,0.5)' }}
+          className="absolute right-0 top-full mt-2 w-80 bg-surface-card border border-surface-border rounded-2xl z-50 overflow-hidden shadow-warm"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-3 py-2.5 border-b border-surface-border">
@@ -77,7 +76,14 @@ export default function NotificationBell() {
           {/* List */}
           <div className="max-h-80 overflow-y-auto">
             {isLoading && notifications.length === 0 ? (
-              <div className="px-3 py-4 text-sm text-ink-mute text-center">…</div>
+              <div data-testid="notifications-loading-skeleton" className="divide-y divide-surface-border">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="px-3 py-2.5 animate-pulse">
+                    <div className="h-3.5 bg-surface-muted rounded w-3/4 mb-1.5" />
+                    <div className="h-2.5 bg-surface-subtle rounded w-1/3" />
+                  </div>
+                ))}
+              </div>
             ) : notifications.length === 0 ? (
               <div className="px-3 py-4 text-sm text-ink-mute text-center">
                 {t('notifications.empty')}

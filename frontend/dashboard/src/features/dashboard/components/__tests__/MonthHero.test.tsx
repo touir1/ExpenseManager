@@ -20,16 +20,16 @@ describe('MonthHero', () => {
     expect(screen.getByText((text) => text.replace(/[\s,]/g, '').includes('2430'))).toBeInTheDocument()
   })
 
-  it('renders positive delta chip with green class', () => {
+  it('renders positive delta chip with sage (Hearth semantic) class', () => {
     render(<MonthHero data={mockSummary} isLoading={false} />)
     const chip = screen.getByText(/\+8\.0%/)
-    expect(chip.closest('span')).toHaveClass('text-green-700')
+    expect(chip.closest('span')).toHaveClass('text-sage', 'bg-sage-soft')
   })
 
-  it('renders negative delta chip with red class', () => {
+  it('renders negative delta chip with berry (Hearth semantic) class', () => {
     render(<MonthHero data={{ ...mockSummary, changePercent: -5.2 }} isLoading={false} />)
     const chip = screen.getByText(/-5\.2%/)
-    expect(chip.closest('span')).toHaveClass('text-red-700')
+    expect(chip.closest('span')).toHaveClass('text-berry', 'bg-berry-soft')
   })
 
   it('renders expense count', () => {
@@ -40,6 +40,12 @@ describe('MonthHero', () => {
   it('renders top category name', () => {
     render(<MonthHero data={mockSummary} isLoading={false} />)
     expect(screen.getByText(/Food/)).toBeInTheDocument()
+  })
+
+  it('does not render an emoji icon for the top category (SVG/text only per design system)', () => {
+    const data = { ...mockSummary, topCategory: { ...mockSummary.topCategory!, icon: '🍔' } as typeof mockSummary.topCategory }
+    render(<MonthHero data={data} isLoading={false} />)
+    expect(screen.queryByText('🍔')).not.toBeInTheDocument()
   })
 
   it('renders converted total when displayCurrency present', () => {

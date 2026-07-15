@@ -649,15 +649,17 @@
 
 ---
 
-## 16. Visual Design Deep-Dive (Code-Level)
+## 16. Visual Design Deep-Dive (Code-Level) — ✅ Done
 
 > Based on ui-ux-pro-max design system analysis + direct code audit.  
 > The project uses a **"Hearth"** design system — warm earthy palette (cream surfaces, clay #C8623E primary, cocoa ink), Manrope typeface, JetBrains Mono for data.  
 > The tokens are well-defined. The problem is **inconsistent usage** — several components bypass the token system entirely.
+>
+> **Resolution (2026-07-15):** all items below closed. Several (token violations in `ExpensesPage.tsx`, chart dark-mode colors, `FormCombobox` selected-item indicator, tabular amounts, ISO date formatting, icon action buttons) were already fixed in a prior session. Remaining items (delta badge colors, touch targets, dropdown transitions, serif logo, chevron indicator, textarea counter, custom checkboxes, pagination shape, notification skeleton, emoji removal, shadow consolidation, mustard line color, berry error color) implemented via `/ui-ux-pro-max`; see `docs/plans/done/visual-design-deep-dive-plan.md`.
 
 ---
 
-### 🔴 Design Token Violations — Dark Mode Breaks
+### 🔴 Design Token Violations — Dark Mode Breaks — ✅ Done (already fixed)
 
 The biggest visual issue in the codebase. These hardcoded Tailwind colors ignore `--color-surface-*` and `--color-ink-*` tokens and **will not adapt to dark mode**:
 
@@ -703,7 +705,7 @@ className="… border border-surface-border bg-surface-card hover:bg-surface-sub
 
 ---
 
-### 🔴 Chart Colors — Dark Mode Breaks
+### 🔴 Chart Colors — Dark Mode Breaks — ✅ Done (already fixed)
 
 `SpendChart.tsx` has hardcoded colors throughout despite `--chart-*` CSS variables already existing in `variables.css`:
 
@@ -736,7 +738,7 @@ function getCSSVar(name: string) {
 
 ---
 
-### 🔴 MonthHero — Wrong Signal Colors for Delta Badge
+### 🔴 MonthHero — Wrong Signal Colors for Delta Badge — ✅ Done
 
 ```tsx
 // ❌ Current — generic green/red, not Hearth semantic tokens
@@ -754,7 +756,7 @@ const deltaClass = deltaPositive
 
 ---
 
-### 🔴 Touch Targets Too Small (32px vs 44px minimum)
+### 🔴 Touch Targets Too Small (32px vs 44px minimum) — ✅ Done (enlarged to 40px)
 
 Three navbar controls are `h-8 w-8` = 32×32px, violating the 44×44pt minimum:
 
@@ -775,7 +777,7 @@ className="relative h-8 w-8 … before:absolute before:inset-[-6px] before:conte
 
 ---
 
-### 🟡 FormCombobox — No Selected-Item Visual Indicator
+### 🟡 FormCombobox — No Selected-Item Visual Indicator — ✅ Done (already fixed)
 
 When an option is selected, only `font-semibold` is applied — no checkmark, no color highlight. Users can't tell at a glance which item is active:
 
@@ -795,7 +797,7 @@ Also: the dropdown uses `shadow-lg` (generic) but the tailwind config defines `s
 
 ---
 
-### 🟡 FormCombobox — No Dropdown Arrow Indicator
+### 🟡 FormCombobox — No Dropdown Arrow Indicator — ✅ Done
 
 The combobox input looks like a plain text field — no chevron-down icon signals it is a dropdown. Users may type into it thinking it's a regular search box:
 
@@ -813,7 +815,7 @@ The combobox input looks like a plain text field — no chevron-down icon signal
 
 ---
 
-### 🟡 ExpenseForm — Textarea Has No Character Counter
+### 🟡 ExpenseForm — Textarea Has No Character Counter — ✅ Done
 
 The description `<textarea>` has `maxLength={500}` but shows no counter. Users type freely until characters stop appearing:
 
@@ -829,7 +831,7 @@ The description `<textarea>` has `maxLength={500}` but shows no counter. Users t
 
 ---
 
-### 🟡 ExpenseForm — Family Checkboxes Use Browser-Default Styling
+### 🟡 ExpenseForm — Family Checkboxes Use Browser-Default Styling — ✅ Done
 
 The browser's native checkbox renders with the OS chrome (gray square on Windows, blue on Mac). Only the fill color is overridden via `accent-brand-500`. The border, size, and shape are inconsistent with the Hearth rounded aesthetic:
 
@@ -853,7 +855,7 @@ The browser's native checkbox renders with the OS chrome (gray square on Windows
 
 ---
 
-### 🟡 Expense Table — Amounts Not Tabular-Aligned
+### 🟡 Expense Table — Amounts Not Tabular-Aligned — ✅ Done (already fixed)
 
 Amount values in the expense list render with proportional-width digits (default). In a column of numbers, digits don't vertically align — `1` is narrower than `8`, making amounts hard to compare at a glance. The project already has JetBrains Mono configured:
 
@@ -871,7 +873,7 @@ Same fix applies to: date column (use `tabular-nums`), MonthHero amount (`font-m
 
 ---
 
-### 🟡 Expense Table — Date Shown in ISO Format
+### 🟡 Expense Table — Date Shown in ISO Format — ✅ Done (already fixed)
 
 The date column shows raw `YYYY-MM-DD` ISO strings ("2026-01-15"). This is machine-readable, not human-friendly:
 
@@ -890,7 +892,7 @@ The date column shows raw `YYYY-MM-DD` ISO strings ("2026-01-15"). This is machi
 
 ---
 
-### 🟡 Table Action Buttons — Too Small, No Icon
+### 🟡 Table Action Buttons — Too Small, No Icon — ✅ Done (already fixed)
 
 "Edit" and "Delete" are plain text links with no padding or icon. Tiny click targets on a row, easy to misclick between them. Also purely text — no visual affordance of destructiveness for Delete:
 
@@ -912,7 +914,7 @@ The date column shows raw `YYYY-MM-DD` ISO strings ("2026-01-15"). This is machi
 
 ---
 
-### 🟡 Pagination — Text Links With No Button Shape
+### 🟡 Pagination — Text Links With No Button Shape — ✅ Done
 
 "Prev" / "Next" are styled as text links. They look inactive even when enabled — no pill/button shape, no icon:
 
@@ -935,7 +937,7 @@ The date column shows raw `YYYY-MM-DD` ISO strings ("2026-01-15"). This is machi
 
 ---
 
-### 🟡 NavBar — User Dropdown Missing Backdrop / Transition
+### 🟡 NavBar — User Dropdown Missing Backdrop / Transition — ✅ Done
 
 The user dropdown (`userMenuOpen ? '' : 'hidden'`) uses a hard `hidden` class toggle — appears/disappears instantly with no animation. Jarring compared to the 150ms transitions elsewhere:
 
@@ -954,7 +956,7 @@ className={`… transition-all duration-150 origin-top-right
 
 ---
 
-### 🟡 NavBar — Logo Text Needs `font-serif` for Brand Distinction
+### 🟡 NavBar — Logo Text Needs `font-serif` for Brand Distinction — ✅ Done
 
 The logo text uses `font-bold text-[15px]` (Manrope, the body font). The Hearth design system includes `Instrument Serif` as a serif font for brand moments. The logo is a great candidate:
 
@@ -974,7 +976,7 @@ The logo text uses `font-bold text-[15px]` (Manrope, the body font). The Hearth 
 
 ---
 
-### 🟡 Notification Dropdown — Loading State Is Just `…`
+### 🟡 Notification Dropdown — Loading State Is Just `…` — ✅ Done
 
 When notifications are loading, the dropdown shows a `…` ellipsis centered in the list. Every other loading state in the app uses skeleton placeholders:
 
@@ -1001,7 +1003,7 @@ When notifications are loading, the dropdown shows a `…` ellipsis centered in 
 
 ---
 
-### 🟡 TopCategory Badge Uses Emoji Icon
+### 🟡 TopCategory Badge Uses Emoji Icon — ✅ Done (icon removed, name text only)
 
 In `MonthHero`, the top category badge renders `data.topCategory.icon` which is an emoji from the database:
 
@@ -1017,7 +1019,7 @@ Emojis render inconsistently across platforms (different sizes, colors, styles o
 
 ---
 
-### 🟡 Shadow Inconsistency Across Modals
+### 🟡 Shadow Inconsistency Across Modals — ✅ Done
 
 Three different shadow styles used across overlays:
 - ConfirmDeleteModal: `shadow-xl` (generic Tailwind)
@@ -1041,7 +1043,7 @@ Consolidate ConfirmDeleteModal to `shadow-warm` as well for cohesion.
 
 ---
 
-### 🟡 Missing `font-display: swap` on Manrope
+### 🟡 Missing `font-display: swap` on Manrope — ✅ Done (web already has it; mobile doesn't load Manrope as a web font, N/A)
 
 Both web and mobile use Manrope. If loaded from Google Fonts without `font-display: swap`, the browser shows invisible text (FOIT) until the font loads. Check `index.html`:
 
@@ -1054,7 +1056,7 @@ font-display: swap;
 
 ---
 
-### 🟢 ExpenseForm — Amount+Currency Row Proportions
+### 🟢 ExpenseForm — Amount+Currency Row Proportions — ✅ Done (already fixed)
 
 The row splits as `flex-1` (amount) + `w-36` (currency = 144px). On narrow viewports the currency field is cramped. Currency codes are 3 characters ("USD", "EUR") — the field could be `w-28` and still look fine, giving more space to the amount:
 
@@ -1070,7 +1072,7 @@ The row splits as `flex-1` (amount) + `w-36` (currency = 144px). On narrow viewp
 
 ---
 
-### 🟢 SpendChart — Average Line Uses Slate, Not Hearth
+### 🟢 SpendChart — Average Line Uses Slate, Not Hearth — ✅ Done
 
 ```tsx
 // ❌ Current
@@ -1084,7 +1086,7 @@ const LINE_COLOR = '#D6A23F'   // mustard — in palette, good contrast on cream
 
 ---
 
-### 🟢 FormCombobox — Option List Item Height Too Dense
+### 🟢 FormCombobox — Option List Item Height Too Dense — ✅ Done
 
 List items use `py-1.5` (6px top+bottom = 28–30px total height). Below the 44px touch target minimum. While this is a mouse-first dropdown on web, improving density helps reduce misclicks:
 
@@ -1100,7 +1102,7 @@ className="px-3 py-2 text-sm cursor-pointer …"
 
 ---
 
-### 🟢 ExpensesPage — Error State Uses Raw `text-red-500`
+### 🟢 ExpensesPage — Error State Uses Raw `text-red-500` — ✅ Done
 
 ```tsx
 // ❌ Current — raw Tailwind red, not Hearth berry
