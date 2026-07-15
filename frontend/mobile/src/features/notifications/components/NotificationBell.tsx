@@ -31,7 +31,19 @@ export function NotificationBell({ slot }: Props) {
 
   return (
     <>
-      <IonButton slot={slot} fill="clear" color="dark" onClick={handleBellClick} id="notification-bell">
+      <IonButton
+        slot={slot}
+        fill="clear"
+        color="dark"
+        onClick={handleBellClick}
+        id="notification-bell"
+        aria-label={
+          unreadCount > 0
+            ? `${t('notifications.bellLabel', 'Notifications')}, ${unreadCount} ${t('notifications.unread', 'unread')}`
+            : t('notifications.bellLabel', 'Notifications')
+        }
+      >
+
         <IonIcon icon={notificationsOutline} />
         {unreadCount > 0 && (
           <IonBadge color="danger" style={{ position: 'absolute', top: 4, right: 4, fontSize: 10 }}>

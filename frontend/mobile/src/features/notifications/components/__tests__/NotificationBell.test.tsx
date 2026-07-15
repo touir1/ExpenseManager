@@ -9,8 +9,8 @@ vi.mock('@/features/notifications/NotificationContext', () => ({
 }))
 
 vi.mock('@ionic/react', async () => ({
-  IonButton: ({ children, onClick, id, slot }: any) => (
-    <button onClick={onClick} id={id} data-slot={slot}>{children}</button>
+  IonButton: ({ children, onClick, id, slot, ['aria-label']: ariaLabel }: any) => (
+    <button onClick={onClick} id={id} data-slot={slot} aria-label={ariaLabel}>{children}</button>
   ),
   IonIcon: ({ icon, color, ['data-testid']: testId }: any) => (
     <span data-testid={testId} data-icon={icon} data-color={color} />
@@ -58,6 +58,21 @@ describe('NotificationBell (mobile)', () => {
     })
     render(<NotificationBell />)
     expect(screen.getByText('3')).toBeInTheDocument()
+  })
+
+  it('uses static aria-label when there are no unread notifications', () => {
+    render(<NotificationBell />)
+    expect(screen.getByRole('button', { name: 'Notifications' })).toBeInTheDocument()
+  })
+
+  it('includes unread count in aria-label when notifications are unread', () => {
+    mockUseNotifications.mockReturnValue({
+      notifications: [],
+      unreadCount: 4,
+      markAllRead: mockMarkAllRead,
+    })
+    render(<NotificationBell />)
+    expect(screen.getByRole('button', { name: 'Notifications, 4 unread' })).toBeInTheDocument()
   })
 
   it('opens popover and renders an icon per notification type', () => {

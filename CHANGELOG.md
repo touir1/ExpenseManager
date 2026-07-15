@@ -1,6 +1,15 @@
 
 # Changelog
 
+## [0.134.0] - 2026-07-15
+### Feature: Quick Wins closed (section 13 of ux-ui-improvements.md)
+
+- Audited all 10 open Quick Wins items (§13) — 9 were already implemented in a prior session (pagination hiding, row hover/cursor, per-toast `aria-live`, expenses skeleton loading, family archive confirmation modal, delete-modal expense summary, conditional subcategory field, mobile Today/Yesterday date grouping, mobile offline banner); only the notification bell's dynamic `aria-label` (item 4) was missing.
+- **`NotificationBell.tsx`** (web + mobile) — `aria-label` now includes the unread count (e.g. "Notifications, 3 unread") instead of a static "Notifications" label; added `notifications.bellLabel`/`bellLabelUnread` (web) and `notifications.bellLabel`/`unread` (mobile, built without i18next interpolation since mobile tests run without an initialized i18n instance) keys across all 4 locales (`en`/`fr`/`es`/`de`).
+- Marked all §13 rows ✅ Done in `docs/plans/ux-ui-improvements.md`; moved `docs/plans/quick-wins-plan.md` to `docs/plans/done/`.
+
+---
+
 ## [0.133.0] - 2026-07-15
 ### Fix: mobile app icon/splash art closed (ux-ui-improvements.md)
 

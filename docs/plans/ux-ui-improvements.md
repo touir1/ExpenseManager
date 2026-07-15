@@ -598,19 +598,19 @@
 
 | # | Fix | File | Effort |
 |---|-----|------|--------|
-| 1 | Hide pagination when total ≤ 1 page | `ExpensesPage.tsx` | 5 min |
-| 2 | Add `cursor-pointer` or remove hover state from non-clickable rows | `ExpensesPage.tsx` | 5 min |
-| 3 | Add `aria-live="polite"` to Toast container | `Toast.tsx` | 10 min |
-| 4 | Dynamic `aria-label` on notification bell (include count) | `NotificationBell.tsx` | 10 min |
+| ~~1~~ | ~~Hide pagination when total ≤ 1 page~~ | ~~`ExpensesPage.tsx`~~ | ✅ Done |
+| ~~2~~ | ~~Add `cursor-pointer` or remove hover state from non-clickable rows~~ | ~~`ExpensesPage.tsx`~~ | ✅ Done |
+| ~~3~~ | ~~Add `aria-live` to Toast container~~ | ~~`Toast.tsx`~~ | ✅ Done (per-toast `aria-live`, polite/assertive by type) |
+| ~~4~~ | ~~Dynamic `aria-label` on notification bell (include count)~~ | ~~`NotificationBell.tsx`~~ | ✅ Done |
 | ~~5~~ | ~~Clamp dashboard date range `to` min = `from`~~ | ~~`DashboardFilters` component~~ | ✅ Done |
 | ~~6~~ | ~~Add "Clear filters" button on ExpensesPage~~ | ~~`ExpenseFilters.tsx`~~ | ✅ Done |
-| 7 | Replace "Loading…" text with skeleton in ExpensesPage | `ExpensesPage.tsx` | 30 min |
+| ~~7~~ | ~~Replace "Loading…" text with skeleton in ExpensesPage~~ | ~~`ExpensesPage.tsx`~~ | ✅ Done |
 | ~~8~~ | ~~Validate date range (from ≤ to) in DashboardFilters~~ | ~~`DashboardFilters` component~~ | ✅ Done |
-| 9 | Add archive confirmation modal | `FamiliesPage.tsx` | 30 min |
-| 10 | Show expense summary in delete confirmation modal | `ConfirmDeleteModal` | 20 min |
-| 11 | Hide subcategory field when category has no subcategories | `ExpenseForm.tsx` | 15 min |
-| 12 | Mobile: "Today" / "Yesterday" group headers in expense list | `ExpensesListPage.tsx` | 20 min |
-| 13 | Mobile: Offline banner on expense list | `ExpensesListPage.tsx` | 30 min |
+| ~~9~~ | ~~Add archive confirmation modal~~ | ~~`FamiliesPage.tsx`~~ | ✅ Done |
+| ~~10~~ | ~~Show expense summary in delete confirmation modal~~ | ~~`ConfirmDeleteModal`~~ | ✅ Done |
+| ~~11~~ | ~~Hide subcategory field when category has no subcategories~~ | ~~`ExpenseForm.tsx`~~ | ✅ Done |
+| ~~12~~ | ~~Mobile: "Today" / "Yesterday" group headers in expense list~~ | ~~`ExpensesListPage.tsx`~~ | ✅ Done |
+| ~~13~~ | ~~Mobile: Offline banner on expense list~~ | ~~`ExpensesListPage.tsx`~~ | ✅ Done |
 | ~~14~~ | ~~Persist dashboard date range in URL query params~~ | ~~`HomeDashboardPage.tsx`~~ | ✅ Done |
 
 ---

@@ -73,6 +73,40 @@ describe('NotificationBell', () => {
     })
   })
 
+  describe('bell aria-label', () => {
+    it('uses static label when there are no unread notifications', () => {
+      renderBell()
+      expect(screen.getByRole('button', { name: 'Notifications' })).toBeInTheDocument()
+    })
+
+    it('includes unread count in the label when notifications are unread', () => {
+      mockUseNotifications.mockReturnValue({
+        notifications: [],
+        unreadCount: 3,
+        isLoading: false,
+        markRead: mockMarkRead,
+        markAllRead: mockMarkAllRead,
+      })
+      renderBell()
+      expect(screen.getByRole('button', { name: 'Notifications, 3 unread' })).toBeInTheDocument()
+    })
+
+    it('updates the label when unread count changes', () => {
+      const { rerender } = render(<MemoryRouter><NotificationBell /></MemoryRouter>)
+      expect(screen.getByRole('button', { name: 'Notifications' })).toBeInTheDocument()
+
+      mockUseNotifications.mockReturnValue({
+        notifications: [],
+        unreadCount: 5,
+        isLoading: false,
+        markRead: mockMarkRead,
+        markAllRead: mockMarkAllRead,
+      })
+      rerender(<MemoryRouter><NotificationBell /></MemoryRouter>)
+      expect(screen.getByRole('button', { name: 'Notifications, 5 unread' })).toBeInTheDocument()
+    })
+  })
+
   describe('dropdown', () => {
     it('is closed by default', () => {
       renderBell()

@@ -2,6 +2,8 @@
     "appTitle": "Expenses Manager",
     "notifications": {
         "title": "Notifications",
+        "bellLabel": "Notifications",
+        "bellLabelUnread": "Notifications, {{count}} non lu(s)",
         "markAllRead": "Tout marquer comme lu",
         "empty": "Aucune notification pour l'instant",
         "familyMemberRemoved": "{{removedByName}} vous a retiré(e) de \"{{familyName}}\". {{expenseCount}} attribution(s) supprimée(s).",

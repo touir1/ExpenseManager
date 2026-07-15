@@ -39,7 +39,7 @@ export default function NotificationBell() {
     <div className="relative" ref={containerRef}>
       <button
         onClick={() => setOpen(o => !o)}
-        aria-label={t('nav.notifications')}
+        aria-label={unreadCount > 0 ? t('notifications.bellLabelUnread', { count: unreadCount }) : t('notifications.bellLabel')}
         aria-expanded={open}
         className="relative h-8 w-8 rounded-lg text-ink-mute hover:text-ink hover:bg-surface-subtle flex items-center justify-center transition-colors duration-150 cursor-pointer"
       >
