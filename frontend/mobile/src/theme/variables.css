@@ -83,6 +83,37 @@
   --chart-tooltip-bg: #FFFCF6;
   --chart-tooltip-border: #E8DECB;
   --chart-tooltip-text: #23170E;
+
+  /* Data-label monospace stack */
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+}
+
+/* ── Primary CTA — 56px touch target per ui-ux-pro-max fintech guidance ── */
+.cta-primary {
+  --min-height: 56px;
+  font-weight: 600;
+}
+
+/* ── Press feedback — Ionic md ripple has no ios-mode equivalent ─────── */
+ion-button,
+ion-item[button] {
+  transition: transform 0.1s ease-out;
+}
+ion-button:active,
+ion-item[button]:active {
+  transform: scale(0.97);
+}
+
+/* ── Staggered list entrance ──────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Dark mode — Hearth dark palette ──────────────────────────────── */

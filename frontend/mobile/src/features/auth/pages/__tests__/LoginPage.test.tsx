@@ -43,8 +43,8 @@ vi.mock('@ionic/react', async (importOriginal) => {
         {...rest}
       />
     )),
-    IonButton: ({ children, onClick, type, disabled }: any) => (
-      <button onClick={onClick} type={type} disabled={disabled}>{children}</button>
+    IonButton: ({ children, onClick, type, disabled, className }: any) => (
+      <button onClick={onClick} type={type} disabled={disabled} className={className}>{children}</button>
     ),
     IonButtons: ({ children }: any) => <div>{children}</div>,
     IonCheckbox: React.forwardRef(({ onIonChange, onChange, onBlur, ...rest }: any, ref: any) => (
@@ -90,6 +90,12 @@ describe('LoginPage', () => {
   it('renders email and password fields', () => {
     renderLogin()
     expect(screen.getByText('Expenses Manager')).toBeDefined()
+  })
+
+  it('applies the 56px cta-primary class to the submit button', () => {
+    renderLogin()
+    const submitBtn = screen.getByRole('button', { name: /login|sign/i })
+    expect(submitBtn.className).toContain('cta-primary')
   })
 
   it('shows validation errors when submitting empty form', async () => {

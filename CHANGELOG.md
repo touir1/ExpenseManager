@@ -1,6 +1,14 @@
 
 # Changelog
 
+## [0.136.0] - 2026-07-29
+### Feature: Design System Recommendations closed (section 17 of ux-ui-improvements.md)
+
+- Mobile (`frontend/mobile/src/theme/variables.css`): added `.cta-primary` (56px min-height CTA class, applied to `LoginPage.tsx` submit button), global `ion-button:active`/`ion-item[button]:active` press-feedback (`scale(0.97)`), `@keyframes fadeInUp` staggered list entrance (applied to `ExpensesListPage.tsx` rows, capped at 10×30ms delay), and a `--font-mono` (JetBrains Mono) var applied to the expense amount label; added the JetBrains Mono Google Fonts link to `frontend/mobile/index.html`.
+- Dashboard (`frontend/dashboard/src/styles/index.css`): added an optional `--color-positive-emphasis` token (light/dark-aware emerald) for explicit positive-balance emphasis distinct from Hearth sage — opt-in, no component wired yet.
+- Typography (`font-display: swap`) was already correctly set on the dashboard's Google Fonts link — confirmed, no change needed.
+- Added/extended unit tests in `LoginPage.test.tsx` (CTA class) and `ExpensesListPage.test.tsx` (stagger delay + mono font); full mobile suite (97 tests) passes.
+
 ## [0.135.0] - 2026-07-15
 ### Feature: Visual Design Deep-Dive closed (section 16 of ux-ui-improvements.md)
 

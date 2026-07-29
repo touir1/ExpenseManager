@@ -51,7 +51,7 @@ vi.mock('@ionic/react', async () => ({
   IonItem: ({ children }: any) => <li>{children}</li>,
   IonLabel: ({ children }: any) => <span>{children}</span>,
   IonItemDivider: ({ children }: any) => <li style={{ fontWeight: 700 }}>{children}</li>,
-  IonItemSliding: ({ children, ref: _r }: any) => <div>{children}</div>,
+  IonItemSliding: ({ children, ref: _r, style }: any) => <div style={style}>{children}</div>,
   IonItemOption: ({ children, onClick }: any) => <button onClick={onClick}>{children}</button>,
   IonItemOptions: ({ children }: any) => <div>{children}</div>,
   IonRefresher: ({ onIonRefresh }: any) => <button onClick={() => onIonRefresh?.({ target: { complete: vi.fn() } })}>Refresh</button>,
@@ -258,6 +258,21 @@ describe('ExpensesListPage', () => {
       expect(lastCall?.description).toBe('coffee')
     })
     vi.useRealTimers()
+  })
+
+  it('applies staggered fade-in animation delay to expense rows', async () => {
+    const { container } = render(<ExpensesListPage />, { wrapper: makeWrapper() })
+    await waitFor(() => screen.getAllByText('Food'))
+    const rows = container.querySelectorAll('[style*="animation"]')
+    expect(rows.length).toBeGreaterThan(0)
+    expect((rows[0] as HTMLElement).style.animationDelay).toBe('0ms')
+  })
+
+  it('renders the amount in the JetBrains Mono data-label font', async () => {
+    render(<ExpensesListPage />, { wrapper: makeWrapper() })
+    await waitFor(() => screen.getAllByText('Food'))
+    const amountEl = screen.getByText(/25\.5.*€/)
+    expect(amountEl.style.fontFamily).toBe('var(--font-mono)')
   })
 
   it('does not render a receipt icon when hasReceipt is false', async () => {

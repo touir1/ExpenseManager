@@ -326,12 +326,16 @@ export default function ExpensesListPage() {
               <IonItemDivider>
                 <IonLabel>{dateGroupLabel(date, t)}</IonLabel>
               </IonItemDivider>
-              {items.map(expense => (
+              {items.map((expense, index) => (
                 <IonItemSliding
                   key={expense.id}
                   ref={el => {
                     if (el) slidingRefs.current.set(expense.id, el)
                     else slidingRefs.current.delete(expense.id)
+                  }}
+                  style={{
+                    animation: 'fadeInUp 0.3s ease-out both',
+                    animationDelay: `${Math.min(index, 10) * 30}ms`,
                   }}
                 >
                   <IonItem>
@@ -351,7 +355,7 @@ export default function ExpensesListPage() {
                       </IonButton>
                     )}
                     <IonText slot="end" color="dark">
-                      <span style={{ fontWeight: 600 }}>
+                      <span style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
                         {expense.amount.toFixed(expense.currency?.decimals ?? 2)}{' '}
                         {expense.currency?.symbol ?? ''}
                       </span>

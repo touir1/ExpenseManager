@@ -1116,36 +1116,38 @@ className="px-3 py-2 text-sm cursor-pointer …"
 
 ---
 
-## 17. Design System Recommendations (from ui-ux-pro-max)
+## 17. Design System Recommendations (from ui-ux-pro-max) — ✅ Done
+
+> **Resolution (2026-07-29):** implemented via `/ui-ux-pro-max`. Typography and color-palette items were advisory verdicts, not defects — kept as-is (see notes below). All four mobile gaps were confirmed missing via code audit and implemented: 56px `.cta-primary` CTA class, `scale(0.97)` press feedback, staggered `fadeInUp` list entrance, and JetBrains Mono data-label font — all in `frontend/mobile/src/theme/variables.css`, applied to `LoginPage.tsx` and `ExpensesListPage.tsx`. Added an optional `--color-positive-emphasis` token to the dashboard for the flagged emerald-vs-sage nuance (not wired to a component — opt-in only, per the recommendation's own wording). Unit tests added/extended in `LoginPage.test.tsx` and `ExpensesListPage.test.tsx`.
 
 ### Typography — Confirmed Good Choice
 
 The project uses **Manrope** — rated "Friendly SaaS" by the design system:
 > *Friendly, modern, SaaS, clean, approachable, professional. Best for SaaS products, web apps, dashboards, B2B.*
 
-The existing font stack is optimal. No change needed, just ensure `font-display: swap` is set.
+The existing font stack is optimal. `font-display: swap` was already set in `frontend/dashboard/index.html`'s Google Fonts link — no action needed.
 
 **Potential enhancement:** The design system recommends **Plus Jakarta Sans** as an alternative. Both are excellent for fintech dashboards. Manrope's slightly geometric letterforms match the earthy palette well — keep it.
 
-### Color Palette Assessment
+### Color Palette Assessment — ✅ Done
 
 The **Hearth palette** maps well onto the "Expense Splitter / Bill Split" fintech pattern from the design system:
 - Primary: sage green `#059669` → **close to Hearth sage `#6B8E5A`** ✅
 - Accent: berry red → **matches Hearth berry `#B5443F`** ✅
 - The clay brand color `#C8623E` is a distinctive differentiator — not typical for fintech but gives warmth and personality
 
-**One gap:** The fintech pattern uses **pure green** for "income/positive" and **red** for "debt/expense". The Hearth sage is more muted. Consider brighter `#059669` (emerald) for explicit positive-balance scenarios while keeping clay as the brand primary.
+**One gap:** The fintech pattern uses **pure green** for "income/positive" and **red** for "debt/expense". The Hearth sage is more muted. Added `--color-positive-emphasis` token (`#059669` light / `#10B981` dark) to `frontend/dashboard/src/styles/index.css` for explicit positive-balance scenarios, keeping clay as the brand primary — opt-in, no component wired yet.
 
-### Mobile Style — Recommended Direction
+### Mobile Style — Recommended Direction — ✅ Done
 
 For the Ionic mobile app, the design system recommends **"SaaS Mobile (High-Tech Boutique)"** or **"Flat Design Mobile"** for a fintech tracker:
 
 Key suggestions to incorporate:
 - **Cards:** `borderRadius: 16` + subtle border + very light shadow — Hearth already does this ✅
-- **Buttons:** Height 56px for primary CTAs — Ionic's default IonButton may be shorter; verify
-- **Press feedback:** `scale: 0.97` on press — Ionic provides this via CSS but custom Pressable components may not
-- **Staggered entrance:** Fade-in list items on screen mount (Y: 20→0 + opacity: 0→1, staggered 30ms per item) — not currently implemented
-- **JetBrains Mono for data labels** — already in tailwind config, not confirmed used on mobile
+- **Buttons:** Height 56px for primary CTAs — ✅ added `.cta-primary` class (`--min-height: 56px`) in `frontend/mobile/src/theme/variables.css`, applied to the `LoginPage.tsx` submit button
+- **Press feedback:** `scale: 0.97` on press — ✅ added global `ion-button:active`/`ion-item[button]:active` rule in `variables.css`
+- **Staggered entrance:** Fade-in list items on screen mount — ✅ added `@keyframes fadeInUp` in `variables.css`, applied with `Math.min(index, 10) * 30ms` delay in `ExpensesListPage.tsx`
+- **JetBrains Mono for data labels** — ✅ added `--font-mono` var + Google Fonts link in `frontend/mobile/index.html`, applied to the amount span in `ExpensesListPage.tsx`
 
 ---
 

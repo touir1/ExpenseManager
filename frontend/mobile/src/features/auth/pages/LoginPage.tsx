@@ -118,6 +118,7 @@ export default function LoginPage() {
             <IonButton
               expand="block"
               type="submit"
+              className="cta-primary"
               {...(isSubmitting ? { disabled: true } : {})}
               color="primary"
             >

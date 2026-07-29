@@ -22,6 +22,9 @@
   --color-sky-soft:     #CFE0E6;
   --color-brand-soft:   #FDF4EF;
 
+  /* Optional explicit positive-balance emphasis, distinct from Hearth sage — opt-in, not wired to any component yet */
+  --color-positive-emphasis: #059669;
+
   /* Recharts read these at render time — see chartTheme.ts */
   --chart-grid:            #E8DECB;
   --chart-tick:            #8E8170;
@@ -52,6 +55,8 @@
   --color-sky-soft:     #162430;
   --color-brand-soft:   #3A2A1E;
 
+  --color-positive-emphasis: #10B981;
+
   --chart-grid:            #3E2E22;
   --chart-tick:            #A09285;
   --chart-tooltip-bg:      #251D16;
@@ -76,6 +81,8 @@
     --color-mustard-soft: #2E2510;
     --color-sky-soft:     #162430;
     --color-brand-soft:   #3A2A1E;
+
+    --color-positive-emphasis: #10B981;
 
     --chart-grid:            #3E2E22;
     --chart-tick:            #A09285;
