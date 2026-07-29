@@ -11,6 +11,7 @@ import AddExpenseModal from '@/features/expenses/components/AddExpenseModal'
 import EditExpenseModal from '@/features/expenses/components/EditExpenseModal'
 import { useFamilies } from '@/features/families/FamilyContext'
 import type { ExpenseDto, ExpenseFilter } from '@/features/expenses/types/expenses.type'
+import { formatExpenseDate } from '@/features/expenses/utils/dateFormat'
 
 const DEFAULT_PAGE_SIZE = 20
 
@@ -241,7 +242,7 @@ function ExpenseRow({
       className="border-b border-surface-border hover:bg-surface-subtle transition-colors cursor-pointer"
       onClick={goToEdit}
     >
-      <td className="px-4 py-3 text-sm text-ink-body whitespace-nowrap tabular-nums">{expense.date}</td>
+      <td className="px-4 py-3 text-sm text-ink-body whitespace-nowrap tabular-nums">{formatExpenseDate(expense.date)}</td>
       <td className="px-4 py-3 text-sm font-medium text-ink whitespace-nowrap font-mono tabular-nums">{amount}</td>
       <td className="px-4 py-3 text-sm text-ink-mute">
         {expense.category ? expense.category.name : <span className="italic text-ink-faint">{t('expenses.uncategorised')}</span>}
@@ -292,7 +293,7 @@ function ExpenseCard({
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-medium text-ink font-mono tabular-nums">{amount}</p>
-          <p className="text-xs text-ink-mute tabular-nums">{expense.date}</p>
+          <p className="text-xs text-ink-mute tabular-nums">{formatExpenseDate(expense.date)}</p>
         </div>
         <div className="flex items-center -mr-1">
           {expense.hasReceipt && <ReceiptButton onClick={() => onViewReceipt(expense)} />}
@@ -474,7 +475,7 @@ export default function ExpensesPage() {
                   <button
                     onClick={() => setFilter(f => ({ ...f, page: Math.max(1, (f.page ?? 1) - 1) }))}
                     disabled={page <= 1}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-surface-border text-sm font-medium text-ink-body hover:bg-surface-subtle disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-surface-border text-sm font-medium text-ink-body hover:bg-surface-subtle disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -487,7 +488,7 @@ export default function ExpensesPage() {
                   <button
                     onClick={() => setFilter(f => ({ ...f, page: Math.min(totalPages, (f.page ?? 1) + 1) }))}
                     disabled={page >= totalPages}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-surface-border text-sm font-medium text-ink-body hover:bg-surface-subtle disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-surface-border text-sm font-medium text-ink-body hover:bg-surface-subtle disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
                     {t('expenses.pagination.next')}
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">

@@ -5,6 +5,9 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import ExpensesPage from '../ExpensesPage'
 import type { ExpenseDto, ExpensePagedResponse } from '@/features/expenses/types/expenses.type'
+import { formatExpenseDate } from '@/features/expenses/utils/dateFormat'
+
+const EXPECTED_DATE = formatExpenseDate('2026-05-01')
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -172,7 +175,7 @@ describe('ExpensesPage', () => {
     renderPage()
     await waitFor(() => {
       const table = within(screen.getByRole('table'))
-      expect(table.getByText('2026-05-01')).toBeInTheDocument()
+      expect(table.getByText(EXPECTED_DATE)).toBeInTheDocument()
       expect(table.getByText(/50.00 EUR/i)).toBeInTheDocument()
     })
   })
@@ -197,7 +200,7 @@ describe('ExpensesPage', () => {
     const user = userEvent.setup()
     renderPage()
     await waitFor(() => screen.getByRole('table'))
-    const row = within(screen.getByRole('table')).getByText('2026-05-01').closest('tr')!
+    const row = within(screen.getByRole('table')).getByText(EXPECTED_DATE).closest('tr')!
     expect(row).toHaveClass('cursor-pointer')
     await user.click(row)
     expect(mockNavigate).toHaveBeenCalledWith('/expenses/1/edit')
@@ -207,7 +210,7 @@ describe('ExpensesPage', () => {
     const user = userEvent.setup()
     renderPage()
     await waitFor(() => screen.getByRole('table'))
-    const row = within(screen.getByRole('table')).getByText('2026-05-01').closest('tr')!
+    const row = within(screen.getByRole('table')).getByText(EXPECTED_DATE).closest('tr')!
     await user.click(row)
     expect(screen.queryByText(/delete expense\?/i)).not.toBeInTheDocument()
   })
@@ -226,7 +229,7 @@ describe('ExpensesPage', () => {
     renderPage()
     await waitFor(() => screen.getByRole('table'))
     const cardList = document.querySelector('.md\\:hidden.space-y-2')!
-    const card = within(cardList as HTMLElement).getByText('2026-05-01').closest('div.cursor-pointer')!
+    const card = within(cardList as HTMLElement).getByText(EXPECTED_DATE).closest('div.cursor-pointer')!
     await user.click(card)
     expect(mockNavigate).toHaveBeenCalledWith('/expenses/1/edit')
   })
@@ -312,6 +315,19 @@ describe('ExpensesPage', () => {
     const nextBtn = screen.getByRole('button', { name: /next/i })
     expect(prevBtn).toHaveClass('border', 'border-surface-border')
     expect(nextBtn).toHaveClass('border', 'border-surface-border')
+  })
+
+  it('renders pagination prev/next buttons pill-shaped', async () => {
+    mockGetExpenses.mockResolvedValue({
+      ok: true,
+      data: { ...pagedResponse, totalPages: 3, totalCount: 60 },
+    })
+    renderPage()
+    await waitFor(() => {
+      expect(screen.getByText(/page 1 of 3/i)).toBeInTheDocument()
+    })
+    expect(screen.getByRole('button', { name: /prev/i })).toHaveClass('rounded-full')
+    expect(screen.getByRole('button', { name: /next/i })).toHaveClass('rounded-full')
   })
 
   it('shows the load-failed error using the berry (Hearth semantic) color token', async () => {

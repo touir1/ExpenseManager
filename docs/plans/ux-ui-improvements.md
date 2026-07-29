@@ -1151,27 +1151,29 @@ Key suggestions to incorporate:
 
 ---
 
-## 18. Visual Polish — Quick Wins (Component Level)
+## 18. Visual Polish — Quick Wins (Component Level) — ✅ Done
+
+> **Resolution (2026-07-29):** audit found 18 of 20 items already implemented by earlier sessions (16/17 touched the same files). The 2 remaining were implemented this session via `/ui-ux-pro-max`: expense date locale-formatting (new `dateFormat.ts` util, unit-tested) and pill-shaped pagination buttons. Unit tests updated in `ExpensesPage.test.tsx` (literal ISO date assertions replaced with the shared util) and a new `rounded-full` assertion added.
 
 | # | Fix | File | Lines | Effort |
 |---|-----|------|-------|--------|
-| 1 | Replace `bg-white`/`border-slate-*` in ConfirmDeleteModal with tokens | `ExpensesPage.tsx` | 22–41 | 5 min |
-| 2 | Replace `border-slate-100 hover:bg-slate-50` in ExpenseRow with tokens | `ExpensesPage.tsx` | 56 | 5 min |
-| 3 | Replace `bg-white` in `<tbody>` with `bg-surface-card` | `ExpensesPage.tsx` | 205 | 2 min |
-| 4 | Replace `bg-slate-100 text-slate-600` tag badge with Hearth tokens | `ExpensesPage.tsx` | 67 | 5 min |
-| 5 | `bg-sage-soft text-sage` / `bg-berry-soft text-berry` for delta badge | `MonthHero.tsx` | 43-44 | 5 min |
-| 6 | Add `tabular-nums font-mono` to amount column in expense table | `ExpensesPage.tsx` | 58 | 2 min |
-| 7 | Locale-format date column (remove raw ISO display) | `ExpensesPage.tsx` | 57 | 10 min |
-| 8 | Add `shadow-warm` class to dropdown overlays (remove inline style) | `NavBar.tsx`, `NotificationBell.tsx` | — | 5 min |
-| 9 | Add chevron-down icon to FormCombobox input | `FormCombobox.tsx` | 41-54 | 15 min |
-| 10 | Highlight selected option in FormCombobox with brand color + checkmark | `FormCombobox.tsx` | 72 | 15 min |
-| 11 | Add opacity+scale transition to NavBar user dropdown (remove `hidden`) | `NavBar.tsx` | 185 | 10 min |
-| 12 | Replace `…` loading in NotificationBell with 3-row skeleton | `NotificationBell.tsx` | 127 | 15 min |
-| 13 | Add character counter below description textarea | `ExpenseForm.tsx` | 210-217 | 10 min |
-| 14 | Icon buttons (pencil/trash) replace text Edit/Delete in expense row | `ExpensesPage.tsx` | 83-94 | 20 min |
-| 15 | Pill-shaped pagination buttons with chevron icons | `ExpensesPage.tsx` | 217-233 | 15 min |
-| 16 | Chart colors — use `--chart-*` CSS vars instead of hardcoded hex | `SpendChart.tsx` | 14-16, 70-87 | 30 min |
-| 17 | Replace `text-red-500` error text with `text-berry` | `ExpensesPage.tsx` | 175 | 2 min |
-| 18 | SpendChart average line: `#94a3b8` → `#D6A23F` (mustard) | `SpendChart.tsx` | 16 | 2 min |
-| 19 | Increase navbar icon buttons from `h-8 w-8` to `h-9 w-9` | `NavBar.tsx`, `NotificationBell.tsx` | 161, 179, 92 | 5 min |
-| 20 | Custom styled checkbox for family multi-select | `ExpenseForm.tsx` | 240-244 | 20 min |
+| 1 | ✅ Replace `bg-white`/`border-slate-*` in ConfirmDeleteModal with tokens | `ExpensesPage.tsx` | 22–41 | 5 min |
+| 2 | ✅ Replace `border-slate-100 hover:bg-slate-50` in ExpenseRow with tokens | `ExpensesPage.tsx` | 56 | 5 min |
+| 3 | ✅ Replace `bg-white` in `<tbody>` with `bg-surface-card` | `ExpensesPage.tsx` | 205 | 2 min |
+| 4 | ✅ Replace `bg-slate-100 text-slate-600` tag badge with Hearth tokens | `ExpensesPage.tsx` | 67 | 5 min |
+| 5 | ✅ `bg-sage-soft text-sage` / `bg-berry-soft text-berry` for delta badge | `MonthHero.tsx` | 43-44 | 5 min |
+| 6 | ✅ Add `tabular-nums font-mono` to amount column in expense table | `ExpensesPage.tsx` | 58 | 2 min |
+| 7 | ✅ Locale-format date column (remove raw ISO display) — new `features/expenses/utils/dateFormat.ts` (`formatExpenseDate`), applied to table row + mobile card, unit-tested | `ExpensesPage.tsx` | 57 | 10 min |
+| 8 | ✅ Add `shadow-warm` class to dropdown overlays (remove inline style) | `NavBar.tsx`, `NotificationBell.tsx` | — | 5 min |
+| 9 | ✅ Add chevron-down icon to FormCombobox input | `FormCombobox.tsx` | 41-54 | 15 min |
+| 10 | ✅ Highlight selected option in FormCombobox with brand color + checkmark | `FormCombobox.tsx` | 72 | 15 min |
+| 11 | ✅ Add opacity+scale transition to NavBar user dropdown (remove `hidden`) | `NavBar.tsx` | 185 | 10 min |
+| 12 | ✅ Replace `…` loading in NotificationBell with 3-row skeleton | `NotificationBell.tsx` | 127 | 15 min |
+| 13 | ✅ Add character counter below description textarea | `ExpenseForm.tsx` | 210-217 | 10 min |
+| 14 | ✅ Icon buttons (pencil/trash) replace text Edit/Delete in expense row | `ExpensesPage.tsx` | 83-94 | 20 min |
+| 15 | ✅ Pill-shaped pagination buttons with chevron icons — `rounded-lg` → `rounded-full`, new unit test | `ExpensesPage.tsx` | 217-233 | 15 min |
+| 16 | ✅ Chart colors — use `--chart-*` CSS vars instead of hardcoded hex | `SpendChart.tsx` | 14-16, 70-87 | 30 min |
+| 17 | ✅ Replace `text-red-500` error text with `text-berry` | `ExpensesPage.tsx` | 175 | 2 min |
+| 18 | ✅ SpendChart average line: `#94a3b8` → `#D6A23F` (mustard) | `SpendChart.tsx` | 16 | 2 min |
+| 19 | ✅ Increase navbar icon buttons from `h-8 w-8` to `h-9 w-9` (implemented as `h-10 w-10`) | `NavBar.tsx`, `NotificationBell.tsx` | 161, 179, 92 | 5 min |
+| 20 | ✅ Custom styled checkbox for family multi-select | `ExpenseForm.tsx` | 240-244 | 20 min |

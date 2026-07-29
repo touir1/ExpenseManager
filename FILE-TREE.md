@@ -833,8 +833,10 @@ ExpenseManager/
 │           │   │   ├── ExpensesDataContext.tsx  — ExpensesDataProvider / useExpensesData(); fetches categories + currencies on mount
 │           │   │   ├── utils/
 │           │   │   │   ├── amountFormat.ts  — formatAmountDisplay(value,decimals) locale-aware grouped string via toLocaleString; parseAmountInput(raw) strips separators → number|undefined; sanitizeAmountInputChars(raw) keeps digits+single dot for live typing
+│           │   │   │   ├── dateFormat.ts  — formatExpenseDate(dateStr) locale-aware "day month year" display via toLocaleDateString, used by ExpensesPage table row + mobile card
 │           │   │   │   └── __tests__/
-│           │   │   │       └── amountFormat.test.ts
+│           │   │   │       ├── amountFormat.test.ts
+│           │   │   │       └── dateFormat.test.ts
 │           │   │   └── __tests__/
 │           │   │       ├── ExpensesDataContext.test.tsx
 │           │   │       └── expense.schemas.test.ts

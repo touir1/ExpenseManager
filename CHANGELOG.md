@@ -1,6 +1,15 @@
 
 # Changelog
 
+## [0.137.0] - 2026-07-29
+### Feature: Visual Polish Quick Wins closed (section 18 of ux-ui-improvements.md)
+
+- Audited all 20 items in §18 — 18 were already fixed in prior sessions (§16/§17 touched the same files). 2 remaining implemented this session, reviewed via `/ui-ux-pro-max`.
+- **New `frontend/dashboard/src/features/expenses/utils/dateFormat.ts`** — `formatExpenseDate(dateStr)` renders a locale-formatted day/month/year string (`toLocaleDateString`) instead of the raw ISO `YYYY-MM-DD`; applied to `ExpensesPage.tsx`'s table row and mobile card, replacing the raw `expense.date` display.
+- **`ExpensesPage.tsx`** — pagination Prev/Next buttons changed from `rounded-lg` to `rounded-full` (pill shape), completing the earlier chevron-icon fix from §16.
+- Updated `ExpensesPage.test.tsx` (literal ISO date assertions now compare against `formatExpenseDate` output instead of a hardcoded string; added a `rounded-full` pagination assertion) and added `dateFormat.test.ts`.
+- Marked all §18 rows ✅ Done in `docs/plans/ux-ui-improvements.md`.
+
 ## [0.136.0] - 2026-07-29
 ### Feature: Design System Recommendations closed (section 17 of ux-ui-improvements.md)
 
