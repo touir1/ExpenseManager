@@ -183,7 +183,12 @@
                                      "title":  "Recent expenses",
                                      "viewAll":  "View all",
                                      "empty":  "No recent expenses"
-                                 }
+                                 },
+                      "largest":  {
+                                      "title":  "Largest expenses",
+                                      "viewAll":  "View all",
+                                      "empty":  "No expenses for this period"
+                                  }
                   },
     "settings":  {
                      "pageTitle":  "Settings",

@@ -266,6 +266,24 @@ namespace Touir.ExpensesManager.Expenses.Services
             return await _expenseService.GetPagedAsync(filter, userId);
         }
 
+        public async Task<ExpensePagedResult> GetLargestAsync(
+            int userId, int? familyId, DateOnly? dateFrom, DateOnly? dateTo, int? displayCurrencyId)
+        {
+            await CheckMembershipAsync(familyId, userId);
+
+            var filter = new ExpenseFilterDto
+            {
+                FamilyId = familyId,
+                DateFrom = dateFrom,
+                DateTo = dateTo,
+                DisplayCurrencyId = displayCurrencyId,
+                Page = 1,
+                PageSize = 5,
+                SortBy = "amount"
+            };
+            return await _expenseService.GetPagedAsync(filter, userId);
+        }
+
         // ── Helpers ──────────────────────────────────────────────────────────────
 
         private async Task CheckMembershipAsync(int? familyId, int userId)

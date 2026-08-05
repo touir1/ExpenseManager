@@ -178,6 +178,11 @@
             "title": "Dépenses récentes",
             "viewAll": "Tout voir",
             "empty": "Aucune dépense récente"
+        },
+        "largest": {
+            "title": "Dépenses les plus importantes",
+            "viewAll": "Tout voir",
+            "empty": "Aucune dépense pour cette période"
         }
     },
     "settings": {

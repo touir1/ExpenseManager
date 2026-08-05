@@ -178,6 +178,11 @@
             "title": "Gastos recientes",
             "viewAll": "Ver todos",
             "empty": "Sin gastos recientes"
+        },
+        "largest": {
+            "title": "Gastos más grandes",
+            "viewAll": "Ver todos",
+            "empty": "Sin gastos para este período"
         }
     },
     "settings": {

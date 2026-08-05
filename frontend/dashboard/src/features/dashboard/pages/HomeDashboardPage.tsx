@@ -13,6 +13,7 @@ import {
   getSameMonthYearly,
   getByCurrency,
   getRecent,
+  getLargest,
 } from '@/features/dashboard/services/dashboardApi.service'
 import { MonthHero } from '@/features/dashboard/components/MonthHero'
 import { SpendChart } from '@/features/dashboard/components/SpendChart'
@@ -20,6 +21,7 @@ import { CategoryDonut } from '@/features/dashboard/components/CategoryDonut'
 import { SameMonthChart } from '@/features/dashboard/components/SameMonthChart'
 import { CurrenciesPanel } from '@/features/dashboard/components/CurrenciesPanel'
 import { RecentExpenses } from '@/features/dashboard/components/RecentExpenses'
+import { LargestExpenses } from '@/features/dashboard/components/LargestExpenses'
 import { DashboardFilters } from '@/features/dashboard/components/DashboardFilters'
 import EmptyState from '@/components/EmptyState'
 import type { DashboardFilter } from '@/features/dashboard/types/dashboard.type'
@@ -101,12 +103,18 @@ export default function HomeDashboardPage() {
     queryFn: () => getRecent(filter),
   })
 
+  const largestQ = useQuery({
+    queryKey: ['dashboard', 'largest', filter],
+    queryFn: () => getLargest(filter),
+  })
+
   const summary = summaryQ.data?.ok ? summaryQ.data.data : undefined
   const monthly = monthlyQ.data?.ok ? (monthlyQ.data.data ?? []) : []
   const categories = categoriesQ.data?.ok ? (categoriesQ.data.data ?? []) : []
   const sameMonth = sameMonthQ.data?.ok ? (sameMonthQ.data.data ?? []) : []
   const currencies = currenciesQ.data?.ok ? (currenciesQ.data.data ?? []) : []
   const recentItems = recentQ.data?.ok ? (recentQ.data.data?.items ?? []) : []
+  const largestItems = largestQ.data?.ok ? (largestQ.data.data?.items ?? []) : []
 
   const displayCurrency = summary?.displayCurrency ?? null
 
@@ -189,8 +197,12 @@ export default function HomeDashboardPage() {
             />
           </div>
 
-          <div data-testid="widget-recent-expenses" className="col-span-1 md:col-span-1 lg:col-span-2 xl:col-span-2">
+          <div data-testid="widget-recent-expenses" className="col-span-1 md:col-span-1 lg:col-span-1 xl:col-span-1">
             <RecentExpenses data={recentItems} isLoading={recentQ.isLoading} />
+          </div>
+
+          <div data-testid="widget-largest-expenses" className="col-span-1 md:col-span-1 lg:col-span-1 xl:col-span-1">
+            <LargestExpenses data={largestItems} isLoading={largestQ.isLoading} />
           </div>
 
           <div data-testid="widget-currencies-panel" className="col-span-1 md:col-span-1 lg:col-span-1 xl:col-span-1">

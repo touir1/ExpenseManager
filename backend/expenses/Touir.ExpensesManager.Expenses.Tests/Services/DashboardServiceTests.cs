@@ -421,5 +421,51 @@ namespace Touir.ExpensesManager.Expenses.Tests.Services
             await Assert.ThrowsAsync<FamilyForbiddenException>(
                 () => CreateSut().GetRecentAsync(UserId, FamilyId, null, null, null));
         }
+
+        // ── GetLargestAsync ───────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task GetLargestAsync_DelegatesToExpenseService_WithPageSize5AndSortByAmount()
+        {
+            ExpenseFilterDto? capturedFilter = null;
+            var expected = new ExpensePagedResult { Items = [], TotalCount = 0, Page = 1, PageSize = 5, TotalPages = 0 };
+            _expenseService.Setup(s => s.GetPagedAsync(It.IsAny<ExpenseFilterDto>(), UserId))
+                           .Callback<ExpenseFilterDto, int>((f, _) => capturedFilter = f)
+                           .ReturnsAsync(expected);
+
+            var result = await CreateSut().GetLargestAsync(UserId, null, DateFrom, DateTo, null);
+
+            Assert.Same(expected, result);
+            Assert.NotNull(capturedFilter);
+            Assert.Equal(1, capturedFilter!.Page);
+            Assert.Equal(5, capturedFilter.PageSize);
+            Assert.Equal("amount", capturedFilter.SortBy);
+            Assert.Equal(DateFrom, capturedFilter.DateFrom);
+            Assert.Null(capturedFilter.DisplayCurrencyId);
+        }
+
+        [Fact]
+        public async Task GetLargestAsync_WithDisplayCurrencyId_PassesToExpenseFilter()
+        {
+            ExpenseFilterDto? capturedFilter = null;
+            var expected = new ExpensePagedResult { Items = [], TotalCount = 0, Page = 1, PageSize = 5, TotalPages = 0 };
+            _expenseService.Setup(s => s.GetPagedAsync(It.IsAny<ExpenseFilterDto>(), UserId))
+                           .Callback<ExpenseFilterDto, int>((f, _) => capturedFilter = f)
+                           .ReturnsAsync(expected);
+
+            await CreateSut().GetLargestAsync(UserId, null, DateFrom, DateTo, DisplayCurrencyId);
+
+            Assert.NotNull(capturedFilter);
+            Assert.Equal(DisplayCurrencyId, capturedFilter!.DisplayCurrencyId);
+        }
+
+        [Fact]
+        public async Task GetLargestAsync_ThrowsFamilyForbidden_WhenFamilyIdSetAndNotMember()
+        {
+            _familyRepo.Setup(r => r.IsMemberAsync(FamilyId, UserId)).ReturnsAsync(false);
+
+            await Assert.ThrowsAsync<FamilyForbiddenException>(
+                () => CreateSut().GetLargestAsync(UserId, FamilyId, null, null, null));
+        }
     }
 }

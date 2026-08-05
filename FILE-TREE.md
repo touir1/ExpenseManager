@@ -844,7 +844,7 @@ ExpenseManager/
 │           │   │   ├── types/
 │           │   │   │   └── dashboard.type.ts — DashboardSummaryDto, MonthlyBreakdownDto, CategoryBreakdownDto, SameMonthYearlyDto, CurrencyBreakdownDto, DashboardFilter
 │           │   │   ├── services/
-│           │   │   │   ├── dashboardApi.service.ts — getSummary, getMonthly, getCategories, getSameMonthYearly, getByCurrency, getRecent
+│           │   │   │   ├── dashboardApi.service.ts — getSummary, getMonthly, getCategories, getSameMonthYearly, getByCurrency, getRecent, getLargest
 │           │   │   │   └── __tests__/
 │           │   │   │       └── dashboardApi.service.test.ts
 │           │   │   ├── utils/
@@ -859,6 +859,7 @@ ExpenseManager/
 │           │   │   │   ├── ChartDataTable.tsx    — Shared sr-only `<table>` + `<caption>` mirroring a chart's series, for screen readers (Recharts SVGs expose nothing natively)
 │           │   │   │   ├── CurrenciesPanel.tsx   — Per-currency breakdown rows
 │           │   │   │   ├── RecentExpenses.tsx    — Last 10 expenses feed; "View all" → /expenses
+│           │   │   │   ├── LargestExpenses.tsx   — Top 5 expenses ranked by amount desc; "View all" → /expenses
 │           │   │   │   ├── DashboardFilters.tsx  — Family + display-currency + date-range selectors; "This month"/"This year" presets
 │           │   │   │   └── __tests__/
 │           │   │   │       ├── MonthHero.test.tsx
@@ -867,9 +868,10 @@ ExpenseManager/
 │           │   │   │       ├── SameMonthChart.test.tsx
 │           │   │   │       ├── CurrenciesPanel.test.tsx
 │           │   │   │       ├── RecentExpenses.test.tsx
+│           │   │   │       ├── LargestExpenses.test.tsx
 │           │   │   │       └── DashboardFilters.test.tsx
 │           │   │   └── pages/
-│           │   │       ├── HomeDashboardPage.tsx — Hearth layout; 6 useQuery calls; DashboardFilters + MonthHero + SpendChart + CategoryDonut + SameMonthChart + CurrenciesPanel + RecentExpenses
+│           │   │       ├── HomeDashboardPage.tsx — Hearth layout; 7 useQuery calls; DashboardFilters + MonthHero + SpendChart + CategoryDonut + SameMonthChart + CurrenciesPanel + RecentExpenses + LargestExpenses
 │           │   │       ├── SettingsPage.tsx       — Settings hub; password card (link to /change-password); default-currency card; theme card (ThemeToggle); default-category card; default-expense-date card; notification-preferences card; data-export card; account-deletion card; DefaultCsvColumnMappingCard — editable rawHeader/canonicalField row list (add/remove/edit), Save/Saved✓ + Clear default mapping, backed by GET/PUT/DELETE /config/csv-column-mapping
 │           │   │       └── __tests__/
 │           │   │           ├── HomeDashboardPage.test.tsx

@@ -57,3 +57,7 @@ export function getByCurrency(filter: DashboardFilter = {}): Promise<ApiResponse
 export function getRecent(filter: DashboardFilter = {}): Promise<ApiResponse<ExpensePagedResponse>> {
   return get<ExpensePagedResponse>(url('/recent', buildParams(filter)))
 }
+
+export function getLargest(filter: DashboardFilter = {}): Promise<ApiResponse<ExpensePagedResponse>> {
+  return get<ExpensePagedResponse>(url('/largest', buildParams(filter)))
+}

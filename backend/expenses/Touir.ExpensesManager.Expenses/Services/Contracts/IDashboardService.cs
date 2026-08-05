@@ -21,5 +21,8 @@ namespace Touir.ExpensesManager.Expenses.Services.Contracts
 
         Task<ExpensePagedResult> GetRecentAsync(
             int userId, int? familyId, DateOnly? dateFrom, DateOnly? dateTo, int? displayCurrencyId);
+
+        Task<ExpensePagedResult> GetLargestAsync(
+            int userId, int? familyId, DateOnly? dateFrom, DateOnly? dateTo, int? displayCurrencyId);
     }
 }

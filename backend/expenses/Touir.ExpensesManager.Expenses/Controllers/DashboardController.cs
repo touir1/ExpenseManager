@@ -232,5 +232,38 @@ namespace Touir.ExpensesManager.Expenses.Controllers
                 return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
             }
         }
+
+        /// <summary>
+        /// Returns the 5 largest expenses by amount within the given filter.
+        /// </summary>
+        [HttpGet("largest")]
+        [ProducesResponseType(typeof(ExpensePagedResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetLargestAsync(
+            [FromQuery] int? familyId,
+            [FromQuery] DateOnly? dateFrom,
+            [FromQuery] DateOnly? dateTo,
+            [FromQuery] int? displayCurrencyId)
+        {
+            try
+            {
+                var userId = JwtCookieReader.GetUserId(Request);
+                if (userId is null)
+                    return Unauthorized(new ErrorResponse { Message = ControllerErrors.MissingUser });
+
+                var dto = await _dashboardService.GetLargestAsync(userId.Value, familyId, dateFrom, dateTo, displayCurrencyId);
+                return Ok(dto);
+            }
+            catch (FamilyForbiddenException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponse { Message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return BadRequest(new ErrorResponse { Message = ControllerErrors.ServerError });
+            }
+        }
     }
 }

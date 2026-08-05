@@ -1,6 +1,14 @@
 
 # Changelog
 
+## [0.139.0] - 2026-08-05
+### Feature: Largest expenses dashboard widget (section 1 of dashboard-new-charts-plan.md)
+
+- **Backend (expenses service)**: `ExpenseFilterDto.SortBy` (`"amount"` | default date); `ExpenseRepository.GetPagedAsync` sorts by amount desc when set; `DashboardService.GetLargestAsync`/`IDashboardService` mirrors `GetRecentAsync` but `PageSize=5`, `SortBy="amount"`; new `GET /dashboard/largest` → `ExpensePagedResult`.
+- **Frontend (`frontend/dashboard`)**: new `LargestExpenses.tsx` — ranked list widget (rank number, category pill, date, amount) reusing `RecentExpenses.tsx`'s skeleton/empty-state/formatting conventions; `getLargest` added to `dashboardApi.service.ts`; wired into `HomeDashboardPage.tsx` next to `RecentExpenses` (both now `col-span-1` at lg/xl instead of `RecentExpenses` alone spanning 2). i18n `dashboard.largest.*` keys added to en/fr/es/de.
+- Tests: `DashboardServiceTests`/`DashboardControllerTests` (backend), `LargestExpenses.test.tsx` + `HomeDashboardPage.test.tsx` updates (frontend).
+- Marked section 1 ✅ DONE in `docs/plans/dashboard-new-charts-plan.md`.
+
 ## [0.138.0] - 2026-08-05
 ### Feature: Dashboard responsive grid (dashboard-responsive-grid-plan.md)
 

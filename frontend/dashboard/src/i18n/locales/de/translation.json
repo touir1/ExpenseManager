@@ -183,6 +183,11 @@
             "title": "Aktuelle Ausgaben",
             "viewAll": "Alle anzeigen",
             "empty": "Keine aktuellen Ausgaben"
+        },
+        "largest": {
+            "title": "Größte Ausgaben",
+            "viewAll": "Alle anzeigen",
+            "empty": "Keine Ausgaben für diesen Zeitraum"
         }
     },
     "settings": {

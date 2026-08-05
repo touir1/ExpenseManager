@@ -219,6 +219,51 @@ namespace Touir.ExpensesManager.Expenses.Tests.Controllers
             Assert.IsType<BadRequestObjectResult>(result);
         }
 
+        // ── GetLargestAsync ───────────────────────────────────────────────────────
+
+        [Fact]
+        public async Task GetLargestAsync_Returns200_OnSuccess()
+        {
+            var service = new Mock<IDashboardService>();
+            service.Setup(s => s.GetLargestAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<DateOnly?>(), It.IsAny<DateOnly?>(), It.IsAny<int?>()))
+                   .ReturnsAsync(new ExpensePagedResult { Items = [], TotalCount = 0, Page = 1, PageSize = 5, TotalPages = 0 });
+
+            var result = await CreateController(service.Object).GetLargestAsync(null, null, null, null);
+
+            Assert.IsType<OkObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetLargestAsync_Returns403_OnFamilyForbiddenException()
+        {
+            var service = new Mock<IDashboardService>();
+            service.Setup(s => s.GetLargestAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<DateOnly?>(), It.IsAny<DateOnly?>(), It.IsAny<int?>()))
+                   .ThrowsAsync(new FamilyForbiddenException());
+
+            var result = await CreateController(service.Object).GetLargestAsync(null, null, null, null);
+
+            Assert.Equal(StatusCodes.Status403Forbidden, ((ObjectResult)result).StatusCode);
+        }
+
+        [Fact]
+        public async Task GetLargestAsync_Returns401_WhenNoCookie()
+        {
+            var result = await CreateController(jwtCookie: null).GetLargestAsync(null, null, null, null);
+            Assert.IsType<UnauthorizedObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetLargestAsync_Returns400_OnGenericException()
+        {
+            var service = new Mock<IDashboardService>();
+            service.Setup(s => s.GetLargestAsync(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<DateOnly?>(), It.IsAny<DateOnly?>(), It.IsAny<int?>()))
+                   .ThrowsAsync(new Exception("db"));
+
+            var result = await CreateController(service.Object).GetLargestAsync(null, null, null, null);
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
         [Fact]
         public async Task GetMonthlyAsync_Returns403_OnFamilyForbiddenException()
         {

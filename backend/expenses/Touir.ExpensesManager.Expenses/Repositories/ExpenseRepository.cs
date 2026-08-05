@@ -102,9 +102,11 @@ namespace Touir.ExpensesManager.Expenses.Repositories
             var pageSize = Math.Max(1, filter.PageSize);
             var page = Math.Max(1, filter.Page);
 
+            query = filter.SortBy == "amount"
+                ? query.OrderByDescending(e => e.Amount).ThenByDescending(e => e.Date)
+                : query.OrderByDescending(e => e.Date).ThenByDescending(e => e.CreatedAt);
+
             var items = await query
-                .OrderByDescending(e => e.Date)
-                .ThenByDescending(e => e.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .AsNoTracking()

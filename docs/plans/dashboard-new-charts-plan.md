@@ -91,9 +91,9 @@ No new backend entity needed — reuses the same per-month, per-currency-convert
 
 ---
 
-## 1. Largest expenses (list)
+## 1. Largest expenses (list) — ✅ DONE
 
-**Status:** not implemented. Closest relative is `RecentExpenses.tsx` (sorted by recency) — new widget sorts by amount instead.
+**Status:** implemented (`LargestExpenses.tsx`, `GET /api/expenses/dashboard/largest`). Closest relative is `RecentExpenses.tsx` (sorted by recency) — new widget sorts by amount instead.
 
 **Design:** Card-based ranked list (not a chart) — top 5 expenses this period, descending by amount, each row: category icon + description + amount (tabular-nums) + date. Per `chart`/`ux` rules: no color-only meaning, use existing `categoryColors.ts` icon-tint pattern for consistency with `CategoryDonut`.
 
