@@ -1,6 +1,13 @@
 
 # Changelog
 
+## [0.138.0] - 2026-08-05
+### Feature: Dashboard responsive grid (dashboard-responsive-grid-plan.md)
+
+- **`HomeDashboardPage.tsx`** — replaced the 3 hand-built per-row grids with a single `grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4` container; each widget wrapper declares its own col-span per breakpoint instead of living in a fixed row, so future widgets (see `dashboard-new-charts-plan.md`) just drop in with a span. Added `md:grid-flow-dense`/`lg:grid-flow-row` to close the one empty cell that appears at the 2-col tablet breakpoint without disturbing the 3/4-col layouts. Reordered widgets to MonthHero → SpendChart → CategoryDonut → SameMonthChart → RecentExpenses → CurrenciesPanel (KPI/trend/breakdown → comparison → actionable detail → reference info). Container width now `max-w-6xl xl:max-w-7xl 2xl:max-w-[1800px]` so ultrawide gets wider gutters instead of a hard-capped column. Each widget wrapper has a `data-testid` for layout/order assertions.
+- **`SpendChart.tsx`**/**`SameMonthChart.tsx`** — chart height now grows in capped steps (`h-[180px] xl:h-[220px] 2xl:h-[260px]` / `h-[120px] xl:h-[150px] 2xl:h-[175px]`) instead of a fixed pixel `ResponsiveContainer` height, so charts get taller on desktop/ultrawide without stretching illegibly thin.
+- `HomeDashboardPage.test.tsx`: added grid column-class assertion, widget order assertion, and an empty-state regression check that the grid container doesn't render alongside `EmptyDashboard`.
+
 ## [0.137.0] - 2026-07-29
 ### Feature: Visual Polish Quick Wins closed (section 18 of ux-ui-improvements.md)
 

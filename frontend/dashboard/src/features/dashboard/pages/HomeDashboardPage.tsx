@@ -140,7 +140,7 @@ export default function HomeDashboardPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-8">
+    <div className="max-w-6xl xl:max-w-7xl 2xl:max-w-[1800px] mx-auto w-full px-4 sm:px-6 py-8">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-ink tracking-tight">
           {t('dashboard.greeting', { name })}
@@ -152,43 +152,51 @@ export default function HomeDashboardPage() {
       {isEmpty ? (
         <EmptyDashboard onAddExpense={() => navigate('/expenses/add')} />
       ) : (
-        <>
-          {/* Row 1: Hero + Spend Chart */}
-          <div className="grid gap-4 lg:grid-cols-3 mb-4">
-            <div className="lg:col-span-1">
-              <MonthHero data={summary} isLoading={summaryQ.isLoading} comparedToLabel={comparedToLabel} />
-            </div>
-            <div className="lg:col-span-2">
-              <SpendChart
-                data={monthly}
-                isLoading={monthlyQ.isLoading}
-                displayCurrency={displayCurrency}
-              />
-            </div>
+        // Widget grid: each cell declares a DashboardWidgetSpan (base/md/lg/xl col-span) instead
+        // of living in a hand-built row, so new widgets (see dashboard-new-charts-plan.md) just
+        // drop in with their own span rather than requiring a new row layout.
+        <div
+          data-testid="dashboard-grid"
+          className="grid grid-cols-1 md:grid-cols-2 md:grid-flow-dense lg:grid-cols-3 lg:grid-flow-row xl:grid-cols-4 gap-4 xl:gap-6 2xl:gap-8"
+        >
+          <div data-testid="widget-month-hero" className="col-span-1 md:col-span-2 lg:col-span-1 xl:col-span-1">
+            <MonthHero data={summary} isLoading={summaryQ.isLoading} comparedToLabel={comparedToLabel} />
           </div>
 
-          {/* Row 2: Category Donut + Recent Expenses */}
-          <div className="grid gap-4 lg:grid-cols-2 mb-4">
+          <div data-testid="widget-spend-chart" className="col-span-1 md:col-span-2 lg:col-span-2 xl:col-span-2">
+            <SpendChart
+              data={monthly}
+              isLoading={monthlyQ.isLoading}
+              displayCurrency={displayCurrency}
+            />
+          </div>
+
+          <div data-testid="widget-category-donut" className="col-span-1 md:col-span-1 lg:col-span-1 xl:col-span-1">
             <CategoryDonut
               data={categories}
               isLoading={categoriesQ.isLoading}
               displayCurrency={displayCurrency}
               onCategoryClick={handleCategoryClick}
             />
-            <RecentExpenses data={recentItems} isLoading={recentQ.isLoading} />
           </div>
 
-          {/* Row 3: Same Month Chart + Currencies */}
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div data-testid="widget-same-month-chart" className="col-span-1 md:col-span-2 lg:col-span-2 xl:col-span-2">
             <SameMonthChart
               data={sameMonth}
               isLoading={sameMonthQ.isLoading}
               selectedMonth={currentMonth}
               displayCurrency={displayCurrency}
             />
+          </div>
+
+          <div data-testid="widget-recent-expenses" className="col-span-1 md:col-span-1 lg:col-span-2 xl:col-span-2">
+            <RecentExpenses data={recentItems} isLoading={recentQ.isLoading} />
+          </div>
+
+          <div data-testid="widget-currencies-panel" className="col-span-1 md:col-span-1 lg:col-span-1 xl:col-span-1">
             <CurrenciesPanel data={currencies} isLoading={currenciesQ.isLoading} displayCurrency={displayCurrency} />
           </div>
-        </>
+        </div>
       )}
     </div>
   )

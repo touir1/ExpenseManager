@@ -65,7 +65,8 @@ export function SameMonthChart({ data, isLoading, selectedMonth, displayCurrency
           ]}
           rows={chartData.map(d => ({ year: d.year, amount: `${currSymbol}${currSymbol ? ' ' : ''}${d.amount.toFixed(2)}` }))}
         />
-        <ResponsiveContainer width="100%" height={120}>
+        <div className="h-[120px] xl:h-[150px] 2xl:h-[175px]">
+        <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
             <XAxis dataKey="year" tick={{ fontSize: 11, fill: chartColors.tick }} axisLine={false} tickLine={false} />
@@ -91,6 +92,7 @@ export function SameMonthChart({ data, isLoading, selectedMonth, displayCurrency
             <Bar dataKey="amount" fill="#c8623e" radius={[4, 4, 0, 0]} maxBarSize={40} minPointSize={2} />
           </BarChart>
         </ResponsiveContainer>
+        </div>
         </>
       )}
     </div>

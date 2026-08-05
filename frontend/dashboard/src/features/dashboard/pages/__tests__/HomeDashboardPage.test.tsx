@@ -146,6 +146,24 @@ describe('HomeDashboardPage', () => {
     await waitFor(() => expect(screen.getByRole('link', { name: /view all/i })).toBeInTheDocument())
   })
 
+  it('renders the widget grid with responsive column classes', async () => {
+    renderPage()
+    const grid = await screen.findByTestId('dashboard-grid')
+    expect(grid).toHaveClass('grid-cols-1')
+    expect(grid).toHaveClass('md:grid-cols-2')
+    expect(grid).toHaveClass('lg:grid-cols-3')
+    expect(grid).toHaveClass('xl:grid-cols-4')
+  })
+
+  it('renders widgets in the expected visual hierarchy order', async () => {
+    renderPage()
+    const grid = await screen.findByTestId('dashboard-grid')
+    const order = ['widget-month-hero', 'widget-spend-chart', 'widget-category-donut', 'widget-same-month-chart', 'widget-recent-expenses', 'widget-currencies-panel']
+    const indices = order.map(id => Array.from(grid.children).findIndex(el => el.getAttribute('data-testid') === id))
+    expect(indices).toEqual([...indices].sort((a, b) => a - b))
+    expect(indices.every(i => i >= 0)).toBe(true)
+  })
+
   it('renders EmptyDashboard with a CTA when there is no data', async () => {
     vi.mocked(getSummary).mockResolvedValueOnce({
       ok: true,
@@ -164,5 +182,6 @@ describe('HomeDashboardPage', () => {
     renderPage()
     await waitFor(() => expect(screen.getByRole('button', { name: /add/i })).toBeInTheDocument())
     expect(screen.getByText('💸')).toBeInTheDocument()
+    expect(screen.queryByTestId('dashboard-grid')).not.toBeInTheDocument()
   })
 })

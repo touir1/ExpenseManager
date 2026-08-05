@@ -78,7 +78,8 @@ export function SpendChart({ data, isLoading, displayCurrency }: Props) {
           ]}
           rows={chartData.map(d => ({ label: d.label, amount: `${currSymbol}${currSymbol ? ' ' : ''}${d.amount.toFixed(2)}` }))}
         />
-        <ResponsiveContainer width="100%" height={180}>
+        <div className="h-[180px] xl:h-[220px] 2xl:h-[260px]">
+        <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={chartDataWithAvg} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} />
             <XAxis
@@ -117,6 +118,7 @@ export function SpendChart({ data, isLoading, displayCurrency }: Props) {
             />
           </ComposedChart>
         </ResponsiveContainer>
+        </div>
         </>
       )}
     </div>
