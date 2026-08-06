@@ -48,6 +48,17 @@ export type CurrencyBreakdownDto = {
   expenseCount: number
 }
 
+export type RecurringExpenseDto = {
+  id: number
+  description: string
+  amount: number
+  currency: Currency | null
+  category: Subcategory | null
+  subcategory: Subcategory | null
+  nextDueDate: string
+  frequency: string
+}
+
 export type DashboardFilter = {
   familyId?: number
   dateFrom?: string

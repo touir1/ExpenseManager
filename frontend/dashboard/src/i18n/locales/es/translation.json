@@ -183,6 +183,13 @@
             "title": "Gastos más grandes",
             "viewAll": "Ver todos",
             "empty": "Sin gastos para este período"
+        },
+        "recurring": {
+            "title": "Próximos pagos recurrentes",
+            "empty": "No hay pagos recurrentes próximos",
+            "dueToday": "Hoy",
+            "dueTomorrow": "Mañana",
+            "dueInDays": "En {{count}} días"
         }
     },
     "settings": {

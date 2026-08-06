@@ -14,6 +14,7 @@ import {
   getByCurrency,
   getRecent,
   getLargest,
+  getUpcomingRecurring,
 } from '@/features/dashboard/services/dashboardApi.service'
 import { MonthHero } from '@/features/dashboard/components/MonthHero'
 import { SpendChart } from '@/features/dashboard/components/SpendChart'
@@ -22,6 +23,7 @@ import { SameMonthChart } from '@/features/dashboard/components/SameMonthChart'
 import { CurrenciesPanel } from '@/features/dashboard/components/CurrenciesPanel'
 import { RecentExpenses } from '@/features/dashboard/components/RecentExpenses'
 import { LargestExpenses } from '@/features/dashboard/components/LargestExpenses'
+import { UpcomingRecurring } from '@/features/dashboard/components/UpcomingRecurring'
 import { DashboardFilters } from '@/features/dashboard/components/DashboardFilters'
 import EmptyState from '@/components/EmptyState'
 import type { DashboardFilter } from '@/features/dashboard/types/dashboard.type'
@@ -108,6 +110,11 @@ export default function HomeDashboardPage() {
     queryFn: () => getLargest(filter),
   })
 
+  const upcomingRecurringQ = useQuery({
+    queryKey: ['dashboard', 'upcomingRecurring'],
+    queryFn: () => getUpcomingRecurring(5),
+  })
+
   const summary = summaryQ.data?.ok ? summaryQ.data.data : undefined
   const monthly = monthlyQ.data?.ok ? (monthlyQ.data.data ?? []) : []
   const categories = categoriesQ.data?.ok ? (categoriesQ.data.data ?? []) : []
@@ -115,6 +122,7 @@ export default function HomeDashboardPage() {
   const currencies = currenciesQ.data?.ok ? (currenciesQ.data.data ?? []) : []
   const recentItems = recentQ.data?.ok ? (recentQ.data.data?.items ?? []) : []
   const largestItems = largestQ.data?.ok ? (largestQ.data.data?.items ?? []) : []
+  const upcomingRecurring = upcomingRecurringQ.data?.ok ? (upcomingRecurringQ.data.data ?? []) : []
 
   const displayCurrency = summary?.displayCurrency ?? null
 
@@ -207,6 +215,10 @@ export default function HomeDashboardPage() {
 
           <div data-testid="widget-currencies-panel" className="col-span-1 md:col-span-1 lg:col-span-1 xl:col-span-1">
             <CurrenciesPanel data={currencies} isLoading={currenciesQ.isLoading} displayCurrency={displayCurrency} />
+          </div>
+
+          <div data-testid="widget-upcoming-recurring" className="col-span-1 md:col-span-1 lg:col-span-1 xl:col-span-1">
+            <UpcomingRecurring data={upcomingRecurring} isLoading={upcomingRecurringQ.isLoading} />
           </div>
         </div>
       )}

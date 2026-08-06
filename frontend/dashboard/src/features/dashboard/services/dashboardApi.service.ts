@@ -7,10 +7,12 @@ import type {
   CategoryBreakdownDto,
   SameMonthYearlyDto,
   CurrencyBreakdownDto,
+  RecurringExpenseDto,
   DashboardFilter,
 } from '@/features/dashboard/types/dashboard.type'
 
 const BASE = '/api/expenses/dashboard'
+const RECURRING_BASE = '/api/expenses/recurring-expenses'
 
 function buildParams(filter: DashboardFilter): URLSearchParams {
   const p = new URLSearchParams()
@@ -60,4 +62,8 @@ export function getRecent(filter: DashboardFilter = {}): Promise<ApiResponse<Exp
 
 export function getLargest(filter: DashboardFilter = {}): Promise<ApiResponse<ExpensePagedResponse>> {
   return get<ExpensePagedResponse>(url('/largest', buildParams(filter)))
+}
+
+export function getUpcomingRecurring(take = 5): Promise<ApiResponse<RecurringExpenseDto[]>> {
+  return get<RecurringExpenseDto[]>(`${RECURRING_BASE}/upcoming?take=${take}`)
 }

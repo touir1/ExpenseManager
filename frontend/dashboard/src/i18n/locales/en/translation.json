@@ -188,7 +188,14 @@
                                       "title":  "Largest expenses",
                                       "viewAll":  "View all",
                                       "empty":  "No expenses for this period"
-                                  }
+                                  },
+                      "recurring":  {
+                                        "title":  "Upcoming recurring",
+                                        "empty":  "No upcoming recurring payments",
+                                        "dueToday":  "Due today",
+                                        "dueTomorrow":  "Due tomorrow",
+                                        "dueInDays":  "In {{count}} days"
+                                    }
                   },
     "settings":  {
                      "pageTitle":  "Settings",

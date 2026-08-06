@@ -226,6 +226,7 @@ ExpenseManager/
 │   │   │   │   ├── ExpenseReceiptController.cs _(new)_ — POST/GET/DELETE {id}/receipt; POST validates jpeg/png/webp ≤5MB then uploads via IReceiptService; GET streams inline or as attachment (?download=true); DELETE clears the stored object; all ownership-checked, 404 via EXPENSE_NOT_FOUND/RECEIPT_NOT_FOUND
 │   │   │   │   ├── ExpenseImportController.cs — POST /import/preview (IFormFile + optional columnMapping JSON form field → CsvImportPreviewDto; validates ext+MIME+size; copies to MemoryStream; 30s timeout; catches MISSING_HEADERS/INVALID_COLUMN_MAPPING/TOO_MANY_COLUMNS/INVALID_FILE_CONTENT before generic catch so the specific code reaches the client), POST /import/detect-headers (IFormFile → CsvHeaderDetectionDto; header-only probe, never throws MISSING_HEADERS), POST /import/validate-rows (RawCsvRowDto[] → CsvImportPreviewDto; 30s timeout; validated by ValidateRowsRequestValidator), POST /import/confirm (bulk insert), GET /import/template (CSV download); shared ValidateUploadedFile(file) helper for preview+detect-headers
 │   │   │   │   ├── FamilyController.cs      — 10 endpoints: list, detail, create, rename, archive, unarchive, invite, accept-invite, remove-member, change-role
+│   │   │   │   ├── RecurringExpenseController.cs _(new)_ — GET /recurring-expenses/upcoming?take=5 → IEnumerable<RecurringExpenseDto>; take clamped 1–20; read-only, no CRUD (out of scope)
 │   │   │   │   ├── TagController.cs         — GET /tags → TagListDto; POST /tags → TagDto (idempotent); DELETE /tags/{id} → 204 or 404
 │   │   │   │   ├── UserConfigController.cs  — GET /config → UserConfigDto (null fields if no row); PUT /config → UserConfigDto (upsert; 400 on invalid currencyId); PUT /config/csv-column-mapping → UserConfigDto (400 INVALID_COLUMN_MAPPING if value not a canonical field); DELETE /config/csv-column-mapping → clears saved default mapping
 │   │   │   │   ├── DTO/
@@ -244,6 +245,7 @@ ExpenseManager/
 │   │   │   │   │   ├── SameMonthYearlyDto.cs — Year, TotalAmount, ConvertedTotal?
 │   │   │   │   │   ├── RateDto.cs           — SourceCurrencyId, DestinationCurrencyId, Date, Rate, RateSource
 │   │   │   │   │   ├── RateConflictDto.cs   — Id, SourceCurrencyId, DestinationCurrencyId, Date, AutomaticRate, ManualRate, Status, ResolvedAt?
+│   │   │   │   │   ├── RecurringExpenseDto.cs _(new)_ — Id, Description, Amount, Currency, Category, Subcategory (SubcategoryDto), NextDueDate, Frequency (resolved lookup name)
 │   │   │   │   │   ├── TagDto.cs            — Id, Name
 │   │   │   │   │   ├── TagListDto.cs        — Own: IEnumerable<TagDto>, Family: IEnumerable<TagDto>
 │   │   │   │   │   ├── FamilyDto.cs         — Family response shape: Id, Name, IsDefault, IsDeleted, Members: FamilyMemberDto[]
@@ -276,6 +278,7 @@ ExpenseManager/
 │   │   │   │   ├── Currency.cs
 │   │   │   │   ├── Expense.cs               — IsDeleted + DeletedAt (soft-delete); owner, amount, date, category, audit fields; FK int columns; ICollection<ExpenseTag> ExpenseTags
 │   │   │   │   ├── Family.cs                — IsDeleted + DeletedAt (soft-delete)
+│   │   │   │   ├── RecurringExpense.cs _(new)_ — UserId, Description, Amount, CurrencyId, CategoryId, SubcategoryId?, FamilyId?, FrequencyId, NextDueDate, IsActive, IsDeleted + DeletedAt (soft-delete)
 │   │   │   │   ├── FamilyInvitation.cs      — GUID token, ExpiresAt, InviteeEmail, AcceptedAt?, AcceptedByUserId?
 │   │   │   │   ├── FamilyMembership.cs      — RoleId (int FK) instead of enum
 │   │   │   │   ├── ExpenseFamilyAttribution.cs
@@ -292,6 +295,7 @@ ExpenseManager/
 │   │   │   │   │   ├── OperationSource.cs   — 1=SingleWeb, 2=SingleMobile, 3=BulkWeb
 │   │   │   │   │   ├── ModifiedSource.cs    — 1=Web, 2=Mobile
 │   │   │   │   │   ├── FamilyRole.cs        — 1=Head, 2=Member
+│   │   │   │   │   ├── RecurrenceFrequency.cs _(new)_ — 1=Weekly, 2=Monthly, 3=Yearly
 │   │   │   │   │   ├── RateSource.cs        — 1=Auto, 2=Manual
 │   │   │   │   │   ├── ConflictStatus.cs    — 1=Pending, 2=Resolved
 │   │   │   │   │   ├── ConflictResolution.cs — 1=AcceptAuto, 2=KeepManual, 3=Custom
@@ -322,6 +326,7 @@ ExpenseManager/
 │   │   │   │   ├── ExpensesOutboxRepository.cs — IExpensesOutboxRepository: EnqueueAsync, GetPendingAsync, MarkPublishedAsync, MarkFailedAsync
 │   │   │   │   ├── FamilyRepository.cs      — family CRUD, membership CRUD, invitation CRUD, attribution helpers; CountMemberAttributionsAsync added for Phase 13
 │   │   │   │   ├── InboxRepository.cs       — ExistsAsync(messageId), AddAsync(InboxEvent) for deduplication
+│   │   │   │   ├── RecurringExpenseRepository.cs _(new)_ — GetUpcomingAsync(userId, take): filters IsActive && !IsDeleted, orders by NextDueDate asc, includes Currency/Category/Subcategory
 │   │   │   │   ├── TagRepository.cs         — GetOwnAsync, GetFamilyAsync (co-member, excludes deleted families), GetByNameAsync, GetByIdsAsync, AddAsync, EnsureUserTagAsync, RemoveUserTagAsync, IsVisibleAsync
 │   │   │   │   ├── CurrencyRateRepository.cs — GetExactAsync, GetMostRecentBeforeAsync, GetDefaultAsync, GetHistoryAsync, AddRateAsync, UpdateRateAsync, ManualRateExistsAsync, AddConflictAsync, GetPendingConflictsAsync, GetConflictByIdAsync, UpdateConflictAsync, SetDefaultAsync (upsert)
 │   │   │   │   ├── Contracts/
@@ -331,6 +336,7 @@ ExpenseManager/
 │   │   │   │   │   ├── ICurrencyRepository.cs
 │   │   │   │   │   ├── IExpenseRepository.cs — AddAsync, UpdateAsync, SoftDeleteAsync, GetByIdAsync, GetPagedAsync, ClearExpenseTagsAsync, AddExpenseTagsAsync
 │   │   │   │   │   ├── IFamilyRepository.cs  — family/membership/invitation/attribution methods; IsMemberAsync, HasDefaultFamilyAsync
+│   │   │   │   │   ├── IRecurringExpenseRepository.cs _(new)_ — GetUpcomingAsync(userId, take)
 │   │   │   │   │   ├── ITagRepository.cs     — GetOwnAsync, GetFamilyAsync, GetByNameAsync, GetByIdsAsync, AddAsync, EnsureUserTagAsync, RemoveUserTagAsync, IsVisibleAsync, SaveChangesAsync
 │   │   │   │   │   ├── IInboxRepository.cs  — ExistsAsync, AddAsync
 │   │   │   │   │   └── ICurrencyRateRepository.cs — GetExactAsync, GetMostRecentBeforeAsync, GetDefaultAsync, GetHistoryAsync, AddRateAsync, UpdateRateAsync, ManualRateExistsAsync, AddConflictAsync, GetPendingConflictsAsync, GetConflictByIdAsync, UpdateConflictAsync, SetDefaultAsync
@@ -355,6 +361,7 @@ ExpenseManager/
 │   │   │   │   ├── S3ReceiptStorageService.cs _(new)_ — Implements IReceiptStorageService via AWSSDK.S3 (IAmazonS3), pointed at the MinIO server through ServiceURL+ForcePathStyle; ensures the bucket exists; UploadAsync/GetStreamAsync/DeleteAsync map to PutObject/GetObject/DeleteObject; storage key format receipts/{expenseId}/{guid}{extension}
 │   │   │   │   ├── CsvImportService.cs      — Implements ICsvImportService; shared OpenReaderAsync probes 512 bytes for null bytes (INVALID_FILE_CONTENT) and guards ≤20 columns (TOO_MANY_COLUMNS); ParseAndValidateAsync(stream, userId, columnMapping?, ct?): if no explicit mapping and headers don't match verbatim, tries the user's saved default mapping (IUserConfigRepository.GetDefaultCsvColumnMappingAsync) — auto-applies silently when it covers all required fields and every referenced raw header exists in the file; explicit mapping always takes precedence; unmapped/"Ignore" raw headers → null field, same as absent optional column; throws MISSING_HEADERS:<fields> if required fields unresolved, INVALID_COLUMN_MAPPING if a mapped raw header doesn't exist in the file; DetectHeadersAsync(stream, userId, ct?) → CsvHeaderDetectionDto: header-only read, merges CsvHeaderAliasResolver.SuggestMapping with the user's saved mapping (saved takes priority), never throws MISSING_HEADERS; ValidateRowsAsync accepts pre-parsed rows (re-validate flow) — pre-loads currency/category/family dicts then calls static ValidateRow() per row; ValidateRow validates tags (≤20 per row, ≤100 chars each: TOO_MANY_TAGS/TAG_NAME_TOO_LONG); ConfirmImportAsync calls ITagService.UseTagAsync per tag name then IExpenseService.AddAsync with sourceId=3 (BulkWeb)
 │   │   │   │   ├── CsvHeaderAliasResolver.cs _(new)_ — Static helper; CanonicalFields[8] (date/amount/currency_code/category/subcategory/description/tags/families) + RequiredCanonicalFields[3] + MaxColumns=20; alias table (e.g. amount←[amt,sum,value,price], currency_code←[currency,cur,ccy]); SuggestMapping(rawHeaders) → Dictionary<string,string> (first-match-wins per canonical field); IsExactHeaderMatch(rawHeaders) → bool
+│   │   │   │   ├── RecurringExpenseService.cs _(new)_ — GetUpcomingAsync maps repo results to RecurringExpenseDto (nested Currency/Category/Subcategory, resolved Frequency name via ILookupCacheService)
 │   │   │   │   ├── TagService.cs            — GetVisibleAsync calls repo in parallel; UseTagAsync is idempotent find-or-create + adopt; RemoveTagAsync removes UserTag only
 │   │   │   │   ├── ExpenseAuditService.cs   — Writes ExpenseAuditLog + ExpenseAuditSnapshot(s): add→1 after, update→before+after, delete→1 before; snapshots store comma-sep tag IDs
 │   │   │   │   ├── CurrencyRateService.cs   — ResolveRateAsync; AddManualRateAsync (conflict if auto exists); RunDailyUpdateAsync; RefreshRatesFromAsync (backfill range); ResolveConflictAsync
@@ -369,6 +376,7 @@ ExpenseManager/
 │   │   │   │       ├── IExpenseService.cs   — AddAsync, UpdateAsync, DeleteAsync, GetByIdAsync(id, userId, displayCurrencyId?), GetPagedAsync
 │   │   │   │       ├── IExpenseAuditService.cs — WriteAddAuditAsync, WriteUpdateAuditAsync, WriteDeleteAuditAsync (all accept string tags for snapshot)
 │   │   │   │       ├── IFamilyService.cs    — CreateDefaultAsync, CreateAsync, GetByUserAsync, GetByIdAsync, RenameAsync, InviteAsync, AcceptInviteAsync, RemoveMemberAsync, ChangeRoleAsync, ArchiveAsync, UnarchiveAsync
+│   │   │   │       ├── IRecurringExpenseService.cs _(new)_ — GetUpcomingAsync(userId, take) → IEnumerable<RecurringExpenseDto>
 │   │   │   │       ├── ITagService.cs       — GetVisibleAsync(userId) → TagListDto; UseTagAsync(name, userId) → TagDto; RemoveTagAsync(tagId, userId) → bool
 │   │   │   │       ├── IDashboardService.cs — GetSummaryAsync, GetMonthlyAsync, GetCategoriesAsync, GetSameMonthAcrossYearsAsync, GetByCurrencyAsync, GetRecentAsync
 │   │   │   │       ├── ICurrencyRateService.cs — ResolveRateAsync, GetRateHistoryAsync, AddManualRateAsync, BulkAddManualRatesAsync, SetDefaultFallbackAsync, ResolveConflictAsync, GetPendingConflictsAsync, RunDailyUpdateAsync, RefreshRatesFromAsync
@@ -842,9 +850,9 @@ ExpenseManager/
 │           │   │       └── expense.schemas.test.ts
 │           │   ├── dashboard/         — Authenticated dashboard feature (Phase 9 — Hearth design)
 │           │   │   ├── types/
-│           │   │   │   └── dashboard.type.ts — DashboardSummaryDto, MonthlyBreakdownDto, CategoryBreakdownDto, SameMonthYearlyDto, CurrencyBreakdownDto, DashboardFilter
+│           │   │   │   └── dashboard.type.ts — DashboardSummaryDto, MonthlyBreakdownDto, CategoryBreakdownDto, SameMonthYearlyDto, CurrencyBreakdownDto, RecurringExpenseDto, DashboardFilter
 │           │   │   ├── services/
-│           │   │   │   ├── dashboardApi.service.ts — getSummary, getMonthly, getCategories, getSameMonthYearly, getByCurrency, getRecent, getLargest
+│           │   │   │   ├── dashboardApi.service.ts — getSummary, getMonthly, getCategories, getSameMonthYearly, getByCurrency, getRecent, getLargest, getUpcomingRecurring (separate /api/expenses/recurring-expenses base)
 │           │   │   │   └── __tests__/
 │           │   │   │       └── dashboardApi.service.test.ts
 │           │   │   ├── utils/
@@ -860,6 +868,7 @@ ExpenseManager/
 │           │   │   │   ├── CurrenciesPanel.tsx   — Per-currency breakdown rows
 │           │   │   │   ├── RecentExpenses.tsx    — Last 10 expenses feed; "View all" → /expenses
 │           │   │   │   ├── LargestExpenses.tsx   — Top 5 expenses ranked by amount desc; "View all" → /expenses
+│           │   │   │   ├── UpcomingRecurring.tsx _(new)_ — Next 5 upcoming recurring payments; relative due label (Due today/Due tomorrow/In N days); category pill; EmptyState compact fallback
 │           │   │   │   ├── DashboardFilters.tsx  — Family + display-currency + date-range selectors; "This month"/"This year" presets
 │           │   │   │   └── __tests__/
 │           │   │   │       ├── MonthHero.test.tsx
@@ -869,9 +878,10 @@ ExpenseManager/
 │           │   │   │       ├── CurrenciesPanel.test.tsx
 │           │   │   │       ├── RecentExpenses.test.tsx
 │           │   │   │       ├── LargestExpenses.test.tsx
+│           │   │   │       ├── UpcomingRecurring.test.tsx
 │           │   │   │       └── DashboardFilters.test.tsx
 │           │   │   └── pages/
-│           │   │       ├── HomeDashboardPage.tsx — Hearth layout; 7 useQuery calls; DashboardFilters + MonthHero + SpendChart + CategoryDonut + SameMonthChart + CurrenciesPanel + RecentExpenses + LargestExpenses
+│           │   │       ├── HomeDashboardPage.tsx — Hearth layout; 8 useQuery calls; DashboardFilters + MonthHero + SpendChart + CategoryDonut + SameMonthChart + CurrenciesPanel + RecentExpenses + LargestExpenses + UpcomingRecurring
 │           │   │       ├── SettingsPage.tsx       — Settings hub; password card (link to /change-password); default-currency card; theme card (ThemeToggle); default-category card; default-expense-date card; notification-preferences card; data-export card; account-deletion card; DefaultCsvColumnMappingCard — editable rawHeader/canonicalField row list (add/remove/edit), Save/Saved✓ + Clear default mapping, backed by GET/PUT/DELETE /config/csv-column-mapping
 │           │   │       └── __tests__/
 │           │   │           ├── HomeDashboardPage.test.tsx

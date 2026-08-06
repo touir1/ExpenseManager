@@ -183,6 +183,13 @@
             "title": "Dépenses les plus importantes",
             "viewAll": "Tout voir",
             "empty": "Aucune dépense pour cette période"
+        },
+        "recurring": {
+            "title": "Prochains paiements récurrents",
+            "empty": "Aucun paiement récurrent à venir",
+            "dueToday": "Aujourd'hui",
+            "dueTomorrow": "Demain",
+            "dueInDays": "Dans {{count}} jours"
         }
     },
     "settings": {

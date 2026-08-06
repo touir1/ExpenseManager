@@ -107,9 +107,9 @@ No new backend entity needed — reuses the same per-month, per-currency-convert
 
 ---
 
-## 2. Recurring payments (upcoming)
+## 2. Recurring payments (upcoming) — ✅ DONE
 
-**Status:** not implemented anywhere (frontend or backend) — flagged in `docs/plans/implementation-plan.md` as a future roadmap item only ("Template + schedule; auto-create or confirm prompt; 'Upcoming' section").
+**Status:** implemented (`UpcomingRecurring.tsx`, `GET /api/expenses/recurring-expenses/upcoming`). Was previously flagged in `docs/plans/implementation-plan.md` as a future roadmap item only ("Template + schedule; auto-create or confirm prompt; 'Upcoming' section") — this ships the read-only "upcoming" dashboard card only, per the scope guard below; CRUD + auto-create job remain a follow-up.
 
 **Design:** Simple upcoming list, next 3–5 items sorted by due date ascending: description + amount + "in N days" relative label + category tag. Empty state via shared `EmptyState.tsx` compact mode ("No upcoming recurring payments").
 

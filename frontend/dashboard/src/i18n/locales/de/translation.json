@@ -188,6 +188,13 @@
             "title": "Größte Ausgaben",
             "viewAll": "Alle anzeigen",
             "empty": "Keine Ausgaben für diesen Zeitraum"
+        },
+        "recurring": {
+            "title": "Anstehende wiederkehrende Zahlungen",
+            "empty": "Keine anstehenden wiederkehrenden Zahlungen",
+            "dueToday": "Heute fällig",
+            "dueTomorrow": "Morgen fällig",
+            "dueInDays": "In {{count}} Tagen"
         }
     },
     "settings": {

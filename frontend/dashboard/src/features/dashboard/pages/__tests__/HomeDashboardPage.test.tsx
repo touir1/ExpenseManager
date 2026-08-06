@@ -62,6 +62,7 @@ vi.mock('@/features/dashboard/services/dashboardApi.service', () => ({
   getByCurrency: vi.fn().mockResolvedValue({ ok: true, data: [] }),
   getRecent: vi.fn().mockResolvedValue({ ok: true, data: { items: [], totalCount: 0, page: 1, pageSize: 10, totalPages: 0 } }),
   getLargest: vi.fn().mockResolvedValue({ ok: true, data: { items: [], totalCount: 0, page: 1, pageSize: 5, totalPages: 0 } }),
+  getUpcomingRecurring: vi.fn().mockResolvedValue({ ok: true, data: [] }),
 }))
 
 vi.mock('recharts', () => ({
@@ -159,7 +160,7 @@ describe('HomeDashboardPage', () => {
   it('renders widgets in the expected visual hierarchy order', async () => {
     renderPage()
     const grid = await screen.findByTestId('dashboard-grid')
-    const order = ['widget-month-hero', 'widget-spend-chart', 'widget-category-donut', 'widget-same-month-chart', 'widget-recent-expenses', 'widget-largest-expenses', 'widget-currencies-panel']
+    const order = ['widget-month-hero', 'widget-spend-chart', 'widget-category-donut', 'widget-same-month-chart', 'widget-recent-expenses', 'widget-largest-expenses', 'widget-currencies-panel', 'widget-upcoming-recurring']
     const indices = order.map(id => Array.from(grid.children).findIndex(el => el.getAttribute('data-testid') === id))
     expect(indices).toEqual([...indices].sort((a, b) => a - b))
     expect(indices.every(i => i >= 0)).toBe(true)

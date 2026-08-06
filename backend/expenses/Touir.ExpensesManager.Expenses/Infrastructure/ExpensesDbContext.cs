@@ -30,6 +30,7 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
         public DbSet<InboxEvent> InboxEvents { get; set; }
         public DbSet<OutboxEvent> OutboxEvents { get; set; }
         public DbSet<UserConfig> UserConfigs { get; set; }
+        public DbSet<RecurringExpense> RecurringExpenses { get; set; }
 
         // Lookup tables
         public DbSet<OperationSource> OperationSources { get; set; }
@@ -40,6 +41,7 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
         public DbSet<ConflictResolution> ConflictResolutions { get; set; }
         public DbSet<AuditOperation> AuditOperations { get; set; }
         public DbSet<SnapshotType> SnapshotTypes { get; set; }
+        public DbSet<RecurrenceFrequency> RecurrenceFrequencies { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -128,6 +130,17 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
                 entity.HasData(
                     new SnapshotType { Id = 1, Name = "Before" },
                     new SnapshotType { Id = 2, Name = "After" });
+            });
+
+            modelBuilder.Entity<RecurrenceFrequency>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).HasMaxLength(50).IsRequired();
+                entity.HasIndex(e => e.Name).IsUnique();
+                entity.HasData(
+                    new RecurrenceFrequency { Id = 1, Name = "Weekly" },
+                    new RecurrenceFrequency { Id = 2, Name = "Monthly" },
+                    new RecurrenceFrequency { Id = 3, Name = "Yearly" });
             });
 
             // ── External ──────────────────────────────────────────────────────
@@ -468,6 +481,38 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
                       .WithMany()
                       .HasForeignKey(e => e.DefaultCategoryId)
                       .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // ── RecurringExpense ──────────────────────────────────────────────
+
+            modelBuilder.Entity<RecurringExpense>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Description).HasMaxLength(500).IsRequired();
+                entity.Property(e => e.Amount).HasPrecision(18, 4);
+                entity.Property(e => e.IsDeleted).HasDefaultValue(false);
+                entity.Property(e => e.DeletedAt).IsRequired(false);
+                entity.HasOne(e => e.Currency)
+                      .WithMany()
+                      .HasForeignKey(e => e.CurrencyId)
+                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.Category)
+                      .WithMany()
+                      .HasForeignKey(e => e.CategoryId)
+                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.Subcategory)
+                      .WithMany()
+                      .HasForeignKey(e => e.SubcategoryId)
+                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.Family)
+                      .WithMany()
+                      .HasForeignKey(e => e.FamilyId)
+                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.Frequency)
+                      .WithMany()
+                      .HasForeignKey(e => e.FrequencyId)
+                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(e => new { e.UserId, e.IsActive, e.NextDueDate });
             });
 
             // ── Inbox ─────────────────────────────────────────────────────────

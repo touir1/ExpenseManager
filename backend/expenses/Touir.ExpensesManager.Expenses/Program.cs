@@ -170,6 +170,7 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IUserConfigService, UserConfigService>();
 builder.Services.AddScoped<IExpenseExportService, ExpenseExportService>();
 builder.Services.AddScoped<ICsvImportService, CsvImportService>();
+builder.Services.AddScoped<IRecurringExpenseService, RecurringExpenseService>();
 builder.Services.AddScoped<IFamilyEventPublisher, FamilyEventPublisher>();
 builder.Services.AddSingleton<IAmazonS3>(sp =>
 {
@@ -220,6 +221,7 @@ builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<ICurrencyRateRepository, CurrencyRateRepository>();
 builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddScoped<IUserConfigRepository, UserConfigRepository>();
+builder.Services.AddScoped<IRecurringExpenseRepository, RecurringExpenseRepository>();
 #endregion
 
 #region HttpClients

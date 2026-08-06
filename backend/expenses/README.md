@@ -85,6 +85,7 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 | `GET` | `/dashboard/by-currency` | Per-currency totals + converted amount + count → `CurrencyBreakdownDto[]` |
 | `GET` | `/dashboard/recent` | Last 10 expenses → `ExpensePagedResponse` |
 | `GET` | `/dashboard/largest` | Top 5 expenses by amount within the filter → `ExpensePagedResponse` |
+| `GET` | `/recurring-expenses/upcoming` | Next `?take` (default 5, clamped 1–20) active recurring expenses sorted by due date asc → `RecurringExpenseDto[]`; read-only, no CRUD |
 | `GET` | `/health` | Liveness/readiness probe |
 
 All endpoints (except `/health`) require authentication, enforced by nginx's `auth_request` subrequest to the users service before forwarding. `/admin/*` endpoints additionally require the `APP_ADMIN` role (`[AppAdmin]` filter checks the `isAdmin` JWT claim; returns 403 if absent or false).

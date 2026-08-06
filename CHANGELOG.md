@@ -1,6 +1,14 @@
 
 # Changelog
 
+## [0.140.0] - 2026-08-06
+### Feature: Recurring payments (upcoming) dashboard widget (section 2 of dashboard-new-charts-plan.md)
+
+- **Backend (expenses service)**: new `RecurringExpense` entity (`Id, UserId, Description, Amount, CurrencyId, CategoryId, SubcategoryId?, FamilyId?, FrequencyId, NextDueDate, IsActive, IsDeleted, DeletedAt, CreatedAt`) + new lookup table `RecurrenceFrequency` (Weekly/Monthly/Yearly, resolved via `ILookupCacheService`); migration `AddRecurringExpenses`. `IRecurringExpenseRepository.GetUpcomingAsync(userId, take)` filters `IsActive && !IsDeleted`, sorts by `NextDueDate` asc; `IRecurringExpenseService.GetUpcomingAsync` maps to `RecurringExpenseDto` (nested `Currency`/`Category`/`Subcategory`, resolved `Frequency` name). New `GET /recurring-expenses/upcoming?take=5` (`RecurringExpenseController`, `take` clamped 1–20). CRUD for managing recurring expense templates is out of scope — read-only "upcoming" widget only, per the plan's scope guard.
+- **Frontend (`frontend/dashboard`)**: new `UpcomingRecurring.tsx` — list widget (description, category pill, relative due label "Due today"/"Due tomorrow"/"In N days", amount) using `EmptyState` compact mode; `getUpcomingRecurring` added to `dashboardApi.service.ts` (separate `/api/expenses/recurring-expenses` base, not under `/dashboard`); wired into `HomeDashboardPage.tsx` next to `CurrenciesPanel` (both low-urgency reference-tier, `col-span-1`). i18n `dashboard.recurring.*` keys added to en/fr/es/de.
+- Tests: `RecurringExpenseRepositoryTests`/`RecurringExpenseServiceTests`/`RecurringExpenseControllerTests` (backend, 16 tests), `UpcomingRecurring.test.tsx` + `HomeDashboardPage.test.tsx` updates (frontend).
+- Marked section 2 ✅ DONE in `docs/plans/dashboard-new-charts-plan.md`.
+
 ## [0.139.0] - 2026-08-05
 ### Feature: Largest expenses dashboard widget (section 1 of dashboard-new-charts-plan.md)
 
