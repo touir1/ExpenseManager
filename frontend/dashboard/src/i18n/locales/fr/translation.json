@@ -189,7 +189,10 @@
             "empty": "Aucun paiement récurrent à venir",
             "dueToday": "Aujourd'hui",
             "dueTomorrow": "Demain",
-            "dueInDays": "Dans {{count}} jours"
+            "dueInDays": "Dans {{count}} jours",
+            "confirm": "Confirmer",
+            "auto": "Auto",
+            "manage": "Gérer les dépenses récurrentes"
         }
     },
     "settings": {
@@ -206,6 +209,11 @@
             "title": "Mot de passe",
             "description": "Mettez à jour le mot de passe utilisé pour vous connecter.",
             "changeLink": "Changer le mot de passe"
+        },
+        "recurringExpenses": {
+            "title": "Dépenses récurrentes",
+            "description": "Gérez les modèles pour les factures et abonnements qui se répètent selon un calendrier.",
+            "manageLink": "Gérer les dépenses récurrentes"
         },
         "currency": {
             "title": "Devise par défaut",
@@ -362,6 +370,8 @@
         "familyInvitationAlreadyAccepted": "Cette invitation a déjà été acceptée.",
         "familyInvitationExpired": "Cette invitation a expiré.",
         "familyNameAlreadyExists": "Une famille avec ce nom existe déjà.",
+        "recurringExpenseNotFound": "Dépense récurrente introuvable.",
+        "recurringNotDue": "Cette dépense récurrente n'est pas encore due.",
         "generic": "Une erreur est survenue. Veuillez réessayer."
     },
     "families": {
@@ -599,6 +609,69 @@
                 "TOO_MANY_COLUMNS": "Le CSV a trop de colonnes (max 20)",
                 "INVALID_COLUMN_MAPPING": "La correspondance des colonnes est invalide"
             }
+        }
+    },
+    "recurringExpenses": {
+        "pageTitle": "Dépenses récurrentes",
+        "title": "Dépenses récurrentes",
+        "subtitle": "Gérez les modèles qui génèrent vos factures et abonnements récurrents.",
+        "add": "Ajouter une dépense récurrente",
+        "addTitle": "Ajouter une dépense récurrente",
+        "editTitle": "Modifier la dépense récurrente",
+        "empty": "Aucune dépense récurrente pour le moment.",
+        "emptySubtitle": "Ajoutez un modèle pour une facture ou un abonnement qui se répète selon un calendrier.",
+        "includeInactive": "Afficher les modèles en pause",
+        "fields": {
+            "description": "Description",
+            "amount": "Montant",
+            "currency": "Devise",
+            "category": "Catégorie",
+            "subcategory": "Sous-catégorie",
+            "family": "Famille",
+            "frequency": "Fréquence",
+            "nextDueDate": "Prochaine échéance",
+            "autoCreate": "Créer automatiquement la dépense à la date d'échéance",
+            "isActive": "Actif"
+        },
+        "frequency": {
+            "weekly": "Hebdomadaire",
+            "monthly": "Mensuel",
+            "yearly": "Annuel"
+        },
+        "table": {
+            "description": "Description",
+            "amount": "Montant",
+            "frequency": "Fréquence",
+            "nextDueDate": "Prochaine échéance",
+            "status": "Statut",
+            "actions": "Actions"
+        },
+        "status": {
+            "active": "Actif",
+            "paused": "En pause"
+        },
+        "actions": {
+            "edit": "Modifier",
+            "delete": "Supprimer",
+            "pause": "Mettre en pause",
+            "resume": "Reprendre",
+            "save": "Enregistrer",
+            "saving": "Enregistrement…",
+            "cancel": "Annuler"
+        },
+        "delete": {
+            "confirmTitle": "Supprimer la dépense récurrente ?",
+            "confirmBody": "Ce modèle ne générera plus de dépenses. Cette action est irréversible.",
+            "confirm": "Supprimer",
+            "cancel": "Annuler"
+        },
+        "errors": {
+            "loadFailed": "Échec du chargement des dépenses récurrentes.",
+            "saveFailed": "Échec de l'enregistrement de la dépense récurrente.",
+            "deleteFailed": "Échec de la suppression de la dépense récurrente.",
+            "descriptionRequired": "La description est obligatoire.",
+            "amountPositive": "Le montant doit être positif.",
+            "nextDueDateInPast": "La prochaine échéance ne peut pas être dans le passé."
         }
     },
     "language": {

@@ -194,7 +194,10 @@
             "empty": "Keine anstehenden wiederkehrenden Zahlungen",
             "dueToday": "Heute fällig",
             "dueTomorrow": "Morgen fällig",
-            "dueInDays": "In {{count}} Tagen"
+            "dueInDays": "In {{count}} Tagen",
+            "confirm": "Bestätigen",
+            "auto": "Auto",
+            "manage": "Wiederkehrende Ausgaben verwalten"
         }
     },
     "settings": {
@@ -211,6 +214,11 @@
             "title": "Passwort",
             "description": "Aktualisiere das Passwort für die Anmeldung an deinem Konto.",
             "changeLink": "Passwort ändern"
+        },
+        "recurringExpenses": {
+            "title": "Wiederkehrende Ausgaben",
+            "description": "Verwalte die Vorlagen für Rechnungen und Abonnements, die sich nach einem Zeitplan wiederholen.",
+            "manageLink": "Wiederkehrende Ausgaben verwalten"
         },
         "currency": {
             "title": "Standardwährung",
@@ -367,6 +375,8 @@
         "familyInvitationAlreadyAccepted": "Diese Einladung wurde bereits angenommen.",
         "familyInvitationExpired": "Diese Einladung ist abgelaufen.",
         "familyNameAlreadyExists": "Eine Familie mit diesem Namen existiert bereits.",
+        "recurringExpenseNotFound": "Wiederkehrende Ausgabe nicht gefunden.",
+        "recurringNotDue": "Diese wiederkehrende Ausgabe ist noch nicht fällig.",
         "generic": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
     },
     "families": {
@@ -604,6 +614,69 @@
                 "TOO_MANY_COLUMNS": "CSV hat zu viele Spalten (max 20)",
                 "INVALID_COLUMN_MAPPING": "Die Spaltenzuordnung ist ungültig"
             }
+        }
+    },
+    "recurringExpenses": {
+        "pageTitle": "Wiederkehrende Ausgaben",
+        "title": "Wiederkehrende Ausgaben",
+        "subtitle": "Verwalte die Vorlagen, die deine wiederkehrenden Rechnungen und Abonnements erzeugen.",
+        "add": "Wiederkehrende Ausgabe hinzufügen",
+        "addTitle": "Wiederkehrende Ausgabe hinzufügen",
+        "editTitle": "Wiederkehrende Ausgabe bearbeiten",
+        "empty": "Noch keine wiederkehrenden Ausgaben.",
+        "emptySubtitle": "Füge eine Vorlage für eine Rechnung oder ein Abonnement hinzu, das sich nach einem Zeitplan wiederholt.",
+        "includeInactive": "Pausierte Vorlagen anzeigen",
+        "fields": {
+            "description": "Beschreibung",
+            "amount": "Betrag",
+            "currency": "Währung",
+            "category": "Kategorie",
+            "subcategory": "Unterkategorie",
+            "family": "Familie",
+            "frequency": "Häufigkeit",
+            "nextDueDate": "Nächste Fälligkeit",
+            "autoCreate": "Ausgabe am Fälligkeitsdatum automatisch erstellen",
+            "isActive": "Aktiv"
+        },
+        "frequency": {
+            "weekly": "Wöchentlich",
+            "monthly": "Monatlich",
+            "yearly": "Jährlich"
+        },
+        "table": {
+            "description": "Beschreibung",
+            "amount": "Betrag",
+            "frequency": "Häufigkeit",
+            "nextDueDate": "Nächste Fälligkeit",
+            "status": "Status",
+            "actions": "Aktionen"
+        },
+        "status": {
+            "active": "Aktiv",
+            "paused": "Pausiert"
+        },
+        "actions": {
+            "edit": "Bearbeiten",
+            "delete": "Löschen",
+            "pause": "Pausieren",
+            "resume": "Fortsetzen",
+            "save": "Speichern",
+            "saving": "Speichern…",
+            "cancel": "Abbrechen"
+        },
+        "delete": {
+            "confirmTitle": "Wiederkehrende Ausgabe löschen?",
+            "confirmBody": "Diese Vorlage erzeugt keine Ausgaben mehr. Dies kann nicht rückgängig gemacht werden.",
+            "confirm": "Löschen",
+            "cancel": "Abbrechen"
+        },
+        "errors": {
+            "loadFailed": "Wiederkehrende Ausgaben konnten nicht geladen werden.",
+            "saveFailed": "Wiederkehrende Ausgabe konnte nicht gespeichert werden.",
+            "deleteFailed": "Wiederkehrende Ausgabe konnte nicht gelöscht werden.",
+            "descriptionRequired": "Beschreibung ist erforderlich.",
+            "amountPositive": "Betrag muss positiv sein.",
+            "nextDueDateInPast": "Die nächste Fälligkeit darf nicht in der Vergangenheit liegen."
         }
     },
     "language": {

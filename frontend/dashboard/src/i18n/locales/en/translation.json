@@ -194,7 +194,10 @@
                                         "empty":  "No upcoming recurring payments",
                                         "dueToday":  "Due today",
                                         "dueTomorrow":  "Due tomorrow",
-                                        "dueInDays":  "In {{count}} days"
+                                        "dueInDays":  "In {{count}} days",
+                                        "confirm": "Confirm",
+                                        "auto": "Auto",
+                                        "manage": "Manage recurring expenses"
                                     }
                   },
     "settings":  {
@@ -212,6 +215,11 @@
                                       "description":  "Update the password used to sign in to your account.",
                                       "changeLink":  "Change Password"
                                   },
+                     "recurringExpenses": {
+                         "title": "Recurring Expenses",
+                         "description": "Manage templates for bills and subscriptions that repeat on a schedule.",
+                         "manageLink": "Manage recurring expenses"
+                     },
                      "currency":  {
                                       "title":  "Default Currency",
                                       "description":  "Choose the currency used to display totals across the app.",
@@ -367,6 +375,8 @@
                       "familyInvitationAlreadyAccepted":  "This invitation has already been accepted.",
                       "familyInvitationExpired":  "This invitation has expired.",
                       "familyNameAlreadyExists":  "A family with this name already exists.",
+                      "recurringExpenseNotFound": "Recurring expense not found.",
+                      "recurringNotDue": "This recurring expense is not due yet.",
                       "generic":  "Something went wrong. Please try again."
                   },
     "families":  {
@@ -606,6 +616,69 @@
                                                }
                                 }
                  },
+    "recurringExpenses": {
+        "pageTitle": "Recurring Expenses",
+        "title": "Recurring Expenses",
+        "subtitle": "Manage the templates that generate your recurring bills and subscriptions.",
+        "add": "Add recurring expense",
+        "addTitle": "Add Recurring Expense",
+        "editTitle": "Edit Recurring Expense",
+        "empty": "No recurring expenses yet.",
+        "emptySubtitle": "Add a template for a bill or subscription that repeats on a schedule.",
+        "includeInactive": "Show paused templates",
+        "fields": {
+            "description": "Description",
+            "amount": "Amount",
+            "currency": "Currency",
+            "category": "Category",
+            "subcategory": "Subcategory",
+            "family": "Family",
+            "frequency": "Frequency",
+            "nextDueDate": "Next due date",
+            "autoCreate": "Automatically create the expense on the due date",
+            "isActive": "Active"
+        },
+        "frequency": {
+            "weekly": "Weekly",
+            "monthly": "Monthly",
+            "yearly": "Yearly"
+        },
+        "table": {
+            "description": "Description",
+            "amount": "Amount",
+            "frequency": "Frequency",
+            "nextDueDate": "Next due",
+            "status": "Status",
+            "actions": "Actions"
+        },
+        "status": {
+            "active": "Active",
+            "paused": "Paused"
+        },
+        "actions": {
+            "edit": "Edit",
+            "delete": "Delete",
+            "pause": "Pause",
+            "resume": "Resume",
+            "save": "Save",
+            "saving": "Saving…",
+            "cancel": "Cancel"
+        },
+        "delete": {
+            "confirmTitle": "Delete recurring expense?",
+            "confirmBody": "This template will no longer generate expenses. This cannot be undone.",
+            "confirm": "Delete",
+            "cancel": "Cancel"
+        },
+        "errors": {
+            "loadFailed": "Failed to load recurring expenses.",
+            "saveFailed": "Failed to save recurring expense.",
+            "deleteFailed": "Failed to delete recurring expense.",
+            "descriptionRequired": "Description is required.",
+            "amountPositive": "Amount must be positive.",
+            "nextDueDateInPast": "Next due date cannot be in the past."
+        }
+    },
     "language":  {
                      "label":  "Language",
                      "en":  "English",

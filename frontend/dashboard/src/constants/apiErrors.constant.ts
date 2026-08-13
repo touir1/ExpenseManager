@@ -41,6 +41,8 @@ const BACKEND_KEYS: Record<string, string> = {
   FAMILY_INVITATION_ALREADY_ACCEPTED: 'apiErrors.familyInvitationAlreadyAccepted',
   FAMILY_INVITATION_EXPIRED:          'apiErrors.familyInvitationExpired',
   FAMILY_NAME_ALREADY_EXISTS:         'apiErrors.familyNameAlreadyExists',
+  RECURRING_EXPENSE_NOT_FOUND:        'apiErrors.recurringExpenseNotFound',
+  RECURRING_NOT_DUE:                  'apiErrors.recurringNotDue',
 }
 
 export const BACKEND_ERROR_CODES: Record<string, string> = new Proxy(BACKEND_KEYS, {

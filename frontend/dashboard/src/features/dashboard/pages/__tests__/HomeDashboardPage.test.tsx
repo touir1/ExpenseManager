@@ -31,6 +31,10 @@ vi.mock('@/features/currencies/DisplayCurrencyContext', () => ({
 
 vi.mock('@/hooks/usePageTitle', () => ({ usePageTitle: () => undefined }))
 
+vi.mock('@/components/Toast', () => ({
+  useToast: () => ({ show: vi.fn() }),
+}))
+
 vi.mock('@/features/dashboard/services/dashboardApi.service', () => ({
   getSummary: vi.fn().mockResolvedValue({
     ok: true,

@@ -140,6 +140,13 @@ builder.Services.Configure<CurrencyRateOptions>(c =>
     c.UpdateTime = TimeOnly.Parse(updateTime, CultureInfo.InvariantCulture);
 });
 
+builder.Services.Configure<RecurringExpenseOptions>(c =>
+{
+    var generationTime = builder.Configuration.GetValue("RecurringExpense:GenerationTime",
+                    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_RECURRINGEXPENSE_GENERATION_TIME")) ?? "03:00";
+    c.GenerationTime = TimeOnly.Parse(generationTime, CultureInfo.InvariantCulture);
+});
+
 builder.Services.Configure<ReceiptStorageOptions>(c =>
 {
     c.Endpoint = builder.Configuration.GetValue("ReceiptStorage:Endpoint",
@@ -197,6 +204,10 @@ var updateTimeStr = builder.Configuration.GetValue("CurrencyRate:UpdateTime",
     Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_CURRENCYRATE_UPDATE_TIME")) ?? "02:00";
 var updateTime = TimeOnly.Parse(updateTimeStr, CultureInfo.InvariantCulture);
 
+var recurringGenerationTimeStr = builder.Configuration.GetValue("RecurringExpense:GenerationTime",
+    Environment.GetEnvironmentVariable("EXPENSES_MANAGEMENT_EXPENSES_RECURRINGEXPENSE_GENERATION_TIME")) ?? "03:00";
+var recurringGenerationTime = TimeOnly.Parse(recurringGenerationTimeStr, CultureInfo.InvariantCulture);
+
 builder.Services.AddQuartz(q =>
 {
     var jobKey = new JobKey("RateAutoUpdateJob");
@@ -205,6 +216,13 @@ builder.Services.AddQuartz(q =>
         .ForJob(jobKey)
         .WithIdentity("RateAutoUpdateTrigger")
         .WithCronSchedule($"0 {updateTime.Minute} {updateTime.Hour} * * ?"));
+
+    var recurringJobKey = new JobKey("RecurringExpenseGenerationJob");
+    q.AddJob<RecurringExpenseGenerationJob>(opts => opts.WithIdentity(recurringJobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(recurringJobKey)
+        .WithIdentity("RecurringExpenseGenerationTrigger")
+        .WithCronSchedule($"0 {recurringGenerationTime.Minute} {recurringGenerationTime.Hour} * * ?"));
 });
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 #endregion

@@ -15,6 +15,8 @@ namespace Touir.ExpensesManager.Expenses.Models
         public int FrequencyId { get; set; }
         public DateOnly NextDueDate { get; set; }
         public bool IsActive { get; set; }
+        public bool AutoCreate { get; set; }
+        public DateOnly? LastGeneratedDate { get; set; }
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }
         public DateTime CreatedAt { get; set; }

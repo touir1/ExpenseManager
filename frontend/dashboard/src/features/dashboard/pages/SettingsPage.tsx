@@ -662,6 +662,27 @@ export default function SettingsPage() {
 
         <SettingsSection title={t('settings.sections.preferences')}>
           <DefaultCurrencyCard />
+          {/* Recurring expenses card */}
+          <div className="bg-surface-card rounded-2xl border border-surface-border shadow-card p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100">
+                <svg className="h-4.5 w-4.5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </span>
+              <h3 className="text-sm font-semibold text-ink">{t('settings.recurringExpenses.title')}</h3>
+            </div>
+            <p className="text-xs text-ink-mute mb-3">{t('settings.recurringExpenses.description')}</p>
+            <Link
+              to="/recurring-expenses"
+              className="inline-flex items-center gap-1.5 text-sm text-brand-600 hover:text-brand-700 font-medium transition-colors duration-150"
+            >
+              {t('settings.recurringExpenses.manageLink')}
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
           {/* Theme card */}
           <div className="bg-surface-card rounded-2xl border border-surface-border shadow-card p-6">
             <div className="flex items-center gap-3 mb-4">

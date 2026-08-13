@@ -85,7 +85,13 @@ Service runs on port **9200** by default. Configuration via `appsettings.json` a
 | `GET` | `/dashboard/by-currency` | Per-currency totals + converted amount + count → `CurrencyBreakdownDto[]` |
 | `GET` | `/dashboard/recent` | Last 10 expenses → `ExpensePagedResponse` |
 | `GET` | `/dashboard/largest` | Top 5 expenses by amount within the filter → `ExpensePagedResponse` |
-| `GET` | `/recurring-expenses/upcoming` | Next `?take` (default 5, clamped 1–20) active recurring expenses sorted by due date asc → `RecurringExpenseDto[]`; read-only, no CRUD |
+| `GET` | `/recurring-expenses/upcoming` | Next `?take` (default 5, clamped 1–20) active recurring expenses sorted by due date asc → `RecurringExpenseDto[]` |
+| `GET` | `/recurring-expenses` | All recurring expense templates owned by the user, `?includeInactive` (default false) → `RecurringExpenseDto[]` |
+| `GET` | `/recurring-expenses/{id}` | Single template owned by the user → `RecurringExpenseDto` (200) or 404 |
+| `POST` | `/recurring-expenses` | Create a recurring expense template → `RecurringExpenseDto` (201, `Location` header) |
+| `PUT` | `/recurring-expenses/{id}` | Update a template (including `isActive` pause/resume) → `RecurringExpenseDto` (200) or 404 |
+| `DELETE` | `/recurring-expenses/{id}` | Soft-delete a template → 204 or 404 |
+| `POST` | `/recurring-expenses/{id}/confirm` | Create the real `Expense` from a due template and advance its `nextDueDate` → `ExpenseDto` (200), 404 if not found/not owned, 400 (`RECURRING_NOT_DUE`) if not yet due |
 | `GET` | `/health` | Liveness/readiness probe |
 
 All endpoints (except `/health`) require authentication, enforced by nginx's `auth_request` subrequest to the users service before forwarding. `/admin/*` endpoints additionally require the `APP_ADMIN` role (`[AppAdmin]` filter checks the `isAdmin` JWT claim; returns 403 if absent or false).

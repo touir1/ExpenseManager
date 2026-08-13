@@ -52,11 +52,31 @@ export type RecurringExpenseDto = {
   id: number
   description: string
   amount: number
+  currencyId: number
   currency: Currency | null
+  categoryId: number
   category: Subcategory | null
+  subcategoryId: number | null
   subcategory: Subcategory | null
+  familyId: number | null
+  frequencyId: number
   nextDueDate: string
   frequency: string
+  isActive: boolean
+  autoCreate: boolean
+}
+
+export type RecurringExpenseRequest = {
+  description: string
+  amount: number
+  currencyId: number
+  categoryId: number
+  subcategoryId?: number
+  familyId?: number
+  frequencyId: number
+  nextDueDate: string
+  autoCreate: boolean
+  isActive?: boolean
 }
 
 export type DashboardFilter = {

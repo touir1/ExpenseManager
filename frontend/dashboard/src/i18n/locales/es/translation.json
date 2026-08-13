@@ -189,7 +189,10 @@
             "empty": "No hay pagos recurrentes próximos",
             "dueToday": "Hoy",
             "dueTomorrow": "Mañana",
-            "dueInDays": "En {{count}} días"
+            "dueInDays": "En {{count}} días",
+            "confirm": "Confirmar",
+            "auto": "Auto",
+            "manage": "Gestionar gastos recurrentes"
         }
     },
     "settings": {
@@ -206,6 +209,11 @@
             "title": "Contraseña",
             "description": "Actualiza la contraseña usada para iniciar sesión.",
             "changeLink": "Cambiar contraseña"
+        },
+        "recurringExpenses": {
+            "title": "Gastos recurrentes",
+            "description": "Gestiona las plantillas de facturas y suscripciones que se repiten según un calendario.",
+            "manageLink": "Gestionar gastos recurrentes"
         },
         "currency": {
             "title": "Moneda predeterminada",
@@ -362,6 +370,8 @@
         "familyInvitationAlreadyAccepted": "Esta invitación ya fue aceptada.",
         "familyInvitationExpired": "Esta invitación ha expirado.",
         "familyNameAlreadyExists": "Ya existe una familia con este nombre.",
+        "recurringExpenseNotFound": "Gasto recurrente no encontrado.",
+        "recurringNotDue": "Este gasto recurrente todavía no está vencido.",
         "generic": "Algo salió mal. Por favor, inténtalo de nuevo."
     },
     "families": {
@@ -599,6 +609,69 @@
                 "TOO_MANY_COLUMNS": "El CSV tiene demasiadas columnas (máx 20)",
                 "INVALID_COLUMN_MAPPING": "La correspondencia de columnas no es válida"
             }
+        }
+    },
+    "recurringExpenses": {
+        "pageTitle": "Gastos recurrentes",
+        "title": "Gastos recurrentes",
+        "subtitle": "Gestiona las plantillas que generan tus facturas y suscripciones recurrentes.",
+        "add": "Añadir gasto recurrente",
+        "addTitle": "Añadir gasto recurrente",
+        "editTitle": "Editar gasto recurrente",
+        "empty": "Todavía no hay gastos recurrentes.",
+        "emptySubtitle": "Añade una plantilla para una factura o suscripción que se repita según un calendario.",
+        "includeInactive": "Mostrar plantillas en pausa",
+        "fields": {
+            "description": "Descripción",
+            "amount": "Importe",
+            "currency": "Moneda",
+            "category": "Categoría",
+            "subcategory": "Subcategoría",
+            "family": "Familia",
+            "frequency": "Frecuencia",
+            "nextDueDate": "Próximo vencimiento",
+            "autoCreate": "Crear el gasto automáticamente en la fecha de vencimiento",
+            "isActive": "Activo"
+        },
+        "frequency": {
+            "weekly": "Semanal",
+            "monthly": "Mensual",
+            "yearly": "Anual"
+        },
+        "table": {
+            "description": "Descripción",
+            "amount": "Importe",
+            "frequency": "Frecuencia",
+            "nextDueDate": "Próximo vencimiento",
+            "status": "Estado",
+            "actions": "Acciones"
+        },
+        "status": {
+            "active": "Activo",
+            "paused": "En pausa"
+        },
+        "actions": {
+            "edit": "Editar",
+            "delete": "Eliminar",
+            "pause": "Pausar",
+            "resume": "Reanudar",
+            "save": "Guardar",
+            "saving": "Guardando…",
+            "cancel": "Cancelar"
+        },
+        "delete": {
+            "confirmTitle": "¿Eliminar gasto recurrente?",
+            "confirmBody": "Esta plantilla dejará de generar gastos. Esta acción no se puede deshacer.",
+            "confirm": "Eliminar",
+            "cancel": "Cancelar"
+        },
+        "errors": {
+            "loadFailed": "Error al cargar los gastos recurrentes.",
+            "saveFailed": "Error al guardar el gasto recurrente.",
+            "deleteFailed": "Error al eliminar el gasto recurrente.",
+            "descriptionRequired": "La descripción es obligatoria.",
+            "amountPositive": "El importe debe ser positivo.",
+            "nextDueDateInPast": "El próximo vencimiento no puede estar en el pasado."
         }
     },
     "language": {

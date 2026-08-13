@@ -1,6 +1,10 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
 import type { RecurringExpenseDto } from '@/features/dashboard/types/dashboard.type'
 import EmptyState from '@/components/EmptyState'
+import { useToast } from '@/components/Toast'
+import { confirm as confirmRecurring } from '@/features/recurring-expenses/services/recurringExpenseApi.service'
 
 type Props = {
   data: RecurringExpenseDto[]
@@ -39,8 +43,22 @@ function daysUntil(dateStr: string): number {
 
 export function UpcomingRecurring({ data, isLoading }: Props) {
   const { t } = useTranslation()
+  const { show } = useToast()
+  const queryClient = useQueryClient()
+  const [confirmingId, setConfirmingId] = useState<number | null>(null)
 
   if (isLoading) return <Skeleton />
+
+  const handleConfirm = async (id: number) => {
+    setConfirmingId(id)
+    const res = await confirmRecurring(id)
+    setConfirmingId(null)
+    if (res.ok) {
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+    } else {
+      show(t('recurringExpenses.errors.saveFailed'), 'error')
+    }
+  }
 
   return (
     <div className="bg-surface-card rounded-2xl border border-surface-border shadow-card p-6">
@@ -63,6 +81,7 @@ export function UpcomingRecurring({ data, isLoading }: Props) {
             const symbol = item.currency?.symbol ?? ''
             const decimals = item.currency?.decimals ?? 2
             const categoryLabel = item.category?.name ?? null
+            const canConfirm = !item.autoCreate && days <= 0
 
             return (
               <li
@@ -77,12 +96,28 @@ export function UpcomingRecurring({ data, isLoading }: Props) {
                         {categoryLabel}
                       </span>
                     )}
+                    {item.autoCreate && (
+                      <span className="inline-block text-[11px] px-2 py-0.5 rounded-full font-medium bg-brand-100 text-brand-700">
+                        {t('dashboard.recurring.auto')}
+                      </span>
+                    )}
                     <span className="text-[11px] text-ink-faint">{dueLabel}</span>
                   </div>
                 </div>
-                <span className="text-sm font-semibold text-ink tabular-nums shrink-0">
-                  {symbol} {item.amount.toFixed(decimals)}
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-sm font-semibold text-ink tabular-nums">
+                    {symbol} {item.amount.toFixed(decimals)}
+                  </span>
+                  {canConfirm && (
+                    <button
+                      onClick={() => handleConfirm(item.id)}
+                      disabled={confirmingId === item.id}
+                      className="text-xs font-medium px-2.5 py-1 rounded-lg bg-brand-600 hover:bg-brand-700 text-white transition-colors disabled:opacity-50"
+                    >
+                      {t('dashboard.recurring.confirm')}
+                    </button>
+                  )}
+                </div>
               </li>
             )
           })}

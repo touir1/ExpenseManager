@@ -492,6 +492,8 @@ namespace Touir.ExpensesManager.Expenses.Infrastructure
                 entity.Property(e => e.Amount).HasPrecision(18, 4);
                 entity.Property(e => e.IsDeleted).HasDefaultValue(false);
                 entity.Property(e => e.DeletedAt).IsRequired(false);
+                entity.Property(e => e.AutoCreate).HasDefaultValue(false);
+                entity.Property(e => e.LastGeneratedDate).IsRequired(false);
                 entity.HasOne(e => e.Currency)
                       .WithMany()
                       .HasForeignKey(e => e.CurrencyId)

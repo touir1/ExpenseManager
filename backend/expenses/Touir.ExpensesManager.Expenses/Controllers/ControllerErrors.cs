@@ -17,5 +17,7 @@ namespace Touir.ExpensesManager.Expenses.Controllers
         public const string ReceiptFileTooLarge = "RECEIPT_FILE_TOO_LARGE";
         public const string ReceiptInvalidFileType = "RECEIPT_INVALID_FILE_TYPE";
         public const string ReceiptNotFound = "RECEIPT_NOT_FOUND";
+        public const string RecurringExpenseNotFound = "RECURRING_EXPENSE_NOT_FOUND";
+        public const string RecurringExpenseNotDue = "RECURRING_NOT_DUE";
     }
 }

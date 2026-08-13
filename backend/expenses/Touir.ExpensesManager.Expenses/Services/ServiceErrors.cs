@@ -24,5 +24,7 @@ namespace Touir.ExpensesManager.Expenses.Services
         public const string FamilyInvitationInvalid = "FAMILY_INVITATION_INVALID";
         public const string FamilyInvitationAlreadyAccepted = "FAMILY_INVITATION_ALREADY_ACCEPTED";
         public const string FamilyInvitationExpired = "FAMILY_INVITATION_EXPIRED";
+        // Recurring expenses
+        public const string RecurringExpenseNotDue = "RECURRING_NOT_DUE";
     }
 }
