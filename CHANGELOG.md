@@ -1,6 +1,14 @@
 
 # Changelog
 
+## [0.143.2] - 2026-09-19
+### Frontend: dependency security patch pass (74 of 76 SCA findings resolved)
+
+- SCA scan flagged 76 findings (4 critical/26 high/38 medium/8 low) across `frontend/dashboard`. Cross-checked against `npm audit`: all but 2 were dev-toolchain packages (vite, vitest, @vitest/coverage-v8, @vitest/mocker, postcss, postcss-selector-parser, browserslist, baseline-browser-mapping, esbuild, undici, nanoid, @babel/core, source-map-js — all transitive of vite/vitest/tailwind) plus one production dep, `zod`. All of these had fixes available within the **existing `^` semver ranges already in `package.json`** — no `package.json` edits needed, only lockfile resolution: `vite` 7.3.1→7.3.6, `vitest`/`@vitest/coverage-v8` 4.0.18→4.1.11, `postcss` 8.4.47→8.5.28, `zod` 4.3.6→4.6.5, `react-router-dom`/`react-router` 6.28.0→6.30.6 (latest 6.x patch, picked up before evaluating the v7 CVEs below).
+- **npm arborist bug hit during upgrade**: plain `npm update`/`npm audit fix`/a from-scratch `npm install` all crashed with `Cannot read properties of null (reading 'edgesOut')` inside `@npmcli/arborist`'s `#loadPeerSet` — traced to vitest 4.1's new `@vitest/devtools-*` optional peer-dependency graph, which this npm version (10.9.2) can't resolve via its normal strict-peer path. Worked around with `npm install --legacy-peer-deps` for the initial resolve, then a follow-up plain `npm install` to reconcile the lockfile (the `--legacy-peer-deps` run left a `picomatch` version mismatch that made `npm ci` reject the lockfile) — verified `npm ci` now succeeds cleanly from the committed lockfile, so this workaround is a one-time resolve step, not a standing requirement for future installs.
+- **Deferred**: 2 remaining moderate findings (`GHSA-wrjc-x8rr-h8h6` open-redirect via backslash in `<Link>`/`useNavigate`, `GHSA-337j-9hxr-rhxg` constructor injection in SSR hydration — this app is a client-only SPA, so the SSR one likely doesn't apply here) require `react-router-dom`/`react-router` 7.x, a major version with real breaking API changes. Not bundled into this patch pass — needs its own migration + regression-testing effort as a follow-up.
+- Verified: full frontend test suite green (1275 tests), `tsc -b` clean (0 errors), `npm run build:prod` succeeds, `npm ci` succeeds from the committed lockfile. Only `package-lock.json` changed — `package.json`'s version ranges were already wide enough to cover every non-deferred fix.
+
 ## [0.143.1] - 2026-09-19
 ### Frontend: fix all pre-existing `tsc` typecheck errors (42 → 0)
 
