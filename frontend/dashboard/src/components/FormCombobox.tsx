@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
+import * as Popover from '@radix-ui/react-popover'
 
 export interface ComboOption {
   value: number
@@ -24,8 +24,6 @@ export function FormCombobox({ id, value, onChange, options, disabled, className
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
-  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
-  const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLUListElement>(null)
   const typeaheadRef = useRef({ buffer: '', timer: undefined as ReturnType<typeof setTimeout> | undefined })
@@ -46,25 +44,6 @@ export function FormCombobox({ id, value, onChange, options, disabled, className
   const visibleItems = overflowCount > 0 ? items.slice(visibleStart, visibleStart + MAX_VISIBLE_OPTIONS) : items
 
   useEffect(() => {
-    if (!open) return
-    const onMouseDown = (e: MouseEvent) => {
-      if (
-        containerRef.current?.contains(e.target as Node) ||
-        dropdownRef.current?.contains(e.target as Node)
-      ) return
-      closeDropdown()
-    }
-    const onScroll = () => closeDropdown()
-    document.addEventListener('mousedown', onMouseDown)
-    window.addEventListener('scroll', onScroll, true)
-    return () => {
-      document.removeEventListener('mousedown', onMouseDown)
-      window.removeEventListener('scroll', onScroll, true)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
-
-  useEffect(() => {
     if (highlightedIndex < 0) return
     dropdownRef.current?.children[highlightedIndex - visibleStart]?.scrollIntoView?.({ block: 'nearest' })
   }, [highlightedIndex, visibleStart])
@@ -77,16 +56,6 @@ export function FormCombobox({ id, value, onChange, options, disabled, className
 
   function openDropdown() {
     if (disabled) return
-    const rect = inputRef.current?.getBoundingClientRect()
-    if (rect) {
-      setDropdownStyle({
-        position: 'fixed',
-        top: rect.bottom + 4,
-        left: rect.left,
-        width: rect.width,
-        zIndex: 9999,
-      })
-    }
     setOpen(true)
     setQuery('')
     setHighlightedIndex(items.findIndex(o => o?.value === value))
@@ -144,78 +113,89 @@ export function FormCombobox({ id, value, onChange, options, disabled, className
   }
 
   return (
-    <div ref={containerRef} className="relative">
-      <input
-        ref={inputRef}
-        id={id}
-        type="text"
-        role="combobox"
-        aria-expanded={open}
-        aria-controls={listboxId}
-        aria-autocomplete="list"
-        aria-activedescendant={open && highlightedIndex >= 0 ? optionId(highlightedIndex) : undefined}
-        autoComplete="off"
-        className={`${className} pr-8 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-        disabled={disabled}
-        value={open ? query : selectedLabel}
-        placeholder="—"
-        onFocus={openDropdown}
-        onChange={e => { setQuery(e.target.value); setHighlightedIndex(-1) }}
-        onKeyDown={onKeyDown}
-        {...ariaProps}
-      />
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint"
-      >
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-      </span>
-      {open && !disabled && createPortal(
-        <ul
-          ref={dropdownRef}
-          id={listboxId}
-          role="listbox"
-          style={dropdownStyle}
-          className="bg-surface-card border border-surface-border rounded-lg shadow-warm max-h-48 overflow-y-auto text-ink"
+    <Popover.Root open={open} onOpenChange={o => { if (!o) closeDropdown() }}>
+      <Popover.Anchor asChild>
+        <div className="relative">
+          <input
+            ref={inputRef}
+            id={id}
+            type="text"
+            role="combobox"
+            aria-expanded={open}
+            aria-controls={listboxId}
+            aria-autocomplete="list"
+            aria-activedescendant={open && highlightedIndex >= 0 ? optionId(highlightedIndex) : undefined}
+            autoComplete="off"
+            className={`${className} pr-8 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={disabled}
+            value={open ? query : selectedLabel}
+            placeholder="—"
+            onFocus={openDropdown}
+            onChange={e => { setQuery(e.target.value); setHighlightedIndex(-1) }}
+            onKeyDown={onKeyDown}
+            {...ariaProps}
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </span>
+        </div>
+      </Popover.Anchor>
+      <Popover.Portal>
+        <Popover.Content
+          asChild
+          sideOffset={4}
+          align="start"
+          onOpenAutoFocus={e => e.preventDefault()}
+          onCloseAutoFocus={e => e.preventDefault()}
         >
-          {visibleItems.map((item, i) => {
-            const index = visibleStart + i
-            const isSelected = item?.value === value
-            const isHighlighted = index === highlightedIndex
-            return (
-              <li
-                key={item?.value ?? 'clear'}
-                id={optionId(index)}
-                role="option"
-                aria-selected={isSelected}
-                className={`px-3 py-2 text-sm cursor-pointer flex items-center justify-between ${
-                  isHighlighted ? 'bg-brand-50' : 'hover:bg-surface-subtle'
-                } ${isSelected ? 'font-semibold text-brand-600' : item ? 'text-ink' : 'text-ink-mute'}`}
-                onMouseEnter={() => setHighlightedIndex(index)}
-                onMouseDown={() => selectItem(item)}
-              >
-                {item?.label ?? '—'}
-                {isSelected && (
-                  <svg className="h-3.5 w-3.5 shrink-0 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
+          <ul
+            ref={dropdownRef}
+            id={listboxId}
+            role="listbox"
+            style={{ width: 'var(--radix-popover-trigger-width)' }}
+            className="bg-surface-card border border-surface-border rounded-lg shadow-warm max-h-48 overflow-y-auto text-ink"
+          >
+            {visibleItems.map((item, i) => {
+              const index = visibleStart + i
+              const isSelected = item?.value === value
+              const isHighlighted = index === highlightedIndex
+              return (
+                <li
+                  key={item?.value ?? 'clear'}
+                  id={optionId(index)}
+                  role="option"
+                  aria-selected={isSelected}
+                  className={`px-3 py-2 text-sm cursor-pointer flex items-center justify-between ${
+                    isHighlighted ? 'bg-brand-50' : 'hover:bg-surface-subtle'
+                  } ${isSelected ? 'font-semibold text-brand-600' : item ? 'text-ink' : 'text-ink-mute'}`}
+                  onMouseEnter={() => setHighlightedIndex(index)}
+                  onMouseDown={() => selectItem(item)}
+                >
+                  {item?.label ?? '—'}
+                  {isSelected && (
+                    <svg className="h-3.5 w-3.5 shrink-0 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </li>
+              )
+            })}
+            {filtered.length === 0 && (
+              <li className="px-3 py-1.5 text-sm text-ink-mute">—</li>
+            )}
+            {overflowCount > 0 && (
+              <li className="px-3 py-1.5 text-xs text-ink-faint select-none">
+                {overflowCount} more — keep typing to narrow
               </li>
-            )
-          })}
-          {filtered.length === 0 && (
-            <li className="px-3 py-1.5 text-sm text-ink-mute">—</li>
-          )}
-          {overflowCount > 0 && (
-            <li className="px-3 py-1.5 text-xs text-ink-faint select-none">
-              {overflowCount} more — keep typing to narrow
-            </li>
-          )}
-        </ul>,
-        document.body
-      )}
-    </div>
+            )}
+          </ul>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   )
 }

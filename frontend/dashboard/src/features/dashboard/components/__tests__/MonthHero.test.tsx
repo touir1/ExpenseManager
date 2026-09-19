@@ -10,7 +10,7 @@ const mockSummary: DashboardSummaryDto = {
   expenseCount: 42,
   previousPeriodTotal: 2250,
   changePercent: 8.0,
-  topCategory: { id: 1, name: 'Food', description: null },
+  topCategory: { id: 1, name: 'Food', description: undefined },
   topCategoryAmount: 890,
 }
 

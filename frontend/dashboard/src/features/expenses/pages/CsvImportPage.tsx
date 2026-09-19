@@ -1,5 +1,6 @@
-import { createPortal, flushSync } from 'react-dom'
+import { flushSync } from 'react-dom'
 import { useEffect, useRef, useState } from 'react'
+import * as Popover from '@radix-ui/react-popover'
 import { useNavigate, useBlocker } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -37,24 +38,9 @@ type EditedFields = {
   families: string[]  // family ID strings
 }
 
-type DropPos = { top: number; left: number; width: number }
 type SelectOption = { value: string; label: string }
 
-// ── Portal helpers ────────────────────────────────────────────────────────────
-
-function useDropdownPos(open: boolean) {
-  const triggerRef = useRef<HTMLElement>(null)
-  const [pos, setPos] = useState<DropPos | null>(null)
-  function openAt(el: HTMLElement | null) {
-    if (!el) return
-    const r = el.getBoundingClientRect()
-    setPos({ top: r.bottom + 2, left: r.left, width: Math.max(r.width, 160) })
-  }
-  useEffect(() => { if (!open) setPos(null) }, [open])
-  return { triggerRef, pos, openAt }
-}
-
-// ── StringCombobox (with portal) ──────────────────────────────────────────────
+// ── StringCombobox (Radix Popover) ────────────────────────────────────────────
 
 function StringCombobox({
   value,
@@ -75,7 +61,6 @@ function StringCombobox({
   const [query, setQuery] = useState(value)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
-  const [pos, setPos] = useState<DropPos | null>(null)
 
   const filtered = (query.trim()
     ? options.filter(o =>
@@ -87,69 +72,65 @@ function StringCombobox({
 
   useEffect(() => { if (!open) setQuery(value) }, [value, open])
 
-  useEffect(() => {
-    if (!open) return
-    const h = (e: MouseEvent) => {
-      if (!inputRef.current?.contains(e.target as Node) && !listRef.current?.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', h)
-    return () => document.removeEventListener('mousedown', h)
-  }, [open])
-
   function handleFocus() {
     if (disabled) return
-    if (inputRef.current) {
-      const r = inputRef.current.getBoundingClientRect()
-      setPos({ top: r.bottom + 2, left: r.left, width: Math.max(r.width, 160) })
-    }
     setOpen(true)
     setQuery('')
   }
 
   return (
-    <div className="relative min-w-0">
-      <input
-        ref={inputRef}
-        type="text"
-        aria-label={ariaLabel}
-        value={open ? query : value}
-        onChange={e => { setQuery(e.target.value); onChange(e.target.value); setOpen(true) }}
-        onFocus={handleFocus}
-        placeholder={placeholder ?? '—'}
-        disabled={disabled}
-        className={`w-full px-2 py-1 text-xs border rounded-lg bg-surface-card text-ink focus:outline-none focus:ring-1 focus:ring-brand-400 ${
-          disabled ? 'opacity-40 cursor-not-allowed border-surface-border' : 'border-surface-border'
-        }`}
-      />
-      {open && !disabled && pos && createPortal(
-        <ul
-          ref={listRef}
-          style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 9999 }}
-          className="max-h-40 overflow-y-auto bg-surface-card border border-surface-border rounded-lg shadow-xl text-xs"
+    <Popover.Root open={open && !disabled} onOpenChange={o => { if (!o) setOpen(false) }}>
+      <Popover.Anchor asChild>
+        <div className="relative min-w-0">
+          <input
+            ref={inputRef}
+            type="text"
+            aria-label={ariaLabel}
+            value={open ? query : value}
+            onChange={e => { setQuery(e.target.value); onChange(e.target.value); setOpen(true) }}
+            onFocus={handleFocus}
+            placeholder={placeholder ?? '—'}
+            disabled={disabled}
+            className={`w-full px-2 py-1 text-xs border rounded-lg bg-surface-card text-ink focus:outline-none focus:ring-1 focus:ring-brand-400 ${
+              disabled ? 'opacity-40 cursor-not-allowed border-surface-border' : 'border-surface-border'
+            }`}
+          />
+        </div>
+      </Popover.Anchor>
+      <Popover.Portal>
+        <Popover.Content
+          asChild
+          sideOffset={2}
+          align="start"
+          onOpenAutoFocus={e => e.preventDefault()}
+          onCloseAutoFocus={e => e.preventDefault()}
         >
-          {filtered.length === 0 ? (
-            <li className="px-3 py-1.5 text-ink-mute">—</li>
-          ) : (
-            filtered.map(o => (
-              <li
-                key={o.value}
-                onMouseDown={() => { onChange(o.value); setQuery(o.value); setOpen(false) }}
-                className={`px-3 py-1.5 cursor-pointer hover:bg-surface-subtle text-ink whitespace-nowrap ${o.value === value ? 'font-semibold text-brand-600' : ''}`}
-              >
-                {o.label}
-              </li>
-            ))
-          )}
-        </ul>,
-        document.body,
-      )}
-    </div>
+          <ul
+            ref={listRef}
+            style={{ minWidth: 160, width: 'var(--radix-popover-trigger-width)' }}
+            className="max-h-40 overflow-y-auto bg-surface-card border border-surface-border rounded-lg shadow-xl text-xs"
+          >
+            {filtered.length === 0 ? (
+              <li className="px-3 py-1.5 text-ink-mute">—</li>
+            ) : (
+              filtered.map(o => (
+                <li
+                  key={o.value}
+                  onMouseDown={() => { onChange(o.value); setQuery(o.value); setOpen(false) }}
+                  className={`px-3 py-1.5 cursor-pointer hover:bg-surface-subtle text-ink whitespace-nowrap ${o.value === value ? 'font-semibold text-brand-600' : ''}`}
+                >
+                  {o.label}
+                </li>
+              ))
+            )}
+          </ul>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   )
 }
 
-// ── TagChips (edit) ───────────────────────────────────────────────────────────
+// ── TagChips (edit, Radix Popover) ────────────────────────────────────────────
 
 function TagChips({
   value,
@@ -164,7 +145,6 @@ function TagChips({
 }) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
-  const [pos, setPos] = useState<DropPos | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
 
@@ -173,13 +153,6 @@ function TagChips({
     .filter(t => !selectedSet.has(t.name) && t.name.toLowerCase().includes(query.toLowerCase()))
     .slice(0, 20)
   const showCreate = query.trim().length > 0 && !availableTags.some(t => t.name === query.trim()) && !selectedSet.has(query.trim())
-
-  function openDropdown() {
-    if (!inputRef.current) return
-    const r = inputRef.current.getBoundingClientRect()
-    setPos({ top: r.bottom + 2, left: r.left, width: Math.max(r.width, 160) })
-    setOpen(true)
-  }
 
   function add(name: string) {
     const t = name.trim()
@@ -190,65 +163,65 @@ function TagChips({
 
   function remove(name: string) { onChange(value.filter(t => t !== name)) }
 
-  useEffect(() => {
-    if (!open) return
-    const h = (e: MouseEvent) => {
-      if (!inputRef.current?.contains(e.target as Node) && !listRef.current?.contains(e.target as Node)) {
-        setOpen(false); setQuery('')
-      }
-    }
-    document.addEventListener('mousedown', h)
-    return () => document.removeEventListener('mousedown', h)
-  }, [open])
-
   return (
-    <div className="flex flex-wrap gap-1 items-center min-w-[7rem] min-h-[1.75rem]">
-      {value.map(tag => (
-        <span key={tag} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-brand-50 text-brand-700 text-xs rounded border border-brand-200">
-          {tag}
-          <button type="button" onMouseDown={e => { e.preventDefault(); remove(tag) }} className="leading-none text-brand-400 hover:text-brand-700">×</button>
-        </span>
-      ))}
-      <input
-        ref={inputRef}
-        type="text"
-        aria-label={ariaLabel}
-        value={query}
-        onChange={e => { setQuery(e.target.value); openDropdown() }}
-        onFocus={openDropdown}
-        onKeyDown={e => {
-          if (e.key === 'Enter' && query.trim()) { e.preventDefault(); add(query) }
-          else if (e.key === 'Backspace' && !query && value.length > 0) remove(value[value.length - 1])
-          else if (e.key === 'Escape') { setOpen(false); setQuery('') }
-        }}
-        placeholder={value.length === 0 ? 'tag…' : ''}
-        className="flex-1 min-w-[3rem] px-1 py-0.5 text-xs outline-none border-b border-surface-border bg-transparent text-ink"
-      />
-      {open && pos && createPortal(
-        <ul
-          ref={listRef}
-          style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 9999 }}
-          className="bg-surface-card border border-surface-border rounded-lg shadow-xl text-xs max-h-40 overflow-y-auto"
-        >
-          {filtered.map(t => (
-            <li key={t.id} onMouseDown={() => add(t.name)} className="px-3 py-1.5 cursor-pointer hover:bg-surface-subtle text-ink">{t.name}</li>
+    <Popover.Root open={open} onOpenChange={setOpen}>
+      <Popover.Anchor asChild>
+        <div className="flex flex-wrap gap-1 items-center min-w-[7rem] min-h-[1.75rem]">
+          {value.map(tag => (
+            <span key={tag} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-brand-50 text-brand-700 text-xs rounded border border-brand-200">
+              {tag}
+              <button type="button" onMouseDown={e => { e.preventDefault(); remove(tag) }} className="leading-none text-brand-400 hover:text-brand-700">×</button>
+            </span>
           ))}
-          {showCreate && (
-            <li onMouseDown={() => add(query.trim())} className="px-3 py-1.5 cursor-pointer hover:bg-brand-50 text-brand-600 font-medium">
-              + "{query.trim()}"
-            </li>
-          )}
-          {filtered.length === 0 && !showCreate && (
-            <li className="px-3 py-1.5 text-ink-mute">—</li>
-          )}
-        </ul>,
-        document.body,
-      )}
-    </div>
+          <input
+            ref={inputRef}
+            type="text"
+            aria-label={ariaLabel}
+            value={query}
+            onChange={e => { setQuery(e.target.value); setOpen(true) }}
+            onFocus={() => setOpen(true)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && query.trim()) { e.preventDefault(); add(query) }
+              else if (e.key === 'Backspace' && !query && value.length > 0) remove(value[value.length - 1])
+              else if (e.key === 'Escape') { setOpen(false); setQuery('') }
+            }}
+            placeholder={value.length === 0 ? 'tag…' : ''}
+            className="flex-1 min-w-[3rem] px-1 py-0.5 text-xs outline-none border-b border-surface-border bg-transparent text-ink"
+          />
+        </div>
+      </Popover.Anchor>
+      <Popover.Portal>
+        <Popover.Content
+          asChild
+          sideOffset={2}
+          align="start"
+          onOpenAutoFocus={e => e.preventDefault()}
+          onCloseAutoFocus={e => e.preventDefault()}
+        >
+          <ul
+            ref={listRef}
+            style={{ minWidth: 160, width: 'var(--radix-popover-trigger-width)' }}
+            className="bg-surface-card border border-surface-border rounded-lg shadow-xl text-xs max-h-40 overflow-y-auto"
+          >
+            {filtered.map(t => (
+              <li key={t.id} onMouseDown={() => add(t.name)} className="px-3 py-1.5 cursor-pointer hover:bg-surface-subtle text-ink">{t.name}</li>
+            ))}
+            {showCreate && (
+              <li onMouseDown={() => add(query.trim())} className="px-3 py-1.5 cursor-pointer hover:bg-brand-50 text-brand-600 font-medium">
+                + "{query.trim()}"
+              </li>
+            )}
+            {filtered.length === 0 && !showCreate && (
+              <li className="px-3 py-1.5 text-ink-mute">—</li>
+            )}
+          </ul>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   )
 }
 
-// ── FamilyMultiSelect ─────────────────────────────────────────────────────────
+// ── FamilyMultiSelect (Radix Popover) ─────────────────────────────────────────
 
 function FamilyMultiSelect({
   value,
@@ -262,7 +235,6 @@ function FamilyMultiSelect({
   'aria-label'?: string
 }) {
   const [open, setOpen] = useState(false)
-  const [pos, setPos] = useState<DropPos | null>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
 
@@ -273,65 +245,60 @@ function FamilyMultiSelect({
     onChange(selectedSet.has(id) ? value.filter(v => v !== id) : [...value, id])
   }
 
-  function openDropdown() {
-    if (!btnRef.current) return
-    const r = btnRef.current.getBoundingClientRect()
-    setPos({ top: r.bottom + 2, left: r.left, width: Math.max(r.width, 160) })
-    setOpen(true)
-  }
-
-  useEffect(() => {
-    if (!open) return
-    const h = (e: MouseEvent) => {
-      if (!btnRef.current?.contains(e.target as Node) && !listRef.current?.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', h)
-    return () => document.removeEventListener('mousedown', h)
-  }, [open])
-
   const selectedNames = value.map(id => options.find(o => o.id === id)?.name ?? `#${id}`)
 
   return (
-    <div className="flex flex-wrap gap-1 items-center min-w-[7rem]">
-      {selectedNames.map((name, i) => (
-        <span key={value[i]} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-sage-50 text-sage-700 text-xs rounded border border-sage-200">
-          {name}
-          <button type="button" onMouseDown={e => { e.preventDefault(); toggle(value[i]) }} className="leading-none text-sage-400 hover:text-sage-700">×</button>
-        </span>
-      ))}
-      <button
-        ref={btnRef}
-        type="button"
-        aria-label={ariaLabel}
-        onMouseDown={e => { e.preventDefault(); openDropdown() }}
-        className="px-1.5 py-0.5 text-xs text-ink-mute hover:text-brand-600 border border-dashed border-surface-border rounded hover:border-brand-400 transition-colors"
-      >
-        +
-      </button>
-      {open && pos && createPortal(
-        <ul
-          ref={listRef}
-          style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 9999 }}
-          className="bg-surface-card border border-surface-border rounded-lg shadow-xl text-xs max-h-40 overflow-y-auto"
+    <Popover.Root open={open} onOpenChange={setOpen}>
+      <Popover.Anchor asChild>
+        <div className="flex flex-wrap gap-1 items-center min-w-[7rem]">
+          {selectedNames.map((name, i) => (
+            <span key={value[i]} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-sage-50 text-sage-700 text-xs rounded border border-sage-200">
+              {name}
+              <button type="button" onMouseDown={e => { e.preventDefault(); toggle(value[i]) }} className="leading-none text-sage-400 hover:text-sage-700">×</button>
+            </span>
+          ))}
+          <button
+            ref={btnRef}
+            type="button"
+            aria-label={ariaLabel}
+            onMouseDown={e => { e.preventDefault(); setOpen(true) }}
+            className="px-1.5 py-0.5 text-xs text-ink-mute hover:text-brand-600 border border-dashed border-surface-border rounded hover:border-brand-400 transition-colors"
+          >
+            +
+          </button>
+        </div>
+      </Popover.Anchor>
+      <Popover.Portal>
+        <Popover.Content
+          asChild
+          sideOffset={2}
+          align="start"
+          onOpenAutoFocus={e => e.preventDefault()}
+          onCloseAutoFocus={e => e.preventDefault()}
         >
-          {options.length === 0 ? (
-            <li className="px-3 py-1.5 text-ink-mute">—</li>
-          ) : (
-            options.map(o => (
-              <li
-                key={o.id}
-                onMouseDown={() => toggle(o.id)}
-                className={`px-3 py-1.5 cursor-pointer hover:bg-surface-subtle text-ink flex items-center gap-2 ${selectedSet.has(o.id) ? 'font-semibold text-brand-600' : ''}`}
-              >
-                <span className="w-3 text-center">{selectedSet.has(o.id) ? '✓' : ''}</span>
-                {o.name}
-              </li>
-            ))
-          )}
-        </ul>,
-        document.body,
-      )}
-    </div>
+          <ul
+            ref={listRef}
+            style={{ minWidth: 160, width: 'var(--radix-popover-trigger-width)' }}
+            className="bg-surface-card border border-surface-border rounded-lg shadow-xl text-xs max-h-40 overflow-y-auto"
+          >
+            {options.length === 0 ? (
+              <li className="px-3 py-1.5 text-ink-mute">—</li>
+            ) : (
+              options.map(o => (
+                <li
+                  key={o.id}
+                  onMouseDown={() => toggle(o.id)}
+                  className={`px-3 py-1.5 cursor-pointer hover:bg-surface-subtle text-ink flex items-center gap-2 ${selectedSet.has(o.id) ? 'font-semibold text-brand-600' : ''}`}
+                >
+                  <span className="w-3 text-center">{selectedSet.has(o.id) ? '✓' : ''}</span>
+                  {o.name}
+                </li>
+              ))
+            )}
+          </ul>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   )
 }
 

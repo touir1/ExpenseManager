@@ -19,7 +19,7 @@ async function parseJsonSafe(res: Response) {
   try { return await res.json() } catch { return undefined }
 }
 
-function getErrorMessage(status: number, data: any, statusText: string): string {
+function getErrorMessage(status: number, data: any): string {
   if (status >= 500) return API_ERRORS.SERVER
   if (status === 429) return API_ERRORS.RATE_LIMIT
   const backendCode: string | undefined = data?.message ?? data?.Message ?? data?.error
@@ -52,8 +52,8 @@ function getRawCode(data: any): string | undefined {
   return data?.message ?? data?.Message ?? data?.error
 }
 
-function buildErrorResponse<T>(status: number, data: unknown, statusText: string, silent = false): ApiResponse<T> {
-  const msg = getErrorMessage(status, data, statusText)
+function buildErrorResponse<T>(status: number, data: unknown, silent = false): ApiResponse<T> {
+  const msg = getErrorMessage(status, data)
   if (errorHandler && !silent) errorHandler(msg)
   return { ok: false, status, error: msg, rawCode: getRawCode(data) }
 }
@@ -67,7 +67,7 @@ async function retryRequest<T>(url: string, init: RequestInit, headers: Record<s
     redirectToLogin()
     return { ok: false, status: retryStatus, error: API_ERRORS.UNAUTHORIZED }
   }
-  return buildErrorResponse(retryStatus, retryData, retryRes.statusText)
+  return buildErrorResponse(retryStatus, retryData)
 }
 
 export async function request<T>(path: string, init: RequestInit = {}, opts: { skipUnauthorized?: boolean; silent?: boolean } = {}): Promise<ApiResponse<T>> {
@@ -87,7 +87,7 @@ export async function request<T>(path: string, init: RequestInit = {}, opts: { s
       return { ok: false, status, error: API_ERRORS.UNAUTHORIZED }
     }
 
-    if (!res.ok) return buildErrorResponse(status, data, res.statusText, opts.silent)
+    if (!res.ok) return buildErrorResponse(status, data, opts.silent)
     return { ok: true, status, data }
   } catch {
     const msg = API_ERRORS.NETWORK

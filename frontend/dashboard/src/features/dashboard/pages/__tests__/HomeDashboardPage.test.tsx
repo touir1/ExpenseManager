@@ -173,6 +173,7 @@ describe('HomeDashboardPage', () => {
   it('renders EmptyDashboard with a CTA when there is no data', async () => {
     vi.mocked(getSummary).mockResolvedValueOnce({
       ok: true,
+      status: 200,
       data: {
         totalAmount: 0,
         convertedTotal: null,
@@ -184,7 +185,7 @@ describe('HomeDashboardPage', () => {
         topCategoryAmount: 0,
       },
     })
-    vi.mocked(getCategories).mockResolvedValueOnce({ ok: true, data: [] })
+    vi.mocked(getCategories).mockResolvedValueOnce({ ok: true, status: 200, data: [] })
     renderPage()
     await waitFor(() => expect(screen.getByRole('button', { name: /add/i })).toBeInTheDocument())
     expect(screen.getByText('💸')).toBeInTheDocument()

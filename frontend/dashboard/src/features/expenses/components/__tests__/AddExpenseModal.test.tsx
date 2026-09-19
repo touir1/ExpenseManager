@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useState } from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import AddExpenseModal from '../AddExpenseModal'
 
@@ -90,6 +90,7 @@ describe('AddExpenseModal', () => {
     const trigger = screen.getByRole('button', { name: 'Add expense' })
     await user.click(trigger)
     await user.click(screen.getByRole('button', { name: /close/i }))
-    expect(trigger).toHaveFocus()
+    // Radix Dialog restores focus on unmount via a deferred (rAF) onCloseAutoFocus
+    await waitFor(() => expect(trigger).toHaveFocus())
   })
 })

@@ -814,7 +814,7 @@ describe('FamiliesPage', () => {
     })
 
     it('shows pending invitation email when there is one', async () => {
-      vi.mocked(familyApi.getPendingInvitations).mockResolvedValue({ ok: true, data: [mockInvitation] })
+      vi.mocked(familyApi.getPendingInvitations).mockResolvedValue({ ok: true, status: 200, data: [mockInvitation] })
       await renderExpanded()
       await waitFor(() => expect(screen.getByText('invite@example.com')).toBeInTheDocument())
     })
@@ -832,7 +832,7 @@ describe('FamiliesPage', () => {
     })
 
     it('revoke button shows confirm modal without calling revokeInvitation', async () => {
-      vi.mocked(familyApi.getPendingInvitations).mockResolvedValue({ ok: true, data: [mockInvitation] })
+      vi.mocked(familyApi.getPendingInvitations).mockResolvedValue({ ok: true, status: 200, data: [mockInvitation] })
       const user = await renderExpanded()
       await waitFor(() => expect(screen.getByRole('button', { name: /families\.revokeAction/i })).toBeInTheDocument())
       await user.click(screen.getByRole('button', { name: /families\.revokeAction/i }))
@@ -841,8 +841,8 @@ describe('FamiliesPage', () => {
     })
 
     it('confirming revoke calls revokeInvitation and shows toast', async () => {
-      vi.mocked(familyApi.getPendingInvitations).mockResolvedValue({ ok: true, data: [mockInvitation] })
-      vi.mocked(familyApi.revokeInvitation).mockResolvedValue({ ok: true })
+      vi.mocked(familyApi.getPendingInvitations).mockResolvedValue({ ok: true, status: 200, data: [mockInvitation] })
+      vi.mocked(familyApi.revokeInvitation).mockResolvedValue({ ok: true, status: 200 })
       const user = await renderExpanded()
       await waitFor(() => expect(screen.getByRole('button', { name: /families\.revokeAction/i })).toBeInTheDocument())
       await user.click(screen.getByRole('button', { name: /families\.revokeAction/i }))
@@ -852,7 +852,7 @@ describe('FamiliesPage', () => {
     })
 
     it('cancelling revoke does not call revokeInvitation', async () => {
-      vi.mocked(familyApi.getPendingInvitations).mockResolvedValue({ ok: true, data: [mockInvitation] })
+      vi.mocked(familyApi.getPendingInvitations).mockResolvedValue({ ok: true, status: 200, data: [mockInvitation] })
       const user = await renderExpanded()
       await waitFor(() => expect(screen.getByRole('button', { name: /families\.revokeAction/i })).toBeInTheDocument())
       await user.click(screen.getByRole('button', { name: /families\.revokeAction/i }))

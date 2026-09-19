@@ -1,6 +1,36 @@
 
 # Changelog
 
+## [0.143.1] - 2026-09-19
+### Frontend: fix all pre-existing `tsc` typecheck errors (42 → 0)
+
+- `src/services/api.service.ts`: dropped the unused `statusText` param threaded through `getErrorMessage`/`buildErrorResponse` and their 2 call sites (was never read).
+- `EmailField.test.tsx`: mock `UseFormRegisterReturn`'s `onChange`/`onBlur` now return `Promise<void>` (RHF's `ChangeHandler` type), matching the real hook's signature.
+- `CategoryDonut.test.tsx`/`MonthHero.test.tsx`: fixture `category.description`/`topCategory.description` changed from `null` to `undefined` to match the declared `string | undefined` type.
+- `HomeDashboardPage.test.tsx`, `dashboardApi.service.test.ts` (14 call sites), `FamiliesPage.test.tsx` (5 call sites): added the required `status` field to mocked `ApiResponse` literals.
+- `SettingsPage.test.tsx`: added missing `afterEach` import from `vitest`.
+- `NotificationContext.test.tsx`: `mockNotif` now explicitly typed as `AppNotification` so `payload.type` narrows to its literal union member instead of widening to `string`.
+- `CsvImportPage.test.tsx`: removed the now-unused `act` import (leftover from the [0.143.0] Radix migration); `validRow`/`errorRow` fixtures and `makeValidateResponse`'s param explicitly typed as `CsvImportRowPreview` so `tagNames: string[] | null` is preserved through the object-literal spread in `validatedRow2` instead of narrowing to the `null` literal.
+- No production behavior changes beyond the `api.service.ts` signature cleanup (dead parameter only). Full frontend suite green (1275 tests); `tsc -b` now exits clean (0 errors, down from the 42-43 baseline carried across recent sessions).
+
+## [0.143.0] - 2026-09-19
+### Frontend: migrate CsvImportPage's inline StringCombobox/TagChips/FamilyMultiSelect to Radix Popover (completes frontend-ui-library-evaluation.md)
+
+- **`CsvImportPage.tsx`** (`frontend/dashboard`): the 3 remaining hand-rolled portal dropdowns — page-local `StringCombobox` (currency/category/subcategory edit), `TagChips` (tag edit), `FamilyMultiSelect` (family attribution edit) — migrated to `@radix-ui/react-popover`, same pattern as `FormCombobox.tsx`/`TagInput.tsx` from [0.142.0]. Each component's `Popover.Anchor` now wraps its trigger element (input or "+" button), `Popover.Portal`+`Popover.Content` renders the dropdown/menu with `onOpenAutoFocus`/`onCloseAutoFocus` both `preventDefault()`'d, and width is pinned to the trigger via `var(--radix-popover-trigger-width)` (with a 160px `minWidth` floor, matching the old `Math.max(r.width,160)` behavior). All existing row-edit logic (search filtering, tag create-on-enter, family checkbox toggling, keyboard shortcuts) kept unchanged.
+- Removed the dead `useDropdownPos`/`DropPos` helper (declared, never called — was already flagged by `tsc` as unused) and the `createPortal` import, now unused in this file after the migration.
+- This closes out the last 3 items constraints.md's "portal-based dropdowns" note had flagged as not yet on the Radix pattern.
+- Tests (`CsvImportPage.test.tsx`): added 3 new regression tests — "closes StringCombobox (currency) dropdown on outside click", "closes TagChips dropdown on outside click", "closes FamilyMultiSelect dropdown on outside click" — using `userEvent.click(...)` + `waitFor` (Radix's dismissable layer resolves outside-click on a deferred `pointerdown`+`click` pair, not a bare `mousedown`); none of these 3 components had outside-click-close coverage before. Full frontend suite green (1275 tests, +3); typecheck at 42 baseline errors (down from 43 — removing the dead `useDropdownPos` also fixed a pre-existing `tsc` unused-declaration error as a side effect).
+
+## [0.142.0] - 2026-09-19
+### Frontend: migrate portal dropdowns + expense modals to shadcn/ui-style Radix primitives (frontend-ui-library-evaluation.md)
+
+- **Evaluated MUI vs shadcn/ui vs status quo** for the dashboard's hand-rolled UI primitives (`docs/plans/frontend-ui-library-evaluation.md`) — rejected MUI (CSS-in-JS collides with the existing Tailwind design system, large bundle add, would strand the project's tuned dark-mode/portal/focus conventions); adopted **shadcn/ui's approach** (Radix primitives + Tailwind, code copied/owned rather than an opaque npm component package), scoped first to the portal-based dropdowns, then the two expense modals.
+- **`FormCombobox.tsx`** and **`TagInput.tsx`** (`frontend/dashboard`): replaced the hand-rolled `getBoundingClientRect()` + `document.addEventListener('mousedown'/'scroll')` positioning/dismiss logic with `@radix-ui/react-popover` (`Popover.Anchor`/`Popover.Portal`/`Popover.Content`, `onOpenAutoFocus`/`onCloseAutoFocus` both `preventDefault()`'d so focus stays on the input). Custom keyboard nav (Arrow/Home/End/Enter/Escape/type-ahead) and ARIA wiring (`role="combobox"`/`role="listbox"`) kept unchanged, layered on top of Radix.
+- **`AddExpenseModal.tsx`**/**`EditExpenseModal.tsx`**: replaced the hand-built `role="dialog"` overlay div with `@radix-ui/react-dialog` (`Dialog.Root`/`Dialog.Portal`/`Dialog.Overlay`/`Dialog.Content`/`Dialog.Title`/`Dialog.Close`) — gains a real focus trap plus Escape-to-close and backdrop-click-to-close (neither was wired before). Since neither modal renders a `Dialog.Trigger` (the trigger button lives in the parent page), Radix's default trigger-based focus-return doesn't apply; each modal instead captures `document.activeElement` into a `useRef` on mount and restores it via `onCloseAutoFocus`. This also fixes `EditExpenseModal`, which previously had no focus-return at all (`AddExpenseModal` had one via the now-retired `useReturnFocusOnUnmount` call).
+- New `src/lib/utils.ts` (`cn()` — `clsx`+`tailwind-merge`) for future Radix/shadcn-style components. New deps: `@radix-ui/react-popover`, `@radix-ui/react-dialog`, `clsx`, `tailwind-merge`.
+- `hooks/useReturnFocusOnUnmount.ts` kept (still used by `ConfirmDeleteModal` in `ExpensesPage.tsx`, which was not migrated — out of scope per the plan) but no longer used by the two expense modals.
+- Tests: `FormCombobox.test.tsx`/`TagInput.test.tsx`/`AddExpenseModal.test.tsx` outside-click/focus-return assertions updated — Radix's dismissable layer resolves outside-click on a deferred `pointerdown`+`click` pair rather than a bare `mousedown`, so these now use `userEvent.click(...)` wrapped in `waitFor` instead of `fireEvent.mouseDown`. Full frontend suite green (1272 tests); typecheck unchanged at the pre-existing 43 baseline errors (none newly introduced).
+
 ## [0.141.0] - 2026-08-13
 ### Feature: Recurring expenses CRUD + auto-generation (recurring-expenses-full-plan.md)
 

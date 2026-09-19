@@ -3,7 +3,8 @@ import { render, screen } from '@testing-library/react'
 import EmailField from '../EmailField'
 
 const noop = () => {}
-const reg = { name: 'email', ref: noop, onChange: noop, onBlur: noop }
+const noopAsync = async () => {}
+const reg = { name: 'email', ref: noop, onChange: noopAsync, onBlur: noopAsync }
 
 describe('EmailField', () => {
   it('renders email label', () => {

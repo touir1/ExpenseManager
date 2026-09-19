@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor, act } from '@testing-library/react'
 import { NotificationProvider, useNotifications } from '../NotificationContext'
 import * as notifApi from '@/features/notifications/services/notificationApi.service'
+import type { AppNotification } from '@/features/notifications/types/notification.type'
 
 vi.mock('@/features/notifications/services/notificationApi.service', () => ({
   getNotifications: vi.fn(),
@@ -34,7 +35,7 @@ vi.mock('@microsoft/signalr', () => {
   }
 })
 
-const mockNotif = {
+const mockNotif: AppNotification = {
   id: 1,
   type: 'FAMILY_MEMBER_REMOVED',
   payload: { type: 'FAMILY_MEMBER_REMOVED', familyId: 1, familyName: 'Smith', removedByUserId: 2, removedByName: 'Alice', expenseCount: 0 },

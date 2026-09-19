@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import CsvImportPage from '../CsvImportPage'
-import type { CsvImportPreviewDto } from '@/features/expenses/types/expenses.type'
+import type { CsvImportPreviewDto, CsvImportRowPreview } from '@/features/expenses/types/expenses.type'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -67,7 +68,7 @@ vi.mock('@/features/families/FamilyContext', () => ({
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
-const validRow = {
+const validRow: CsvImportRowPreview = {
   rowNumber: 1,
   isValid: true,
   errors: [],
@@ -87,7 +88,7 @@ const validRow = {
   familyIds: null,
 }
 
-const errorRow = {
+const errorRow: CsvImportRowPreview = {
   rowNumber: 2,
   isValid: false,
   errors: ['AMOUNT_INVALID'],
@@ -131,7 +132,7 @@ const previewAllInvalid: CsvImportPreviewDto = {
 }
 
 // single-row validate response shape expected by saveAndValidateRow
-function makeValidateResponse(row: typeof validRow | typeof errorRow): { ok: true; data: CsvImportPreviewDto } {
+function makeValidateResponse(row: CsvImportRowPreview): { ok: true; data: CsvImportPreviewDto } {
   return { ok: true, data: { totalRows: 1, validCount: row.isValid ? 1 : 0, errorCount: row.isValid ? 0 : 1, rows: [row] } }
 }
 
@@ -218,6 +219,56 @@ describe('CsvImportPage', () => {
       expect(screen.queryByText('My Family')).not.toBeInTheDocument()
       expect(screen.getByText('Shared')).toBeInTheDocument()
     })
+  })
+
+  it('closes StringCombobox (currency) dropdown on outside click', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    const user = userEvent.setup()
+    renderPage()
+    uploadFile()
+    await waitFor(() => screen.getByRole('button', { name: /edit row 2/i }))
+    await user.click(screen.getByRole('button', { name: /edit row 2/i }))
+    const currencyInput = await screen.findByLabelText(/row 2 currency/i)
+
+    await user.click(currencyInput)
+    await waitFor(() => expect(screen.getByText('EUR — Euro')).toBeInTheDocument())
+
+    // Radix Popover's dismissable layer resolves outside-click on a deferred "click" event
+    await user.click(document.body)
+    await waitFor(() => expect(screen.queryByText('EUR — Euro')).not.toBeInTheDocument())
+  })
+
+  it('closes TagChips dropdown on outside click', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    const user = userEvent.setup()
+    renderPage()
+    uploadFile()
+    await waitFor(() => screen.getByRole('button', { name: /edit row 2/i }))
+    await user.click(screen.getByRole('button', { name: /edit row 2/i }))
+    const tagsInput = await screen.findByLabelText(/row 2 tags/i)
+
+    await user.click(tagsInput)
+    // 'client' (unlike 'work') isn't already rendered as a chip elsewhere on the page
+    await waitFor(() => expect(screen.getByText('client')).toBeInTheDocument())
+
+    await user.click(document.body)
+    await waitFor(() => expect(screen.queryByText('client')).not.toBeInTheDocument())
+  })
+
+  it('closes FamilyMultiSelect dropdown on outside click', async () => {
+    mockPreviewCsvImport.mockResolvedValue({ ok: true, data: previewWithErrors })
+    const user = userEvent.setup()
+    renderPage()
+    uploadFile()
+    await waitFor(() => screen.getByRole('button', { name: /edit row 2/i }))
+    await user.click(screen.getByRole('button', { name: /edit row 2/i }))
+    const familiesField = await screen.findByLabelText(/row 2 families/i)
+
+    await user.click(familiesField)
+    await waitFor(() => expect(screen.getByText('Shared')).toBeInTheDocument())
+
+    await user.click(document.body)
+    await waitFor(() => expect(screen.queryByText('Shared')).not.toBeInTheDocument())
   })
 
   it('shows valid count and error count badges', async () => {

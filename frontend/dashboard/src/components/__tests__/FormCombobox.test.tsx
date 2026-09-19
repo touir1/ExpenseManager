@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { FormCombobox } from '../FormCombobox'
 
 const options = [
@@ -34,7 +35,8 @@ describe('FormCombobox', () => {
     expect(screen.getByRole('option', { name: 'EUR' })).toBeInTheDocument()
   })
 
-  it('closes dropdown on outside click', () => {
+  it('closes dropdown on outside click', async () => {
+    const user = userEvent.setup()
     render(
       <div>
         <FormCombobox value={undefined} onChange={vi.fn()} options={options} />
@@ -42,10 +44,11 @@ describe('FormCombobox', () => {
       </div>
     )
     const input = screen.getByPlaceholderText('—')
-    fireEvent.focus(input)
+    await user.click(input)
     expect(screen.getByRole('listbox')).toBeInTheDocument()
-    fireEvent.mouseDown(screen.getByText('outside'))
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    // Radix Popover's dismissable layer resolves outside-click on a deferred "click" event
+    await user.click(screen.getByText('outside'))
+    await waitFor(() => expect(screen.queryByRole('listbox')).not.toBeInTheDocument())
   })
 
   it('filters options by search query (case-insensitive)', () => {

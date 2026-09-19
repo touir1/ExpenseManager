@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import TagInput from '../TagInput'
 import type { Tag, TagList } from '../../types/tag.type'
@@ -200,7 +200,8 @@ describe('TagInput', () => {
     render(<TagInput value={[]} onChange={vi.fn()} />)
     await user.click(screen.getByRole('combobox'))
     await waitFor(() => expect(screen.getByRole('menu')).toBeInTheDocument())
-    fireEvent.mouseDown(document.body)
+    // Radix Popover's dismissable layer resolves outside-click on a deferred "click" event
+    await user.click(document.body)
     await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
   })
 

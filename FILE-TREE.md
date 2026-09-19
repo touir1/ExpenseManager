@@ -713,7 +713,7 @@ ExpenseManager/
 │           │   ├── BackLink.tsx        — Back-arrow link with chevron SVG
 │           │   ├── EmptyState.tsx      — Shared empty-state pattern: decorative icon + title + optional subtitle + optional action (button or react-router Link via `to`); `compact` prop for chart-panel usage
 │           │   ├── FieldError.tsx      — Per-field error paragraph with role="alert"
-│           │   ├── FormCombobox.tsx    — Searchable combobox (text input + listbox dropdown); portal-based dropdown via createPortal to document.body at position:fixed; optional className prop; used in ExpenseForm + admin pages; full ARIA combobox pattern (role/aria-expanded/aria-activedescendant) + Arrow/Home/End/Enter/Escape/type-ahead keyboard nav
+│           │   ├── FormCombobox.tsx    — Searchable combobox (text input + listbox dropdown); positioning/dismiss/focus via @radix-ui/react-popover (Popover.Anchor wraps the input, Popover.Content portals the listbox); optional className prop; used in ExpenseForm + admin pages; full ARIA combobox pattern (role/aria-expanded/aria-activedescendant) + Arrow/Home/End/Enter/Escape/type-ahead keyboard nav (custom, kept on top of Radix)
 │           │   ├── LanguageSwitcher.tsx — Language selector dropdown wired to i18n.changeLanguage
 │           │   ├── NavBarThemeButton.tsx — Icon-only theme toggle (light↔dark only); resolves system theme via OS matchMedia; sun/moon SVG; aria-label+title; h-8 w-8 utility style; placed in NavBar right-side controls
 │           │   ├── PasswordInput.tsx   — Password input with show/hide toggle
@@ -732,6 +732,8 @@ ExpenseManager/
 │           │       ├── PasswordStrength.test.tsx
 │           │       ├── SubmitButton.test.tsx
 │           │       └── Toast.test.tsx
+│           ├── lib/
+│           │   └── utils.ts           — cn() helper (clsx + tailwind-merge); shadcn/ui-style class merge, used by Radix-based components
 │           ├── i18n/                  — Internationalisation (react-i18next)
 │           │   ├── index.ts           — i18next singleton config; language detection via localStorage → navigator
 │           │   ├── locales/
@@ -813,7 +815,7 @@ ExpenseManager/
 │           │   │   │   └── __tests__/
 │           │   │   │       └── tagsApi.service.test.ts
 │           │   │   └── components/
-│           │   │       ├── TagInput.tsx          — Combobox: grouped "My tags"/"Family tags" dropdown, chips, create option, keyboard (Enter/Escape/Backspace)
+│           │   │       ├── TagInput.tsx          — Combobox: grouped "My tags"/"Family tags" dropdown, chips, create option, keyboard (Enter/Escape/Backspace); positioning/dismiss via @radix-ui/react-popover (same pattern as FormCombobox)
 │           │   │       └── __tests__/
 │           │   │           └── TagInput.test.tsx — 18 component tests (role queries updated to menu/menuitem; added getTags/useTag error-path, Enter-key tests, outside-click close)
 │           │   ├── currencies/        — Display currency feature (Phase 6)
@@ -840,8 +842,8 @@ ExpenseManager/
 │           │   │   │       ├── currenciesApi.service.test.ts
 │           │   │   │       └── expensesApi.service.test.ts
 │           │   │   ├── components/
-│           │   │   │   ├── AddExpenseModal.tsx  — Modal overlay with ExpenseForm; max-w-2xl; centered (items-center), max-h-[90dvh], header fixed + body overflow-y-auto; calls addExpense; onSuccess/onClose callbacks
-│           │   │   │   ├── EditExpenseModal.tsx — Modal overlay with pre-filled ExpenseForm; max-w-2xl; same layout as AddExpenseModal; fetches expense by id via useQuery; onSuccess/onClose callbacks
+│           │   │   │   ├── AddExpenseModal.tsx  — @radix-ui/react-dialog Dialog with ExpenseForm; max-w-2xl; centered (items-center), max-h-[90dvh], header fixed + body overflow-y-auto; calls addExpense; onSuccess/onClose callbacks; no Dialog.Trigger (trigger button lives in the parent page) so focus-return is done manually via onCloseAutoFocus + a ref captured on mount
+│           │   │   │   ├── EditExpenseModal.tsx — @radix-ui/react-dialog Dialog with pre-filled ExpenseForm; max-w-2xl; same layout/focus-return pattern as AddExpenseModal; fetches expense by id via useQuery; onSuccess/onClose callbacks
 │           │   │   │   ├── ExpenseForm.tsx     — RHF+Zod form: 2-column grid (left: amount+currency, date, category, subcategory; right: description, tags, families); modifiedAt note + buttons below grid; amount field is a local AmountInput component (Controller-driven text input) — raw sanitized digits while focused, locale-grouped display via amountFormat util on blur, underlying RHF value stays a plain number
 │           │   │   │   ├── ExpenseFilters.tsx  — Collapsible filter panel; toggle with aria-expanded; resets page to 1 on apply; FilterCombobox for category/subcategory/currency (case-insensitive search)
 │           │   │   │   └── __tests__/
@@ -851,10 +853,10 @@ ExpenseManager/
 │           │   │   │       └── ExpenseFilters.test.tsx
 │           │   │   ├── pages/
 │           │   │   │   ├── ExpensesPage.tsx    — Paginated expense table with Families column; delete confirm modal; filter panel; empty state; AddExpenseModal (/expenses/add) + EditExpenseModal (/expenses/:id/edit) route-based overlays; "Import CSV" button → /expenses/import
-│           │   │   │   ├── CsvImportPage.tsx   — Upload→[column mapping]→preview flow; all 8 columns; Edit/Save/Cancel per row; currency/category/subcategory = StringCombobox; tags = TagChips (chips + autocomplete from useExpensesData, adds new on confirm); families = FamilyMultiSelect (names shown, IDs stored, from useFamilies); all 3 dropdowns portal-rendered to document.body (position:fixed via getBoundingClientRect) to escape overflow-x-auto clipping; 3-state edit model; Re-validate auto-saves and calls POST /import/validate-rows; column-mapping step (skippable — only shown when previewCsvImport fails with a MISSING_HEADERS rawCode) calls detectCsvHeaders, lets the user assign each raw header to a canonical field or "Ignore" (uniqueness enforced by filtering used fields from other rows' options), "Remember this mapping" checkbox (default on) calls updateDefaultCsvColumnMapping on successful Continue, non-blocking on failure
+│           │   │   │   ├── CsvImportPage.tsx   — Upload→[column mapping]→preview flow; all 8 columns; Edit/Save/Cancel per row; currency/category/subcategory = StringCombobox; tags = TagChips (chips + autocomplete from useExpensesData, adds new on confirm); families = FamilyMultiSelect (names shown, IDs stored, from useFamilies); all 3 dropdowns positioned/dismissed via `@radix-ui/react-popover` (`Popover.Anchor`/`Popover.Portal`/`Popover.Content`, same pattern as `FormCombobox.tsx`/`TagInput.tsx`), portal to `document.body` to escape `overflow-x-auto` clipping; 3-state edit model; Re-validate auto-saves and calls POST /import/validate-rows; column-mapping step (skippable — only shown when previewCsvImport fails with a MISSING_HEADERS rawCode) calls detectCsvHeaders, lets the user assign each raw header to a canonical field or "Ignore" (uniqueness enforced by filtering used fields from other rows' options), "Remember this mapping" checkbox (default on) calls updateDefaultCsvColumnMapping on successful Continue, non-blocking on failure
 │           │   │   │   └── __tests__/
 │           │   │   │       ├── ExpensesPage.test.tsx
-│           │   │   │       └── CsvImportPage.test.tsx — 55 tests: dropzone/template, preview, all 8 columns header, tags-as-chips display, families-as-"default" display, badge counts, error codes, edit button per row, inputs after edit click (incl. tags/families inputs), save/cancel, cancel discards, re-validate visibility, re-validate auto-saves pending edits, tags serialised as semicolon string, preview updates, confirm/navigate/error, preview state cleared after successful import (leave-blocker regression), cancel to upload, file too large shows error, wrong extension shows error; leave-confirmation blocker ×5 (shows when blocked, buttons present, proceed/reset wiring, hidden when idle); column mapping step ×6 (shows on MISSING_HEADERS, skipped on exact-header upload, disables Continue when required field unmapped, resubmits with confirmed mapping + saves default, remember-checkbox opt-out, Cancel resets state)
+│           │   │   │       └── CsvImportPage.test.tsx — 58 tests: dropzone/template, preview, all 8 columns header, tags-as-chips display, families-as-"default" display, badge counts, error codes, edit button per row, inputs after edit click (incl. tags/families inputs), save/cancel, cancel discards, re-validate visibility, re-validate auto-saves pending edits, tags serialised as semicolon string, preview updates, confirm/navigate/error, preview state cleared after successful import (leave-blocker regression), cancel to upload, file too large shows error, wrong extension shows error; leave-confirmation blocker ×5 (shows when blocked, buttons present, proceed/reset wiring, hidden when idle); column mapping step ×6 (shows on MISSING_HEADERS, skipped on exact-header upload, disables Continue when required field unmapped, resubmits with confirmed mapping + saves default, remember-checkbox opt-out, Cancel resets state); outside-click-closes-dropdown ×3 (StringCombobox/TagChips/FamilyMultiSelect, via `userEvent.click`+`waitFor` — Radix resolves outside-click on a deferred pointerdown+click pair)
 │           │   │   ├── expense.schemas.ts  — makeExpenseSchema(t): Zod v4 schema; categoryId/subcategoryId use .catch(undefined) to coerce NaN
 │           │   │   ├── ExpensesDataContext.tsx  — ExpensesDataProvider / useExpensesData(); fetches categories + currencies on mount
 │           │   │   ├── utils/

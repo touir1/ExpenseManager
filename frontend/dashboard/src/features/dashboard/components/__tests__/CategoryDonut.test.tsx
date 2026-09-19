@@ -15,14 +15,14 @@ vi.mock('recharts', () => ({
 
 const mockCategories: CategoryBreakdownDto[] = [
   {
-    category: { id: 1, name: 'Food', description: null },
+    category: { id: 1, name: 'Food', description: undefined },
     totalAmount: 890,
     convertedTotal: null,
     percentage: 36.6,
     subcategories: [],
   },
   {
-    category: { id: 2, name: 'Transport', description: null },
+    category: { id: 2, name: 'Transport', description: undefined },
     totalAmount: 340,
     convertedTotal: null,
     percentage: 14.0,
