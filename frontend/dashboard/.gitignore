@@ -19,6 +19,8 @@ coverage/
 
 # TypeScript
 *.tsbuildinfo
+vite.config.js
+vite.config.d.ts
 
 # .env files
 .env

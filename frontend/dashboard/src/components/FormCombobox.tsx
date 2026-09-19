@@ -25,6 +25,7 @@ export function FormCombobox({ id, value, onChange, options, disabled, className
   const [query, setQuery] = useState('')
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const dropdownRef = useRef<HTMLUListElement>(null)
   const typeaheadRef = useRef({ buffer: '', timer: undefined as ReturnType<typeof setTimeout> | undefined })
   const listboxId = useId()
@@ -115,7 +116,7 @@ export function FormCombobox({ id, value, onChange, options, disabled, className
   return (
     <Popover.Root open={open} onOpenChange={o => { if (!o) closeDropdown() }}>
       <Popover.Anchor asChild>
-        <div className="relative">
+        <div ref={containerRef} className="relative">
           <input
             ref={inputRef}
             id={id}
@@ -152,12 +153,19 @@ export function FormCombobox({ id, value, onChange, options, disabled, className
           align="start"
           onOpenAutoFocus={e => e.preventDefault()}
           onCloseAutoFocus={e => e.preventDefault()}
+          onInteractOutside={e => {
+            // Popover.Anchor (unlike Popover.Trigger) isn't excluded from outside-interaction
+            // detection by Radix itself, so the trailing click of the same gesture that opened
+            // this popover (mousedown -> focus -> ... -> click) would otherwise be misread as an
+            // outside click and close it immediately after opening. Ignore the container's own.
+            if (containerRef.current?.contains(e.target as Node)) e.preventDefault()
+          }}
         >
           <ul
             ref={dropdownRef}
             id={listboxId}
             role="listbox"
-            style={{ width: 'var(--radix-popover-trigger-width)' }}
+            style={{ width: 'var(--radix-popover-trigger-width)', zIndex: 9999 }}
             className="bg-surface-card border border-surface-border rounded-lg shadow-warm max-h-48 overflow-y-auto text-ink"
           >
             {visibleItems.map((item, i) => {

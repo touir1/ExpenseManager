@@ -15,6 +15,7 @@ export default function TagInput({ value, onChange }: TagInputProps) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     getTags().then(res => {
@@ -78,7 +79,7 @@ export default function TagInput({ value, onChange }: TagInputProps) {
   return (
     <Popover.Root open={open && hasDropdown} onOpenChange={o => setOpen(o)}>
       <Popover.Anchor asChild>
-        <div className="relative">
+        <div ref={containerRef} className="relative">
           <div className="flex flex-wrap gap-1 p-1.5 min-h-[2.5rem] border border-surface-border rounded-lg focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-brand-500 bg-surface-card cursor-text">
             {value.map((tag, i) => (
               <span
@@ -132,11 +133,17 @@ export default function TagInput({ value, onChange }: TagInputProps) {
           align="start"
           onOpenAutoFocus={e => e.preventDefault()}
           onCloseAutoFocus={e => e.preventDefault()}
+          onInteractOutside={e => {
+            // Popover.Anchor isn't excluded from outside-interaction detection like
+            // Popover.Trigger is, so the trailing click of the gesture that opened this popover
+            // would otherwise be misread as an outside click and close it immediately.
+            if (containerRef.current?.contains(e.target as Node)) e.preventDefault()
+          }}
         >
           <div
             id="tag-input-menu"
             role="menu"
-            style={{ width: 'var(--radix-popover-trigger-width)' }}
+            style={{ width: 'var(--radix-popover-trigger-width)', zIndex: 9999 }}
             className="bg-surface-card border border-surface-border rounded-xl shadow-lg py-1 max-h-60 overflow-y-auto text-ink"
           >
             {filteredOwn.length > 0 && (

@@ -60,6 +60,7 @@ function StringCombobox({
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState(value)
   const inputRef = useRef<HTMLInputElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
 
   const filtered = (query.trim()
@@ -81,7 +82,7 @@ function StringCombobox({
   return (
     <Popover.Root open={open && !disabled} onOpenChange={o => { if (!o) setOpen(false) }}>
       <Popover.Anchor asChild>
-        <div className="relative min-w-0">
+        <div ref={containerRef} className="relative min-w-0">
           <input
             ref={inputRef}
             type="text"
@@ -104,10 +105,16 @@ function StringCombobox({
           align="start"
           onOpenAutoFocus={e => e.preventDefault()}
           onCloseAutoFocus={e => e.preventDefault()}
+          onInteractOutside={e => {
+            // Popover.Anchor isn't excluded from outside-interaction detection like
+            // Popover.Trigger is, so the trailing click of the gesture that opened this popover
+            // would otherwise be misread as an outside click and close it immediately.
+            if (containerRef.current?.contains(e.target as Node)) e.preventDefault()
+          }}
         >
           <ul
             ref={listRef}
-            style={{ minWidth: 160, width: 'var(--radix-popover-trigger-width)' }}
+            style={{ minWidth: 160, width: 'var(--radix-popover-trigger-width)', zIndex: 9999 }}
             className="max-h-40 overflow-y-auto bg-surface-card border border-surface-border rounded-lg shadow-xl text-xs"
           >
             {filtered.length === 0 ? (
@@ -146,6 +153,7 @@ function TagChips({
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
 
   const selectedSet = new Set(value)
@@ -166,7 +174,7 @@ function TagChips({
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Anchor asChild>
-        <div className="flex flex-wrap gap-1 items-center min-w-[7rem] min-h-[1.75rem]">
+        <div ref={containerRef} className="flex flex-wrap gap-1 items-center min-w-[7rem] min-h-[1.75rem]">
           {value.map(tag => (
             <span key={tag} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-brand-50 text-brand-700 text-xs rounded border border-brand-200">
               {tag}
@@ -197,10 +205,16 @@ function TagChips({
           align="start"
           onOpenAutoFocus={e => e.preventDefault()}
           onCloseAutoFocus={e => e.preventDefault()}
+          onInteractOutside={e => {
+            // Popover.Anchor isn't excluded from outside-interaction detection like
+            // Popover.Trigger is, so the trailing click of the gesture that opened this popover
+            // would otherwise be misread as an outside click and close it immediately.
+            if (containerRef.current?.contains(e.target as Node)) e.preventDefault()
+          }}
         >
           <ul
             ref={listRef}
-            style={{ minWidth: 160, width: 'var(--radix-popover-trigger-width)' }}
+            style={{ minWidth: 160, width: 'var(--radix-popover-trigger-width)', zIndex: 9999 }}
             className="bg-surface-card border border-surface-border rounded-lg shadow-xl text-xs max-h-40 overflow-y-auto"
           >
             {filtered.map(t => (
@@ -236,6 +250,7 @@ function FamilyMultiSelect({
 }) {
   const [open, setOpen] = useState(false)
   const btnRef = useRef<HTMLButtonElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
 
   const options = families.filter(f => !f.isArchived && !f.isDefault).map(f => ({ id: String(f.id), name: f.name }))
@@ -250,7 +265,7 @@ function FamilyMultiSelect({
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Anchor asChild>
-        <div className="flex flex-wrap gap-1 items-center min-w-[7rem]">
+        <div ref={containerRef} className="flex flex-wrap gap-1 items-center min-w-[7rem]">
           {selectedNames.map((name, i) => (
             <span key={value[i]} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-sage-50 text-sage-700 text-xs rounded border border-sage-200">
               {name}
@@ -275,10 +290,16 @@ function FamilyMultiSelect({
           align="start"
           onOpenAutoFocus={e => e.preventDefault()}
           onCloseAutoFocus={e => e.preventDefault()}
+          onInteractOutside={e => {
+            // Popover.Anchor isn't excluded from outside-interaction detection like
+            // Popover.Trigger is, so the trailing click of the gesture that opened this popover
+            // would otherwise be misread as an outside click and close it immediately.
+            if (containerRef.current?.contains(e.target as Node)) e.preventDefault()
+          }}
         >
           <ul
             ref={listRef}
-            style={{ minWidth: 160, width: 'var(--radix-popover-trigger-width)' }}
+            style={{ minWidth: 160, width: 'var(--radix-popover-trigger-width)', zIndex: 9999 }}
             className="bg-surface-card border border-surface-border rounded-lg shadow-xl text-xs max-h-40 overflow-y-auto"
           >
             {options.length === 0 ? (

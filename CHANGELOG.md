@@ -1,6 +1,35 @@
 
 # Changelog
 
+## [0.143.7] - 2026-09-19
+### Fix: stale committed `vite.config.js` shadowing `vite.config.ts`, breaking the dev-server API proxy
+
+- After adding the dev-server `/api` proxy in [0.143.6] (below), the running dev server still 200'd `/api/...` GETs with the SPA's own `index.html` and 404'd POSTs — even after a full restart. Root cause: a **compiled `vite.config.js`** (+ `vite.config.d.ts`) was committed to the repo alongside `vite.config.ts`, and Vite's config resolution prefers `.js` over `.ts` when both exist — so every edit to `vite.config.ts` this whole time (both the `zIndex` fix below and the proxy itself) was silently shadowed by the stale compiled copy, which predated all of it and had no proxy config at all.
+- The stale files existed because `tsconfig.node.json` (the project reference that type-checks `vite.config.ts`) had no `noEmit`, so `tsc -b` was compiling `vite.config.ts` to JS right next to the source on every build — and that output got committed at some point.
+- Fixed: `git rm`'d `vite.config.js`/`vite.config.d.ts`; added `"noEmit": true` to `tsconfig.node.json` so `tsc -b` keeps type-checking the config file without writing a JS copy nobody consumes (`vite build`/`vite dev` both transpile `vite.config.ts` directly via esbuild, and `tsc -b` here is purely a type-check gate — verified `npm run build:prod` still succeeds with `noEmit` set); added `vite.config.js`/`vite.config.d.ts` to `.gitignore` as a backstop.
+- Verified on a disposable Vite instance (separate port, not the user's own dev-server process): before the fix, `/api/users/auth/session` returned Vite's `index.html` with 200; after, both `/api/users/auth/session` and `/api/users/auth/refresh` return real `nginx`-backed JSON responses.
+
+## [0.143.6] - 2026-09-19
+### Fix: dev server (`localhost:5173`) login silently fails — auth cookie stripped by Schemeful Same-Site
+
+- Login against the nginx-fronted stack from the Vite dev server appeared to succeed (valid `auth_token` cookie observed on a top-level navigation, login POST returns 200) but the app immediately bounced back to `/login`. Root cause: the dev server serves the SPA over `http://localhost:5173` while the API lives behind `https://localhost` (nginx) — same host, **different scheme**. Chrome's Schemeful Same-Site classifies this as cross-site, so the `auth_token` cookie (SameSite=Lax) gets silently stripped from every subsequent fetch/XHR (though not from top-level navigations, which is why the cookie was visible on the document request but absent — confirmed via `sec-fetch-site: cross-site` and no `Cookie` header — on the session-check XHR, which 401'd with `MISSING_TOKEN`).
+- Fixed by adding an optional same-origin dev proxy in `vite.config.ts`: when `VITE_API_PROXY_TARGET` is set, `/api` requests are proxied through the dev server itself instead of the app fetching an absolute cross-scheme URL — matching how nginx already reverse-proxies `/api` in the built app, keeping dev and prod cookie behavior consistent.
+- Local (gitignored) `.env` updated to `VITE_API_BASE=""` + `VITE_API_PROXY_TARGET="https://localhost"` to use the new proxy. `.env.example` documents both the direct-backend mode (default, same-scheme HTTP, no proxy needed) and the nginx-fronted mode (needs the proxy) so future devs hitting this don't have to rediscover it.
+
+## [0.143.5] - 2026-09-19
+### Fix: Currency/Category/Tag/Family dropdowns opened but rendered invisible (covered by the Add Expense modal)
+
+- Follow-up to [0.143.4] below: after fixing the outside-click-closes-immediately bug, the dropdowns opened (`aria-expanded=true`, correct DOM position/size, `display/opacity` all normal) but showed nothing on screen — reproduced live via `evaluate_script` DOM inspection, not visible from a11y snapshots alone. Root cause: Radix's `Popover.Content` portal wrapper (`[data-radix-popper-content-wrapper]`) renders with `z-index: auto` by default, which paints in CSS stacking order *underneath* any positive `z-index` ancestor-sibling — here, the `AddExpenseModal`'s Radix `Dialog.Content`/`Dialog.Overlay` (`z-50`). The dropdown was correctly positioned and "visible" per computed style, just physically covered by the opaque modal card. The pre-Radix hand-rolled dropdowns had explicitly set `zIndex: 9999`; that value never got carried over in the [0.143.0]/[0.143.1] Radix migration since Radix doesn't set one by default.
+- Fixed: added `zIndex: 9999` to the same 5 dropdown-list elements touched in [0.143.4] (`FormCombobox.tsx`, `TagInput.tsx`, `CsvImportPage.tsx`'s `StringCombobox`/`TagChips`/`FamilyMultiSelect`).
+- Verified live: rebuilt and redeployed to `infrastructure/volumes/nginx/www/`, confirmed Currency and Category dropdowns render visibly and are selectable inside the Add Expense modal (screenshot-verified, not just DOM-state-verified).
+
+## [0.143.4] - 2026-09-19
+### Fix: Currency/Category/Tag/Family dropdowns wouldn't open on first click (regression from [0.143.0]/[0.143.1] Radix Popover migration)
+
+- Root cause: all 5 dropdowns migrated to `@radix-ui/react-popover` use `Popover.Anchor` (not `Popover.Trigger`) as the positioning reference, since the trigger is a plain text input, not a button. Radix only excludes the **trigger** element from its dismissable layer's outside-interaction detection (via `context.triggerRef`) — an anchor gets no such exclusion. Result: the trailing `focusin` event of the very click/focus gesture that opens the popover gets treated as a focus-*outside* interaction by the just-mounted `Popover.Content`'s dismissable layer, which immediately closes it again. Confirmed via live testing in a Chrome tab against the nginx-served build (jsdom-based unit tests didn't reproduce this — real-browser event/effect timing only) — the popover opened fine when focus was set programmatically (`el.focus()`) but not via a genuine user click.
+- Fixed in `FormCombobox.tsx`, `TagInput.tsx`, and `CsvImportPage.tsx`'s `StringCombobox`/`TagChips`/`FamilyMultiSelect`: added a `containerRef` on the `Popover.Anchor`'s wrapping `div` and an `onInteractOutside` handler on `Popover.Content` that calls `event.preventDefault()` when the interaction's target is inside that container — restoring the same "ignore clicks on my own trigger" exclusion Radix gives `Popover.Trigger` for free, without adopting `Trigger`'s button/`aria-haspopup="dialog"` semantics (wrong for a combobox).
+- Verified live: rebuilt (`npm run build:prod`) and redeployed to the local nginx static dir (`infrastructure/volumes/nginx/www/`), reproduced the bug pre-fix (Currency/Category stayed `aria-expanded=false` after a real click), confirmed fixed post-fix (dropdown opens, an option can be selected, dropdown closes) for both Currency and Category in the Add Expense modal. Full test suite still green (1275 tests, no regressions to the existing outside-click-closes-dropdown coverage); typecheck clean.
+
 ## [0.143.3] - 2026-09-19
 ### Infra: fix retired MinIO client (mc) download URL breaking `deploy-dev`
 

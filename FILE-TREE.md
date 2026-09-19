@@ -698,8 +698,8 @@ ExpenseManager/
 │       ├── tailwind.config.ts         — Hearth design system tokens (brand/surface/ink/sage/berry/mustard palette, custom fonts, shadows); darkMode: 'class'; surface+ink use CSS variable references for automatic dark-mode adaptation
 │       ├── tsconfig.json
 │       ├── tsconfig.app.json
-│       ├── tsconfig.node.json
-│       ├── vite.config.ts             — Vite bundler config with @ alias
+│       ├── tsconfig.node.json         — type-checks vite.config.ts only; `noEmit: true` (no build output needed — vite dev/build transpile vite.config.ts directly, tsc -b here is purely a type-check gate)
+│       ├── vite.config.ts             — Vite bundler config with @ alias; optional same-origin `/api` dev proxy to `VITE_API_PROXY_TARGET` when set (needed when developing against the nginx-fronted stack — see .env.example) — do NOT let this get compiled to a tracked vite.config.js (gitignored, was accidentally committed once and silently shadowed every edit since Vite prefers .js over .ts when both exist)
 │       └── vitest.config.ts           — Vitest test runner config
 │       └── src/
 │           ├── main.tsx               — React app mount point
