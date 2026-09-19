@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     openssh-client \
     && rm -rf /var/lib/apt/lists/* \
-    && curl -L -o /usr/local/bin/mc "https://dl.min.io/client/mc/release/linux-amd64/mc" \
+    && curl -L -o /usr/local/bin/mc "https://dl.min.io/aistor/mc/release/linux-amd64/mc" \
     && chmod +x /usr/local/bin/mc
 
 # Install Python dependencies for docker image updater API

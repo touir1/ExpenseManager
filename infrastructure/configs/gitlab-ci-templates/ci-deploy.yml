@@ -9,7 +9,7 @@
   script:
     # Install tools
     - apk add --no-cache curl
-    - curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/bin/mc
+    - curl -fsSL https://dl.min.io/aistor/mc/release/linux-amd64/mc -o /usr/bin/mc
     - chmod +x /usr/bin/mc
     - apk add --no-cache zip
     # Zip dist files with version

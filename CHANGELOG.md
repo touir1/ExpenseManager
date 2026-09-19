@@ -1,6 +1,12 @@
 
 # Changelog
 
+## [0.143.3] - 2026-09-19
+### Infra: fix retired MinIO client (mc) download URL breaking `deploy-dev`
+
+- `deploy-dev` GitLab CI job failed with `curl: (22) ... returned error: 410` — MinIO retired the legacy `https://dl.min.io/client/mc/release/linux-amd64/mc` distribution path as part of their "AIStor" rebrand. The `mc` client itself is unaffected/still free, only the download URL moved.
+- Fixed the URL in both places it's hardcoded: `infrastructure/configs/gitlab-ci-templates/ci-deploy.yml` (`.deploy-web-dev` job) and `infrastructure/jobs/Dockerfile` (jobs-runner image) — both now pull from `https://dl.min.io/aistor/mc/release/linux-amd64/mc`. Verified the new URL returns 200 directly (`curl -I`).
+
 ## [0.143.2] - 2026-09-19
 ### Frontend: dependency security patch pass (74 of 76 SCA findings resolved)
 
