@@ -715,12 +715,13 @@ ExpenseManager/
 │           │   ├── FieldError.tsx      — Per-field error paragraph with role="alert"
 │           │   ├── FormCombobox.tsx    — Searchable combobox (text input + listbox dropdown); positioning/dismiss/focus via @radix-ui/react-popover (Popover.Anchor wraps the input, Popover.Content portals the listbox); optional className prop; used in ExpenseForm + admin pages; full ARIA combobox pattern (role/aria-expanded/aria-activedescendant) + Arrow/Home/End/Enter/Escape/type-ahead keyboard nav (custom, kept on top of Radix)
 │           │   ├── LanguageSwitcher.tsx — Language selector dropdown wired to i18n.changeLanguage
-│           │   ├── NavBarThemeButton.tsx — Icon-only theme toggle (light↔dark only); resolves system theme via OS matchMedia; sun/moon SVG; aria-label+title; h-8 w-8 utility style; placed in NavBar right-side controls
+│           │   ├── NavBarThemeButton.tsx — Icon-only theme toggle (light↔dark only); resolves system theme via OS matchMedia; sun/moon SVG; aria-label+title; h-8 w-8 utility style; placed in AppHeader's right-side controls
 │           │   ├── PasswordInput.tsx   — Password input with show/hide toggle
 │           │   ├── PasswordStrength.tsx — Live password strength indicator (5-segment bar + checklist)
 │           │   ├── SubmitButton.tsx    — Submit button with spinner SVG and configurable labels
 │           │   ├── ThemeToggle.tsx     — Segmented 3-button control (Day/Default/Dark); uses useTheme(); aria-pressed; active = brand-500
 │           │   ├── Toast.tsx           — Toast notification provider and hook; each toast has role="status"/aria-live="polite" (info/success) or role="alert"/aria-live="assertive" (error)
+│           │   ├── UserMenu.tsx        — Language switcher + sign out; rendered inside SideNav's user-card Radix Popover (extracted from the old NavBar dropdown)
 │           │   └── __tests__/
 │           │       ├── BackLink.test.tsx
 │           │       ├── EmptyState.test.tsx
@@ -731,7 +732,8 @@ ExpenseManager/
 │           │       ├── PasswordInput.test.tsx
 │           │       ├── PasswordStrength.test.tsx
 │           │       ├── SubmitButton.test.tsx
-│           │       └── Toast.test.tsx
+│           │       ├── Toast.test.tsx
+│           │       └── UserMenu.test.tsx
 │           ├── lib/
 │           │   └── utils.ts           — cn() helper (clsx + tailwind-merge); shadcn/ui-style class merge, used by Radix-based components
 │           ├── i18n/                  — Internationalisation (react-i18next)
@@ -880,7 +882,8 @@ ExpenseManager/
 │           │   │   │   └── __tests__/
 │           │   │   │       └── categoryColors.test.ts — 11 tests: CHART_COLORS (length/hex/unique), getCategoryColor (fallback/determinism/modulo/shape/palette membership)
 │           │   │   ├── components/
-│           │   │   │   ├── MonthHero.tsx        — Summary card: total, ±% delta chip, expense count, top category pill
+│           │   │   │   ├── StatCard.tsx          — MUI-template-style compact KPI card (label, value, optional trend chip); used for the dashboard's 4-card stat row (total spend, expense count, avg/day, vs-previous-period) — replaces MonthHero
+│           │   │   │   ├── DashboardDetails.tsx   — Tabbed bottom section (Recent/Largest/Upcoming Recurring) hosting RecentExpenses/LargestExpenses/UpcomingRecurring as tab panels (role=tablist/tab/tabpanel, hidden attr for inactive panels)
 │           │   │   │   ├── SpendChart.tsx        — Monthly stacked bar + average line (Recharts ComposedChart); renders a ChartDataTable sr-only fallback
 │           │   │   │   ├── CategoryDonut.tsx     — Donut chart + legend (Recharts PieChart); design-palette colors; legend shows amount + percentage; optional displayCurrency prop for converted totals; renders a ChartDataTable sr-only fallback
 │           │   │   │   ├── SameMonthChart.tsx    — Year-over-year bar chart (Recharts BarChart); renders a ChartDataTable sr-only fallback
@@ -891,7 +894,8 @@ ExpenseManager/
 │           │   │   │   ├── UpcomingRecurring.tsx — Next 5 upcoming recurring payments; relative due label (Due today/Due tomorrow/In N days); category pill; EmptyState compact fallback; due+non-autoCreate items get a "Confirm" button _(new)_ (calls confirm(id), invalidates ['dashboard'] queries); autoCreate items show an "Auto" text badge _(new)_
 │           │   │   │   ├── DashboardFilters.tsx  — Family + display-currency + date-range selectors; "This month"/"This year" presets
 │           │   │   │   └── __tests__/
-│           │   │   │       ├── MonthHero.test.tsx
+│           │   │   │       ├── StatCard.test.tsx
+│           │   │   │       ├── DashboardDetails.test.tsx
 │           │   │   │       ├── SpendChart.test.tsx
 │           │   │   │       ├── CategoryDonut.test.tsx
 │           │   │   │       ├── SameMonthChart.test.tsx
@@ -901,7 +905,7 @@ ExpenseManager/
 │           │   │   │       ├── UpcomingRecurring.test.tsx
 │           │   │   │       └── DashboardFilters.test.tsx
 │           │   │   └── pages/
-│           │   │       ├── HomeDashboardPage.tsx — Hearth layout; 8 useQuery calls; DashboardFilters + MonthHero + SpendChart + CategoryDonut + SameMonthChart + CurrenciesPanel + RecentExpenses + LargestExpenses + UpcomingRecurring
+│           │   │       ├── HomeDashboardPage.tsx — MUI-dashboard-template regrid (see docs/plans/mui-dashboard-skeleton-plan.md): header row (greeting + DashboardFilters) → StatCard row (4) → 2:1 chart row (SpendChart+CategoryDonut) → 2:1 chart row (SameMonthChart+CurrenciesPanel) → DashboardDetails tabs (Recent/Largest/UpcomingRecurring); 8 useQuery calls
 │           │   │       ├── SettingsPage.tsx       — Settings hub; password card (link to /change-password); recurring-expenses card _(new)_ (link to /recurring-expenses); default-currency card; theme card (ThemeToggle); default-category card; default-expense-date card; notification-preferences card; data-export card; account-deletion card; DefaultCsvColumnMappingCard — editable rawHeader/canonicalField row list (add/remove/edit), Save/Saved✓ + Clear default mapping, backed by GET/PUT/DELETE /config/csv-column-mapping
 │           │   │       └── __tests__/
 │           │   │           ├── HomeDashboardPage.test.tsx
@@ -997,12 +1001,16 @@ ExpenseManager/
 │           │   └── __tests__/
 │           │       ├── usePageTitle.test.ts
 │           │       └── useReturnFocusOnUnmount.test.tsx
-│           ├── layouts/               — App-wide layout components
-│           │   ├── NavBar.tsx          — Auth-aware nav; desktop + mobile responsive; "Admin" link shown only when isAdmin=true; right-side controls: FamilySelector → DisplayCurrencySelector → Add Expense `+` button → notification bell → NavBarThemeButton → user avatar dropdown
-│           │   ├── RootLayout.tsx      — Pathless data-router layout: ToastProvider + ErrorBinder + AppProviders + NavBar + <main><Outlet /></main>; required for useBlocker data-router context
+│           ├── layouts/               — App-wide layout components (MUI-dashboard-template skeleton: sidebar shell for authenticated pages, top bar for marketing/auth pages — see docs/plans/mui-dashboard-skeleton-plan.md)
+│           │   ├── SideNav.tsx         — Authenticated persistent left sidebar (desktop) / overlay drawer (mobile, focus trap + Escape); logo, primary nav (Dashboard/Expenses/Families/Admin if isAdmin), Settings, bottom user card (avatar+name+email) opening UserMenu via Radix Popover
+│           │   ├── AppHeader.tsx       — Slim top bar for authenticated pages: mobile nav toggle, route-derived page title, right cluster (FamilySelector/DisplayCurrencySelector on dashboard+expenses routes, +Add expense, NotificationBell, NavBarThemeButton)
+│           │   ├── MarketingHeader.tsx — Top bar for logged-out pages (marketing links, Sign in/Get started, mobile hamburger menu); replaces NavBar's unauthenticated branch
+│           │   ├── RootLayout.tsx      — Pathless data-router layout: ToastProvider + ErrorBinder + AppProviders + Shell (MarketingHeader when !isAuthenticated, else SideNav+AppHeader) + <main><Outlet /></main>; required for useBlocker data-router context
 │           │   └── __tests__/
-│           │       ├── NavBar.test.tsx
-│           │       └── RootLayout.test.tsx — 4 tests: renders NavBar/AppProviders/Outlet in main/flex classes
+│           │       ├── SideNav.test.tsx
+│           │       ├── AppHeader.test.tsx
+│           │       ├── MarketingHeader.test.tsx
+│           │       └── RootLayout.test.tsx — renders MarketingHeader when unauthenticated, SideNav+AppHeader when authenticated
 │           ├── services/              — Shared base services
 │           │   ├── api.service.ts     — Base fetch wrapper with cookie auth, transparent refresh-and-retry on 401, and skipUnauthorized option
 │           │   └── __tests__/

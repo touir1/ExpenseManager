@@ -166,6 +166,9 @@
             "topCategory": "Mayor gasto:",
             "comparedTo": "Comparado con {{period}}"
         },
+        "stats": {
+            "avgPerDay": "Promedio diario"
+        },
         "charts": {
             "monthly": "Gastos mensuales",
             "categories": "Por categoría",

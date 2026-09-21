@@ -1,6 +1,14 @@
 
 # Changelog
 
+## [0.145.0] - 2026-09-21
+### Dashboard: adopt MUI dashboard template skeleton (sidebar shell + stat cards)
+
+- Restructured the frontend shell to match the MUI dashboard template's layout (colors untouched — see `docs/plans/mui-dashboard-skeleton-plan.md`). Authenticated pages now get a persistent left `SideNav` (logo, primary nav, Settings, user card + popover) and a slim `AppHeader` (page title, FamilySelector/DisplayCurrencySelector on dashboard/expenses, +Add, notifications, theme toggle) instead of the old full-width horizontal `NavBar`. Logged-out pages keep a simple top bar, now `MarketingHeader`. Mobile: sidebar becomes an overlay drawer (focus trap + Escape, ported from the old mobile menu) opened from `AppHeader`'s hamburger button.
+- `layouts/NavBar.tsx` retired, split into `layouts/SideNav.tsx`, `layouts/AppHeader.tsx`, `layouts/MarketingHeader.tsx`, and `components/UserMenu.tsx` (language switcher + sign out, shown from the sidebar's user-card popover via `@radix-ui/react-popover`).
+- `HomeDashboardPage` regridded: header row (greeting + `DashboardFilters`) → 4-card stat row (`StatCard`: total spend, expense count, avg/day, vs-previous-period) → two 2:1 chart rows (`SpendChart`+`CategoryDonut`, `SameMonthChart`+`CurrenciesPanel`) → `DashboardDetails` tabbed section (Recent / Largest / Upcoming Recurring) at the bottom. `MonthHero` retired — its total-spend/trend logic now lives in the stat-card row.
+- Added `dashboard.stats.avgPerDay` i18n key (en/fr/es/de).
+
 ## [0.144.0] - 2026-09-21
 ### CI: replace OWASP Dependency-Check with Trivy for SCA scanning
 

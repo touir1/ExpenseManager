@@ -166,6 +166,9 @@
             "topCategory": "Höchste Ausgabe:",
             "comparedTo": "Verglichen mit {{period}}"
         },
+        "stats": {
+            "avgPerDay": "Ø pro Tag"
+        },
         "charts": {
             "monthly": "Monatliche Ausgaben",
             "categories": "Nach Kategorie",

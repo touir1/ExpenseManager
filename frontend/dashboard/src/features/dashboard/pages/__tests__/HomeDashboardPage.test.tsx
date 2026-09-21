@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import HomeDashboardPage from '@/features/dashboard/pages/HomeDashboardPage'
@@ -147,27 +148,43 @@ describe('HomeDashboardPage', () => {
     await waitFor(() => expect(screen.getByTestId('bar-chart')).toBeInTheDocument())
   })
 
-  it('renders RecentExpenses and LargestExpenses section links', async () => {
+  it('renders the stat-card row', async () => {
     renderPage()
-    await waitFor(() => expect(screen.getAllByRole('link', { name: /view all/i }).length).toBe(2))
+    const stats = await screen.findByTestId('dashboard-stats')
+    expect(stats).toBeInTheDocument()
   })
 
-  it('renders the widget grid with responsive column classes', async () => {
+  it('shows total spend, expense count and avg/day stat cards', async () => {
     renderPage()
-    const grid = await screen.findByTestId('dashboard-grid')
-    expect(grid).toHaveClass('grid-cols-1')
-    expect(grid).toHaveClass('md:grid-cols-2')
-    expect(grid).toHaveClass('lg:grid-cols-3')
-    expect(grid).toHaveClass('xl:grid-cols-4')
+    const stats = await screen.findByTestId('dashboard-stats')
+    await waitFor(() => {
+      const digitsOnly = stats.textContent!.replace(/[\s,.]/g, '')
+      expect(digitsOnly).toContain('2430')
+    })
+    expect(screen.getByText('42')).toBeInTheDocument()
   })
 
-  it('renders widgets in the expected visual hierarchy order', async () => {
+  it('renders the details tabs, defaulting to Recent expenses with its View all link', async () => {
     renderPage()
-    const grid = await screen.findByTestId('dashboard-grid')
-    const order = ['widget-month-hero', 'widget-spend-chart', 'widget-category-donut', 'widget-same-month-chart', 'widget-recent-expenses', 'widget-largest-expenses', 'widget-currencies-panel', 'widget-upcoming-recurring']
-    const indices = order.map(id => Array.from(grid.children).findIndex(el => el.getAttribute('data-testid') === id))
-    expect(indices).toEqual([...indices].sort((a, b) => a - b))
-    expect(indices.every(i => i >= 0)).toBe(true)
+    expect(await screen.findByRole('tab', { name: /recent expenses/i })).toHaveAttribute('aria-selected', 'true')
+    expect(await screen.findByRole('link', { name: /view all/i })).toBeInTheDocument()
+  })
+
+  it('switches to Largest expenses tab and shows its View all link', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByRole('tab', { name: /recent expenses/i })
+    await user.click(screen.getByRole('tab', { name: /largest expenses/i }))
+    expect(screen.getByRole('tab', { name: /largest expenses/i })).toHaveAttribute('aria-selected', 'true')
+    expect(await screen.findByRole('link', { name: /view all/i })).toBeInTheDocument()
+  })
+
+  it('switches to Upcoming recurring tab', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByRole('tab', { name: /recent expenses/i })
+    await user.click(screen.getByRole('tab', { name: /upcoming recurring/i }))
+    expect(screen.getByRole('tab', { name: /upcoming recurring/i })).toHaveAttribute('aria-selected', 'true')
   })
 
   it('renders EmptyDashboard with a CTA when there is no data', async () => {
@@ -189,6 +206,6 @@ describe('HomeDashboardPage', () => {
     renderPage()
     await waitFor(() => expect(screen.getByRole('button', { name: /add/i })).toBeInTheDocument())
     expect(screen.getByText('💸')).toBeInTheDocument()
-    expect(screen.queryByTestId('dashboard-grid')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('dashboard-stats')).not.toBeInTheDocument()
   })
 })

@@ -166,6 +166,9 @@
             "topCategory": "Top dépense :",
             "comparedTo": "Comparé à {{period}}"
         },
+        "stats": {
+            "avgPerDay": "Moy. par jour"
+        },
         "charts": {
             "monthly": "Dépenses mensuelles",
             "categories": "Par catégorie",

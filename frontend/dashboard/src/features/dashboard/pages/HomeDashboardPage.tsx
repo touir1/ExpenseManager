@@ -16,7 +16,6 @@ import {
   getLargest,
   getUpcomingRecurring,
 } from '@/features/dashboard/services/dashboardApi.service'
-import { MonthHero } from '@/features/dashboard/components/MonthHero'
 import { SpendChart } from '@/features/dashboard/components/SpendChart'
 import { CategoryDonut } from '@/features/dashboard/components/CategoryDonut'
 import { SameMonthChart } from '@/features/dashboard/components/SameMonthChart'
@@ -25,7 +24,10 @@ import { RecentExpenses } from '@/features/dashboard/components/RecentExpenses'
 import { LargestExpenses } from '@/features/dashboard/components/LargestExpenses'
 import { UpcomingRecurring } from '@/features/dashboard/components/UpcomingRecurring'
 import { DashboardFilters } from '@/features/dashboard/components/DashboardFilters'
+import { StatCard } from '@/features/dashboard/components/StatCard'
+import { DashboardDetails } from '@/features/dashboard/components/DashboardDetails'
 import EmptyState from '@/components/EmptyState'
+import { formatAmountDisplay } from '@/features/expenses/utils/amountFormat'
 import type { DashboardFilter } from '@/features/dashboard/types/dashboard.type'
 
 function todayStr(): string {
@@ -35,6 +37,13 @@ function todayStr(): string {
 function startOfMonthStr(): string {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`
+}
+
+function rangeDays(dateFrom?: string, dateTo?: string): number {
+  if (!dateFrom) return 1
+  const from = new Date(dateFrom + 'T00:00:00')
+  const to = dateTo ? new Date(dateTo + 'T00:00:00') : new Date()
+  return Math.max(1, Math.round((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)) + 1)
 }
 
 function getPreviousPeriodLabel(dateFrom?: string, dateTo?: string): string {
@@ -136,6 +145,20 @@ export default function HomeDashboardPage() {
     ? t('dashboard.summary.comparedTo', { period: previousPeriodLabel })
     : undefined
 
+  const showConverted = summary?.convertedTotal != null && summary?.displayCurrency != null
+  const mainAmount = showConverted ? summary!.convertedTotal! : summary?.totalAmount ?? 0
+  const mainCurrency = showConverted ? summary!.displayCurrency! : null
+  const mainDecimals = mainCurrency?.decimals ?? 2
+  const totalValue = `${mainCurrency?.symbol ?? ''} ${formatAmountDisplay(mainAmount, mainDecimals)}`.trim()
+
+  const expenseCount = summary?.expenseCount ?? 0
+  const days = rangeDays(dateFrom, dateTo)
+  const avgPerDay = expenseCount > 0 ? mainAmount / days : 0
+  const avgValue = `${mainCurrency?.symbol ?? ''} ${formatAmountDisplay(avgPerDay, mainDecimals)}`.trim()
+
+  const changePercent = summary?.changePercent
+  const changePositive = (changePercent ?? 0) >= 0
+
   const handleFilterChange = (f: DashboardFilter) => {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev)
@@ -157,68 +180,83 @@ export default function HomeDashboardPage() {
 
   return (
     <div className="max-w-6xl xl:max-w-7xl 2xl:max-w-[1800px] mx-auto w-full px-4 sm:px-6 py-8">
-      <div className="mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <h1 className="text-2xl font-semibold text-ink tracking-tight">
           {t('dashboard.greeting', { name })}
         </h1>
+        <DashboardFilters filter={{ ...dateFilter }} onChange={handleFilterChange} />
       </div>
-
-      <DashboardFilters filter={{ ...dateFilter }} onChange={handleFilterChange} />
 
       {isEmpty ? (
         <EmptyDashboard onAddExpense={() => navigate('/expenses/add')} />
       ) : (
-        // Widget grid: each cell declares a DashboardWidgetSpan (base/md/lg/xl col-span) instead
-        // of living in a hand-built row, so new widgets (see dashboard-new-charts-plan.md) just
-        // drop in with their own span rather than requiring a new row layout.
-        <div
-          data-testid="dashboard-grid"
-          className="grid grid-cols-1 md:grid-cols-2 md:grid-flow-dense lg:grid-cols-3 lg:grid-flow-row xl:grid-cols-4 gap-4 xl:gap-6 2xl:gap-8"
-        >
-          <div data-testid="widget-month-hero" className="col-span-1 md:col-span-2 lg:col-span-1 xl:col-span-1">
-            <MonthHero data={summary} isLoading={summaryQ.isLoading} comparedToLabel={comparedToLabel} />
-          </div>
-
-          <div data-testid="widget-spend-chart" className="col-span-1 md:col-span-2 lg:col-span-2 xl:col-span-2">
-            <SpendChart
-              data={monthly}
-              isLoading={monthlyQ.isLoading}
-              displayCurrency={displayCurrency}
+        <div className="flex flex-col gap-4 xl:gap-6">
+          {/* Stat-card row */}
+          <div data-testid="dashboard-stats" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-6">
+            <StatCard
+              label={t('dashboard.summary.total')}
+              value={totalValue}
+              isLoading={summaryQ.isLoading}
+            />
+            <StatCard
+              label={t('dashboard.summary.expenses')}
+              value={expenseCount}
+              isLoading={summaryQ.isLoading}
+            />
+            <StatCard
+              label={t('dashboard.stats.avgPerDay')}
+              value={avgValue}
+              isLoading={summaryQ.isLoading}
+            />
+            <StatCard
+              label={t('dashboard.summary.vs')}
+              value={changePercent != null ? `${changePositive ? '+' : ''}${changePercent.toFixed(1)}%` : '—'}
+              isLoading={summaryQ.isLoading}
+              trend={
+                changePercent != null
+                  ? { text: changePositive ? '↑' : '↓', positive: changePositive, title: comparedToLabel }
+                  : undefined
+              }
             />
           </div>
 
-          <div data-testid="widget-category-donut" className="col-span-1 md:col-span-1 lg:col-span-1 xl:col-span-1">
-            <CategoryDonut
-              data={categories}
-              isLoading={categoriesQ.isLoading}
-              displayCurrency={displayCurrency}
-              onCategoryClick={handleCategoryClick}
+          {/* Chart row 1: wide primary + narrow secondary */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 xl:gap-6">
+            <div data-testid="widget-spend-chart" className="lg:col-span-2">
+              <SpendChart data={monthly} isLoading={monthlyQ.isLoading} displayCurrency={displayCurrency} />
+            </div>
+            <div data-testid="widget-category-donut" className="lg:col-span-1">
+              <CategoryDonut
+                data={categories}
+                isLoading={categoriesQ.isLoading}
+                displayCurrency={displayCurrency}
+                onCategoryClick={handleCategoryClick}
+              />
+            </div>
+          </div>
+
+          {/* Chart row 2: wide primary + narrow secondary */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 xl:gap-6">
+            <div data-testid="widget-same-month-chart" className="lg:col-span-2">
+              <SameMonthChart
+                data={sameMonth}
+                isLoading={sameMonthQ.isLoading}
+                selectedMonth={currentMonth}
+                displayCurrency={displayCurrency}
+              />
+            </div>
+            <div data-testid="widget-currencies-panel" className="lg:col-span-1">
+              <CurrenciesPanel data={currencies} isLoading={currenciesQ.isLoading} displayCurrency={displayCurrency} />
+            </div>
+          </div>
+
+          {/* Details: tabbed data section, full width */}
+          <div data-testid="widget-dashboard-details">
+            <DashboardDetails
+              recent={<RecentExpenses data={recentItems} isLoading={recentQ.isLoading} />}
+              largest={<LargestExpenses data={largestItems} isLoading={largestQ.isLoading} />}
+              recurring={<UpcomingRecurring data={upcomingRecurring} isLoading={upcomingRecurringQ.isLoading} />}
             />
-          </div>
-
-          <div data-testid="widget-same-month-chart" className="col-span-1 md:col-span-2 lg:col-span-2 xl:col-span-2">
-            <SameMonthChart
-              data={sameMonth}
-              isLoading={sameMonthQ.isLoading}
-              selectedMonth={currentMonth}
-              displayCurrency={displayCurrency}
-            />
-          </div>
-
-          <div data-testid="widget-recent-expenses" className="col-span-1 md:col-span-1 lg:col-span-1 xl:col-span-1">
-            <RecentExpenses data={recentItems} isLoading={recentQ.isLoading} />
-          </div>
-
-          <div data-testid="widget-largest-expenses" className="col-span-1 md:col-span-1 lg:col-span-1 xl:col-span-1">
-            <LargestExpenses data={largestItems} isLoading={largestQ.isLoading} />
-          </div>
-
-          <div data-testid="widget-currencies-panel" className="col-span-1 md:col-span-1 lg:col-span-1 xl:col-span-1">
-            <CurrenciesPanel data={currencies} isLoading={currenciesQ.isLoading} displayCurrency={displayCurrency} />
-          </div>
-
-          <div data-testid="widget-upcoming-recurring" className="col-span-1 md:col-span-1 lg:col-span-1 xl:col-span-1">
-            <UpcomingRecurring data={upcomingRecurring} isLoading={upcomingRecurringQ.isLoading} />
           </div>
         </div>
       )}

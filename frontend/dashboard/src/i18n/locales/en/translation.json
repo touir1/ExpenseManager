@@ -166,6 +166,9 @@
                                       "topCategory":  "Top spending:",
                                       "comparedTo":  "Compared to {{period}}"
                                   },
+                      "stats":  {
+                                    "avgPerDay":  "Avg per day"
+                                },
                       "charts":  {
                                      "monthly":  "Monthly spending",
                                      "categories":  "By category",
