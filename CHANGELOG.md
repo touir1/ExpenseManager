@@ -1,6 +1,13 @@
 
 # Changelog
 
+## [0.144.0] - 2026-09-21
+### CI: replace OWASP Dependency-Check with Trivy for SCA scanning
+
+- `infrastructure/configs/gitlab-ci-templates/ci-security.yml`'s `.sca` job switched from `owasp/dependency-check` to `aquasec/trivy` (`trivy fs --scanners vuln`) — drops the `NVD_API_KEY`/OSS Index credential dependency and the 2h dependency-check timeout (now 30m). Report written to `trivy-report/trivy-report.json`; summary/detail printing mirrors the old severity-bucketed jq output.
+- Per-project `.gitlab-ci.yml` (`backend/expenses`, `backend/notifications`, `backend/users`, `frontend/dashboard`, `frontend/mobile`) dropped the now-unused `OWASP_PROJECT_NAME` variable and `dependency-check-cache` anchor/cache block on their `.sca`-extending jobs.
+- Fixed during review: the job called `jq` without installing it (the old dependency-check image also lacked jq, but that script installed it — this migration dropped that step, which would have failed every run on the jq-less `trivy` image); re-added the same `wget`-a-static-binary install guard. Also removed a redundant second full `trivy fs` invocation that re-scanned the whole repo just to get a fail/pass exit code — the HIGH/CRITICAL gate now reads the count straight out of the JSON report already produced by the first scan.
+
 ## [0.143.7] - 2026-09-19
 ### Fix: stale committed `vite.config.js` shadowing `vite.config.ts`, breaking the dev-server API proxy
 
