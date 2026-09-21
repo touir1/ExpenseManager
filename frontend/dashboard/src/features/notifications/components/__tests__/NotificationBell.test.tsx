@@ -74,9 +74,9 @@ describe('NotificationBell', () => {
   })
 
   describe('touch target', () => {
-    it('meets the 40px touch target size on the bell button', () => {
+    it('matches the 32px size of the theme toggle and context selectors it sits beside in AppHeader', () => {
       renderBell()
-      expect(screen.getByRole('button', { name: /notifications/i })).toHaveClass('h-10', 'w-10')
+      expect(screen.getByRole('button', { name: /notifications/i })).toHaveClass('h-8', 'w-8')
     })
   })
 

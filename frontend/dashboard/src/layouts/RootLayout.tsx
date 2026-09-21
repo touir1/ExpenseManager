@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import { AppProviders } from '@/providers/AppProviders'
 import { useAuth } from '@/features/auth/AuthContext'
@@ -6,7 +6,6 @@ import MarketingHeader from '@/layouts/MarketingHeader'
 import SideNav from '@/layouts/SideNav'
 import AppHeader from '@/layouts/AppHeader'
 import { onError } from '@/services/api.service'
-import { useEffect } from 'react'
 import { ToastProvider, useToast } from '@/components/Toast'
 
 function ErrorBinder() {

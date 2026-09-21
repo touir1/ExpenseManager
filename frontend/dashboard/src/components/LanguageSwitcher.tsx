@@ -91,7 +91,7 @@ export default function LanguageSwitcher({ placement = 'down' }: Props) {
         <div
           role="menu"
           aria-label={t('language.label')}
-          className={`${dropdownClass} w-36 bg-surface-card border border-surface-border rounded-xl py-1 z-50 shadow-lg`}
+          className={`${dropdownClass} w-36 bg-surface-card border border-surface-border rounded-xl py-1 z-50 shadow-lg overflow-hidden`}
         >
           {LANGUAGES.map(({ code, key, Flag }) => (
             <button

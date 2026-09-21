@@ -27,7 +27,6 @@ import { DashboardFilters } from '@/features/dashboard/components/DashboardFilte
 import { StatCard } from '@/features/dashboard/components/StatCard'
 import { DashboardDetails } from '@/features/dashboard/components/DashboardDetails'
 import EmptyState from '@/components/EmptyState'
-import { formatAmountDisplay } from '@/features/expenses/utils/amountFormat'
 import type { DashboardFilter } from '@/features/dashboard/types/dashboard.type'
 
 function todayStr(): string {
@@ -149,12 +148,12 @@ export default function HomeDashboardPage() {
   const mainAmount = showConverted ? summary!.convertedTotal! : summary?.totalAmount ?? 0
   const mainCurrency = showConverted ? summary!.displayCurrency! : null
   const mainDecimals = mainCurrency?.decimals ?? 2
-  const totalValue = `${mainCurrency?.symbol ?? ''} ${formatAmountDisplay(mainAmount, mainDecimals)}`.trim()
+  const totalValue = `${mainCurrency?.symbol ?? ''} ${mainAmount.toFixed(mainDecimals)}`.trim()
 
   const expenseCount = summary?.expenseCount ?? 0
   const days = rangeDays(dateFrom, dateTo)
   const avgPerDay = expenseCount > 0 ? mainAmount / days : 0
-  const avgValue = `${mainCurrency?.symbol ?? ''} ${formatAmountDisplay(avgPerDay, mainDecimals)}`.trim()
+  const avgValue = `${mainCurrency?.symbol ?? ''} ${avgPerDay.toFixed(mainDecimals)}`.trim()
 
   const changePercent = summary?.changePercent
   const changePositive = (changePercent ?? 0) >= 0

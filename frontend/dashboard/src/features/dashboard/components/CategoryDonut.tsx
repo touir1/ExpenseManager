@@ -111,20 +111,22 @@ export function CategoryDonut({ data, isLoading, displayCurrency, onCategoryClic
             {data.slice(0, 6).map((item, i) => (
               <li
                 key={i}
-                className={`flex items-center gap-2 min-w-0 rounded-lg transition-colors ${
+                className={`flex flex-col gap-0.5 min-w-0 rounded-lg transition-colors ${
                   clickable ? 'cursor-pointer hover:bg-surface-subtle px-1.5 -mx-1.5 py-0.5' : ''
                 }`}
                 onClick={clickable ? () => onCategoryClick!(item.category?.id ?? null) : undefined}
                 title={clickable ? t('dashboard.charts.drillDown') : undefined}
               >
-                <span
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{ backgroundColor: getCategoryColor(item.category?.id).text }}
-                />
-                <span className="text-xs text-ink-body truncate flex-1">
-                  {item.category?.name ?? t('expenses.uncategorised')}
+                <span className="flex items-center gap-2 min-w-0">
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: getCategoryColor(item.category?.id).text }}
+                  />
+                  <span className="text-xs text-ink-body truncate">
+                    {item.category?.name ?? t('expenses.uncategorised')}
+                  </span>
                 </span>
-                <span className="text-xs font-semibold text-ink shrink-0 tabular-nums">
+                <span className="text-xs font-semibold text-ink tabular-nums pl-4">
                   {displayCurrency
                     ? `${displayCurrency.symbol} ${(item.convertedTotal ?? item.totalAmount).toFixed(displayCurrency.decimals)} (${item.percentage.toFixed(0)}%)`
                     : `${item.totalAmount.toFixed(2)} (${item.percentage.toFixed(0)}%)`}

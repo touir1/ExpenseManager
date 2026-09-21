@@ -1,6 +1,16 @@
 
 # Changelog
 
+## [0.145.1] - 2026-09-21
+### Fix: dashboard-redesign follow-up — oversized icons, truncated legend, mixed decimal separators, clipped language menu
+
+- Fixed a latent bug carried over into the [0.145.0] redesign: `h-4.5 w-4.5` isn't a real Tailwind utility (not in the default spacing scale, no custom entry in `tailwind.config.ts`), so it silently generated no CSS rule — icons using it had no explicit size and stretched to fill their button/wrapper. In `SideNav.tsx` (5 nav icons) this was fully exposed (icons rendered ~300px, pushing labels aside); in `NavBarThemeButton.tsx`, `NotificationBell.tsx`, and `SettingsPage.tsx` (7 icons) it was masked by fixed-size parent wrappers but still wrong. All changed to `h-4 w-4` (16px), matching the already-correct Add-expense button icon.
+- `SideNav.tsx`: fixed an a11y bug where the desktop primary nav was mislabeled `aria-label="Mobile navigation"` (wrong i18n key reused for both contexts) and the mobile drawer nested two `navigation` landmarks (outer wrapper div + inner `<nav>`); merged Settings into the single primary `<nav>` and dropped the redundant outer landmark.
+- `AppHeader.tsx` toolbar: `NotificationBell`'s button shrunk from `h-10 w-10` (40px) to `h-8 w-8` (32px) to match the theme toggle and the My-expenses/currency selectors it sits beside — keeps the Add-expense CTA (40px, brand-colored) as the one visually prominent primary action instead of three mismatched icon-button sizes. `NotificationBell.test.tsx`'s touch-target test updated to assert the new size.
+- `CategoryDonut.tsx`: legend rows were `flex items-center` (dot + name + amount all on one line), so category names truncated hard ("Bills and Subs...") once the widget narrowed to 1/3-width in the new grid. Changed to a two-line layout (name row, amount+percentage row below) so the full name gets the row's whole width.
+- `HomeDashboardPage.tsx`: the new stat cards used `formatAmountDisplay` (locale-aware `toLocaleString`, e.g. "€ 400,71" with a comma) while every other dashboard widget (expense list, category/currency panels) uses plain `.toFixed()` (e.g. "€ 90.00" with a dot) — same screen, two decimal conventions. Stat cards switched to `.toFixed()` to match.
+- `LanguageSwitcher.tsx` + `UserMenu.tsx`: the language dropdown always opened downward (`top-full`); inside the sidebar's user-menu popover (anchored near the bottom of the screen) that pushed it off the bottom edge. Wired up the component's existing (previously unused) `placement="up"` prop in `UserMenu.tsx`. Separately, the dropdown container had no `overflow-hidden`, so the selected item's square-cornered highlight poked past the container's `rounded-xl` corners when it was the first/last row — added `overflow-hidden`.
+
 ## [0.145.0] - 2026-09-21
 ### Dashboard: adopt MUI dashboard template skeleton (sidebar shell + stat cards)
 

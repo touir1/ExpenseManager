@@ -12,7 +12,7 @@ export default function UserMenu({ onLogout }: Readonly<Props>) {
     <div className="w-56 py-1.5">
       <div className="px-3 py-1.5 flex items-center gap-2">
         <span className="text-sm font-semibold text-ink-mute shrink-0">{t('language.label')}</span>
-        <LanguageSwitcher />
+        <LanguageSwitcher placement="up" />
       </div>
       <div className="border-t border-surface-border my-1" />
       <button
